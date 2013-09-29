@@ -1,7 +1,7 @@
 package core;
 import jQuery.*;
 import ui.*;
-	
+
 class ProjectAccess
 {
 	public static function createNewProject()
@@ -34,6 +34,36 @@ class ProjectAccess
 	public static function openProject()
 	{
 		trace("open a project");
+
+		var modal = new Modal();
+		modal.id='projectAccess_openProject';
+		modal.title= 'Open Project';
+		modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
+		modal.ok_text = "Open";
+		modal.cancel_text = "Cancel";
+		modal.show();
+
+		var file_input = new JQuery("#ProjectAccess_openProject_file");
+		file_input.click();
+		file_input.change(function(event)
+			{
+			if (file_input.val() != "")
+				{
+				Main.session.current_project_xml = file_input.val();
+				modal.hide();
+				parseProject();
+				}
+			});
+	}
+
+	public static function parseProject()
+	{
+		trace('parse the project');
+		//trace(Main.session.current_project_xml);
+		
+		// if file is xml, convert to hxml
+		var test_extension = Main.session.current_project_xml.split(".");
+		trace (test_extension);
 	}
 	
 	public static function configureProject()
