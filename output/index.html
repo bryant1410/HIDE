@@ -1,0 +1,52 @@
+<html>
+	<head>
+		<title>HIDE - an Haxe IDE written using Haxe</title>
+	
+		<script type="text/javascript" src="./includes/js/jquery/jquery-2.0.2.min.js"></script>
+		<script type="text/javascript" src="./includes/js/ide.js"></script>
+
+		<!-- bootstrap -->
+		<script src="./includes/js/bootstrap/bootstrap.min.js"></script>	
+		<link href="./includes/css/bootstrap.min.css" rel="stylesheet" media="screen">
+		<link href="./includes/css/bootstrap-glyphicons.css" rel="stylesheet" media="screen">
+		
+		
+
+		
+	</head>
+
+    <body style="margin-top:50px;">
+    <div id="haxe:trace"></div>
+		<div class="navbar navbar-default navbar-inverse navbar-fixed-top">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="#">HFIDE</a>
+			</div>
+			<div class="navbar-collapse collapse">
+				<ul id="position-navbar" class="nav navbar-nav">
+				</ul>
+				
+				<!--
+				<ul class="nav navbar-nav navbar-right">
+					<li><a href="../navbar/">Default</a></li>
+					<li><a href="../navbar-static-top/">Static top</a></li>
+					<li class="active"><a href="./">Fixed top</a></li>
+				</ul>
+				-->
+			</div><!--/.nav-collapse -->
+		</div> <!-- /nav -->
+    	
+    	<div style="position:absolute;top:50px;left:0px;width:100%;z-index:999;" id='notify_position'></div>
+
+		<ul id="tabs_position" class="nav nav-tabs" style="padding-left:10px;padding-right:10px;padding-top:10px;min-height:50px;">
+		</ul>		
+		
+		
+		<div id='tabs_content_position'>
+		</div>		
+		
+		
+
+		<div id='modal_position'>
+		</div>
+    </body>
+</html>
