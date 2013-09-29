@@ -49,9 +49,20 @@ class ProjectAccess
 			if (file_input.val() != "")
 				{
 				Main.session.current_project_xml = file_input.val();
-				
+				modal.hide();
+				parseProject();
 				}
 			});
+	}
+
+	public static function parseProject()
+	{
+		trace('parse the project');
+		//trace(Main.session.current_project_xml);
+		
+		// if file is xml, convert to hxml
+		var test_extension = Main.session.current_project_xml.split(".");
+		trace (test_extension);
 	}
 	
 	public static function configureProject()
