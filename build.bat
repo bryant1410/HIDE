@@ -1,0 +1,2 @@
+haxe compile.hxml
+pause

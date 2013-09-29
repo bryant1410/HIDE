@@ -1,0 +1,4 @@
+-cp src
+-lib jQueryExtern
+-js bin/includes/js/ide.js
+-main Main

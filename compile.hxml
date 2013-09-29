@@ -1,3 +1,3 @@
--js ./output/includes/js/ide.js
+-js ./bin/includes/js/ide.js
 -lib jQueryExtern
 -main Main
