@@ -9,17 +9,27 @@ import jQuery.JQuery;
 class MenuItem
 {
 	var text:String;
-	var onClickFunction:String;
+	var onClickFunctionName:String;
+	var onClickFunction:Void->Void;
 	
-	public function new(_text:String, _onClickFunction:String)
+	public function new(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void)
 	{
 		text = _text;
+		onClickFunctionName = _onClickFunctionName;
 		onClickFunction = _onClickFunction;
 	}
 	
 	public function getCode():String
 	{
-		return "<li><a onclick='$(document).triggerHandler(\"" + onClickFunction + "\");'>" + text + "</a></li>";
+		return "<li><a onclick='$(document).triggerHandler(\"" + onClickFunctionName + "\");'>" + text + "</a></li>";
+	}
+	
+	public function registerEvent():Void
+	{
+		if (onClickFunction != null) 
+		{
+			new JQuery(js.Browser.document).on(onClickFunctionName, onClickFunction);
+		}
 	}
 }
  
@@ -37,9 +47,9 @@ class Menu
 		items = new Array();
 	}
 	
-	public function addMenuItem(_text:String, _onClickFunction:String)
+	public function addMenuItem(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void)
 	{
-		items.push(new MenuItem(_text, _onClickFunction));
+		items.push(new MenuItem(_text, _onClickFunctionName, _onClickFunction));
 	}
 	
 	public function addToDocument()
@@ -60,7 +70,7 @@ class Menu
 		
 		new JQuery("#position-navbar").append(retStr); // this position is defined in the HTML.
 		
-		for (i in 0...items.length) items.pop();
+		for (i in 0...items.length) items[i].registerEvent();
 		items = null;
 		headerText = null;
 		text = null;
