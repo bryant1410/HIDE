@@ -5,23 +5,25 @@ var Main = function() { }
 Main.main = function() {
 	new $(function() {
 		Main.init();
-		Main.editor_basic_plugin();
+		Main.initCorePlugin();
 	});
 }
 Main.init = function() {
-	Main.session = new haxe.ds.StringMap();
-	Main.session.set("current_project_xml","");
-	Main.session.set("current_project_folder","");
-	Main.session.set("current_active_file","");
+	Main.session = new Session();
 	Main.editors = new haxe.ds.StringMap();
 	Main.tabs = [];
 	Main.settings = new haxe.ds.StringMap();
 }
-Main.editor_basic_plugin = function() {
+Main.initCorePlugin = function() {
 	component.FileAccess.init();
 	component.ProjectAccess.init();
 }
 var IMap = function() { }
+var Session = function() {
+	this.current_active_file = "";
+	this.current_project_folder = "";
+	this.current_project_xml = "";
+};
 var component = {}
 component.FileAccess = function() { }
 component.FileAccess.init = function() {
@@ -37,22 +39,22 @@ component.FileAccess.ui = function() {
 }
 component.FileAccess.event_component_fileAccess_new = function() {
 	new $(js.Browser.document).on("component_fileAccess_new",null,function() {
-		if(Main.session.get("current_project_xml") == "") console.log("open project first"); else console.log("create a new file");
+		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("create a new file");
 	});
 }
 component.FileAccess.event_component_fileAccess_open = function() {
 	new $(js.Browser.document).on("component_fileAccess_open",null,function() {
-		if(Main.session.get("current_project_xml") == "") console.log("open project first"); else console.log("open a file");
+		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("open a file");
 	});
 }
 component.FileAccess.event_component_fileAccess_save = function() {
 	new $(js.Browser.document).on("component_fileAccess_save",null,function() {
-		if(Main.session.get("current_project_xml") == "") console.log("open project first"); else console.log("save active file");
+		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("save active file");
 	});
 }
 component.FileAccess.event_component_fileAccess_close = function() {
 	new $(js.Browser.document).on("component_fileAccess_close",null,function() {
-		if(Main.session.get("current_project_xml") == "") console.log("open project first"); else console.log("close active file");
+		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("close active file");
 	});
 }
 component.ProjectAccess = function() { }
@@ -107,14 +109,6 @@ haxe.ds.StringMap = function() {
 	this.h = { };
 };
 haxe.ds.StringMap.__interfaces__ = [IMap];
-haxe.ds.StringMap.prototype = {
-	get: function(key) {
-		return this.h["$" + key];
-	}
-	,set: function(key,value) {
-		this.h["$" + key] = value;
-	}
-}
 var js = {}
 js.Browser = function() { }
 var ui = {}
