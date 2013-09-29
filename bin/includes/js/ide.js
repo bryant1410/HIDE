@@ -15,8 +15,8 @@ Main.init = function() {
 	Main.settings = new haxe.ds.StringMap();
 }
 Main.initCorePlugin = function() {
-	component.FileAccess.init();
-	component.ProjectAccess.init();
+	new ui.menu.FileMenu();
+	new ui.menu.ProjectMenu();
 }
 var IMap = function() { }
 var Session = function() {
@@ -24,84 +24,48 @@ var Session = function() {
 	this.current_project_folder = "";
 	this.current_project_xml = "";
 };
-var component = {}
-component.FileAccess = function() { }
-component.FileAccess.init = function() {
-	component.FileAccess.ui();
-	component.FileAccess.event_component_fileAccess_new();
-	component.FileAccess.event_component_fileAccess_open();
-	component.FileAccess.event_component_fileAccess_save();
-	component.FileAccess.event_component_fileAccess_close();
+var core = {}
+core.FileAccess = function() { }
+core.FileAccess.init = function() {
 }
-component.FileAccess.ui = function() {
-	var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>File</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>File Management</li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_save\");'>Save</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
-	new $("#position-navbar").append(retStr);
+core.FileAccess.createNewFile = function() {
+	if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("create a new file");
 }
-component.FileAccess.event_component_fileAccess_new = function() {
-	new $(js.Browser.document).on("component_fileAccess_new",null,function() {
-		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("create a new file");
+core.FileAccess.openFile = function() {
+	if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("open a file");
+}
+core.FileAccess.saveActiveFile = function() {
+	if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("save active file");
+}
+core.FileAccess.closeActiveFile = function() {
+	if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("close active file");
+}
+core.ProjectAccess = function() { }
+core.ProjectAccess.createNewProject = function() {
+	console.log("create a new project");
+	var notify = new ui.Notify();
+	notify.type = "error";
+	notify.content = "Just to test notify!";
+	notify.show();
+	var modal = new ui.Modal();
+	modal.id = "projectAccess_new";
+	modal.title = "New Project";
+	modal.content = "this is just a sample";
+	modal.ok_text = "Create";
+	modal.cancel_text = "Cancel";
+	modal.show();
+	new $("#projectAccess_new .button_ok").on("click",null,function() {
+		console.log("you've clicked the OK button");
 	});
 }
-component.FileAccess.event_component_fileAccess_open = function() {
-	new $(js.Browser.document).on("component_fileAccess_open",null,function() {
-		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("open a file");
-	});
+core.ProjectAccess.openProject = function() {
+	console.log("open a project");
 }
-component.FileAccess.event_component_fileAccess_save = function() {
-	new $(js.Browser.document).on("component_fileAccess_save",null,function() {
-		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("save active file");
-	});
+core.ProjectAccess.configureProject = function() {
+	console.log("configure project");
 }
-component.FileAccess.event_component_fileAccess_close = function() {
-	new $(js.Browser.document).on("component_fileAccess_close",null,function() {
-		if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("close active file");
-	});
-}
-component.ProjectAccess = function() { }
-component.ProjectAccess.init = function() {
-	component.ProjectAccess.ui();
-	component.ProjectAccess.event_component_projectAccess_new();
-	component.ProjectAccess.event_component_projectAccess_open();
-	component.ProjectAccess.event_component_projectAccess_configure();
-	component.ProjectAccess.event_component_projectAccess_close();
-}
-component.ProjectAccess.ui = function() {
-	var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Project</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>Project Management</li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_configure\");'>Configure</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
-	new $("#position-navbar").append(retStr);
-}
-component.ProjectAccess.event_component_projectAccess_new = function() {
-	new $(js.Browser.document).on("component_projectAccess_new",null,function() {
-		console.log("create a new project");
-		var notify = new ui.Notify();
-		notify.type = "error";
-		notify.content = "Just to test notify!";
-		notify.show();
-		var modal = new ui.Modal();
-		modal.id = "projectAccess_new";
-		modal.title = "New Project";
-		modal.content = "this is just a sample";
-		modal.ok_text = "Create";
-		modal.cancel_text = "Cancel";
-		modal.show();
-		new $("#projectAccess_new .button_ok").on("click",null,function() {
-			console.log("you've clicked the OK button");
-		});
-	});
-}
-component.ProjectAccess.event_component_projectAccess_open = function() {
-	new $(js.Browser.document).on("component_projectAccess_open",null,function() {
-		console.log("open a project");
-	});
-}
-component.ProjectAccess.event_component_projectAccess_configure = function() {
-	new $(js.Browser.document).on("component_projectAccess_configure",null,function() {
-		console.log("configure project");
-	});
-}
-component.ProjectAccess.event_component_projectAccess_close = function() {
-	new $(js.Browser.document).on("component_projectAccess_close",null,function() {
-		console.log("close project");
-	});
+core.ProjectAccess.closeProject = function() {
+	console.log("close project");
 }
 var haxe = {}
 haxe.ds = {}
@@ -155,6 +119,39 @@ ui.Notify.prototype = {
 			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " :</strong><br/>" + this.content,"</div>"].join("\n");
 			new $("#notify_position").html(retStr);
 		}
+	}
+}
+ui.menu = {}
+ui.menu.FileMenu = function() {
+	this.createUI();
+	this.registerEvents();
+};
+ui.menu.FileMenu.prototype = {
+	registerEvents: function() {
+		new $(js.Browser.document).on("component_fileAccess_new",null,core.FileAccess.createNewFile);
+		new $(js.Browser.document).on("component_fileAccess_open",null,core.FileAccess.openFile);
+		new $(js.Browser.document).on("component_fileAccess_save",null,core.FileAccess.saveActiveFile);
+		new $(js.Browser.document).on("component_fileAccess_close",null,core.FileAccess.closeActiveFile);
+	}
+	,createUI: function() {
+		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>File</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>File Management</li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_save\");'>Save</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
+		new $("#position-navbar").append(retStr);
+	}
+}
+ui.menu.ProjectMenu = function() {
+	this.createUI();
+	this.registerEvents();
+};
+ui.menu.ProjectMenu.prototype = {
+	registerEvents: function() {
+		new $(js.Browser.document).on("component_projectAccess_new",null,core.ProjectAccess.createNewProject);
+		new $(js.Browser.document).on("component_projectAccess_open",null,core.ProjectAccess.openProject);
+		new $(js.Browser.document).on("component_projectAccess_configure",null,core.ProjectAccess.configureProject);
+		new $(js.Browser.document).on("component_projectAccess_close",null,core.ProjectAccess.closeProject);
+	}
+	,createUI: function() {
+		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Project</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>Project Management</li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_configure\");'>Configure</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
+		new $("#position-navbar").append(retStr);
 	}
 }
 js.Browser.document = typeof window != "undefined" ? window.document : null;
