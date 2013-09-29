@@ -12,26 +12,16 @@ class FileMenu extends Menu
 	public function new() 
 	{
 		super("File", "File Management");
-		
 		createUI();
-		registerEvents();
 	}
 	
 	function createUI()
 	{
-		addMenuItem("New", "component_fileAccess_new");
-		addMenuItem("Open", "component_fileAccess_open");
-		addMenuItem("Save", "component_fileAccess_save");
-		addMenuItem("Close", "component_fileAccess_close");
+		addMenuItem("New", "component_fileAccess_new", FileAccess.createNewFile);
+		addMenuItem("Open", "component_fileAccess_open", FileAccess.openFile);
+		addMenuItem("Save", "component_fileAccess_save", FileAccess.saveActiveFile);
+		addMenuItem("Close", "component_fileAccess_close", FileAccess.closeActiveFile);
 		addToDocument();
-	}
-	
-	function registerEvents()
-	{
-		new JQuery(js.Browser.document).on("component_fileAccess_new", FileAccess.createNewFile);
-		new JQuery(js.Browser.document).on("component_fileAccess_open", FileAccess.openFile);
-		new JQuery(js.Browser.document).on("component_fileAccess_save", FileAccess.saveActiveFile);
-		new JQuery(js.Browser.document).on("component_fileAccess_close", FileAccess.closeActiveFile);
 	}
 	
 }

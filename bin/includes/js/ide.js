@@ -146,64 +146,54 @@ ui.menu.Menu.prototype = {
 		var _g1 = 0, _g = this.items.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			this.items.pop();
+			this.items[i].registerEvent();
 		}
 		this.items = null;
 		this.headerText = null;
 		this.text = null;
 	}
-	,addMenuItem: function(_text,_onClickFunction) {
-		this.items.push(new ui.menu.MenuItem(_text,_onClickFunction));
+	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction) {
+		this.items.push(new ui.menu.MenuItem(_text,_onClickFunctionName,_onClickFunction));
 	}
 }
 ui.menu.FileMenu = function() {
 	ui.menu.Menu.call(this,"File","File Management");
 	this.createUI();
-	this.registerEvents();
 };
 ui.menu.FileMenu.__super__ = ui.menu.Menu;
 ui.menu.FileMenu.prototype = $extend(ui.menu.Menu.prototype,{
-	registerEvents: function() {
-		new $(js.Browser.document).on("component_fileAccess_new",null,core.FileAccess.createNewFile);
-		new $(js.Browser.document).on("component_fileAccess_open",null,core.FileAccess.openFile);
-		new $(js.Browser.document).on("component_fileAccess_save",null,core.FileAccess.saveActiveFile);
-		new $(js.Browser.document).on("component_fileAccess_close",null,core.FileAccess.closeActiveFile);
-	}
-	,createUI: function() {
-		this.addMenuItem("New","component_fileAccess_new");
-		this.addMenuItem("Open","component_fileAccess_open");
-		this.addMenuItem("Save","component_fileAccess_save");
-		this.addMenuItem("Close","component_fileAccess_close");
+	createUI: function() {
+		this.addMenuItem("New","component_fileAccess_new",core.FileAccess.createNewFile);
+		this.addMenuItem("Open","component_fileAccess_open",core.FileAccess.openFile);
+		this.addMenuItem("Save","component_fileAccess_save",core.FileAccess.saveActiveFile);
+		this.addMenuItem("Close","component_fileAccess_close",core.FileAccess.closeActiveFile);
 		this.addToDocument();
 	}
 });
-ui.menu.MenuItem = function(_text,_onClickFunction) {
+ui.menu.MenuItem = function(_text,_onClickFunctionName,_onClickFunction) {
 	this.text = _text;
+	this.onClickFunctionName = _onClickFunctionName;
 	this.onClickFunction = _onClickFunction;
 };
 ui.menu.MenuItem.prototype = {
-	getCode: function() {
-		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunction + "\");'>" + this.text + "</a></li>";
+	registerEvent: function() {
+		if(this.onClickFunction != null) new $(js.Browser.document).on(this.onClickFunctionName,null,this.onClickFunction);
+	}
+	,getCode: function() {
+		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + "</a></li>";
 	}
 }
 ui.menu.ProjectMenu = function() {
 	ui.menu.Menu.call(this,"Project","Project Management");
 	this.createUI();
-	this.registerEvents();
 };
 ui.menu.ProjectMenu.__super__ = ui.menu.Menu;
 ui.menu.ProjectMenu.prototype = $extend(ui.menu.Menu.prototype,{
-	registerEvents: function() {
-		new $(js.Browser.document).on("component_projectAccess_new",null,core.ProjectAccess.createNewProject);
-		new $(js.Browser.document).on("component_projectAccess_open",null,core.ProjectAccess.openProject);
-		new $(js.Browser.document).on("component_projectAccess_configure",null,core.ProjectAccess.configureProject);
-		new $(js.Browser.document).on("component_projectAccess_close",null,core.ProjectAccess.closeProject);
-	}
-	,createUI: function() {
-		this.addMenuItem("New","component_projectAccess_new");
-		this.addMenuItem("Open","component_projectAccess_open");
-		this.addMenuItem("Configure","component_projectAccess_configure");
-		this.addMenuItem("Close","component_projectAccess_close");
+	createUI: function() {
+		this.addMenuItem("New","component_projectAccess_new",core.ProjectAccess.createNewProject);
+		this.addMenuItem("Open","component_projectAccess_open",core.ProjectAccess.openProject);
+		this.addMenuItem("Configure","component_projectAccess_configure",core.ProjectAccess.configureProject);
+		this.addMenuItem("Close","component_projectAccess_close",core.ProjectAccess.closeProject);
 		this.addToDocument();
 	}
 });
