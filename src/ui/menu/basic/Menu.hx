@@ -1,4 +1,4 @@
-package ui.menu;
+package ui.menu.basic;
 import jQuery.JQuery;
 
 /**
