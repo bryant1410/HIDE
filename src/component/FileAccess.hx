@@ -39,7 +39,7 @@ class FileAccess
 	{
 		new JQuery(js.Browser.document).on("component_fileAccess_new",function()
 			{
-				if (Main.session['current_project_xml'] == "")
+				if (Main.session.current_project_xml == "")
 				{
 					trace ("open project first");
 				}
@@ -57,7 +57,7 @@ class FileAccess
 	{
 		new JQuery(js.Browser.document).on("component_fileAccess_open",function()
 		{
-			if (Main.session['current_project_xml'] == "")
+			if (Main.session.current_project_xml == "")
 			{
 				trace ("open project first");
 			}
@@ -75,7 +75,7 @@ class FileAccess
 	{
 		new JQuery(js.Browser.document).on("component_fileAccess_save",function()
 		{
-			if (Main.session['current_project_xml'] == "")
+			if (Main.session.current_project_xml == "")
 			{
 				trace ("open project first");
 			}
@@ -93,7 +93,7 @@ class FileAccess
 	{
 		new JQuery(js.Browser.document).on("component_fileAccess_close",function()
 		{
-			if (Main.session['current_project_xml'] == "")
+			if (Main.session.current_project_xml == "")
 			{
 				trace ("open project first");
 			}
