@@ -1,4 +1,10 @@
 (function () { "use strict";
+function $extend(from, fields) {
+	function inherit() {}; inherit.prototype = from; var proto = new inherit();
+	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
+	return proto;
+}
 var _Either = {}
 _Either.Either_Impl_ = function() { }
 var Main = function() { }
@@ -122,11 +128,41 @@ ui.Notify.prototype = {
 	}
 }
 ui.menu = {}
+ui.menu.Menu = function(_text,_headerText) {
+	this.text = _text;
+	this.headerText = _headerText;
+	this.items = new Array();
+};
+ui.menu.Menu.prototype = {
+	addToDocument: function() {
+		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + this.text + "</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>" + this.headerText + "</li>"].join("\n");
+		var _g1 = 0, _g = this.items.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			retStr += this.items[i].getCode();
+		}
+		retStr += ["</ul>","</li>"].join("\n");
+		new $("#position-navbar").append(retStr);
+		var _g1 = 0, _g = this.items.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			this.items.pop();
+		}
+		this.items = null;
+		this.headerText = null;
+		this.text = null;
+	}
+	,addMenuItem: function(_text,_onClickFunction) {
+		this.items.push(new ui.menu.MenuItem(_text,_onClickFunction));
+	}
+}
 ui.menu.FileMenu = function() {
+	ui.menu.Menu.call(this,"File","File Management");
 	this.createUI();
 	this.registerEvents();
 };
-ui.menu.FileMenu.prototype = {
+ui.menu.FileMenu.__super__ = ui.menu.Menu;
+ui.menu.FileMenu.prototype = $extend(ui.menu.Menu.prototype,{
 	registerEvents: function() {
 		new $(js.Browser.document).on("component_fileAccess_new",null,core.FileAccess.createNewFile);
 		new $(js.Browser.document).on("component_fileAccess_open",null,core.FileAccess.openFile);
@@ -134,15 +170,29 @@ ui.menu.FileMenu.prototype = {
 		new $(js.Browser.document).on("component_fileAccess_close",null,core.FileAccess.closeActiveFile);
 	}
 	,createUI: function() {
-		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>File</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>File Management</li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_save\");'>Save</a></li>","<li><a onclick='$(document).triggerHandler(\"component_fileAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
-		new $("#position-navbar").append(retStr);
+		this.addMenuItem("New","component_fileAccess_new");
+		this.addMenuItem("Open","component_fileAccess_open");
+		this.addMenuItem("Save","component_fileAccess_save");
+		this.addMenuItem("Close","component_fileAccess_close");
+		this.addToDocument();
+	}
+});
+ui.menu.MenuItem = function(_text,_onClickFunction) {
+	this.text = _text;
+	this.onClickFunction = _onClickFunction;
+};
+ui.menu.MenuItem.prototype = {
+	getCode: function() {
+		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunction + "\");'>" + this.text + "</a></li>";
 	}
 }
 ui.menu.ProjectMenu = function() {
+	ui.menu.Menu.call(this,"Project","Project Management");
 	this.createUI();
 	this.registerEvents();
 };
-ui.menu.ProjectMenu.prototype = {
+ui.menu.ProjectMenu.__super__ = ui.menu.Menu;
+ui.menu.ProjectMenu.prototype = $extend(ui.menu.Menu.prototype,{
 	registerEvents: function() {
 		new $(js.Browser.document).on("component_projectAccess_new",null,core.ProjectAccess.createNewProject);
 		new $(js.Browser.document).on("component_projectAccess_open",null,core.ProjectAccess.openProject);
@@ -150,10 +200,13 @@ ui.menu.ProjectMenu.prototype = {
 		new $(js.Browser.document).on("component_projectAccess_close",null,core.ProjectAccess.closeProject);
 	}
 	,createUI: function() {
-		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Project</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>Project Management</li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_new\");'>New</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_open\");'>Open</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_configure\");'>Configure</a></li>","<li><a onclick='$(document).triggerHandler(\"component_projectAccess_close\");'>Close</a></li>","</ul>","</li>"].join("\n");
-		new $("#position-navbar").append(retStr);
+		this.addMenuItem("New","component_projectAccess_new");
+		this.addMenuItem("Open","component_projectAccess_open");
+		this.addMenuItem("Configure","component_projectAccess_configure");
+		this.addMenuItem("Close","component_projectAccess_close");
+		this.addToDocument();
 	}
-}
+});
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();

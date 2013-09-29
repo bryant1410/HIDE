@@ -6,29 +6,24 @@ import jQuery.JQuery;
  * ...
  * @author AS3Boyan
  */
-class ProjectMenu
+class ProjectMenu extends Menu
 {
 
 	public function new() 
 	{
+		super("Project", "Project Management");
+		
 		createUI();
 		registerEvents();
 	}
 	
 	function createUI()
 	{
-		var retStr = ["<li class='dropdown'>",
-		"<a href='#' class='dropdown-toggle' data-toggle='dropdown'>Project</a>",
-		"<ul class='dropdown-menu'>",
-		"<li class='dropdown-header'>Project Management</li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_projectAccess_new\");'>New</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_projectAccess_open\");'>Open</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_projectAccess_configure\");'>Configure</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_projectAccess_close\");'>Close</a></li>",
-		"</ul>",
-		"</li>"].join("\n"); 
-		
-		new JQuery("#position-navbar").append(retStr);			
+		addMenuItem("New", "component_projectAccess_new");
+		addMenuItem("Open", "component_projectAccess_open");
+		addMenuItem("Configure", "component_projectAccess_configure");
+		addMenuItem("Close", "component_projectAccess_close");
+		addToDocument();
 	}
 	
 	function registerEvents()

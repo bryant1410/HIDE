@@ -6,29 +6,24 @@ import jQuery.JQuery;
  * ...
  * @author AS3Boyan
  */
-class FileMenu
+class FileMenu extends Menu
 {
 
 	public function new() 
 	{
+		super("File", "File Management");
+		
 		createUI();
 		registerEvents();
 	}
 	
 	function createUI()
 	{
-		var retStr = ["<li class='dropdown'>",
-		"<a href='#' class='dropdown-toggle' data-toggle='dropdown'>File</a>",
-		"<ul class='dropdown-menu'>",
-		"<li class='dropdown-header'>File Management</li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_fileAccess_new\");'>New</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_fileAccess_open\");'>Open</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_fileAccess_save\");'>Save</a></li>",
-		"<li><a onclick='$(document).triggerHandler(\"component_fileAccess_close\");'>Close</a></li>",
-		"</ul>",
-		"</li>"].join("\n"); // a fancy way to combine string. a norm in javascript.
-		
-		new JQuery("#position-navbar").append(retStr); // this position is defined in the HTML.
+		addMenuItem("New", "component_fileAccess_new");
+		addMenuItem("Open", "component_fileAccess_open");
+		addMenuItem("Save", "component_fileAccess_save");
+		addMenuItem("Close", "component_fileAccess_close");
+		addToDocument();
 	}
 	
 	function registerEvents()
