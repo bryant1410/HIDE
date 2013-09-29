@@ -2,7 +2,7 @@ package ui;
 
 import jQuery.*;
 	
-class Modal
+class ModalDialog
 {
 	public var id:String;
 	public var title:String;

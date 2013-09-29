@@ -15,18 +15,19 @@ class ProjectAccess
 		notify.show();
 		
 		// this is how to open a model
-		var modal = new Modal();
-		modal.id='projectAccess_new';
-		modal.title= 'New Project';
-		modal.content = 'this is just a sample';
-		modal.ok_text = "Create";
-		modal.cancel_text = "Cancel";
-		modal.show();
+		var modalDialog = new ModalDialog();
+		modalDialog.id='projectAccess_new';
+		modalDialog.title= 'New Project';
+		modalDialog.content = 'this is just a sample';
+		modalDialog.ok_text = "Create";
+		modalDialog.cancel_text = "Cancel";
+		modalDialog.show();
 		
 		new JQuery("#projectAccess_new .button_ok").on("click",
 			function()
 			{
 				trace("you've clicked the OK button");
+				//modal.hide();
 			});
 	}
 	

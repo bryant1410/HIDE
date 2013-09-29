@@ -6,7 +6,13 @@ import jQuery.JQuery;
  * @author AS3Boyan
  */
 
-class MenuItem
+interface MenuItem
+{
+	public function getCode():String;
+	public function registerEvent():Void;
+}
+ 
+class MenuButtonItem implements MenuItem
 {
 	var text:String;
 	var onClickFunctionName:String;
@@ -32,6 +38,24 @@ class MenuItem
 		}
 	}
 }
+
+class Separator implements MenuItem
+{
+	public function new()
+	{
+		
+	}
+	
+	public function getCode():String
+	{
+		return "<li class=\"divider\"></li>";
+	}
+	
+	public function registerEvent():Void
+	{
+		
+	}
+}
  
 class Menu
 {
@@ -39,7 +63,7 @@ class Menu
 	var headerText:String;
 	var items:Array<MenuItem>;
 
-	public function new(_text:String, _headerText:String) 
+	public function new(_text:String, ?_headerText:String) 
 	{
 		text = _text;
 		headerText = _headerText;
@@ -49,15 +73,24 @@ class Menu
 	
 	public function addMenuItem(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void)
 	{
-		items.push(new MenuItem(_text, _onClickFunctionName, _onClickFunction));
+		items.push(new MenuButtonItem(_text, _onClickFunctionName, _onClickFunction));
+	}
+	
+	public function addSeparator():Void
+	{
+		items.push(new Separator());
 	}
 	
 	public function addToDocument()
 	{
 		var retStr = ["<li class='dropdown'>",
 		"<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + text + "</a>",
-		"<ul class='dropdown-menu'>",
-		"<li class='dropdown-header'>" + headerText + "</li>"].join("\n");
+		"<ul class='dropdown-menu'>"].join("\n");
+		
+		if (headerText != null)
+		{
+			retStr += "<li class='dropdown-header'>" + headerText + "</li>\n";
+		}
 		
 		for (i in 0...items.length)
 		{
