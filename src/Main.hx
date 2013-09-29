@@ -5,7 +5,7 @@ import jQuery.*;
 import component.*;
 import ui.menu.FileMenu;
 import ui.menu.ProjectMenu;
-//import component.ProjectAccess;
+
 class Main {
 
 	static public var session:Session;
@@ -29,7 +29,6 @@ class Main {
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
 		
-		
 		// var editors are used to store multiple file's informations. It's key must be the file's name (including the path).
 		editors = new StringMap();
 		
@@ -40,13 +39,16 @@ class Main {
 		settings = new StringMap();		
     }
     
-    
-
     static function initCorePlugin()
     {
+		initMenu();
+    }
+	
+	static private function initMenu() 
+	{
 		new FileMenu();
 		new ProjectMenu();
-    }
+	}
 
     
     

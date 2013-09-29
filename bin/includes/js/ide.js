@@ -21,6 +21,9 @@ Main.init = function() {
 	Main.settings = new haxe.ds.StringMap();
 }
 Main.initCorePlugin = function() {
+	Main.initMenu();
+}
+Main.initMenu = function() {
 	new ui.menu.FileMenu();
 	new ui.menu.ProjectMenu();
 }
@@ -128,12 +131,13 @@ ui.Notify.prototype = {
 	}
 }
 ui.menu = {}
-ui.menu.Menu = function(_text,_headerText) {
+ui.menu.basic = {}
+ui.menu.basic.Menu = function(_text,_headerText) {
 	this.text = _text;
 	this.headerText = _headerText;
 	this.items = new Array();
 };
-ui.menu.Menu.prototype = {
+ui.menu.basic.Menu.prototype = {
 	addToDocument: function() {
 		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + this.text + "</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>" + this.headerText + "</li>"].join("\n");
 		var _g1 = 0, _g = this.items.length;
@@ -153,15 +157,15 @@ ui.menu.Menu.prototype = {
 		this.text = null;
 	}
 	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction) {
-		this.items.push(new ui.menu.MenuItem(_text,_onClickFunctionName,_onClickFunction));
+		this.items.push(new ui.menu.basic.MenuItem(_text,_onClickFunctionName,_onClickFunction));
 	}
 }
 ui.menu.FileMenu = function() {
-	ui.menu.Menu.call(this,"File","File Management");
+	ui.menu.basic.Menu.call(this,"File","File Management");
 	this.createUI();
 };
-ui.menu.FileMenu.__super__ = ui.menu.Menu;
-ui.menu.FileMenu.prototype = $extend(ui.menu.Menu.prototype,{
+ui.menu.FileMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.FileMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
 		this.addMenuItem("New","component_fileAccess_new",core.FileAccess.createNewFile);
 		this.addMenuItem("Open","component_fileAccess_open",core.FileAccess.openFile);
@@ -170,25 +174,12 @@ ui.menu.FileMenu.prototype = $extend(ui.menu.Menu.prototype,{
 		this.addToDocument();
 	}
 });
-ui.menu.MenuItem = function(_text,_onClickFunctionName,_onClickFunction) {
-	this.text = _text;
-	this.onClickFunctionName = _onClickFunctionName;
-	this.onClickFunction = _onClickFunction;
-};
-ui.menu.MenuItem.prototype = {
-	registerEvent: function() {
-		if(this.onClickFunction != null) new $(js.Browser.document).on(this.onClickFunctionName,null,this.onClickFunction);
-	}
-	,getCode: function() {
-		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + "</a></li>";
-	}
-}
 ui.menu.ProjectMenu = function() {
-	ui.menu.Menu.call(this,"Project","Project Management");
+	ui.menu.basic.Menu.call(this,"Project","Project Management");
 	this.createUI();
 };
-ui.menu.ProjectMenu.__super__ = ui.menu.Menu;
-ui.menu.ProjectMenu.prototype = $extend(ui.menu.Menu.prototype,{
+ui.menu.ProjectMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.ProjectMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
 		this.addMenuItem("New","component_projectAccess_new",core.ProjectAccess.createNewProject);
 		this.addMenuItem("Open","component_projectAccess_open",core.ProjectAccess.openProject);
@@ -197,6 +188,19 @@ ui.menu.ProjectMenu.prototype = $extend(ui.menu.Menu.prototype,{
 		this.addToDocument();
 	}
 });
+ui.menu.basic.MenuItem = function(_text,_onClickFunctionName,_onClickFunction) {
+	this.text = _text;
+	this.onClickFunctionName = _onClickFunctionName;
+	this.onClickFunction = _onClickFunction;
+};
+ui.menu.basic.MenuItem.prototype = {
+	registerEvent: function() {
+		if(this.onClickFunction != null) new $(js.Browser.document).on(this.onClickFunctionName,null,this.onClickFunction);
+	}
+	,getCode: function() {
+		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + "</a></li>";
+	}
+}
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();

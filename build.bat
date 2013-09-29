@@ -1,2 +1,2 @@
-haxe compile.hxml
+haxe HaxeEditor2.hxml
 pause
