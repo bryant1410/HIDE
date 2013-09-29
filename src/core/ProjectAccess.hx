@@ -35,7 +35,7 @@ class ProjectAccess
 	{
 		trace("open a project");
 
-		var modal = new Modal();
+		var modal = new ModalDialog();
 		modal.id='projectAccess_openProject';
 		modal.title= 'Open Project';
 		modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
@@ -49,9 +49,9 @@ class ProjectAccess
 			{
 			if (file_input.val() != "")
 				{
-				Main.session.current_project_xml = file_input.val();
-				modal.hide();
-				parseProject();
+					Main.session.current_project_xml = file_input.val();
+					modal.hide();
+					parseProject();
 				}
 			});
 	}

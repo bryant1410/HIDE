@@ -115,6 +115,10 @@ class Main {
 		});
 		
 		untyped new JQuery('#tabs_position li:eq(2) a').tab('show');
+		
+		new Completion();
+		
+		untyped require('nw.gui').Window.get().showDevTools();
     }
 	
 	static function createTextArea(id:String, ?code:String):Void
