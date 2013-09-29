@@ -88,8 +88,17 @@ core.ProjectAccess.openProject = function() {
 	var file_input = new $("#ProjectAccess_openProject_file");
 	file_input.click();
 	file_input.change(function(event) {
-		if(file_input.val() != "") Main.session.current_project_xml = file_input.val();
+		if(file_input.val() != "") {
+			Main.session.current_project_xml = file_input.val();
+			modal.hide();
+			core.ProjectAccess.parseProject();
+		}
 	});
+}
+core.ProjectAccess.parseProject = function() {
+	console.log("parse the project");
+	var test_extension = Main.session.current_project_xml.split(".");
+	console.log(test_extension);
 }
 core.ProjectAccess.configureProject = function() {
 	console.log("configure project");
