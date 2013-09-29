@@ -22,10 +22,33 @@ Main.init = function() {
 }
 Main.initCorePlugin = function() {
 	Main.initMenu();
+	var sample_code = ["import haxe.ds.StringMap.StringMap;","import js.html.File;","import js.Lib;","import jQuery.*;","import component.*;","import ui.menu.EditMenu;","import ui.menu.FileMenu;","import ui.menu.HelpMenu;","import ui.menu.RunMenu;","import ui.menu.SourceMenu;","","class Main {","","\tstatic public var session:Session;","\tstatic public var editors:StringMap<Array<Dynamic>>;","\tstatic public var tabs:Array<String>;","\tstatic public var settings:StringMap<String>;","","\t// the program starts here","\tstatic public function main():Void {","\t\tnew JQuery(function():Void","\t\t\t{","\t\t\t\tinit();","\t\t\t\tinitCorePlugin();","\t\t\t});","\t}","}"].join("\n");
+	Main.createTextArea("tab1",sample_code);
+	Main.createTextArea("tab2");
+	Main.createTextArea("tab3");
+	new $("#tabs_position").append("<li><a href=\"#tab1\" data-toggle=\"tab\">Tab1</a></li>");
+	new $("#tabs_position").append("<li><a href=\"#tab2\" data-toggle=\"tab\">Tab2</a></li>");
+	new $("#tabs_position").append("<li><a href=\"#tab3\" data-toggle=\"tab\">Tab3</a></li>");
+	new $(".CodeMirror").css("position","relative");
+	new $(".CodeMirror").css("height","100%");
+	new $("a[data-toggle=\"tab\"]").on("shown.bs.tab",null,function(e) {
+		new $(".CodeMirror").each(function(i,el) {
+			el.CodeMirror.refresh();
+		});
+	});
+	new $("#tabs_position li:eq(2) a").tab("show");
+}
+Main.createTextArea = function(id,code) {
+	if(code == null) code = "";
+	var editor_str = ["<div class=\"tab-pane\" id=\"" + id + "\">","<textarea id=\"" + id + "_textarea" + "\">" + code + "</textarea>","<script>","CodeMirror.commands.autocomplete = function(cm) {","\tCodeMirror.showHint(cm, CodeMirror.hint.haxe);","};","var editor = CodeMirror.fromTextArea(document.getElementById(\"" + id + "_textarea" + "\"), {","  lineNumbers: true, ","  indentUnit: 4, ","  extraKeys: {\"Ctrl-Space\": \"autocomplete\"}","});","</script>","</div>"].join("\n");
+	new $("#tabs_content_position").append(editor_str);
 }
 Main.initMenu = function() {
 	new ui.menu.FileMenu();
-	new ui.menu.ProjectMenu();
+	new ui.menu.EditMenu();
+	new ui.menu.SourceMenu();
+	new ui.menu.RunMenu();
+	new ui.menu.HelpMenu();
 }
 var IMap = function() { }
 var Session = function() {
@@ -56,13 +79,13 @@ core.ProjectAccess.createNewProject = function() {
 	notify.type = "error";
 	notify.content = "Just to test notify!";
 	notify.show();
-	var modal = new ui.Modal();
-	modal.id = "projectAccess_new";
-	modal.title = "New Project";
-	modal.content = "this is just a sample";
-	modal.ok_text = "Create";
-	modal.cancel_text = "Cancel";
-	modal.show();
+	var modalDialog = new ui.ModalDialog();
+	modalDialog.id = "projectAccess_new";
+	modalDialog.title = "New Project";
+	modalDialog.content = "this is just a sample";
+	modalDialog.ok_text = "Create";
+	modalDialog.cancel_text = "Cancel";
+	modalDialog.show();
 	new $("#projectAccess_new .button_ok").on("click",null,function() {
 		console.log("you've clicked the OK button");
 	});
@@ -85,14 +108,14 @@ haxe.ds.StringMap.__interfaces__ = [IMap];
 var js = {}
 js.Browser = function() { }
 var ui = {}
-ui.Modal = function() {
+ui.ModalDialog = function() {
 	this.title = "";
 	this.id = "";
 	this.content = "";
 	this.ok_text = "";
 	this.cancel_text = "";
 };
-ui.Modal.prototype = {
+ui.ModalDialog.prototype = {
 	hide: function() {
 		new $("#" + this.id).modal("hide");
 	}
@@ -139,7 +162,8 @@ ui.menu.basic.Menu = function(_text,_headerText) {
 };
 ui.menu.basic.Menu.prototype = {
 	addToDocument: function() {
-		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + this.text + "</a>","<ul class='dropdown-menu'>","<li class='dropdown-header'>" + this.headerText + "</li>"].join("\n");
+		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + this.text + "</a>","<ul class='dropdown-menu'>"].join("\n");
+		if(this.headerText != null) retStr += "<li class='dropdown-header'>" + this.headerText + "</li>\n";
 		var _g1 = 0, _g = this.items.length;
 		while(_g1 < _g) {
 			var i = _g1++;
@@ -156,49 +180,117 @@ ui.menu.basic.Menu.prototype = {
 		this.headerText = null;
 		this.text = null;
 	}
+	,addSeparator: function() {
+		this.items.push(new ui.menu.basic.Separator());
+	}
 	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction) {
-		this.items.push(new ui.menu.basic.MenuItem(_text,_onClickFunctionName,_onClickFunction));
+		this.items.push(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction));
 	}
 }
+ui.menu.EditMenu = function() {
+	ui.menu.basic.Menu.call(this,"Edit");
+	this.createUI();
+};
+ui.menu.EditMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.EditMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
+	createUI: function() {
+		this.addMenuItem("Undo","component_undo",null);
+		this.addMenuItem("Redo","component_redo",null);
+		this.addSeparator();
+		this.addMenuItem("Cut","component_cut",null);
+		this.addMenuItem("Copy","component_copy",null);
+		this.addMenuItem("Paste","component_paste",null);
+		this.addMenuItem("Delete","component_delete",null);
+		this.addMenuItem("Select All","component_select_all",null);
+		this.addSeparator();
+		this.addMenuItem("Find...","component_find",null);
+		this.addMenuItem("Replace...","component_replace",null);
+		this.addToDocument();
+	}
+});
 ui.menu.FileMenu = function() {
-	ui.menu.basic.Menu.call(this,"File","File Management");
+	ui.menu.basic.Menu.call(this,"File");
 	this.createUI();
 };
 ui.menu.FileMenu.__super__ = ui.menu.basic.Menu;
 ui.menu.FileMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
-		this.addMenuItem("New","component_fileAccess_new",core.FileAccess.createNewFile);
-		this.addMenuItem("Open","component_fileAccess_open",core.FileAccess.openFile);
+		this.addMenuItem("New Project...","component_projectAccess_new",core.ProjectAccess.createNewProject);
+		this.addMenuItem("New File...","component_fileAccess_new",core.FileAccess.createNewFile);
+		this.addMenuItem("Open Project...","component_projectAccess_open",core.ProjectAccess.openProject);
+		this.addMenuItem("Close Project...","component_projectAccess_close",core.ProjectAccess.closeProject);
+		this.addSeparator();
+		this.addMenuItem("Open File...","component_fileAccess_open",core.FileAccess.openFile);
+		this.addMenuItem("Close File","component_fileAccess_close",core.FileAccess.closeActiveFile);
+		this.addSeparator();
+		this.addMenuItem("Project Properties","component_projectAccess_configure",core.ProjectAccess.configureProject);
+		this.addSeparator();
 		this.addMenuItem("Save","component_fileAccess_save",core.FileAccess.saveActiveFile);
-		this.addMenuItem("Close","component_fileAccess_close",core.FileAccess.closeActiveFile);
+		this.addMenuItem("Save as...","component_saveAs",null);
+		this.addMenuItem("Save all","component_saveAll",null);
+		this.addSeparator();
+		this.addMenuItem("Exit","component_exit",null);
 		this.addToDocument();
 	}
 });
-ui.menu.ProjectMenu = function() {
-	ui.menu.basic.Menu.call(this,"Project","Project Management");
+ui.menu.HelpMenu = function() {
+	ui.menu.basic.Menu.call(this,"Help");
 	this.createUI();
 };
-ui.menu.ProjectMenu.__super__ = ui.menu.basic.Menu;
-ui.menu.ProjectMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
+ui.menu.HelpMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.HelpMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
-		this.addMenuItem("New","component_projectAccess_new",core.ProjectAccess.createNewProject);
-		this.addMenuItem("Open","component_projectAccess_open",core.ProjectAccess.openProject);
-		this.addMenuItem("Configure","component_projectAccess_configure",core.ProjectAccess.configureProject);
-		this.addMenuItem("Close","component_projectAccess_close",core.ProjectAccess.closeProject);
+		this.addMenuItem("About","component_about",null);
 		this.addToDocument();
 	}
 });
-ui.menu.basic.MenuItem = function(_text,_onClickFunctionName,_onClickFunction) {
+ui.menu.RunMenu = function() {
+	ui.menu.basic.Menu.call(this,"Run");
+	this.createUI();
+};
+ui.menu.RunMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.RunMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
+	createUI: function() {
+		this.addMenuItem("Run Project","component_run_project",null);
+		this.addMenuItem("Build Project","component_build_project",null);
+		this.addToDocument();
+	}
+});
+ui.menu.SourceMenu = function() {
+	ui.menu.basic.Menu.call(this,"Source");
+	this.createUI();
+};
+ui.menu.SourceMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.SourceMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
+	createUI: function() {
+		this.addMenuItem("Format","component_format",null);
+		this.addMenuItem("Toggle Comment","component_toggle_comment",null);
+		this.addToDocument();
+	}
+});
+ui.menu.basic.MenuItem = function() { }
+ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction) {
 	this.text = _text;
 	this.onClickFunctionName = _onClickFunctionName;
 	this.onClickFunction = _onClickFunction;
 };
-ui.menu.basic.MenuItem.prototype = {
+ui.menu.basic.MenuButtonItem.__interfaces__ = [ui.menu.basic.MenuItem];
+ui.menu.basic.MenuButtonItem.prototype = {
 	registerEvent: function() {
 		if(this.onClickFunction != null) new $(js.Browser.document).on(this.onClickFunctionName,null,this.onClickFunction);
 	}
 	,getCode: function() {
 		return "<li><a onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + "</a></li>";
+	}
+}
+ui.menu.basic.Separator = function() {
+};
+ui.menu.basic.Separator.__interfaces__ = [ui.menu.basic.MenuItem];
+ui.menu.basic.Separator.prototype = {
+	registerEvent: function() {
+	}
+	,getCode: function() {
+		return "<li class=\"divider\"></li>";
 	}
 }
 js.Browser.document = typeof window != "undefined" ? window.document : null;
