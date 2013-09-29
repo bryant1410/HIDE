@@ -1,7 +1,10 @@
 import haxe.ds.StringMap.StringMap;
+import js.html.File;
 import js.Lib;
 import jQuery.*;
 import component.*;
+import ui.menu.FileMenu;
+import ui.menu.ProjectMenu;
 //import component.ProjectAccess;
 class Main {
 
@@ -41,8 +44,8 @@ class Main {
 
     static function initCorePlugin()
     {
-		FileAccess.init();
-		ProjectAccess.init();
+		new FileMenu();
+		new ProjectMenu();
     }
 
     
