@@ -29,6 +29,8 @@ class Main {
 	// the editor will always run this first. 
     static function init()
     {
+		untyped require('nw.gui').Window.get().showDevTools();
+		
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
 		
@@ -117,8 +119,6 @@ class Main {
 		untyped new JQuery('#tabs_position li:eq(2) a').tab('show');
 		
 		new Completion();
-		
-		untyped require('nw.gui').Window.get().showDevTools();
     }
 	
 	static function createTextArea(id:String, ?code:String):Void
