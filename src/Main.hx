@@ -42,7 +42,7 @@ class Main {
 		tabs = [];
 		
 		// var settings are predefined variables for the IDE.
-		settings = new StringMap();		
+		settings = new StringMap();
     }
     
     static function initCorePlugin()
@@ -81,25 +81,25 @@ class Main {
 		"}"
 		].join("\n");
 		
-		createTextArea("tab1", sample_code);
-		createTextArea("tab2");
-		createTextArea("tab3");
-		
-		new JQuery("#tabs_position").append("<li><a href=\"#tab1\" data-toggle=\"tab\">Tab1</a></li>");
-		new JQuery("#tabs_position").append("<li><a href=\"#tab2\" data-toggle=\"tab\">Tab2</a></li>");
-		new JQuery("#tabs_position").append("<li><a href=\"#tab3\" data-toggle=\"tab\">Tab3</a></li>");
+		//createTextArea("tab1", sample_code);
+		//createTextArea("tab2");
+		//createTextArea("tab3");
+		//
+		//new JQuery("#tabs_position").append("<li><a href=\"#tab1\" data-toggle=\"tab\">Tab1</a></li>");
+		//new JQuery("#tabs_position").append("<li><a href=\"#tab2\" data-toggle=\"tab\">Tab2</a></li>");
+		//new JQuery("#tabs_position").append("<li><a href=\"#tab3\" data-toggle=\"tab\">Tab3</a></li>");
 		
 		//new JQuery( ".CodeMirror" ).css(["position: absolute", "top: 0", "left: 0", "right: 0", "bottom: 0", "width: \"100%\"", "height: \"100%\""]);
 		//new JQuery( "#tab3" ).css(["position: absolute", "top: 0", "left: 0", "right: 0", "bottom: 0", "width: \"100%\"", "height: \"100%\""]);
 		//new JQuery( "#tabs_position" ).css(["position: absolute", "top: 0", "left: 0", "right: 0", "bottom: 0", "width: \"100%\"", "height: \"100%\""]);
 		
-		new JQuery(".CodeMirror").css("position", "relative");
+		//new JQuery(".CodeMirror").css("position", "relative");
 		//new JQuery(".CodeMirror").css("top", "0");
 		//new JQuery(".CodeMirror").css("left", "0");
 		//new JQuery(".CodeMirror").css("right", "0");
 		//new JQuery(".CodeMirror").css("bottom", "0");
 		//new JQuery(".CodeMirror").css("width", "100%");
-		new JQuery(".CodeMirror").css("height", "100%");
+		//new JQuery(".CodeMirror").css("height", "100%");
 				
 		//trace(new JQuery("#tabs_content_position").css("height"));
 				
@@ -111,15 +111,15 @@ class Main {
 		  //bottom: 0;
 		//}
 		
-		new JQuery('a[data-toggle="tab"]').on('shown.bs.tab', function (e:Dynamic) {
-			new JQuery('.CodeMirror').each(function(i, el){
-				untyped el.CodeMirror.refresh();
-			});
-		});
+		//new JQuery('a[data-toggle="tab"]').on('shown.bs.tab', function (e:Dynamic) {
+			//new JQuery('.CodeMirror').each(function(i, el){
+				//untyped el.CodeMirror.refresh();
+			//});
+		//});
+		//
+		//untyped new JQuery('#tabs_position li:eq(2) a').tab('show');
 		
-		untyped new JQuery('#tabs_position li:eq(2) a').tab('show');
-		
-		new Completion();
+		//new Completion();
     }
 	
 	static function createTextArea(id:String, ?code:String):Void
