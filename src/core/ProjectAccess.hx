@@ -1,6 +1,7 @@
 package core;
 import jQuery.*;
 import ui.*;
+import Utils;
 
 class ProjectAccess
 {
@@ -35,36 +36,65 @@ class ProjectAccess
 	{
 		trace("open a project");
 
-		var modal = new ModalDialog();
-		modal.id='projectAccess_openProject';
-		modal.title= 'Open Project';
-		modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
-		modal.ok_text = "Open";
-		modal.cancel_text = "Cancel";
-		modal.show();
+		if (Main.session.current_project_xml == "")
+		{
+			var modal = new ModalDialog();
+			modal.id='projectAccess_openProject';
+			modal.title= 'Open Project';
+			modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
+			modal.ok_text = "Open";
+			modal.cancel_text = "Cancel";
+			modal.show();
 
-		var file_input = new JQuery("#ProjectAccess_openProject_file");
-		file_input.click();
-		file_input.change(function(event)
-			{
-			if (file_input.val() != "")
+			var file_input = new JQuery("#ProjectAccess_openProject_file");
+			file_input.click();
+			file_input.change(function(event)
 				{
-					Main.session.current_project_xml = file_input.val();
-					modal.hide();
-					parseProject();
-				}
-			});
+				if (file_input.val() != "")
+					{
+						Main.session.current_project_xml = file_input.val();
+						modal.hide();
+						Utils.system_parse_project();
+					}
+				});			
+		}
+		else
+		{
+			var notify = new Notify();
+			notify.type = "error";
+			notify.content = "Only One project could be open at one time. Please close the project first.";
+			notify.show();			
+		}
+
 	}
 
+	/*
 	public static function parseProject()
 	{
 		trace('parse the project');
 		//trace(Main.session.current_project_xml);
 		
 		// if file is xml, convert to hxml
+		var skip = true;
 		var test_extension = Main.session.current_project_xml.split(".");
-		trace (test_extension);
+		if (test_extension[1] == "xml") // need to convert to hxml
+			{
+			exec_str = "openfl display "+session.current_project_xml+" -hxml flash";
+			//Utils.exec
+			}
+		else if (text_extension[1] == "hxml")
+			{
+
+			}
+		else
+			{
+			var notify = new Notify();
+			notify.type = "error";
+			notify.content = "Currently we only support haxe XML and HXML extension.";
+			notify.show();			
+			}
 	}
+	*/
 	
 	public static function configureProject()
 	{
