@@ -3,7 +3,7 @@ package ;
 import jQuery.JQuery;
 import js.Browser;
 import js.Node;
-
+import ui.*;
 /**
  * ...
  * @author AS3Boyan
@@ -61,19 +61,31 @@ class Utils
 	public static function system_parse_project()
     {
 		var exec_str = "";
-		
-		if (Utils.getOS() == 'windows') {exec_str = "cd /D "+new JQuery('#projectFile').html()+" & openfl display -hxml flash";}
-		if (Utils.getOS() == 'linux') { exec_str = "cd " + new JQuery('#projectFile').html() + " ; openfl display -hxml flash"; }
-		
+
+		var filename = Main.session.current_project_xml;
+	    var projectFolder = filename.split(path.sep);
+	    projectFolder.pop();
+	    //trace(projectFolder);
+	    Main.session.current_project_folder = projectFolder.join(path.sep);		
+
+
+		if (Utils.getOS() == 'windows') {exec_str = "cd /D "+ Main.session.current_project_folder +" & openfl display -hxml flash";}
+		if (Utils.getOS() == 'linux') { exec_str = "cd " + Main.session.current_project_folder + " ; openfl display -hxml flash"; }
+		trace(exec_str);
+
 		Utils.exec(exec_str,
 			function(error, stdout:String,stderr:String){
 				var the_error = false;
 				if (stderr != "") {the_error = true;}
 				if (the_error == true){
-					IDE.ide_alert("error","not a valid HaxeFlixel Project File (XML)");
+					//IDE.ide_alert("error","not a valid HaxeFlixel Project File (XML)");
+					var notify = new Notify();
+					notify.type = "error";
+					notify.content = "not a valid HaxeFlixel Project File (XML)";
+					notify.show();						
 					}
 				if (the_error == false) {
-					new JQuery('#projectContent').html(stdout);
+					//new JQuery('#projectContent').html(stdout);
 					var content_push:Array<String> = new Array();
 					var content:Array<String> = stdout.split("\n");
 					var i = 0;
@@ -97,8 +109,10 @@ class Utils
 							content_push.push(cur);
 							}                        
 						}
-					new JQuery('#projectContent').html(content_push.join(' '));   
-					new JQuery(Browser.document).trigger("system_parse_project_complete");
+			        Main.session.current_project_xml_parameter = content_push.join(' ');					
+			        trace(Main.session.current_project_xml_parameter);
+					//new JQuery('#projectContent').html(content_push.join(' '));   
+					new JQuery(Browser.document).trigger("projectAccess_parseProject_complete");
 				} // stdout != ""
 			});
 	
