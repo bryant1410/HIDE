@@ -103,6 +103,22 @@ class ProjectAccess
 	
 	public static function closeProject()
 	{
+		
 		trace ("close project");
+		
+		if (Main.session.current_project_xml != "")
+		{
+		Main.session.current_project_xml = "";
+		Main.session.current_project_folder = "";
+		Main.session.current_project_xml_parameter = "";			
+		}
+		else
+		{
+			var notify = new Notify();
+			notify.type = "error";
+			notify.content = "No project to close.";
+			notify.show();				
+		}
+
 	}
 }
