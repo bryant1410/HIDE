@@ -1,4 +1,4 @@
-package;
+package ;
 
 /**
  * ...
@@ -17,7 +17,7 @@ extern class CodeMirror
 		
 	}
 	
-	public static function Pos(param1:Dynamic, param2:Dynamic):Dynamic
+	public static function Pos(line:Int, pos:Int):Dynamic
 	{
 		
 	}

@@ -4,7 +4,7 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="bin\includes\js\ide.js" />
+    <movie path="./bin/includes/js/ide.js" />
     <movie fps="0" />
     <movie width="0" />
     <movie height="0" />
@@ -23,7 +23,7 @@
     <option flashStrict="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />
-    <option additional="" />
+    <option additional="-cp ./externs/nodejs-std/std&#xA;-cp ./externs/codemirror&#xA;-dce full" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

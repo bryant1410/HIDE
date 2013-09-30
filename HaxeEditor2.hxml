@@ -1,4 +1,7 @@
 -cp src
 -lib jQueryExtern
--js bin/includes/js/ide.js
+-js ./bin/includes/js/ide.js
 -main Main
+-cp ./externs/nodejs-std/std
+-cp ./externs/codemirror
+-dce full

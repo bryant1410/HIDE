@@ -73,7 +73,7 @@ class Completion
 	
 	private function scan(dir:Int):Void
 	{			
-		var line = cur.line;
+		var line:Int = cur.line;
 		var end2 = Math.min(Math.max(line + dir * range, editor.firstLine()), editor.lastLine()) + dir;
 		while (line != end2) 
 		{
