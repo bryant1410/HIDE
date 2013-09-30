@@ -1,4 +1,5 @@
 import haxe.ds.StringMap.StringMap;
+import js.html.DivElement;
 import js.html.File;
 import js.Lib;
 import jQuery.*;
@@ -29,7 +30,7 @@ class Main {
 	// the editor will always run this first. 
     static function init()
     {
-		untyped require('nw.gui').Window.get().showDevTools();
+		js.Node.require('nw.gui').Window.get().showDevTools();
 		
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
@@ -136,6 +137,7 @@ class Main {
 		"var editor = CodeMirror.fromTextArea(document.getElementById(\"" + id + "_textarea" + "\"), {",
 		"  lineNumbers: true, ",
 		"  indentUnit: 4, ",
+		"  matchBrackets: true, ",
 		"  extraKeys: {\"Ctrl-Space\": \"autocomplete\"}",
 		"});",
 		"</script>",
