@@ -27,6 +27,10 @@ class Main {
 				initCorePlugin();
 			});
     }
+
+    static public function close():Void {
+    	Sys.exit(0);
+    }
     
     
 	// the editor will always run this first. 
