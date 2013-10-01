@@ -1,0 +1,191 @@
+package core;
+import js.Browser;
+
+//Code from Tern bin\includes\js\tern\doc\demo\demo.js
+//Ported to Haxe
+
+/**
+ * ...
+ * @author AS3Boyan
+ */
+class TabsManager
+{
+
+	public static var useWorker:Bool = false;
+	public static var server:Dynamic;
+	public static var editor:Dynamic;
+	public static var docs:Array<Dynamic> = [];
+	public static var curDoc:Dynamic;
+	
+	public function new() 
+	{
+		
+	}
+	
+	public static function init()
+	{
+		CodeMirror.on(Browser.window, "load", function() {
+		  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
+		  //probably we can supply here Haxe keywords, like so:
+		  //this, typedef, class, interface, package, private, public, static, var, function, trace, switch, case and etc.
+		  //http://haxe.org/ref/keywords
+		  //We can create file similar to ecma5.json and provide description for each keyword
+		  
+		  //We can even provide completion for classes here, like String.
+			
+		  //var files = ["./includes/js/tern/defs/ecma5.json"];
+		  //var files = ["./includes/js/tern/defs/ecma5.json", "./includes/js/tern/defs/browser.json", "./includes/js/tern/defs/jquery.json"];
+		  //var loaded = 0;
+		  //for (var i = 0; i < files.length; ++i) (function(i) {
+			//load(files[i], function(json) {
+			  //defs[i] = JSON.parse(json);
+			  //if (++loaded == files.length) initEditor();
+			//});
+		  //})(i);
+		  
+		  initEditor();
+
+		  //var cmds = document.getElementById("commands");
+		  //CodeMirror.on(cmds, "change", function() {
+			//if (!editor || cmds.selectedIndex == 0) return;
+			//var found = commands[cmds.value];
+			//cmds.selectedIndex = 0;
+			//editor.focus();
+			//if (found) found(editor);
+		  //});
+		});
+	}
+	
+	private static function load(file, c) 
+	{
+	  var xhr = Browser.createXMLHttpRequest();
+	  xhr.open("get", file, true);
+	  xhr.send();
+	  //xhr.onreadystatechange = function() {
+		//if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
+	  //};
+	}
+	
+	
+	private static function initEditor() 
+	{
+		  var keyMap = {
+			"Ctrl-I": function(cm) { server.showType(cm); },
+			"Ctrl-Space": function(cm) { server.complete(cm); },
+			"Alt-.": function(cm) { server.jumpToDef(cm); },
+			"Alt-,": function(cm) { server.jumpBack(cm); },
+			"Ctrl-Q": function(cm) { server.rename(cm); }
+		  };
+
+		  editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), {
+			lineNumbers: true,
+			extraKeys: keyMap,
+			matchBrackets: true
+		  });
+		  
+		  server = new TernServer({
+			defs: [],
+			plugins: {doc_comment: true},
+			switchToDoc: function(name) { selectDoc(docID(name)); },
+			workerDeps: ["./includes/js/acorn/acorn.js", "./includes/js/acorn/acorn_loose.js",
+						 "./includes/js/acorn/util/walk.js", "./includes/js/tern/lib/signal.js", "./includes/js/tern/lib/tern.js",
+						 "./includes/js/tern/lib/def.js", "./includes/js/tern/lib/infer.js", "./includes/js/tern/lib/comment.js",
+						 "./includes/js/tern/plugin/requirejs.js", "./includes/js/tern/plugin/doc_comment.js"],
+			workerScript: "./includes/js/codemirror-3.18/addon/tern/worker.js",
+			useWorker: useWorker
+
+		  });
+
+		  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
+
+		  registerDoc("Main.hx", editor.getDoc());
+		  
+		  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
+		  
+		  //We can load files like this:
+		  
+		  //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
+			//registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
+		  //});
+
+		  CodeMirror.on(Browser.document.getElementById("docs"), "click", function(e) {
+			var target:Dynamic = e.target || e.srcElement;
+			if (target.nodeName.toLowerCase() != "li") return;
+			
+			var i = 0;
+			var c:Dynamic = target.parentNode.firstChild;
+			
+			if (c == target) 
+			{
+				return selectDoc(1);
+			}
+			else
+			{
+				while (true)
+				{
+					c = c.nextSibling;
+					if (c == target) return selectDoc(1);
+				}
+			}
+			
+			//for (var i = 0, c = target.parentNode.firstChild; ; ++i, (c = c.nextSibling))
+			  //if (c == target) return selectDoc(i);
+		  });
+	}
+
+	private static function findDoc(name) { return docs[docID(name)]; }
+	private static function docID(name) { for (i in 1...docs.length + 1) if (docs[i].name == name) return i; return null; }
+
+private static function registerDoc(name, doc) 
+{
+  server.addDoc(name, doc);
+  var data = {name: name, doc: doc};
+  docs.push(data);
+  var docTabs = Browser.document.getElementById("docs");
+  var li = docTabs.appendChild(Browser.document.createElement("li"));
+  li.appendChild(Browser.document.createTextNode(name));
+  if (editor.getDoc() == doc) {
+    setSelectedDoc(docs.length - 1);
+    curDoc = data;
+  }
+}
+
+private static function unregisterDoc(doc) 
+{
+  server.delDoc(doc.name);
+  var j:Int = null;
+  for (i in 1...docs.length + 1) 
+  {
+	  j = i;
+	  if (doc == docs[i]) break;
+  }
+  docs.splice(j, 1);
+  var docList = Browser.document.getElementById("docs");
+  docList.removeChild(docList.childNodes[j]);
+  selectDoc(Std.int(Math.max(0, j - 1)));
+}
+
+private static function setSelectedDoc(pos) 
+{
+  var docTabs = Browser.document.getElementById("docs");
+  for (i in 1...docTabs.childNodes.length)
+	
+	if (pos == i)
+	{
+		untyped docTabs.childNodes[i].className = "selected";
+	}
+	else
+	{
+		untyped docTabs.childNodes[i].className = "";
+	}
+}
+	
+public static function selectDoc(pos) 
+{
+	  server.hideDoc(curDoc.name);
+	  setSelectedDoc(pos);
+	  curDoc = docs[pos];
+	  editor.swapDoc(curDoc.doc);
+}
+	
+}
