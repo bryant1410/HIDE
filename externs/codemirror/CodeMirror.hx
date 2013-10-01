@@ -1,49 +1,68 @@
 package ;
 
-/**
- * ...
- * @author AS3Boyan
- */
-extern class CodeMirror
-{
+//CodeMirror.hx from "try-haxe"
+//https://github.com/clemos/try-haxe/blob/master/src/js/codemirror/CodeMirror.hx
+//With few additional functions
+//==========
 
-	public function new() 
-	{
-		
-	}
+package ;
+
+import js.html.*;
+
+typedef Completions = {
+list : Array<String>,
+from : Pos,
+to : Pos,
+}
+
+typedef Pos = {
+line : Int,
+ch : Int
+}
+
+typedef MarkedText = {
+clear : Void->Void,
+find : Void->Pos
+}
+
+typedef LineHandle = {};
+
+typedef ChangeEvent = {
+from : Pos,
+to : Pos,
+text : Array<String>,
+?next : ChangeEvent
+}
+
+@:native('CodeMirror') extern class CodeMirror {
+
+public static var commands (default,null) : Dynamic<CodeMirror->Void>;
+public static function simpleHint( cm : CodeMirror , getCompletions : CodeMirror -> Completions ) : Void;
+
+public static function fromTextArea( textarea : Dynamic , ?config : Dynamic ) : CodeMirror;
+
+public static function registerHelper(param1:String, param2:String, onCompletion:Dynamic):Void;
+
+public function setValue( v : String ) : Void;
+public function getValue() : String;
+public function refresh() : Void;
+
+public function getCursor( ?start : Bool ) : Pos;
+
+public function getLine(param1:Dynamic):Dynamic
 	
-	public static function registerHelper(param1:String, param2:String, onCompletion:Dynamic):Void
-	{
-		
-	}
-	
-	public static function Pos(line:Int, pos:Int):Dynamic
-	{
-		
-	}
-	
-	public static function toTextArea(param1:Dynamic):Void
-	{
-		
-	}
-	
-	public function getCursor():Dynamic
-	{
-		
-	}
-	
-	public function getLine(param1:Dynamic):Dynamic
-	{
-		
-	}
-	
-	public function firstLine():Dynamic
-	{
-		
-	}
-	
-	public function lastLine():Dynamic
-	{
-		
-	}
+public function firstLine():Dynamic;
+public function lastLine():Dynamic;
+
+public function markText(from : Pos, to : Pos, className : String ) : MarkedText;
+
+public function setMarker( line : Int , ?text : String , ?className : String ) : LineHandle;
+@:overload( function( line : LineHandle ) : Void {})
+public function clearMarker(line:Int) : Void;
+
+public function getWrapperElement() : js.html.DOMSelection;
+
+public function somethingSelected() : Bool;
+public function focus() : Void;
+
 }

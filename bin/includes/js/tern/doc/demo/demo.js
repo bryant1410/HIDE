@@ -121,7 +121,7 @@ function initEditor() {
   
   //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
   
-  //We can lo
+  //We can load files like this:
   
   //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
     //registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
