@@ -33,7 +33,7 @@ class FileMenu extends Menu
 		addMenuItem("Save as...", "component_saveAs", null);
 		addMenuItem("Save all", "component_saveAll", null);
 		addSeparator();
-		addMenuItem("Exit", "component_exit", null);
+		addMenuItem("Exit", "component_exit", Main.close);
 		addToDocument();
 	}
 	
