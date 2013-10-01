@@ -57,14 +57,25 @@ function load(file, c) {
 }
 
 CodeMirror.on(window, "load", function() {
-  var files = ["./includes/js/tern/defs/ecma5.json", "./includes/js/tern/defs/browser.json", "./includes/js/tern/defs/jquery.json"];
-  var loaded = 0;
-  for (var i = 0; i < files.length; ++i) (function(i) {
-    load(files[i], function(json) {
-      defs[i] = JSON.parse(json);
-      if (++loaded == files.length) initEditor();
-    });
-  })(i);
+  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
+  //probably we can supply here Haxe keywords, like so:
+  //this, typedef, class, interface, package, private, public, static, var, function, trace, switch, case and etc.
+  //http://haxe.org/ref/keywords
+  //We can create file similar to ecma5.json and provide description for each keyword
+  
+  //We can even provide completion for classes here, like String.
+	
+  //var files = ["./includes/js/tern/defs/ecma5.json"];
+  //var files = ["./includes/js/tern/defs/ecma5.json", "./includes/js/tern/defs/browser.json", "./includes/js/tern/defs/jquery.json"];
+  //var loaded = 0;
+  //for (var i = 0; i < files.length; ++i) (function(i) {
+    //load(files[i], function(json) {
+      //defs[i] = JSON.parse(json);
+      //if (++loaded == files.length) initEditor();
+    //});
+  //})(i);
+  
+  initEditor();
 
   var cmds = document.getElementById("commands");
   CodeMirror.on(cmds, "change", function() {
@@ -106,11 +117,15 @@ function initEditor() {
 
   editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
 
-  registerDoc("test.js", editor.getDoc());
-  registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
-  load("./includes/js/tern/doc/demo/underscore.js", function(body) {
-    registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
-  });
+  registerDoc("Main.hx", editor.getDoc());
+  
+  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
+  
+  //We can lo
+  
+  //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
+    //registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
+  //});
 
   CodeMirror.on(document.getElementById("docs"), "click", function(e) {
     var target = e.target || e.srcElement;
@@ -125,13 +140,16 @@ var commands = {
   jumptodef: function(cm) { server.jumpToDef(cm); },
   findtype: function(cm) { server.showType(cm); },
   rename: function(cm) { server.rename(cm); },
+  
+  //Command for creating new file
+  
   addfile: function() {
-    var name = prompt("Name of the new buffer", "");
+    var name = prompt("Name of the new file", "");
     if (name == null) return;
     if (!name) name = "test";
     var i = 0;
     while (findDoc(name + (i || ""))) ++i;
-    registerDoc(name + (i || ""), new CodeMirror.Doc("", "javascript"));
+    registerDoc(name + (i || ""), new CodeMirror.Doc("", "haxe"));
     selectDoc(docs.length - 1);
   },
   delfile: function() {
