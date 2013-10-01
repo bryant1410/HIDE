@@ -23,12 +23,12 @@ class FileAccess
 	
 	static public function openFile()
 	{
-		if (Main.session.current_project_xml == "")
-		{
-			trace ("open project first");
-		}
-		else
-		{
+		//if (Main.session.current_project_xml == "")
+		//{
+			//trace ("open project first");
+		//}
+		//else
+		//{
 			trace ("open a file");
 			var modal = new ModalDialog();
 			modal.id='projectAccess_openFile';
@@ -47,17 +47,24 @@ class FileAccess
 						var filename:String = file_input.val();
 						var file_content = Utils.system_openFile(filename);
 						var filename_split = filename.split(Utils.path.sep);
-						var className = filename_split[filename_split.length-1].split('.')[0];
-						Main.editors.set(filename,{'classname':className,'content':file_content});
-
-						Main.session.current_active_file = filename;
-						Main.tabs.push(filename); // add tab position
+						var className = filename_split[filename_split.length - 1].split('.')[0];
 						
-						var tab_index = Lambda.indexOf(Main.tabs,filename);
-						trace(tab_index);
+						
+						
+						//Main.editors.set(filename,{'classname':className,'content':file_content});
+
+						//Main.session.current_active_file = filename;
+						//Main.tabs.push(filename); // add tab position
+						//
+						//var tab_index = Lambda.indexOf(Main.tabs,filename);
+						//trace(tab_index);
+						
+						TabsManager.openFileInNewTab(filename);
+						
+						modal.hide();
 					}
 				});	
-		}
+		//}
 	}
 	
 	static public function saveActiveFile()
@@ -74,13 +81,15 @@ class FileAccess
 	
 	static public function closeActiveFile()
 	{
-		if (Main.session.current_project_xml == "")
-		{
-			trace ("open project first");
-		}
-		else
-		{
-			trace ("close active file");
-		}
+		TabsManager.closeActiveTab();
+		
+		//if (Main.session.current_project_xml == "")
+		//{
+			//trace ("open project first");
+		//}
+		//else
+		//{
+			//trace ("close active file");
+		//}
 	}
 }

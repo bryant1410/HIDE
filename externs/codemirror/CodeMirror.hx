@@ -32,6 +32,11 @@ text : Array<String>,
 ?next : ChangeEvent
 }
 
+@:native('CodeMirror.Doc')extern class Doc 
+{
+	public function new(body: Dynamic, mode: String);
+}
+
 @:native('CodeMirror') extern class CodeMirror {
 
 public static var commands (default,null) : Dynamic<CodeMirror->Void>;

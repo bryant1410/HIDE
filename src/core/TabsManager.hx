@@ -56,16 +56,52 @@ class TabsManager
 		});
 	}
 	
-	private static function load(file, c) 
+	private static function load(file, c:Dynamic) 
 	{
 	  var xhr = Browser.createXMLHttpRequest();
 	  xhr.open("get", file, true);
 	  xhr.send();
-	  //xhr.onreadystatechange = function() {
-		//if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
-	  //};
+	  xhr.onreadystatechange = function(e) {
+		if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
+	  };
 	}
 	
+	public static function openFileInNewTab(path:String):Void
+	{
+		var pos:Int = null;
+		
+		if (Utils.getOS() == "windows")
+		{
+			pos = path.lastIndexOf("\\");
+		}
+		else
+		{
+			pos = path.lastIndexOf("/");
+		}
+		
+		var filename:String = null;
+		
+		if (pos != -1)
+		{
+			filename = path.substr(pos + 1);
+		}
+		else
+		{
+			filename = path;
+		}
+		
+		load(path, function(body) 
+		{
+			registerDoc(filename, new CodeMirror.Doc(body, "haxe"));
+			selectDoc(docs.length - 1);
+		});
+	}
+	
+	public static function closeActiveTab():Void
+	{
+		if (docs.length == 1) return;
+		unregisterDoc(curDoc);
+	}
 	
 	private static function initEditor() 
 	{
@@ -74,7 +110,8 @@ class TabsManager
 			"Ctrl-Space": function(cm) { server.complete(cm); },
 			"Alt-.": function(cm) { server.jumpToDef(cm); },
 			"Alt-,": function(cm) { server.jumpBack(cm); },
-			"Ctrl-Q": function(cm) { server.rename(cm); }
+			"Ctrl-Q": function(cm) { server.rename(cm); },
+			"Ctrl-W": function(cm) { closeActiveTab(); }
 		  };
 
 		  editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), {
@@ -117,14 +154,15 @@ class TabsManager
 			
 			if (c == target) 
 			{
-				return selectDoc(1);
+				return selectDoc(0);
 			}
 			else
 			{
 				while (true)
 				{
+					i++;
 					c = c.nextSibling;
-					if (c == target) return selectDoc(1);
+					if (c == target) return selectDoc(i);
 				}
 			}
 			
@@ -134,9 +172,9 @@ class TabsManager
 	}
 
 	private static function findDoc(name) { return docs[docID(name)]; }
-	private static function docID(name) { for (i in 1...docs.length + 1) if (docs[i].name == name) return i; return null; }
+	private static function docID(name) { for (i in 0...docs.length) if (docs[i].name == name) return i; return null; }
 
-private static function registerDoc(name, doc) 
+private static function registerDoc(name, doc:CodeMirror.Doc) 
 {
   server.addDoc(name, doc);
   var data = {name: name, doc: doc};
@@ -154,7 +192,7 @@ private static function unregisterDoc(doc)
 {
   server.delDoc(doc.name);
   var j:Int = null;
-  for (i in 1...docs.length + 1) 
+  for (i in 0...docs.length) 
   {
 	  j = i;
 	  if (doc == docs[i]) break;
@@ -168,7 +206,7 @@ private static function unregisterDoc(doc)
 private static function setSelectedDoc(pos) 
 {
   var docTabs = Browser.document.getElementById("docs");
-  for (i in 1...docTabs.childNodes.length)
+  for (i in 0...docTabs.childNodes.length)
 	
 	if (pos == i)
 	{
