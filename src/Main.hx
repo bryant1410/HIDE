@@ -83,9 +83,13 @@ class Main {
 		"}"
 		].join("\n");
 		
-		cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("the_only_textarea_for_tabs_content"), {	lineNumbers:true, 
+		cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("the_only_textarea_for_tabs_content"), {	
+					lineNumbers:true, 
 					indentUnit:4,
-					matchBrackets:true}); 
+					matchBrackets:true
+					}); 
+		
+		cm.setValue(sample_code);
 
 
 		//createTextArea("tab1", sample_code);

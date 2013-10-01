@@ -102,7 +102,9 @@
 	</div>		
 	-->
 	
+
 	<div style="position: relative" id="demospace">
+	<!--
 	<select id="commands">
 		<option>commands...</option>
 		<option value=complete>Autocomplete (ctrl-space)</option>
@@ -112,9 +114,16 @@
 		<option value=addfile>Add a new file</option>
 		<option value=delfile>Remove this file</option>
 	</select>
+	-->
+
+	<ul id="tabs_position" class="nav nav-tabs" style="padding-left:10px;padding-right:10px;padding-top:10px;min-height:50px;">
+	</ul>
+	<textarea id='the_only_textarea_for_tabs_content'></textarea>
+
+
 	<form>
 	<ul class="tabs" id="docs"></ul>
-	<textarea id=code name=code>
+	<textarea id='code' name='code'>
 package;
 
 import flash.display.Sprite;
@@ -186,6 +195,8 @@ class Main extends Sprite
 }
 	</textarea></form></div>
 
+
 	<div id='modal_position'>
 	</div>
+
 </body>
