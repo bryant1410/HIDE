@@ -175,16 +175,70 @@
   // Completion
 
   function hint(ts, cm, c) {
-    ts.request(cm, {type: "completions", types: true, docs: true, urls: true}, function(error, data) {
+	 
+    ts.request(cm, {type: "completions", types: true, docs: true, urls: true, caseInsensitive:true, sort:false, filter:false}, function(error, data) {
       if (error) return showError(ts, cm, error);
       var completions = [], after = "";
       var from = data.start, to = data.end;
       if (cm.getRange(Pos(from.line, from.ch - 2), from) == "[\"" &&
           cm.getRange(to, Pos(to.line, to.ch + 2)) != "\"]")
         after = "\"]";
-
-      for (var i = 0; i < data.completions.length; ++i) {
-        var completion = data.completions[i], className = typeToIcon(completion.type);
+		
+		var word = cm.getRange(from, to).toLowerCase();
+		
+		var filtered_results = [];
+		var sorted_results = [];
+		
+		for (var i = 0; i < data.completions.length; ++i) {
+			var completion = data.completions[i];
+			  
+			var completion_name = completion.name.toLowerCase();
+			
+			var b = true;
+		  
+			  for (var j = 0; j < word.length; j++)
+			  {
+				  if (completion_name.indexOf(word.charAt(j)) == -1)
+				  {
+					  b = false;
+					  break;
+				  }
+			  }
+			  //
+			  //.indexOf(word) != 0
+			
+			if (b)
+			{
+				filtered_results.push(completion);
+			}
+		}
+		
+		for (var i = 0; i < filtered_results.length; ++i) {
+			var completion = filtered_results[i];
+			
+			if (completion.name.toLowerCase().indexOf(word) == 0)
+			{
+				sorted_results.push(completion);
+				filtered_results.splice(i, 1);
+			}
+		}
+		
+	  for (var i = 0; i < sorted_results.length; ++i) {
+        var completion = sorted_results[i];
+		
+		var className = typeToIcon(completion.type);
+        if (data.guess) className += " " + cls + "guess";
+        completions.push({text: completion.name + after,
+                          displayText: completion.name,
+                          className: className,
+                          data: completion});
+      }
+		
+		
+      for (var i = 0; i < filtered_results.length; ++i) {
+        var completion = filtered_results[i];
+		
+		var className = typeToIcon(completion.type);
         if (data.guess) className += " " + cls + "guess";
         completions.push({text: completion.name + after,
                           displayText: completion.name,
