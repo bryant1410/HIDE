@@ -77,14 +77,14 @@ CodeMirror.on(window, "load", function() {
   
   initEditor();
 
-  var cmds = document.getElementById("commands");
-  CodeMirror.on(cmds, "change", function() {
-    if (!editor || cmds.selectedIndex == 0) return;
-    var found = commands[cmds.value];
-    cmds.selectedIndex = 0;
-    editor.focus();
-    if (found) found(editor);
-  });
+  //var cmds = document.getElementById("commands");
+  //CodeMirror.on(cmds, "change", function() {
+    //if (!editor || cmds.selectedIndex == 0) return;
+    //var found = commands[cmds.value];
+    //cmds.selectedIndex = 0;
+    //editor.focus();
+    //if (found) found(editor);
+  //});
 });
 
 function initEditor() {

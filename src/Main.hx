@@ -35,9 +35,7 @@ class Main {
     
 	// the editor will always run this first. 
     static function init()
-    {
-		js.Node.require('nw.gui').Window.get().showDevTools();
-		
+    {		
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
 		
@@ -55,45 +53,45 @@ class Main {
     {
 		initMenu();
 		
-		var sample_code:String = 
+		//var sample_code:String = 
+		//
+		//[
+		//"import haxe.ds.StringMap.StringMap;",
+		//"import js.html.File;",
+		//"import js.Lib;",
+		//"import jQuery.*;",
+		//"import component.*;",
+		//"import ui.menu.EditMenu;",
+		//"import ui.menu.FileMenu;",
+		//"import ui.menu.HelpMenu;",
+		//"import ui.menu.RunMenu;",
+		//"import ui.menu.SourceMenu;",
+		//"",
+		//"class Main {",
+		//"",
+		//"	static public var session:Session;",
+		//"	static public var editors:StringMap<Array<Dynamic>>;",
+		//"	static public var tabs:Array<String>;",
+		//"	static public var settings:StringMap<String>;",
+		//"",	
+		//"	// the program starts here",
+		//"	static public function main():Void {",
+		//"		new JQuery(function():Void",
+		//"			{",
+		//"				init();",
+		//"				initCorePlugin();",
+		//"			});",
+		//"	}",
+		//"}"
+		//].join("\n");
 		
-		[
-		"import haxe.ds.StringMap.StringMap;",
-		"import js.html.File;",
-		"import js.Lib;",
-		"import jQuery.*;",
-		"import component.*;",
-		"import ui.menu.EditMenu;",
-		"import ui.menu.FileMenu;",
-		"import ui.menu.HelpMenu;",
-		"import ui.menu.RunMenu;",
-		"import ui.menu.SourceMenu;",
-		"",
-		"class Main {",
-		"",
-		"	static public var session:Session;",
-		"	static public var editors:StringMap<Array<Dynamic>>;",
-		"	static public var tabs:Array<String>;",
-		"	static public var settings:StringMap<String>;",
-		"",	
-		"	// the program starts here",
-		"	static public function main():Void {",
-		"		new JQuery(function():Void",
-		"			{",
-		"				init();",
-		"				initCorePlugin();",
-		"			});",
-		"	}",
-		"}"
-		].join("\n");
-		
-		cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("the_only_textarea_for_tabs_content"), {	
-					lineNumbers:true, 
-					indentUnit:4,
-					matchBrackets:true
-					}); 
-		
-		cm.setValue(sample_code);
+		//cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("the_only_textarea_for_tabs_content"), {	
+					//lineNumbers:true, 
+					//indentUnit:4,
+					//matchBrackets:true
+					//}); 
+		//
+		//cm.setValue(sample_code);
 
 
 		//createTextArea("tab1", sample_code);
@@ -137,30 +135,30 @@ class Main {
 		//new Completion();
     }
 	
-	static function createTextArea(id:String, ?code:String):Void
-	{
-		if (code == null) code = "";
-		
-		var editor_str = 
-		[
-		"<div class=\"tab-pane\" id=\"" + id + "\">",
-		"<textarea id=\"" + id + "_textarea" +  "\">" + code + "</textarea>",
-		"<script>",
-		"CodeMirror.commands.autocomplete = function(cm) {",
-		"	CodeMirror.showHint(cm, CodeMirror.hint.haxe);",
-		"};",
-		"var editor = CodeMirror.fromTextArea(document.getElementById(\"" + id + "_textarea" + "\"), {",
-		"  lineNumbers: true, ",
-		"  indentUnit: 4, ",
-		"  matchBrackets: true, ",
-		"  extraKeys: {\"Ctrl-Space\": \"autocomplete\"}",
-		"});",
-		"</script>",
-		"</div>",
-		].join("\n");
-		
-		new JQuery("#tabs_content_position").append(editor_str);
-	}
+	//static function createTextArea(id:String, ?code:String):Void
+	//{
+		//if (code == null) code = "";
+		//
+		//var editor_str = 
+		//[
+		//"<div class=\"tab-pane\" id=\"" + id + "\">",
+		//"<textarea id=\"" + id + "_textarea" +  "\">" + code + "</textarea>",
+		//"<script>",
+		//"CodeMirror.commands.autocomplete = function(cm) {",
+		//"	CodeMirror.showHint(cm, CodeMirror.hint.haxe);",
+		//"};",
+		//"var editor = CodeMirror.fromTextArea(document.getElementById(\"" + id + "_textarea" + "\"), {",
+		//"  lineNumbers: true, ",
+		//"  indentUnit: 4, ",
+		//"  matchBrackets: true, ",
+		//"  extraKeys: {\"Ctrl-Space\": \"autocomplete\"}",
+		//"});",
+		//"</script>",
+		//"</div>",
+		//].join("\n");
+		//
+		//new JQuery("#tabs_content_position").append(editor_str);
+	//}
 	
 	static private function initMenu() 
 	{
