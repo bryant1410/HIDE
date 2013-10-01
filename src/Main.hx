@@ -1,3 +1,4 @@
+import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
 import js.html.DivElement;
 import js.html.File;
@@ -36,6 +37,8 @@ class Main {
 	// the editor will always run this first. 
     static function init()
     {		
+		TabsManager.init();
+		
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
 		
