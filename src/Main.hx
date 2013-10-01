@@ -13,7 +13,7 @@ import ui.menu.SourceMenu;
 class Main {
 
 	static public var session:Session;
-	static public var editors:StringMap<Array<Dynamic>>;
+	static public var editors:StringMap<Dynamic>;
 	static public var tabs:Array<String>;
 	static public var settings:StringMap<String>;
 	
