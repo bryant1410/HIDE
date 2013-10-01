@@ -41,6 +41,8 @@ public static function fromTextArea( textarea : Dynamic , ?config : Dynamic ) : 
 
 public static function registerHelper(param1:String, param2:String, onCompletion:Dynamic):Void;
 
+public static function on(object:Dynamic, event:String, callback_function:Dynamic):Void;
+
 public function setValue( v : String ) : Void;
 public function getValue() : String;
 public function refresh() : Void;
