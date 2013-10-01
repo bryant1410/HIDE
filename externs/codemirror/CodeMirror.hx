@@ -5,8 +5,6 @@ package ;
 //With few additional functions
 //==========
 
-package ;
-
 import js.html.*;
 
 typedef Completions = {
@@ -49,7 +47,7 @@ public function refresh() : Void;
 
 public function getCursor( ?start : Bool ) : Pos;
 
-public function getLine(param1:Dynamic):Dynamic
+public function getLine(param1:Dynamic):Dynamic;
 	
 public function firstLine():Dynamic;
 public function lastLine():Dynamic;
