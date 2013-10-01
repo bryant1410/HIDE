@@ -18,10 +18,11 @@
 	<script src="./includes/js/codemirror-3.18/lib/codemirror.js" type="text/javascript"></script>
 	
 	<!-- CodeMirror modes -->	
-	<!--
+	
 	<script src="./includes/js/codemirror-3.18/mode/haxe/haxe.js" type="text/javascript"></script>
-	-->
+	<!--
 	<script src="./includes/js/codemirror-3.18/mode/javascript/javascript.js" type="text/javascript"></script>
+	-->
 	
 	<!-- CodeMirror addons -->
 	
@@ -114,66 +115,76 @@
 	<form>
 	<ul class="tabs" id="docs"></ul>
 	<textarea id=code name=code>
-	// Use ctrl-space to complete something
-	co
-	document.body.a
+package;
 
-	// Put the cursor in or after an expression, press ctrl-i to
-	// find its type
+import flash.display.Sprite;
+import flash.events.Event;
+import motion.Actuate;
+import motion.easing.Quad;
 
-	var foo = ["array", "of", "strings"];
-	var bar = foo.slice(0, 2).join("").split("a")[0];
-
-	// Works for locally defined types too.
-
-	function CTor() { this.size = 10; }
-	CTor.prototype.hallo = "hallo";
-
-	var baz = new CTor;
-	baz.
-
-	// You can press ctrl-q when the cursor is on a variable name to
-	// rename it. Try it with CTor...
-
-	// When the cursor is in an argument list, the arguments are
-	// shown below the editor.
-
-	[1].reduce(  );
-
-	// And a little more advanced code...
-
-	(function(exports) {
-	exports.randomElt = function(arr) {
-	return arr[Math.floor(arr.length * Math.random())];
-	};
-	exports.strList = "foo".split("");
-	exports.intList = exports.strList.map(function(s) { return s.charCodeAt(0); });
-	})(window.myMod = {});
-
-	var randomStr = myMod.randomElt(myMod.strList);
-	var randomInt = myMod.randomElt(myMod.intList);
-
-	// A test of the requirejs plug-in. Check the 'test_dep.js' tab,
-	// notice that the test variable.
-
-	requirejs(["test_dep.js"], function(test) {
-	var word = test.capitalize(test.garble("coconut"));
-	console.log(word);
-	});
-	</textarea></form></div>
-
-	<pre style="display: none" id="requirejs_test_dep">define(function() {
-	return {
-	capitalize: function(word) {
-	return word.charAt(0).toUpperCase() + word.slice(1);
-	},
-	garble: function(word) {
-	return word.replace(/[auiyoe]/g, function() {
-	return "auiyoe".charAt(Math.floor(Math.random() * 6));
-	});
+class Main extends Sprite 
+{	
+	public function new () 
+	{
+		super ();
+		initialize ();
+		construct ();
 	}
-	};
-	});</pre>
+	
+	private function animateCircle (circle:Sprite):Void 
+	{
+		var duration = 1.5 + Math.random () * 4.5;
+		var targetX = Math.random () * stage.stageWidth;
+		var targetY = Math.random () * stage.stageHeight;
+		Actuate.tween (circle, duration, { x: targetX, y: targetY }, false).ease (Quad.easeOut).onComplete (animateCircle, [ circle ]);
+	}
+	
+	private function construct ():Void 
+	{
+		for (i in 0...80) 
+		{
+			var creationDelay = Math.random () * 10;
+			Actuate.timer (creationDelay).onComplete (createCircle);
+		}
+	}
+	
+	
+	private function createCircle ():Void 
+	{
+		var size = 5 + Math.random () * 35 + 20;
+		var circle = new Sprite ();
+		
+		circle.graphics.beginFill (Std.int (Math.random () * 0xFFFFFF));
+		circle.graphics.drawCircle (0, 0, size);
+		circle.alpha = 0.2 + Math.random () * 0.6;
+		circle.x = Math.random () * stage.stageWidth;
+		circle.y = Math.random () * stage.stageHeight;
+		
+		addChildAt (circle, 0);
+		animateCircle (circle);
+	}
+	
+	
+	private function initialize ():Void {
+		
+		stage.addEventListener (Event.ACTIVATE, stage_onActivate);
+		stage.addEventListener (Event.DEACTIVATE, stage_onDeactivate);
+	}
+	
+	// Event Handlers
+	
+	private function stage_onActivate (event:Event):Void 
+	{
+		Actuate.resumeAll ();
+	}
+	
+	
+	private function stage_onDeactivate (event:Event):Void 
+	{
+		Actuate.pauseAll ();
+	}
+}
+	</textarea></form></div>
 
 	<div id='modal_position'>
 	</div>
