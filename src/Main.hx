@@ -10,12 +10,14 @@ import ui.menu.HelpMenu;
 import ui.menu.RunMenu;
 import ui.menu.SourceMenu;
 
+
 class Main {
 
 	static public var session:Session;
 	static public var editors:StringMap<Dynamic>;
 	static public var tabs:Array<String>;
 	static public var settings:StringMap<String>;
+	static public var cm:CodeMirror;
 	
 	// the program starts here	
     static public function main():Void {
@@ -81,6 +83,11 @@ class Main {
 		"}"
 		].join("\n");
 		
+		cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("the_only_textarea_for_tabs_content"), {	lineNumbers:true, 
+					indentUnit:4,
+					matchBrackets:true}); 
+
+
 		//createTextArea("tab1", sample_code);
 		//createTextArea("tab2");
 		//createTextArea("tab3");
