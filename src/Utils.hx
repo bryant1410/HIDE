@@ -55,12 +55,12 @@ class Utils
 		return myString.substr(0, 1) + myString.substr(1);
 	}
 	
-	public static function system_openFile(filename)
+	public static function system_openFile(filename:String)
     {
 		return fs.readFileSync(filename,"utf-8");
     }
     
-	public static function system_createFile(filename)
+	public static function system_createFile(filename:String)
 	{
 		fs.openSync(filename,"wx");
 	}

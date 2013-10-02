@@ -36,7 +36,10 @@ class FileAccess
 			modal.content = '<input id="ProjectAccess_openFile_file" type="file" />';
 			modal.ok_text = "Open";
 			modal.cancel_text = "Cancel";
-			modal.show();
+			
+			//Don't show dialog, show only file browser
+			modal.updateModalDialog();
+			//modal.show();
 
 			var file_input = new JQuery("#ProjectAccess_openFile_file");
 			file_input.click();
@@ -60,7 +63,7 @@ class FileAccess
 						
 						TabsManager.openFileInNewTab(filename);
 						
-						modal.hide();
+						//modal.hide();
 					}
 				});	
 		//}
