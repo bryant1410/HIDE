@@ -55,24 +55,60 @@ class Main {
 		{
 			if (e.ctrlKey)
 			{
-				switch (e.keyCode) 
+				if (!e.shiftKey)
 				{
-					//Ctrl-W
-					case 87:
-						TabsManager.closeActiveTab();
-					//Ctrl-0
-					case 48:
-						Utils.window.zoomLevel = 0;
-					//Ctrl-'-'
-					case 189:
-						Utils.zoomOut();
-					//Ctrl-'+'
-					case 187:
-						Utils.zoomIn();
-					default:
-						
-				}			
-				trace(e.keyCode);
+					switch (e.keyCode) 
+					{
+						//Ctrl-W
+						case 87:
+							TabsManager.closeActiveTab();
+						//Ctrl-0
+						case 48:
+							new JQuery(".CodeMirror").css("font-size", "14pt");
+							new JQuery(".CodeMirror-hint").css("font-size", "12pt");
+							new JQuery(".CodeMirror-hints").css("font-size", "90%");
+						//Ctrl-'-'
+						case 189:
+							var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
+							font_size--;
+							setFontSize(font_size);
+						//Ctrl-'+'
+						case 187:
+							var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
+							font_size++;
+							setFontSize(font_size);
+						//Ctrl-Tab
+						case 9:
+							TabsManager.showNextTab();
+							e.preventDefault(); 
+							e.stopPropagation(); 
+						default:
+							
+					}			
+				}
+				else
+				{
+					switch (e.keyCode) 
+					{
+						//Ctrl-Shift-0
+						case 48:
+							Utils.window.zoomLevel = 0;
+						//Ctrl-Shift-'-'
+						case 189:
+							Utils.zoomOut();
+						//Ctrl-Shift-'+'
+						case 187:
+							Utils.zoomIn();
+						//Ctrl-Shift-Tab
+						case 9:
+							TabsManager.showPreviousTab();
+							e.preventDefault(); 
+							e.stopPropagation(); 
+						default:
+							
+					}		
+				}
+				//trace(e.keyCode);
 			}
 		};
 		
@@ -82,11 +118,19 @@ class Main {
 			{
 				if (e.wheelDeltaY < 0)
 				{
-					Utils.zoomIn();
+					var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
+					font_size++;
+					setFontSize(font_size);
+					e.preventDefault(); 
+					e.stopPropagation(); 
 				}
 				else if (e.wheelDeltaY > 0)
 				{
-					Utils.zoomOut();
+					var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
+					font_size--;
+					setFontSize(font_size);
+					e.preventDefault(); 
+					e.stopPropagation(); 
 				}
 			}
 		};
@@ -104,6 +148,13 @@ class Main {
 		settings = new StringMap();
     }
     
+	static function setFontSize(font_size)
+	{
+		new JQuery(".CodeMirror").css("font-size", Std.string(font_size) + "px");
+		new JQuery(".CodeMirror-hint").css("font-size", Std.string(font_size - 2) + "px");
+		new JQuery(".CodeMirror-hints").css("font-size", Std.string(font_size - 2) + "px");
+	}
+	
     static function initCorePlugin()
     {
 		initMenu();

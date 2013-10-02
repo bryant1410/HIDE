@@ -103,6 +103,34 @@ class TabsManager
 		unregisterDoc(curDoc);
 	}
 	
+	public static function showNextTab():Void
+	{
+		var n = Lambda.indexOf(docs, curDoc);
+		
+		n++;
+		
+		if (n > docs.length - 1)
+		{
+			n = 0;
+		}
+		
+		selectDoc(n);
+	}
+	
+	public static function showPreviousTab():Void
+	{
+		var n = Lambda.indexOf(docs, curDoc);
+		
+		n--;
+		
+		if (n < 0)
+		{
+			n = docs.length - 1;
+		}
+		
+		selectDoc(n);
+	}
+	
 	private static function initEditor() 
 	{
 		  var keyMap = {
@@ -126,7 +154,7 @@ class TabsManager
 			workerDeps: ["./includes/js/acorn/acorn.js", "./includes/js/acorn/acorn_loose.js",
 						 "./includes/js/acorn/util/walk.js", "./includes/js/tern/lib/signal.js", "./includes/js/tern/lib/tern.js",
 						 "./includes/js/tern/lib/def.js", "./includes/js/tern/lib/infer.js", "./includes/js/tern/lib/comment.js",
-						 "./includes/js/tern/plugin/requirejs.js", "./includes/js/tern/plugin/doc_comment.js"],
+						 "./includes/js/tern/plugin/doc_comment.js"],
 			workerScript: "./includes/js/codemirror-3.18/addon/tern/worker.js",
 			useWorker: useWorker
 
