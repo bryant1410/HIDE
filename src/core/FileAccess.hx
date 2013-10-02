@@ -68,12 +68,12 @@ class FileAccess
 	
 	static public function saveActiveFile()
 	{
-		if (Main.session.current_project_xml == "")
-		{
-			trace ("open project first");
-		}
-		else
-		{
+		//if (Main.session.current_project_xml == "")
+		//{
+			//trace ("open project first");
+		//}
+		//else
+		//{
 			trace ("save active file");
 
 			// get active file
@@ -85,7 +85,7 @@ class FileAccess
 			trace(curDoc_val);
 
 			Utils.system_saveFile(curDoc_filepath,curDoc_val);
-		}
+		//}
 	}
 	
 	static public function closeActiveFile()
