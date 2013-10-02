@@ -18,27 +18,38 @@ class Utils
 	public static var nwworkingdir:String;
 	
 	public static var gui = Node.require("nw.gui");
-	public static var window = gui.Window.get();
+	public static var window:Dynamic = gui.Window.get();
+	
+	inline public static var WINDOWS:Int = 0;
+	inline public static var LINUX:Int = 1;
+	inline public static var OTHER:Int = 2;
 
 	public function new() 
 	{
 		
 	}
 	
-	public static function getOS():String
+	public static function getOS():Int
 	{
-		var os_type:String = os.type();
+		var os_type:Int = null;
 		
-		switch(os_type)
+		switch(os.type())
         {
 			case "Windows_NT":
-				os_type = 'windows';
+				os_type = WINDOWS;
 			case "Linux":
-				os_type = 'linux';
+				os_type = LINUX;
+			case _:
+				os_type = OTHER;
         }
 		
 		return os_type;
     }
+	
+	public static function toggleFullscreen():Void
+	{
+		Utils.window.toggleFullscreen();
+	}
 	
 	public static function zoomIn():Void
 	{
@@ -80,10 +91,9 @@ class Utils
 	    projectFolder.pop();
 	    //trace(projectFolder);
 	    Main.session.current_project_folder = projectFolder.join(path.sep);		
-
-
-		if (Utils.getOS() == 'windows') {exec_str = "cd /D "+ Main.session.current_project_folder +" & openfl display -hxml flash";}
-		if (Utils.getOS() == 'linux') { exec_str = "cd " + Main.session.current_project_folder + " ; openfl display -hxml flash"; }
+		
+		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.current_project_folder +" & openfl display -hxml flash";}
+		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.current_project_folder + " ; openfl display -hxml flash"; }
 		trace(exec_str);
 
 		Utils.exec(exec_str,

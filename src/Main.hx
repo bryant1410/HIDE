@@ -4,6 +4,7 @@ import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
 import js.html.DivElement;
+import js.html.Event;
 import js.html.File;
 import js.html.InputElement;
 import js.html.KeyboardEvent;
@@ -17,6 +18,7 @@ import ui.menu.FileMenu;
 import ui.menu.HelpMenu;
 import ui.menu.RunMenu;
 import ui.menu.SourceMenu;
+import ui.menu.ViewMenu;
 
 
 class Main {
@@ -50,8 +52,34 @@ class Main {
 		
 		//Browser.document.appendChild(input_element);
 		
+		//var gui = js.Node.require('nw.gui');
+//
+		// Create an empty menu
+		//var menu = untyped __js__("new gui.Menu();");
+		//
+		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close' })"));
+		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close All' })"));
+		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close Others' })"));
+		//
+		//Browser.document.getElementById("docs").addEventListener('contextmenu', function(ev:Event) { 
+		  //ev.preventDefault();
+		  //menu.popup(ev.x, ev.y);
+		  //return false;
+		//});
 		
 		TabsManager.init();
+		
+		Browser.window.ondragover = function(e) { e.preventDefault(); return false; };
+		Browser.window.ondrop = function(e:Dynamic) 
+		{
+		  e.preventDefault();
+
+		  for (i in 0...e.dataTransfer.files.length) 
+		  {
+			TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
+		  }
+		  return false;
+		};
 		
 		Browser.window.onkeyup = function (e:KeyboardEvent)
 		{
@@ -118,11 +146,19 @@ class Main {
 						//Ctrl-Shift-S
 						case 83:
 							//Save as...
+						//case :
 						default:
 							
 					}		
 				}
 				//trace(e.keyCode);
+			}
+			else
+			{
+				if (e.keyCode == 13 && e.shiftKey && e.altKey)
+				{
+					Utils.toggleFullscreen();
+				}
 			}
 		};
 		
@@ -133,7 +169,7 @@ class Main {
 				if (e.wheelDeltaY < 0)
 				{
 					var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
-					font_size++;
+					font_size--;
 					setFontSize(font_size);
 					e.preventDefault(); 
 					e.stopPropagation(); 
@@ -141,7 +177,7 @@ class Main {
 				else if (e.wheelDeltaY > 0)
 				{
 					var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
-					font_size--;
+					font_size++;
 					setFontSize(font_size);
 					e.preventDefault(); 
 					e.stopPropagation(); 
@@ -284,6 +320,7 @@ class Main {
 	{
 		new FileMenu();
 		new EditMenu();
+		new ViewMenu();
 		new SourceMenu();
 		new RunMenu();
 		new HelpMenu();

@@ -44,7 +44,9 @@ class ProjectAccess
 			modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
 			modal.ok_text = "Open";
 			modal.cancel_text = "Cancel";
-			modal.show();
+			
+			modal.updateModalDialog();
+			//modal.show();
 
 			var file_input = new JQuery("#ProjectAccess_openProject_file");
 			file_input.click();
@@ -53,7 +55,7 @@ class ProjectAccess
 				if (file_input.val() != "")
 					{
 						Main.session.current_project_xml = file_input.val();
-						modal.hide();
+						//modal.hide();
 						Utils.system_parse_project();
 					}
 				});			
