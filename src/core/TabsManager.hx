@@ -73,7 +73,7 @@ class TabsManager
 	{
 		var pos:Int = null;
 		
-		if (Utils.getOS() == "windows")
+		if (Utils.getOS() == Utils.WINDOWS)
 		{
 			pos = path.lastIndexOf("\\");
 		}
