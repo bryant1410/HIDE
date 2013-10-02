@@ -103,7 +103,6 @@ class ProjectAccess
 	
 	public static function closeProject()
 	{
-		
 		trace ("close project");
 		
 		if (Main.session.current_project_xml != "")
