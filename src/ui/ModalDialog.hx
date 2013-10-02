@@ -22,9 +22,7 @@ class ModalDialog
 		cancel_text = '';
 	}
 	
-	
-	
-	public function show()
+	public function updateModalDialog()
 	{
 		var retStr = ["<div class='modal fade' id='"+id+"' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>",
 				   "<div class='modal-dialog'>",
@@ -44,7 +42,12 @@ class ModalDialog
 				   "</div>",
 				   "</div>"].join("\n");
 		
-		new JQuery("#modal_position").html(retStr);		
+		new JQuery("#modal_position").html(retStr);
+	}
+	
+	public function show()
+	{
+		updateModalDialog();	
 		
 		
 		// using untyped

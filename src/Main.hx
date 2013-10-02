@@ -1,3 +1,5 @@
+import core.FileAccess;
+import core.ProjectAccess;
 import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
@@ -82,6 +84,12 @@ class Main {
 							TabsManager.showNextTab();
 							e.preventDefault(); 
 							e.stopPropagation(); 
+						//Ctrl-O
+						case 79:
+							FileAccess.openFile();
+						//Ctrl-S
+						case 83:
+							FileAccess.saveActiveFile();
 						default:
 							
 					}			
@@ -104,6 +112,12 @@ class Main {
 							TabsManager.showPreviousTab();
 							e.preventDefault(); 
 							e.stopPropagation(); 
+						//Ctrl-Shift-O
+						case 79:
+							ProjectAccess.openProject();
+						//Ctrl-Shift-S
+						case 83:
+							//Save as...
 						default:
 							
 					}		

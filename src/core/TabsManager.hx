@@ -58,12 +58,15 @@ class TabsManager
 	
 	private static function load(file, c:Dynamic) 
 	{
-	  var xhr = Browser.createXMLHttpRequest();
-	  xhr.open("get", file, true);
-	  xhr.send();
-	  xhr.onreadystatechange = function(e) {
-		if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
-	  };
+	  //var xhr = Browser.createXMLHttpRequest();
+	  //xhr.open("get", file, true);
+	  //xhr.send();
+	  //xhr.onreadystatechange = function(e) {
+		//if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
+	  //};
+	  
+	  
+	  c(Utils.system_openFile(file), 200);
 	}
 	
 	public static function openFileInNewTab(path:String):Void
