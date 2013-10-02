@@ -1,6 +1,6 @@
 package core;
 import jQuery.*;
-import ui.*;	
+import ui.*;
 
 class FileAccess
 {
@@ -75,6 +75,16 @@ class FileAccess
 		else
 		{
 			trace ("save active file");
+
+			// get active file
+			var curDoc = TabsManager.curDoc;
+			trace(curDoc);
+			var curDoc_filepath = curDoc.path;
+			var curDoc_val = curDoc.doc.cm.getValue();
+
+			trace(curDoc_val);
+
+			Utils.system_saveFile(curDoc_filepath,curDoc_val);
 		}
 	}
 	
