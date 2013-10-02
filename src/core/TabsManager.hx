@@ -92,7 +92,7 @@ class TabsManager
 		
 		load(path, function(body) 
 		{
-			registerDoc(filename, new CodeMirror.Doc(body, "haxe"));
+			registerDoc(filename, new CodeMirror.Doc(body, "haxe"),path);
 			selectDoc(docs.length - 1);
 		});
 	}
@@ -134,7 +134,8 @@ class TabsManager
 
 		  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
 
-		  registerDoc("Main.hx", editor.getDoc());
+
+		  registerDoc("Main.hx", editor.getDoc(),'');
 		  
 		  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
 		  
@@ -173,10 +174,10 @@ class TabsManager
 	private static function findDoc(name) { return docs[docID(name)]; }
 	private static function docID(name) { for (i in 0...docs.length) if (docs[i].name == name) return i; return null; }
 
-private static function registerDoc(name, doc:CodeMirror.Doc) 
+private static function registerDoc(name, doc:CodeMirror.Doc,path) 
 {
   server.addDoc(name, doc);
-  var data = {name: name, doc: doc};
+  var data = {name: name, doc: doc,path:path};
   docs.push(data);
   var docTabs = Browser.document.getElementById("docs");
   var li = docTabs.appendChild(Browser.document.createElement("li"));
