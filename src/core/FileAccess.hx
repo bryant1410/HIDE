@@ -45,10 +45,9 @@ class FileAccess
 				if (file_input.val() != "")
 					{
 						var filename:String = file_input.val();
-						var file_content = Utils.system_openFile(filename);
-						var filename_split = filename.split(Utils.path.sep);
-						var className = filename_split[filename_split.length - 1].split('.')[0];
-						
+						//var file_content = Utils.system_openFile(filename);
+						//var filename_split = filename.split(Utils.path.sep);
+						//var className = filename_split[filename_split.length - 1].split('.')[0];
 						
 						
 						//Main.editors.set(filename,{'classname':className,'content':file_content});

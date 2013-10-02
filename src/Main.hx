@@ -1,7 +1,12 @@
 import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
+import js.Browser;
 import js.html.DivElement;
 import js.html.File;
+import js.html.InputElement;
+import js.html.KeyboardEvent;
+import js.html.MouseEvent;
+import js.html.WheelEvent;
 import js.Lib;
 import jQuery.*;
 import component.*;
@@ -15,15 +20,15 @@ import ui.menu.SourceMenu;
 class Main {
 
 	static public var session:Session;
-	static public var editors:StringMap<Dynamic>;
-	static public var tabs:Array<String>;
+	//static public var editors:StringMap<Dynamic>;
+	//static public var tabs:Array<String>;
 	static public var settings:StringMap<String>;
-	static public var cm:CodeMirror;
+	//static public var cm:CodeMirror;
 	
 	// the program starts here	
     static public function main():Void {
 		new JQuery(function():Void
-			{
+			{				
 				init();
 				initCorePlugin();
 			});
@@ -37,16 +42,63 @@ class Main {
 	// the editor will always run this first. 
     static function init()
     {		
+		//var input_element:InputElement = Browser.document.createInputElement();
+		//input_element.id = "ProjectAccess_openFile_file";
+		//input_element.type = "file";
+		
+		//Browser.document.appendChild(input_element);
+		
+		
 		TabsManager.init();
+		
+		Browser.window.onkeyup = function (e:KeyboardEvent)
+		{
+			if (e.ctrlKey)
+			{
+				switch (e.keyCode) 
+				{
+					//Ctrl-W
+					case 87:
+						TabsManager.closeActiveTab();
+					//Ctrl-0
+					case 48:
+						Utils.window.zoomLevel = 0;
+					//Ctrl-'-'
+					case 189:
+						Utils.zoomOut();
+					//Ctrl-'+'
+					case 187:
+						Utils.zoomIn();
+					default:
+						
+				}			
+				trace(e.keyCode);
+			}
+		};
+		
+		Browser.document.onmousewheel = function(e:WheelEvent)
+		{
+			if (e.altKey)
+			{
+				if (e.wheelDeltaY < 0)
+				{
+					Utils.zoomIn();
+				}
+				else if (e.wheelDeltaY > 0)
+				{
+					Utils.zoomOut();
+				}
+			}
+		};
 		
 		// var session are used for storing vital information regarding the current usage
 		session = new Session();
 		
 		// var editors are used to store multiple file's informations. It's key must be the file's name (including the path).
-		editors = new StringMap();
+		//editors = new StringMap();
 		
 		// var tabs are variable to populate the tabs.
-		tabs = [];
+		//tabs = [];
 		
 		// var settings are predefined variables for the IDE.
 		settings = new StringMap();

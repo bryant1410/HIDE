@@ -16,6 +16,9 @@ class Utils
 	public static var exec = Node.require('child_process').exec;
 	public static var sys = Node.require('sys');
 	public static var nwworkingdir:String;
+	
+	public static var gui = Node.require("nw.gui");
+	public static var window = gui.Window.get();
 
 	public function new() 
 	{
@@ -36,6 +39,16 @@ class Utils
 		
 		return os_type;
     }
+	
+	public static function zoomIn():Void
+	{
+		Utils.window.zoomLevel = Utils.window.zoomLevel + 1;
+	}
+	
+	public static function zoomOut():Void
+	{
+		Utils.window.zoomLevel = Utils.window.zoomLevel - 1;
+	}
 	
 	public static function capitalize(myString:String)
 	{

@@ -11,8 +11,8 @@
 	<meta charset="utf-8">
 		
 	<!-- Demo code http://ternjs.net/doc/demo.html -->
-	<link rel="stylesheet" href="./includes/js/tern/doc/docs.css">
-	<link rel="stylesheet" href="./includes/js/tern/doc/demo/demo.css">
+	<link rel="stylesheet" href="./includes/css/docs.css">
+	<link rel="stylesheet" href="./includes/css/demo.css">
 	
 	<script>
 		require('nw.gui').Window.get().showDevTools();
@@ -108,9 +108,8 @@
 	<div id='tabs_content_position' class="tab-content">
 	</div>		
 	-->
-	
 
-	<div style="position: relative" id="demospace">
+	<div style="position: absolute" id="demospace">
 	<!--
 	<select id="commands">
 		<option>commands...</option>
@@ -124,7 +123,7 @@
 	 -->
 	
 	<form>
-	<ul class="tabs" id="docs"></ul>
+	<ul class="tabs" id="docs" style="position: fixed; z-index: 1000;"></ul>
 	<textarea id='code' name='code'>
 package;
 

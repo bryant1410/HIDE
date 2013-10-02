@@ -110,8 +110,7 @@ class TabsManager
 			"Ctrl-Space": function(cm) { server.complete(cm); },
 			"Alt-.": function(cm) { server.jumpToDef(cm); },
 			"Alt-,": function(cm) { server.jumpBack(cm); },
-			"Ctrl-Q": function(cm) { server.rename(cm); },
-			"Ctrl-W": function(cm) { closeActiveTab(); }
+			"Ctrl-Q": function(cm) { server.rename(cm); }
 		  };
 
 		  editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), {
