@@ -1,4 +1,5 @@
 package core;
+import haxe.Timer;
 import js.Browser;
 
 //Code from Tern bin\includes\js\tern\doc\demo\demo.js
@@ -152,7 +153,12 @@ class TabsManager
 			lineNumbers: true,
 			extraKeys: keyMap,
 			matchBrackets: true,
-			dragDrop: false
+			dragDrop: false,
+			autoCloseBrackets: true,
+			foldGutter: {
+				rangeFinder: untyped __js__("new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)")
+			},
+			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
 		  });
 		  
 		  server = new TernServer({
