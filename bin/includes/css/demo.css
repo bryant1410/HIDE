@@ -1,3 +1,4 @@
+/*
 .CodeMirror {
   top: 0px;
   border: 1px solid silver;
@@ -7,6 +8,7 @@
   font-family: "Ubuntu Mono";
   z-index: 2;
 }
+*/
 .CodeMirror pre {
   padding: 0 9px;
 }
