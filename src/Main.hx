@@ -2,6 +2,7 @@ import core.FileAccess;
 import core.ProjectAccess;
 import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
+import haxe.Timer;
 import js.Browser;
 import js.html.DivElement;
 import js.html.Event;
@@ -45,7 +46,16 @@ class Main {
     
 	// the editor will always run this first. 
     static function init()
-    {		
+    {
+		Browser.window.onresize = function (e)
+		{
+			resize();
+		}
+		
+		
+		//Timer.delay(resize, 100);
+		
+		
 		//var input_element:InputElement = Browser.document.createInputElement();
 		//input_element.id = "ProjectAccess_openFile_file";
 		//input_element.type = "file";
@@ -69,10 +79,11 @@ class Main {
 		
 		TabsManager.init();
 		
-		Browser.window.ondragover = function(e) { e.preventDefault(); return false; };
+		Browser.window.ondragover = function(e) { e.preventDefault(); e.stopPropagation(); return false; };
 		Browser.window.ondrop = function(e:Dynamic) 
 		{
 		  e.preventDefault();
+		  e.stopPropagation();
 
 		  for (i in 0...e.dataTransfer.files.length) 
 		  {
@@ -198,6 +209,11 @@ class Main {
 		settings = new StringMap();
     }
     
+	public  static function resize():Void
+	{
+		new JQuery(".CodeMirror").css("height", Std.string(Browser.window.innerHeight - 85));
+	}
+	
 	static function setFontSize(font_size)
 	{
 		new JQuery(".CodeMirror").css("font-size", Std.string(font_size) + "px");

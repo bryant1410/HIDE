@@ -53,6 +53,10 @@ class TabsManager
 			//editor.focus();
 			//if (found) found(editor);
 		  //});
+		  
+		  Main.resize();
+		
+		  TabsManager.editor.refresh();
 		});
 	}
 	
@@ -147,7 +151,8 @@ class TabsManager
 		  editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), {
 			lineNumbers: true,
 			extraKeys: keyMap,
-			matchBrackets: true
+			matchBrackets: true,
+			dragDrop: false
 		  });
 		  
 		  server = new TernServer({
