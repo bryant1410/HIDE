@@ -1,5 +1,5 @@
-@font-face{font-family:'Signika';font-style:normal;font-weight:700;src:local('Signika-Bold'),url(http://themes.googleusercontent.com/static/fonts/signika/v3/7M5kxD4eGxuhgFaIk95pBRsxEYwM7FgeyaSgU71cLG0.woff) format('woff');}
-@font-face{font-family:'Ubuntu Mono';font-style:normal;font-weight:500;src:local('Ubuntu Mono'),local('UbuntuMono-Regular'),url('http://themes.googleusercontent.com/static/fonts/ubuntumono/v3/ViZhet7Ak-LRXZMXzuAfkYbN6UDyHWBl620a-IRfuBk.woff') format('woff');}
+@font-face{font-family:'Signika';font-style:normal;font-weight:700;src:url('../fonts/Signika-Bold.otf'),url(http://themes.googleusercontent.com/static/fonts/signika/v3/7M5kxD4eGxuhgFaIk95pBRsxEYwM7FgeyaSgU71cLG0.woff) format('woff');}
+@font-face{font-family:'Ubuntu Mono';font-style:normal;font-weight:500;src:local('Courier New'),url('../fonts/UbuntuMono-R.ttf'),local('UbuntuMono-Regular'),url('http://themes.googleusercontent.com/static/fonts/ubuntumono/v3/ViZhet7Ak-LRXZMXzuAfkYbN6UDyHWBl620a-IRfuBk.woff') format('woff');}
 body{font-family:"Helvetica Neue","Lucida Grande","Lucida Sans Unicode",Helvetica,Arial,sans-serif;color:#222;font-size:11pt;max-width:100%;margin:0 0 0 60px;padding:8px 0 4em;}
 #top{position:fixed;top:0;background:white;padding-top:15px;left:20px;right:20px;z-index:5;}
 #head{border-radius:5px;background:#1c5b64;box-shadow:0px 3px 3px rgba(0,0,0,.5);position:relative;font-family:"Signika",sans-serif;font-weight:700;}

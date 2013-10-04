@@ -26,9 +26,15 @@ class TabsManager
 	
 	public static function init()
 	{
-	  new JQuery(Browser.document).on("closeTab",function(event,pos)
+	  new JQuery(Browser.document).on("closeTab",function(event, path)
 		{
-			trace('this will close the tab at Pos :'+pos);
+			for (i in 0...docs.length)
+			{				
+				if (docs[i] != null && docs[i].path == path)
+				{
+					unregisterDoc(docs[i]);
+				}
+			}
 	  	});
 
 
@@ -68,26 +74,39 @@ class TabsManager
 		});
 	}
 	
-	private static function load(file, c:Dynamic) 
+	private static function load(file, c:Dynamic):Void 
 	{
-	  //var xhr = Browser.createXMLHttpRequest();
-	  //xhr.open("get", file, true);
-	  //xhr.send();
-	  //xhr.onreadystatechange = function(e) {
-		//if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
-	  //};
-	  
-	  
 	  c(Utils.system_openFile(file), 200);
 	}
 	
 	public static function openFileInNewTab(path:String):Void
 	{
+		if (Utils.getOS() == Utils.WINDOWS)
+		{
+			var ereg = ~/[\\]/g;
+			
+			path = ereg.replace(path, "/");
+		}
+		
+		for (i in 0...docs.length)
+		{
+			if (docs[i].path == path)
+			{
+				selectDoc(i);
+				return;
+			}
+		}
+		
 		var pos:Int = null;
 		
 		if (Utils.getOS() == Utils.WINDOWS)
 		{
 			pos = path.lastIndexOf("\\");
+			
+			if (pos == -1)
+			{
+				pos = path.lastIndexOf("/");
+			}
 		}
 		else
 		{
@@ -107,14 +126,21 @@ class TabsManager
 		
 		load(path, function(body) 
 		{
-			registerDoc(filename, new CodeMirror.Doc(body, "haxe"),path);
+			registerDoc(filename, new CodeMirror.Doc(body, "haxe"), path);
 			selectDoc(docs.length - 1);
 		});
+		
+		if (new JQuery("#panel").css("display") == "none" && docs.length > 0)
+		{
+			new JQuery("#panel").css("display", "block");
+			TabsManager.editor.refresh();
+		}
+		
+		Main.resize();
 	}
 	
 	public static function closeActiveTab():Void
 	{
-		if (docs.length == 1) return;
 		unregisterDoc(curDoc);
 	}
 	
@@ -146,7 +172,7 @@ class TabsManager
 		selectDoc(n);
 	}
 	
-	private static function initEditor() 
+	private static function initEditor():Void
 	{
 		  var keyMap = {
 			"Ctrl-I": function(cm) { server.showType(cm); },
@@ -183,8 +209,14 @@ class TabsManager
 
 		  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
 
-
-		  registerDoc("Main.hx", editor.getDoc(),'');
+		  openFileInNewTab("../src/Main.hx");
+		  openFileInNewTab("../src/Utils.hx");	
+		  openFileInNewTab("../src/Session.hx");
+		  openFileInNewTab("../src/core/FileAccess.hx");
+		  openFileInNewTab("../src/core/ProjectAccess.hx");
+		  openFileInNewTab("../src/core/TabsManager.hx");
+										
+		  //registerDoc("Main.hx", editor.getDoc(),'');
 		  
 		  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
 		  
@@ -213,8 +245,7 @@ class TabsManager
 					c = c.nextSibling;
 					if (c == target) return selectDoc(i);
 				}
-			}
-			
+			}			
 			//for (var i = 0, c = target.parentNode.firstChild; ; ++i, (c = c.nextSibling))
 			  //if (c == target) return selectDoc(i);
 		  });
@@ -223,38 +254,37 @@ class TabsManager
 	private static function findDoc(name) { return docs[docID(name)]; }
 	private static function docID(name) { for (i in 0...docs.length) if (docs[i].name == name) return i; return null; }
 
-private static function registerDoc(name, doc:CodeMirror.Doc,path) 
-{
+private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String):Void
+{	
   server.addDoc(name, doc);
-  var data = {name: name, doc: doc,path:path};
+  var data = {name: name, doc: doc, path: path};
   docs.push(data);
 
-  /*
-  var docTabs = Browser.document.getElementById("docs");
-  var li = docTabs.appendChild(Browser.document.createElement("li"));
-  li.appendChild(Browser.document.createTextNode(name));
-  */
-  var new_doc_pos = new JQuery("#docs").children().length;
-  if (new_doc_pos != 0)
-  	{
-  	new JQuery("#docs").append("<li>"+name+"&nbsp;<span style='position:relative;top:2px;' onclick='$(document).triggerHandler(\"closeTab\",\""+new_doc_pos+"\");'><span class='glyphicon glyphicon-remove-circle'></span></span></li>");		
-  	}
-  else
-  	{
-  	new JQuery("#docs").append("<li>"+name+"</li>");			
-  	}
+  //var docTabs = Browser.document.getElementById("docs");
+  //var li = docTabs.appendChild(Browser.document.createElement("li"));
+  //li.appendChild(Browser.document.createTextNode(name));
   
-
-  if (editor.getDoc() == doc) {
+  //var new_doc_pos = new JQuery("#docs").children().length;
+  //if (new_doc_pos != 0)
+  	//{	
+  	new JQuery("#docs").append("<li title=\"" + path + "\">" + name + "&nbsp;<span style='position:relative;top:2px;' onclick='$(document).triggerHandler(\"closeTab\", \"" + path + "\");'><span class='glyphicon glyphicon-remove-circle'></span></span></li>");		
+  	//}
+  //else
+  	//{
+  	//new JQuery("#docs").append("<li>"+name+"</li>");			
+  	//}
+  
+  if (editor.getDoc() == doc) 
+  {
     setSelectedDoc(docs.length - 1);
     curDoc = data;
   }
-
-
 }
 
-private static function unregisterDoc(doc) 
+private static function unregisterDoc(doc):Void
 {
+	var b = curDoc == doc;
+	
   server.delDoc(doc.name);
   var j:Int = null;
   for (i in 0...docs.length) 
@@ -262,13 +292,25 @@ private static function unregisterDoc(doc)
 	  j = i;
 	  if (doc == docs[i]) break;
   }
+  
   docs.splice(j, 1);
   var docList = Browser.document.getElementById("docs");
   docList.removeChild(docList.childNodes[j]);
-  selectDoc(Std.int(Math.max(0, j - 1)));
+  
+  if (b && docList.childNodes.length > 0)
+  {
+	selectDoc(Std.int(Math.max(0, j - 1)));
+  }
+  
+  if (docList.childNodes.length == 0)
+  {
+	  new JQuery("#panel").css("display", "none");
+  }
+  
+  Main.resize();
 }
 
-private static function setSelectedDoc(pos) 
+private static function setSelectedDoc(pos):Void
 {
   var docTabs = Browser.document.getElementById("docs");
   for (i in 0...docTabs.childNodes.length)
@@ -283,12 +325,15 @@ private static function setSelectedDoc(pos)
 	}
 }
 	
-public static function selectDoc(pos) 
+public static function selectDoc(pos):Void
+{
+	if (curDoc != null)
 	{
-	server.hideDoc(curDoc.name);
+		server.hideDoc(curDoc.name);
+	}
 	setSelectedDoc(pos);
 	curDoc = docs[pos];
 	editor.swapDoc(curDoc.doc);
-	}
+}
 	
 }

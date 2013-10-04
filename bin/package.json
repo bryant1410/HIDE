@@ -9,6 +9,7 @@
     "height": 600,
     "position": "mouse",
     "min_width": 800,
-    "min_height": 600
+    "min_height": 600,
+	"show": false
   }  
 }
