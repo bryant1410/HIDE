@@ -1,5 +1,6 @@
 -cp src
 -lib jQueryExtern
+-lib hxparse
 -js ./bin/includes/js/ide.js
 -main Main
 -cp ./externs/nodejs-std/src

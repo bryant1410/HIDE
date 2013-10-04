@@ -88,4 +88,4 @@ ul.tabs li.selected:after {
   border-left: 2px solid #444;
 }
 
-.CodeMirror-hint { font-size: 12pt; }
+.CodeMirror-hint { font-size: 11pt; }

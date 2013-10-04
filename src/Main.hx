@@ -5,11 +5,13 @@ import haxe.ds.StringMap.StringMap;
 import haxe.Timer;
 import js.Browser;
 import js.html.DivElement;
+import js.html.Element;
 import js.html.Event;
 import js.html.File;
 import js.html.InputElement;
 import js.html.KeyboardEvent;
 import js.html.MouseEvent;
+import js.html.UListElement;
 import js.html.WheelEvent;
 import js.Lib;
 import jQuery.*;
@@ -36,8 +38,14 @@ class Main {
 			{				
 				init();
 				initCorePlugin();
+				show();
 			});
     }
+	
+	static private function show() 
+	{
+		Utils.gui.Window.get().show();
+	}
 
     static public function close():Void {
     	Sys.exit(0);
@@ -51,10 +59,6 @@ class Main {
 		{
 			resize();
 		}
-		
-		
-		//Timer.delay(resize, 100);
-		
 		
 		//var input_element:InputElement = Browser.document.createInputElement();
 		//input_element.id = "ProjectAccess_openFile_file";
@@ -105,9 +109,9 @@ class Main {
 							TabsManager.closeActiveTab();
 						//Ctrl-0
 						case 48:
-							new JQuery(".CodeMirror").css("font-size", "14pt");
-							new JQuery(".CodeMirror-hint").css("font-size", "12pt");
-							new JQuery(".CodeMirror-hints").css("font-size", "90%");
+							new JQuery(".CodeMirror").css("font-size", "11pt");
+							new JQuery(".CodeMirror-hint").css("font-size", "11pt");
+							new JQuery(".CodeMirror-hints").css("font-size", Std.string(11*0.9) +"pt");
 						//Ctrl-'-'
 						case 189:
 							var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
@@ -211,17 +215,18 @@ class Main {
     
 	public  static function resize():Void
 	{
-		new JQuery(".CodeMirror").css("height", Std.string(Browser.window.innerHeight - 85));
+		var ul1:Element = Browser.document.getElementById("docs");
+		new JQuery(".CodeMirror").css("height", Std.string(Browser.window.innerHeight - 58 - ul1.clientHeight));
 	}
 	
-	static function setFontSize(font_size)
+	static function setFontSize(font_size:Int):Void
 	{
 		new JQuery(".CodeMirror").css("font-size", Std.string(font_size) + "px");
 		new JQuery(".CodeMirror-hint").css("font-size", Std.string(font_size - 2) + "px");
 		new JQuery(".CodeMirror-hints").css("font-size", Std.string(font_size - 2) + "px");
 	}
 	
-    static function initCorePlugin()
+    static function initCorePlugin():Void
     {
 		initMenu();
 		
