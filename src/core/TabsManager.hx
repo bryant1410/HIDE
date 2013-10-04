@@ -1,6 +1,7 @@
 package core;
 import haxe.Timer;
 import js.Browser;
+import jQuery.*;
 
 //Code from Tern bin\includes\js\tern\doc\demo\demo.js
 //Ported to Haxe
@@ -25,6 +26,12 @@ class TabsManager
 	
 	public static function init()
 	{
+	  new JQuery(Browser.document).on("closeTab",function(event,pos)
+		{
+			trace('this will close the tab at Pos :'+pos);
+	  	});
+
+
 		CodeMirror.on(Browser.window, "load", function() {
 		  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
 		  //probably we can supply here Haxe keywords, like so:
@@ -221,13 +228,29 @@ private static function registerDoc(name, doc:CodeMirror.Doc,path)
   server.addDoc(name, doc);
   var data = {name: name, doc: doc,path:path};
   docs.push(data);
+
+  /*
   var docTabs = Browser.document.getElementById("docs");
   var li = docTabs.appendChild(Browser.document.createElement("li"));
   li.appendChild(Browser.document.createTextNode(name));
+  */
+  var new_doc_pos = new JQuery("#docs").children().length;
+  if (new_doc_pos != 0)
+  	{
+  	new JQuery("#docs").append("<li>"+name+"&nbsp;<span style='position:relative;top:2px;' onclick='$(document).triggerHandler(\"closeTab\",\""+new_doc_pos+"\");'><span class='glyphicon glyphicon-remove-circle'></span></span></li>");		
+  	}
+  else
+  	{
+  	new JQuery("#docs").append("<li>"+name+"</li>");			
+  	}
+  
+
   if (editor.getDoc() == doc) {
     setSelectedDoc(docs.length - 1);
     curDoc = data;
   }
+
+
 }
 
 private static function unregisterDoc(doc) 
@@ -261,11 +284,11 @@ private static function setSelectedDoc(pos)
 }
 	
 public static function selectDoc(pos) 
-{
-	  server.hideDoc(curDoc.name);
-	  setSelectedDoc(pos);
-	  curDoc = docs[pos];
-	  editor.swapDoc(curDoc.doc);
-}
+	{
+	server.hideDoc(curDoc.name);
+	setSelectedDoc(pos);
+	curDoc = docs[pos];
+	editor.swapDoc(curDoc.doc);
+	}
 	
 }
