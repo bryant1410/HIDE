@@ -14,6 +14,7 @@ EReg.prototype = {
 	replace: function(s,by) {
 		return s.replace(this.r,by);
 	}
+	,__class__: EReg
 }
 var HxOverrides = function() { }
 HxOverrides.__name__ = true;
@@ -190,6 +191,9 @@ var Session = function() {
 	this.current_project_xml = "";
 };
 Session.__name__ = true;
+Session.prototype = {
+	__class__: Session
+}
 var Std = function() { }
 Std.__name__ = true;
 Std.string = function(s) {
@@ -529,6 +533,9 @@ haxe.ds.StringMap = function() {
 };
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
+haxe.ds.StringMap.prototype = {
+	__class__: haxe.ds.StringMap
+}
 js.Boot = function() { }
 js.Boot.__name__ = true;
 js.Boot.__string_rec = function(o,s) {
@@ -597,6 +604,48 @@ js.Boot.__string_rec = function(o,s) {
 		return String(o);
 	}
 }
+js.Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0, _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js.Boot.__interfLoop(cc.__super__,cl);
+}
+js.Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) {
+					if(cl == Array) return o.__enum__ == null;
+					return true;
+				}
+				if(js.Boot.__interfLoop(o.__class__,cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+}
 js.Browser = function() { }
 js.Browser.__name__ = true;
 var ui = {}
@@ -621,6 +670,7 @@ ui.ModalDialog.prototype = {
 		var retStr = ["<div class='modal fade' id='" + this.id + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>","<div class='modal-dialog'>","<div class='modal-content'>","<div class='modal-header'>","<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>","<h4 class='modal-title'>" + this.title + "</h4>","</div>","<div class='modal-body'>",this.content,"</div>","<div class='modal-footer'>","<button type='button' class='btn btn-default' data-dismiss='modal'>" + this.cancel_text + "</button>","<button type='button' class='btn btn-primary button_ok'>" + this.ok_text + "</button>","</div>","</div>","</div>","</div>"].join("\n");
 		new $("#modal_position").html(retStr);
 	}
+	,__class__: ui.ModalDialog
 }
 ui.Notify = function() {
 	this.type = "";
@@ -646,6 +696,7 @@ ui.Notify.prototype = {
 			new $("#notify_position").html(retStr);
 		}
 	}
+	,__class__: ui.Notify
 }
 ui.menu = {}
 ui.menu.basic = {}
@@ -681,6 +732,7 @@ ui.menu.basic.Menu.prototype = {
 	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
 		this.items.push(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey));
 	}
+	,__class__: ui.menu.basic.Menu
 }
 ui.menu.EditMenu = function() {
 	ui.menu.basic.Menu.call(this,"Edit");
@@ -703,6 +755,7 @@ ui.menu.EditMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Replace...","component_replace",null,"Ctrl-H");
 		this.addToDocument();
 	}
+	,__class__: ui.menu.EditMenu
 });
 ui.menu.FileMenu = function() {
 	ui.menu.basic.Menu.call(this,"File");
@@ -729,6 +782,7 @@ ui.menu.FileMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Exit","component_exit",Main.close,"Alt-F4");
 		this.addToDocument();
 	}
+	,__class__: ui.menu.FileMenu
 });
 ui.menu.HelpMenu = function() {
 	ui.menu.basic.Menu.call(this,"Help");
@@ -741,6 +795,7 @@ ui.menu.HelpMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("About","component_about",null);
 		this.addToDocument();
 	}
+	,__class__: ui.menu.HelpMenu
 });
 ui.menu.RunMenu = function() {
 	ui.menu.basic.Menu.call(this,"Run");
@@ -754,6 +809,7 @@ ui.menu.RunMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Build Project","component_build_project",null);
 		this.addToDocument();
 	}
+	,__class__: ui.menu.RunMenu
 });
 ui.menu.SourceMenu = function() {
 	ui.menu.basic.Menu.call(this,"Source");
@@ -767,6 +823,7 @@ ui.menu.SourceMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Toggle Comment","component_toggle_comment",null);
 		this.addToDocument();
 	}
+	,__class__: ui.menu.SourceMenu
 });
 ui.menu.ViewMenu = function() {
 	ui.menu.basic.Menu.call(this,"View");
@@ -779,9 +836,13 @@ ui.menu.ViewMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Toggle Fullscreen","component_toggle_fullscreen",Utils.toggleFullscreen,"Shift-Alt-Enter");
 		this.addToDocument();
 	}
+	,__class__: ui.menu.ViewMenu
 });
 ui.menu.basic.MenuItem = function() { }
 ui.menu.basic.MenuItem.__name__ = true;
+ui.menu.basic.MenuItem.prototype = {
+	__class__: ui.menu.basic.MenuItem
+}
 ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
 	this.text = _text;
 	this.onClickFunctionName = _onClickFunctionName;
@@ -796,9 +857,10 @@ ui.menu.basic.MenuButtonItem.prototype = {
 	}
 	,getCode: function() {
 		var hotkey_code = "";
-		if(this.hotkey != null) hotkey_code = "<span style='color: silver; right: 0; margin-left: 15px;'>" + this.hotkey + "</span>";
+		if(this.hotkey != null) hotkey_code = "<span style='color: silver; float:right;'>" + this.hotkey + "</span>";
 		return "<li><a style='left: 0;' onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + hotkey_code + "</a></li>";
 	}
+	,__class__: ui.menu.basic.MenuButtonItem
 }
 ui.menu.basic.Separator = function() {
 };
@@ -810,6 +872,7 @@ ui.menu.basic.Separator.prototype = {
 	,getCode: function() {
 		return "<li class=\"divider\"></li>";
 	}
+	,__class__: ui.menu.basic.Separator
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
@@ -824,8 +887,18 @@ Math.isFinite = function(i) {
 Math.isNaN = function(i) {
 	return isNaN(i);
 };
+String.prototype.__class__ = String;
 String.__name__ = true;
+Array.prototype.__class__ = Array;
 Array.__name__ = true;
+var Int = { __name__ : ["Int"]};
+var Dynamic = { __name__ : ["Dynamic"]};
+var Float = Number;
+Float.__name__ = ["Float"];
+var Bool = Boolean;
+Bool.__ename__ = ["Bool"];
+var Class = { __name__ : ["Class"]};
+var Enum = { };
 var module, setImmediate, clearImmediate;
 js.Node.setTimeout = setTimeout;
 js.Node.clearTimeout = clearTimeout;
@@ -855,5 +928,3 @@ js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();
-
-//@ sourceMappingURL=ide.js.map
