@@ -1,5 +1,15 @@
 package ui.menu.basic;
 import jQuery.JQuery;
+import js.Browser;
+import js.html.AnchorElement;
+import js.html.DivElement;
+import js.html.Element;
+import js.html.LIElement;
+import js.html.LinkElement;
+import js.html.MouseEvent;
+import js.html.NodeList;
+import js.html.SpanElement;
+import js.html.UListElement;
 
 /**
  * ...
@@ -8,114 +18,142 @@ import jQuery.JQuery;
 
 interface MenuItem
 {
-	public function getCode():String;
-	public function registerEvent():Void;
+	public function getElement():Element;
 }
  
 class MenuButtonItem implements MenuItem
-{
-	var text:String;
-	var onClickFunctionName:String;
-	var onClickFunction:Void->Void;
-	var hotkey:String;
+{	
+	var li:LIElement;
 	
 	public function new(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void, ?_hotkey:String)
-	{
-		text = _text;
-		onClickFunctionName = _onClickFunctionName;
-		onClickFunction = _onClickFunction;
-		hotkey = _hotkey;
-	}
-	
-	public function getCode():String
-	{
-		var hotkey_code:String = "";
+	{		
+		var span:SpanElement = null;
 		
-		if (hotkey != null)
+		if (_hotkey != null)
 		{
-			hotkey_code = "<span style='color: silver; float:right;'>" + hotkey + "</span>";
+			span = Browser.document.createSpanElement();
+			span.style.color = "silver";
+			span.style.float = "right";
+			span.innerText = _hotkey;
 		}
 		
-		return "<li><a style='left: 0;' onclick='$(document).triggerHandler(\"" + onClickFunctionName + "\");'>" + text + hotkey_code + "</a></li>";
+		li = Browser.document.createLIElement();		
+		
+		var a:AnchorElement = Browser.document.createAnchorElement();
+		a.style.left = "0";
+		
+		a.setAttribute("onclick", "$(document).triggerHandler(\"" + _onClickFunctionName + "\");");
+		
+		a.innerText = _text;
+		
+		if (span != null)
+		{
+			a.appendChild(span);
+		}
+		
+		li.appendChild(a);
+		
+		registerEvent(_onClickFunctionName, _onClickFunction);
 	}
 	
-	public function registerEvent():Void
+	public function getElement():LIElement
 	{
-		if (onClickFunction != null) 
+		return li;
+	}
+	
+	public function registerEvent(_onClickFunctionName, _onClickFunction:Dynamic):Void
+	{
+		if (_onClickFunction != null) 
 		{
-			new JQuery(js.Browser.document).on(onClickFunctionName, onClickFunction);
+			new JQuery(js.Browser.document).on(_onClickFunctionName, _onClickFunction);
 		}
 	}
 }
 
 class Separator implements MenuItem
 {
+	var li:LIElement;
+	
 	public function new()
 	{
-		
+		li = Browser.document.createLIElement();
+		li.className = "divider";
 	}
 	
-	public function getCode():String
+	public function getElement():Element
 	{
-		return "<li class=\"divider\"></li>";
-	}
-	
-	public function registerEvent():Void
-	{
-		
+		return li;
 	}
 }
  
 class Menu
 {
-	var text:String;
-	var headerText:String;
-	var items:Array<MenuItem>;
-
+	var li:LIElement;
+	var ul:UListElement;
+	
 	public function new(_text:String, ?_headerText:String) 
 	{
-		text = _text;
-		headerText = _headerText;
+		li = Browser.document.createLIElement();
+		li.className = "dropdown";
 		
-		items = new Array();
+		var a:AnchorElement = Browser.document.createAnchorElement();
+		a.href = "#";
+		a.className = "dropdown-toggle";
+		a.setAttribute("data-toggle", "dropdown");
+		a.innerText = _text;
+		li.appendChild(a);
+		
+		ul = Browser.document.createUListElement();
+		ul.className = "dropdown-menu";
+		
+		if (_headerText != null)
+		{
+			var li_header:LIElement = Browser.document.createLIElement();
+			li_header.className = "dropdown-header";
+			li_header.innerText = _headerText;
+			ul.appendChild(li_header);
+		}
+		
+		li.appendChild(ul);
 	}
 	
 	public function addMenuItem(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void, ?_hotkey:String):Void
 	{
-		items.push(new MenuButtonItem(_text, _onClickFunctionName, _onClickFunction, _hotkey));
+		ul.appendChild(new MenuButtonItem(_text, _onClickFunctionName, _onClickFunction, _hotkey).getElement());
 	}
 	
 	public function addSeparator():Void
 	{
-		items.push(new Separator());
+		ul.appendChild(new Separator().getElement());
 	}
 	
-	public function addToDocument()
+	public function addToDocument():Void
+	{	
+		var div:Element = cast(Browser.document.getElementById("position-navbar"), Element);
+		div.appendChild(li);
+	}
+	
+	public function setDisabled(indexes:Array<Int>):Void
 	{
-		var retStr = ["<li class='dropdown'>",
-		"<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + text + "</a>",
-		"<ul class='dropdown-menu'>"].join("\n");
+		var childNodes:NodeList = ul.childNodes;
 		
-		if (headerText != null)
+		for (i in 0...childNodes.length)
 		{
-			retStr += "<li class='dropdown-header'>" + headerText + "</li>\n";
+			var child:Element = cast(childNodes[i], Element);
+			
+			if (child.className != "divider")
+			{
+				if (Lambda.indexOf(indexes, i) == -1)
+				{
+					child.className = "";
+				}
+				else
+				{
+					child.className = "disabled";
+				}
+			}
+			
 		}
-		
-		for (i in 0...items.length)
-		{
-			retStr += items[i].getCode();
-		}
-		
-		retStr +=
-		["</ul>",
-		"</li>"].join("\n"); // a fancy way to combine string. a norm in javascript.
-		
-		new JQuery("#position-navbar").append(retStr); // this position is defined in the HTML.
-		
-		for (i in 0...items.length) items[i].registerEvent();
-		items = null;
-		headerText = null;
-		text = null;
 	}
 	
 }

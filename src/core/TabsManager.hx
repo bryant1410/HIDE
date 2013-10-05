@@ -2,9 +2,18 @@ package core;
 import haxe.Timer;
 import js.Browser;
 import jQuery.*;
+import js.html.Element;
+import js.html.LIElement;
+import js.html.SpanElement;
 
 //Code from Tern bin\includes\js\tern\doc\demo\demo.js
 //Ported to Haxe
+
+typedef Doc = {
+	var name:String;
+	var doc:Dynamic;
+	var path:String;
+}
 
 /**
  * ...
@@ -16,8 +25,8 @@ class TabsManager
 	public static var useWorker:Bool = false;
 	public static var server:Dynamic;
 	public static var editor:Dynamic;
-	public static var docs:Array<Dynamic> = [];
-	public static var curDoc:Dynamic;
+	public static var docs:Array<Doc> = [];
+	public static var curDoc:Doc;
 	private static var themes:Array<String>;
 	
 	public function new() 
@@ -117,6 +126,14 @@ class TabsManager
 		c(Utils.system_openFile(file), 200);
 	}
 	
+	public static function createFileInNewTab():Void
+	{
+		var name = Browser.window.prompt("Name of the new file", "");
+		if (name == null) return;
+		registerDoc(name, new CodeMirror.Doc("", "haxe"), "");
+		selectDoc(docs.length - 1);
+	}
+	
 	public static function openFileInNewTab(path:String):Void
 	{
 		if (Utils.getOS() == Utils.WINDOWS)
@@ -172,6 +189,7 @@ class TabsManager
 		{
 			new JQuery("#panel").css("display", "block");
 			TabsManager.editor.refresh();
+			Main.updateMenu();
 		}
 		
 		Main.resize();
@@ -271,7 +289,7 @@ class TabsManager
 			var i = 0;
 			var c:Dynamic = target.parentNode.firstChild;
 			
-			if (c == target) 
+			if (c == target)
 			{
 				return selectDoc(0);
 			}
@@ -298,19 +316,24 @@ private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String
   var data = {name: name, doc: doc, path: path};
   docs.push(data);
 
-  //var docTabs = Browser.document.getElementById("docs");
-  //var li = docTabs.appendChild(Browser.document.createElement("li"));
-  //li.appendChild(Browser.document.createTextNode(name));
+  var docTabs = Browser.document.getElementById("docs");
+  var li:LIElement = Browser.document.createLIElement();
+  li.title = path;
+  li.innerText = name + "\t";
   
-  //var new_doc_pos = new JQuery("#docs").children().length;
-  //if (new_doc_pos != 0)
-  	//{	
-  	new JQuery("#docs").append("<li title=\"" + path + "\">" + name + "&nbsp;<span style='position:relative;top:2px;' onclick='$(document).triggerHandler(\"closeTab\", \"" + path + "\");'><span class='glyphicon glyphicon-remove-circle'></span></span></li>");		
-  	//}
-  //else
-  	//{
-  	//new JQuery("#docs").append("<li>"+name+"</li>");			
-  	//}
+  var span:SpanElement = Browser.document.createSpanElement();
+  span.style.position = "relative";
+  span.style.top = "2px";
+  
+  span.setAttribute("onclick", "$(document).triggerHandler(\"closeTab\", \"" + path + "\");");
+  
+  var span2:SpanElement = Browser.document.createSpanElement();
+  span2.className = "glyphicon glyphicon-remove-circle";
+  span.appendChild(span2);
+  
+  li.appendChild(span);
+  
+  docTabs.appendChild(li);
   
   if (editor.getDoc() == doc) 
   {
@@ -343,6 +366,7 @@ private static function unregisterDoc(doc):Void
   if (docList.childNodes.length == 0)
   {
 	  new JQuery("#panel").css("display", "none");
+	  Main.updateMenu();
   }
   
   Main.resize();
@@ -350,16 +374,19 @@ private static function unregisterDoc(doc):Void
 
 private static function setSelectedDoc(pos):Void
 {
-  var docTabs = Browser.document.getElementById("docs");
-  for (i in 0...docTabs.childNodes.length)
-	
-	if (pos == i)
+	var docTabs = Browser.document.getElementById("docs");
+	for (i in 0...docTabs.childNodes.length)
 	{
-		untyped docTabs.childNodes[i].className = "selected";
-	}
-	else
-	{
-		untyped docTabs.childNodes[i].className = "";
+		var child:Element = cast(docTabs.childNodes[i], Element);
+	  
+		if (pos == i)
+		{
+			child.className = "selected";
+		}
+		else
+		{
+			child.className = "";
+		}
 	}
 }
 	

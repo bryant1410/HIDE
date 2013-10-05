@@ -55,9 +55,9 @@ var Main = function() { }
 Main.__name__ = true;
 Main.main = function() {
 	new $(function() {
+		Main.show();
 		Main.init();
 		Main.initCorePlugin();
-		Main.show();
 	});
 }
 Main.show = function() {
@@ -139,6 +139,9 @@ Main.init = function() {
 				break;
 			case 83:
 				break;
+			case 84:
+				core.TabsManager.applyRandomTheme();
+				break;
 			default:
 			}
 		} else if(e.keyCode == 13 && e.shiftKey && e.altKey) Utils.toggleFullscreen();
@@ -162,6 +165,7 @@ Main.init = function() {
 	};
 	Main.session = new Session();
 	Main.settings = new haxe.ds.StringMap();
+	core.FileDialog.init();
 }
 Main.resize = function() {
 	var ul1 = js.Browser.document.getElementById("docs");
@@ -176,12 +180,46 @@ Main.initCorePlugin = function() {
 	Main.initMenu();
 }
 Main.initMenu = function() {
-	new ui.menu.FileMenu();
-	new ui.menu.EditMenu();
-	new ui.menu.ViewMenu();
-	new ui.menu.SourceMenu();
-	new ui.menu.RunMenu();
-	new ui.menu.HelpMenu();
+	Main.menus = new haxe.ds.StringMap();
+	Main.menus.set("file",new ui.menu.FileMenu());
+	Main.menus.set("edit",new ui.menu.EditMenu());
+	Main.menus.set("view",new ui.menu.ViewMenu());
+	Main.menus.set("source",new ui.menu.SourceMenu());
+	Main.menus.set("run",new ui.menu.RunMenu());
+	Main.menus.set("help",new ui.menu.HelpMenu());
+	haxe.Timer.delay(Main.updateMenu,100);
+}
+Main.updateMenu = function() {
+	var disabled_menu_items = new Array();
+	var _g = 0;
+	while(_g < 3) {
+		var i = _g++;
+		disabled_menu_items.push(new Array());
+	}
+	if(core.TabsManager.docs.length == 0) {
+		disabled_menu_items[0].push(6);
+		disabled_menu_items[0].push(10);
+		disabled_menu_items[0].push(11);
+		disabled_menu_items[0].push(12);
+		disabled_menu_items[1].push(0);
+		disabled_menu_items[1].push(1);
+		disabled_menu_items[1].push(3);
+		disabled_menu_items[1].push(4);
+		disabled_menu_items[1].push(5);
+		disabled_menu_items[1].push(6);
+		disabled_menu_items[1].push(7);
+		disabled_menu_items[1].push(9);
+		disabled_menu_items[1].push(10);
+	}
+	if(Main.session.current_project_xml == "") {
+		disabled_menu_items[0].push(3);
+		disabled_menu_items[0].push(8);
+		disabled_menu_items[2].push(0);
+		disabled_menu_items[2].push(1);
+	}
+	Main.menus.get("file").setDisabled(disabled_menu_items[0]);
+	Main.menus.get("edit").setDisabled(disabled_menu_items[1]);
+	Main.menus.get("run").setDisabled(disabled_menu_items[2]);
 }
 var IMap = function() { }
 IMap.__name__ = true;
@@ -204,6 +242,9 @@ Std.parseInt = function(x) {
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
 	if(isNaN(v)) return null;
 	return v;
+}
+Std.random = function(x) {
+	return x <= 0?0:Math.floor(Math.random() * x);
 }
 var Sys = function() { }
 Sys.__name__ = true;
@@ -284,37 +325,50 @@ var core = {}
 core.FileAccess = function() { }
 core.FileAccess.__name__ = true;
 core.FileAccess.createNewFile = function() {
-	if(Main.session.current_project_xml == "") console.log("open project first"); else console.log("create a new file");
+	core.TabsManager.createFileInNewTab();
 }
 core.FileAccess.openFile = function() {
-	console.log("open a file");
-	var modal = new ui.ModalDialog();
-	modal.id = "projectAccess_openFile";
-	modal.title = "Open File";
-	modal.content = "<input id=\"ProjectAccess_openFile_file\" type=\"file\" />";
-	modal.ok_text = "Open";
-	modal.cancel_text = "Cancel";
-	modal.updateModalDialog();
-	var file_input = new $("#ProjectAccess_openFile_file");
-	file_input.click();
-	file_input.change(function(event) {
-		if(file_input.val() != "") {
-			var filename = file_input.val();
-			core.TabsManager.openFileInNewTab(filename);
-		}
-	});
+	core.FileDialog.openFile(core.TabsManager.openFileInNewTab);
 }
 core.FileAccess.saveActiveFile = function() {
 	console.log("save active file");
 	var curDoc = core.TabsManager.curDoc;
-	console.log(curDoc);
 	var curDoc_filepath = curDoc.path;
 	var curDoc_val = curDoc.doc.cm.getValue();
-	console.log(curDoc_val);
-	Utils.system_saveFile(curDoc_filepath,curDoc_val);
+	var historySize = curDoc.doc.historySize();
+	if(curDoc_filepath != "" && historySize.undo == 0 && historySize.redo == 0) {
+		console.log("no changes detected");
+		return;
+	}
+	if(curDoc_filepath == "") core.FileDialog.saveFile(function(path) {
+		Utils.system_saveFile(path,curDoc_val);
+	},curDoc.name); else Utils.system_saveFile(curDoc_filepath,curDoc_val);
 }
 core.FileAccess.closeActiveFile = function() {
 	core.TabsManager.closeActiveTab();
+}
+core.FileDialog = function() { }
+core.FileDialog.__name__ = true;
+core.FileDialog.init = function() {
+	core.FileDialog.input = js.Browser.document.createElement("input");
+	core.FileDialog.input.type = "file";
+	core.FileDialog.input.style.display = "none";
+	core.FileDialog.input.addEventListener("change",function(e) {
+		var value = core.FileDialog.input.value;
+		if(value != "") core.FileDialog.onClick(value);
+	});
+	js.Browser.document.body.appendChild(core.FileDialog.input);
+}
+core.FileDialog.openFile = function(_onClick) {
+	core.FileDialog.onClick = _onClick;
+	core.FileDialog.input.removeAttribute("nwsaveas");
+	core.FileDialog.input.click();
+}
+core.FileDialog.saveFile = function(_onClick,_name) {
+	core.FileDialog.onClick = _onClick;
+	if(_name == null) _name = "";
+	core.FileDialog.input.setAttribute("nwsaveas",_name);
+	core.FileDialog.input.click();
 }
 core.ProjectAccess = function() { }
 core.ProjectAccess.__name__ = true;
@@ -337,23 +391,10 @@ core.ProjectAccess.createNewProject = function() {
 }
 core.ProjectAccess.openProject = function() {
 	console.log("open a project");
-	if(Main.session.current_project_xml == "") {
-		var modal = new ui.ModalDialog();
-		modal.id = "projectAccess_openProject";
-		modal.title = "Open Project";
-		modal.content = "<input id=\"ProjectAccess_openProject_file\" type=\"file\" />";
-		modal.ok_text = "Open";
-		modal.cancel_text = "Cancel";
-		modal.updateModalDialog();
-		var file_input = new $("#ProjectAccess_openProject_file");
-		file_input.click();
-		file_input.change(function(event) {
-			if(file_input.val() != "") {
-				Main.session.current_project_xml = file_input.val();
-				Utils.system_parse_project();
-			}
-		});
-	} else {
+	if(Main.session.current_project_xml == "") core.FileDialog.openFile(function(path) {
+		Main.session.current_project_xml = path;
+		Utils.system_parse_project();
+	}); else {
 		var notify = new ui.Notify();
 		notify.type = "error";
 		notify.content = "Only One project could be open at one time. Please close the project first.";
@@ -379,6 +420,7 @@ core.ProjectAccess.closeProject = function() {
 core.TabsManager = function() { }
 core.TabsManager.__name__ = true;
 core.TabsManager.init = function() {
+	core.TabsManager.themes = ["3024-day","3024-night","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","midnight","monokai","neat","night","paraiso-dark","paraiso-light","rubyblue","solarized dark","solarized light","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"];
 	new $(js.Browser.document).on("closeTab",null,function(event,path) {
 		var _g1 = 0, _g = core.TabsManager.docs.length;
 		while(_g1 < _g) {
@@ -392,8 +434,19 @@ core.TabsManager.init = function() {
 		core.TabsManager.editor.refresh();
 	});
 }
+core.TabsManager.applyRandomTheme = function() {
+	var theme = core.TabsManager.themes[Std.random(core.TabsManager.themes.length)];
+	core.TabsManager.editor.setOption("theme",theme);
+	new $("body").css("background",new $(".CodeMirror").css("background"));
+}
 core.TabsManager.load = function(file,c) {
 	c(Utils.system_openFile(file),200);
+}
+core.TabsManager.createFileInNewTab = function() {
+	var name = js.Browser.window.prompt("Name of the new file","");
+	if(name == null) return;
+	core.TabsManager.registerDoc(name,new CodeMirror.Doc("","haxe"),"");
+	core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
 }
 core.TabsManager.openFileInNewTab = function(path) {
 	if(Utils.getOS() == 0) {
@@ -422,6 +475,7 @@ core.TabsManager.openFileInNewTab = function(path) {
 	if(new $("#panel").css("display") == "none" && core.TabsManager.docs.length > 0) {
 		new $("#panel").css("display","block");
 		core.TabsManager.editor.refresh();
+		Main.updateMenu();
 	}
 	Main.resize();
 }
@@ -489,7 +543,19 @@ core.TabsManager.registerDoc = function(name,doc,path) {
 	core.TabsManager.server.addDoc(name,doc);
 	var data = { name : name, doc : doc, path : path};
 	core.TabsManager.docs.push(data);
-	new $("#docs").append("<li title=\"" + path + "\">" + name + "&nbsp;<span style='position:relative;top:2px;' onclick='$(document).triggerHandler(\"closeTab\", \"" + path + "\");'><span class='glyphicon glyphicon-remove-circle'></span></span></li>");
+	var docTabs = js.Browser.document.getElementById("docs");
+	var li = js.Browser.document.createElement("li");
+	li.title = path;
+	li.innerText = name + "\t";
+	var span = js.Browser.document.createElement("span");
+	span.style.position = "relative";
+	span.style.top = "2px";
+	span.setAttribute("onclick","$(document).triggerHandler(\"closeTab\", \"" + path + "\");");
+	var span2 = js.Browser.document.createElement("span");
+	span2.className = "glyphicon glyphicon-remove-circle";
+	span.appendChild(span2);
+	li.appendChild(span);
+	docTabs.appendChild(li);
 	if(core.TabsManager.editor.getDoc() == doc) {
 		core.TabsManager.setSelectedDoc(core.TabsManager.docs.length - 1);
 		core.TabsManager.curDoc = data;
@@ -509,7 +575,10 @@ core.TabsManager.unregisterDoc = function(doc) {
 	var docList = js.Browser.document.getElementById("docs");
 	docList.removeChild(docList.childNodes[j]);
 	if(b && docList.childNodes.length > 0) core.TabsManager.selectDoc(Math.max(0,j - 1) | 0);
-	if(docList.childNodes.length == 0) new $("#panel").css("display","none");
+	if(docList.childNodes.length == 0) {
+		new $("#panel").css("display","none");
+		Main.updateMenu();
+	}
 	Main.resize();
 }
 core.TabsManager.setSelectedDoc = function(pos) {
@@ -517,7 +586,8 @@ core.TabsManager.setSelectedDoc = function(pos) {
 	var _g1 = 0, _g = docTabs.childNodes.length;
 	while(_g1 < _g) {
 		var i = _g1++;
-		if(pos == i) docTabs.childNodes[i].className = "selected"; else docTabs.childNodes[i].className = "";
+		var child = js.Boot.__cast(docTabs.childNodes[i] , Element);
+		if(pos == i) child.className = "selected"; else child.className = "";
 	}
 }
 core.TabsManager.selectDoc = function(pos) {
@@ -527,6 +597,32 @@ core.TabsManager.selectDoc = function(pos) {
 	core.TabsManager.editor.swapDoc(core.TabsManager.curDoc.doc);
 }
 var haxe = {}
+haxe.Timer = function(time_ms) {
+	var me = this;
+	this.id = setInterval(function() {
+		me.run();
+	},time_ms);
+};
+haxe.Timer.__name__ = true;
+haxe.Timer.delay = function(f,time_ms) {
+	var t = new haxe.Timer(time_ms);
+	t.run = function() {
+		t.stop();
+		f();
+	};
+	return t;
+}
+haxe.Timer.prototype = {
+	run: function() {
+		console.log("run");
+	}
+	,stop: function() {
+		if(this.id == null) return;
+		clearInterval(this.id);
+		this.id = null;
+	}
+	,__class__: haxe.Timer
+}
 haxe.ds = {}
 haxe.ds.StringMap = function() {
 	this.h = { };
@@ -534,7 +630,13 @@ haxe.ds.StringMap = function() {
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
-	__class__: haxe.ds.StringMap
+	get: function(key) {
+		return this.h["$" + key];
+	}
+	,set: function(key,value) {
+		this.h["$" + key] = value;
+	}
+	,__class__: haxe.ds.StringMap
 }
 js.Boot = function() { }
 js.Boot.__name__ = true;
@@ -646,6 +748,9 @@ js.Boot.__instanceof = function(o,cl) {
 		return o.__enum__ == cl;
 	}
 }
+js.Boot.__cast = function(o,t) {
+	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+}
 js.Browser = function() { }
 js.Browser.__name__ = true;
 var ui = {}
@@ -701,36 +806,46 @@ ui.Notify.prototype = {
 ui.menu = {}
 ui.menu.basic = {}
 ui.menu.basic.Menu = function(_text,_headerText) {
-	this.text = _text;
-	this.headerText = _headerText;
-	this.items = new Array();
+	this.li = js.Browser.document.createElement("li");
+	this.li.className = "dropdown";
+	var a = js.Browser.document.createElement("a");
+	a.href = "#";
+	a.className = "dropdown-toggle";
+	a.setAttribute("data-toggle","dropdown");
+	a.innerText = _text;
+	this.li.appendChild(a);
+	this.ul = js.Browser.document.createElement("ul");
+	this.ul.className = "dropdown-menu";
+	if(_headerText != null) {
+		var li_header = js.Browser.document.createElement("li");
+		li_header.className = "dropdown-header";
+		li_header.innerText = _headerText;
+		this.ul.appendChild(li_header);
+	}
+	this.li.appendChild(this.ul);
 };
 ui.menu.basic.Menu.__name__ = true;
 ui.menu.basic.Menu.prototype = {
-	addToDocument: function() {
-		var retStr = ["<li class='dropdown'>","<a href='#' class='dropdown-toggle' data-toggle='dropdown'>" + this.text + "</a>","<ul class='dropdown-menu'>"].join("\n");
-		if(this.headerText != null) retStr += "<li class='dropdown-header'>" + this.headerText + "</li>\n";
-		var _g1 = 0, _g = this.items.length;
+	setDisabled: function(indexes) {
+		var childNodes = this.ul.childNodes;
+		var _g1 = 0, _g = childNodes.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			retStr += this.items[i].getCode();
+			var child = js.Boot.__cast(childNodes[i] , Element);
+			if(child.className != "divider") {
+				if(Lambda.indexOf(indexes,i) == -1) child.className = ""; else child.className = "disabled";
+			}
 		}
-		retStr += ["</ul>","</li>"].join("\n");
-		new $("#position-navbar").append(retStr);
-		var _g1 = 0, _g = this.items.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			this.items[i].registerEvent();
-		}
-		this.items = null;
-		this.headerText = null;
-		this.text = null;
+	}
+	,addToDocument: function() {
+		var div = js.Boot.__cast(js.Browser.document.getElementById("position-navbar") , Element);
+		div.appendChild(this.li);
 	}
 	,addSeparator: function() {
-		this.items.push(new ui.menu.basic.Separator());
+		this.ul.appendChild(new ui.menu.basic.Separator().getElement());
 	}
 	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
-		this.items.push(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey));
+		this.ul.appendChild(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey).getElement());
 	}
 	,__class__: ui.menu.basic.Menu
 }
@@ -742,8 +857,12 @@ ui.menu.EditMenu.__name__ = true;
 ui.menu.EditMenu.__super__ = ui.menu.basic.Menu;
 ui.menu.EditMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
-		this.addMenuItem("Undo","component_undo",null,"Ctrl-Z");
-		this.addMenuItem("Redo","component_redo",null,"Ctrl-Y");
+		this.addMenuItem("Undo","component_undo",function() {
+			if(core.TabsManager.curDoc != null) core.TabsManager.curDoc.doc.undo();
+		},"Ctrl-Z");
+		this.addMenuItem("Redo","component_redo",function() {
+			if(core.TabsManager.curDoc != null) core.TabsManager.curDoc.doc.redo();
+		},"Ctrl-Y");
 		this.addSeparator();
 		this.addMenuItem("Cut","component_cut",null,"Ctrl-X");
 		this.addMenuItem("Copy","component_copy",null,"Ctrl-C");
@@ -840,37 +959,43 @@ ui.menu.ViewMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 });
 ui.menu.basic.MenuItem = function() { }
 ui.menu.basic.MenuItem.__name__ = true;
-ui.menu.basic.MenuItem.prototype = {
-	__class__: ui.menu.basic.MenuItem
-}
 ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
-	this.text = _text;
-	this.onClickFunctionName = _onClickFunctionName;
-	this.onClickFunction = _onClickFunction;
-	this.hotkey = _hotkey;
+	var span = null;
+	if(_hotkey != null) {
+		span = js.Browser.document.createElement("span");
+		span.style.color = "silver";
+		span.style["float"] = "right";
+		span.innerText = _hotkey;
+	}
+	this.li = js.Browser.document.createElement("li");
+	var a = js.Browser.document.createElement("a");
+	a.style.left = "0";
+	a.setAttribute("onclick","$(document).triggerHandler(\"" + _onClickFunctionName + "\");");
+	a.innerText = _text;
+	if(span != null) a.appendChild(span);
+	this.li.appendChild(a);
+	this.registerEvent(_onClickFunctionName,_onClickFunction);
 };
 ui.menu.basic.MenuButtonItem.__name__ = true;
 ui.menu.basic.MenuButtonItem.__interfaces__ = [ui.menu.basic.MenuItem];
 ui.menu.basic.MenuButtonItem.prototype = {
-	registerEvent: function() {
-		if(this.onClickFunction != null) new $(js.Browser.document).on(this.onClickFunctionName,null,this.onClickFunction);
+	registerEvent: function(_onClickFunctionName,_onClickFunction) {
+		if(_onClickFunction != null) new $(js.Browser.document).on(_onClickFunctionName,_onClickFunction);
 	}
-	,getCode: function() {
-		var hotkey_code = "";
-		if(this.hotkey != null) hotkey_code = "<span style='color: silver; float:right;'>" + this.hotkey + "</span>";
-		return "<li><a style='left: 0;' onclick='$(document).triggerHandler(\"" + this.onClickFunctionName + "\");'>" + this.text + hotkey_code + "</a></li>";
+	,getElement: function() {
+		return this.li;
 	}
 	,__class__: ui.menu.basic.MenuButtonItem
 }
 ui.menu.basic.Separator = function() {
+	this.li = js.Browser.document.createElement("li");
+	this.li.className = "divider";
 };
 ui.menu.basic.Separator.__name__ = true;
 ui.menu.basic.Separator.__interfaces__ = [ui.menu.basic.MenuItem];
 ui.menu.basic.Separator.prototype = {
-	registerEvent: function() {
-	}
-	,getCode: function() {
-		return "<li class=\"divider\"></li>";
+	getElement: function() {
+		return this.li;
 	}
 	,__class__: ui.menu.basic.Separator
 }
@@ -928,3 +1053,5 @@ js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();
+
+//@ sourceMappingURL=ide.js.map
