@@ -143,6 +143,10 @@
 		line-height: 1.3;
 	}
 
+	.dropdown-menu{
+		min-width:300px;
+	}
+
 	</style>
 
 	<script>
@@ -151,6 +155,8 @@
 		var cm_height = $(document).height() - $('.navbar').height()-$('#tabs_placeholder').height() - 30;
 		//console.log(cm_height);
 		$('#style_overide').append("<style>.CodeMirror{height:"+cm_height+"px;}</style>");
+
+
 	});
 		
 	</script>	
