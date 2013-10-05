@@ -33,7 +33,7 @@ class MenuButtonItem implements MenuItem
 		
 		if (hotkey != null)
 		{
-			hotkey_code = "<span style='color: silver; right: 0; margin-left: 15px;'>" + hotkey + "</span>";
+			hotkey_code = "<span style='color: silver; float:right;'>" + hotkey + "</span>";
 		}
 		
 		return "<li><a style='left: 0;' onclick='$(document).triggerHandler(\"" + onClickFunctionName + "\");'>" + text + hotkey_code + "</a></li>";
