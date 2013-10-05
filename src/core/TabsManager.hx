@@ -123,13 +123,32 @@ class TabsManager
 		{
 			filename = path;
 		}
-		
+		//trace(docs);
+		var file_already_loaded = false;
+		var docs_pos = -1;
+		for(i in 0...docs.length)
+			{
+				if (docs[i].path == path)
+					{
+						file_already_loaded = true;
+						docs_pos = i;
+					}
+			}
+
+		if (file_already_loaded == true)
+			{
+				selectDoc(docs_pos);
+				return; // exit function
+			}
+
 		load(path, function(body) 
 		{
-			registerDoc(filename, new CodeMirror.Doc(body, "haxe"), path);
+			registerDoc(filename, new CodeMirror.Doc(body, "haxe"), path);			
 			selectDoc(docs.length - 1);
 		});
 		
+		
+
 		if (new JQuery("#panel").css("display") == "none" && docs.length > 0)
 		{
 			new JQuery("#panel").css("display", "block");
