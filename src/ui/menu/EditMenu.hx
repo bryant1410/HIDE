@@ -1,4 +1,5 @@
 package ui.menu;
+import core.TabsManager;
 import ui.menu.basic.Menu;
 
 /**
@@ -16,8 +17,22 @@ class EditMenu extends Menu
 	
 	function createUI()
 	{
-		addMenuItem("Undo", "component_undo", null, "Ctrl-Z");
-		addMenuItem("Redo", "component_redo", null, "Ctrl-Y");
+		addMenuItem("Undo", "component_undo", 
+		function () 
+		{
+			if (TabsManager.curDoc != null)
+			{
+				TabsManager.curDoc.doc.undo();
+			}
+		}, "Ctrl-Z");
+		addMenuItem("Redo", "component_redo", 
+		function () 
+		{
+			if (TabsManager.curDoc != null)
+			{
+				TabsManager.curDoc.doc.redo();
+			}
+		}, "Ctrl-Y");
 		addSeparator();
 		addMenuItem("Cut", "component_cut", null, "Ctrl-X");
 		addMenuItem("Copy", "component_copy", null, "Ctrl-C");

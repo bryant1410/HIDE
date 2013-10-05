@@ -38,27 +38,12 @@ class ProjectAccess
 
 		if (Main.session.current_project_xml == "")
 		{
-			var modal = new ModalDialog();
-			modal.id='projectAccess_openProject';
-			modal.title= 'Open Project';
-			modal.content = '<input id="ProjectAccess_openProject_file" type="file" />';
-			modal.ok_text = "Open";
-			modal.cancel_text = "Cancel";
-			
-			modal.updateModalDialog();
-			//modal.show();
-
-			var file_input = new JQuery("#ProjectAccess_openProject_file");
-			file_input.click();
-			file_input.change(function(event)
-				{
-				if (file_input.val() != "")
-					{
-						Main.session.current_project_xml = file_input.val();
-						//modal.hide();
-						Utils.system_parse_project();
-					}
-				});			
+			FileDialog.openFile(function (path):Void
+			{
+				Main.session.current_project_xml = path;
+				Utils.system_parse_project();	
+			}
+			);
 		}
 		else
 		{
