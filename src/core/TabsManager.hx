@@ -18,6 +18,7 @@ class TabsManager
 	public static var editor:Dynamic;
 	public static var docs:Array<Dynamic> = [];
 	public static var curDoc:Dynamic;
+	private static var themes:Array<String>;
 	
 	public function new() 
 	{
@@ -26,6 +27,36 @@ class TabsManager
 	
 	public static function init()
 	{
+		themes = 
+		[
+		"3024-day",
+		"3024-night",
+		"ambiance",
+		"base16-dark",
+		"base16-light",
+		"blackboard",
+		"cobalt",
+		"eclipse",
+		"elegant",
+		"erlang-dark",
+		"lesser-dark",
+		"midnight",
+		"monokai",
+		"neat",
+		"night",
+		"paraiso-dark",
+		"paraiso-light",
+		"rubyblue",
+		"solarized dark",
+		"solarized light",
+		"the-matrix",
+		"tomorrow-night-eighties",
+		"twilight",
+		"vibrant-ink",
+		"xq-dark",
+		"xq-light"
+		];
+		
 	  new JQuery(Browser.document).on("closeTab",function(event, path)
 		{
 			for (i in 0...docs.length)
@@ -74,9 +105,16 @@ class TabsManager
 		});
 	}
 	
+	public static function applyRandomTheme():Void
+	{
+		var theme:String = themes[Std.random(themes.length)];
+		editor.setOption("theme", theme);
+		new JQuery("body").css("background", new JQuery(".CodeMirror").css("background"));
+	}
+	
 	private static function load(file, c:Dynamic):Void 
 	{
-	  c(Utils.system_openFile(file), 200);
+		c(Utils.system_openFile(file), 200);
 	}
 	
 	public static function openFileInNewTab(path:String):Void

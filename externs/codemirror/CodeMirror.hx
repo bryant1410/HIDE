@@ -59,6 +59,10 @@ public function getLine(param1:Dynamic):Dynamic;
 public function firstLine():Dynamic;
 public function lastLine():Dynamic;
 
+public function setOption(option:String, value:String):Void;
+public function swapDoc(doc:Dynamic):Void;
+public function getDoc():Dynamic;
+
 public function markText(from : Pos, to : Pos, className : String ) : MarkedText;
 
 public function setMarker( line : Int , ?text : String , ?className : String ) : LineHandle;
