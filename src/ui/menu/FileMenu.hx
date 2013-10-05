@@ -19,21 +19,21 @@ class FileMenu extends Menu
 	
 	function createUI()
 	{
-		addMenuItem("New Project...", "component_projectAccess_new", ProjectAccess.createNewProject);
-		addMenuItem("New File...", "component_fileAccess_new", FileAccess.createNewFile);
-		addMenuItem("Open Project...", "component_projectAccess_open", ProjectAccess.openProject);
+		addMenuItem("New Project...", "component_projectAccess_new", ProjectAccess.createNewProject, "Ctrl-Shift-N");
+		addMenuItem("New File...", "component_fileAccess_new", FileAccess.createNewFile, "Ctrl-N");
+		addMenuItem("Open Project...", "component_projectAccess_open", ProjectAccess.openProject, "Ctrl-Shift-O");
 		addMenuItem("Close Project...", "component_projectAccess_close", ProjectAccess.closeProject);
 		addSeparator();
-		addMenuItem("Open File...", "component_fileAccess_open", FileAccess.openFile);
-		addMenuItem("Close File", "component_fileAccess_close", FileAccess.closeActiveFile);
+		addMenuItem("Open File...", "component_fileAccess_open", FileAccess.openFile, "Ctrl-O");
+		addMenuItem("Close File", "component_fileAccess_close", FileAccess.closeActiveFile, "Ctrl-W");
 		addSeparator();
 		addMenuItem("Project Properties", "component_projectAccess_configure", ProjectAccess.configureProject);
 		addSeparator();
-		addMenuItem("Save", "component_fileAccess_save", FileAccess.saveActiveFile);
-		addMenuItem("Save as...", "component_saveAs", null);
+		addMenuItem("Save", "component_fileAccess_save", FileAccess.saveActiveFile, "Ctrl-S");
+		addMenuItem("Save as...", "component_saveAs", null, "Ctrl-Shift-S");
 		addMenuItem("Save all", "component_saveAll", null);
 		addSeparator();
-		addMenuItem("Exit", "component_exit", Main.close);
+		addMenuItem("Exit", "component_exit", Main.close, "Alt-F4");
 		addToDocument();
 	}
 	

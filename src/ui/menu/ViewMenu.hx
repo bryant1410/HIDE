@@ -16,7 +16,7 @@ class ViewMenu extends Menu
 	
 	function createUI()
 	{
-		addMenuItem("Toggle Fullscreen", "component_toggle_fullscreen", Utils.toggleFullscreen);
+		addMenuItem("Toggle Fullscreen", "component_toggle_fullscreen", Utils.toggleFullscreen, "Shift-Alt-Enter");
 		addToDocument();
 	}
 	
