@@ -17,17 +17,26 @@ class MenuButtonItem implements MenuItem
 	var text:String;
 	var onClickFunctionName:String;
 	var onClickFunction:Void->Void;
+	var hotkey:String;
 	
-	public function new(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void)
+	public function new(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void, ?_hotkey:String)
 	{
 		text = _text;
 		onClickFunctionName = _onClickFunctionName;
 		onClickFunction = _onClickFunction;
+		hotkey = _hotkey;
 	}
 	
 	public function getCode():String
 	{
-		return "<li><a onclick='$(document).triggerHandler(\"" + onClickFunctionName + "\");'>" + text + "</a></li>";
+		var hotkey_code:String = "";
+		
+		if (hotkey != null)
+		{
+			hotkey_code = "<span style='color: silver; right: 0; margin-left: 15px;'>" + hotkey + "</span>";
+		}
+		
+		return "<li><a style='left: 0;' onclick='$(document).triggerHandler(\"" + onClickFunctionName + "\");'>" + text + hotkey_code + "</a></li>";
 	}
 	
 	public function registerEvent():Void
@@ -71,9 +80,9 @@ class Menu
 		items = new Array();
 	}
 	
-	public function addMenuItem(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void)
+	public function addMenuItem(_text:String, _onClickFunctionName:String, _onClickFunction:Void->Void, ?_hotkey:String):Void
 	{
-		items.push(new MenuButtonItem(_text, _onClickFunctionName, _onClickFunction));
+		items.push(new MenuButtonItem(_text, _onClickFunctionName, _onClickFunction, _hotkey));
 	}
 	
 	public function addSeparator():Void
