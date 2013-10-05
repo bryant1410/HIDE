@@ -161,8 +161,10 @@ class Main {
 						//Ctrl-Shift-S
 						case 83:
 							//Save as...
-						//case :
-						default:
+						//Ctrl-Shift-T
+						case 'T'.code:
+							TabsManager.applyRandomTheme();
+						case _:
 							
 					}		
 				}
