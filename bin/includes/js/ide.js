@@ -166,6 +166,32 @@ Main.init = function() {
 	Main.session = new Session();
 	Main.settings = new haxe.ds.StringMap();
 	core.FileDialog.init();
+	var haxeCompletionServer = js.Node.require("child_process").spawn("haxe",["--wait","6001"]);
+	haxeCompletionServer.stderr.setEncoding("utf8");
+	haxeCompletionServer.stderr.on("data",function(data) {
+		var str = data.toString();
+		var lines = str.split("\n");
+		console.log("ERROR: " + lines.join(""));
+	});
+	haxeCompletionServer.on("close",function(code) {
+		console.log("haxeCompletionServer process exit code " + code);
+	});
+	var haxeCompilerClient = js.Node.require("child_process").spawn("haxe",["--connect","6001","--cwd","..","HaxeEditor2.hxml"]);
+	haxeCompilerClient.stdout.setEncoding("utf8");
+	haxeCompilerClient.stdout.on("data",function(data) {
+		var str = data.toString();
+		var lines = str.split("\n");
+		console.log("OUTPUT: " + lines.join(""));
+	});
+	haxeCompilerClient.stderr.setEncoding("utf8");
+	haxeCompilerClient.stderr.on("data",function(data) {
+		var str = data.toString();
+		var lines = str.split("\n");
+		console.log("ERROR: " + lines.join(""));
+	});
+	haxeCompilerClient.on("close",function(code) {
+		console.log("haxeCompilerClient process exit code " + code);
+	});
 }
 Main.resize = function() {
 	var ul1 = js.Browser.document.getElementById("docs");
@@ -360,11 +386,13 @@ core.FileDialog.init = function() {
 	js.Browser.document.body.appendChild(core.FileDialog.input);
 }
 core.FileDialog.openFile = function(_onClick) {
+	core.FileDialog.input.value = "";
 	core.FileDialog.onClick = _onClick;
-	core.FileDialog.input.removeAttribute("nwsaveas");
+	if(core.FileDialog.input.hasAttribute("nwsaveas")) core.FileDialog.input.removeAttribute("nwsaveas");
 	core.FileDialog.input.click();
 }
 core.FileDialog.saveFile = function(_onClick,_name) {
+	core.FileDialog.input.value = "";
 	core.FileDialog.onClick = _onClick;
 	if(_name == null) _name = "";
 	core.FileDialog.input.setAttribute("nwsaveas",_name);
@@ -438,29 +466,49 @@ core.TabsManager.applyRandomTheme = function() {
 	var theme = core.TabsManager.themes[Std.random(core.TabsManager.themes.length)];
 	core.TabsManager.editor.setOption("theme",theme);
 	new $("body").css("background",new $(".CodeMirror").css("background"));
+	new $("#style_override").append("<style>ul.tabs li {background: " + new $(".CodeMirror").css("background") + ";}</style>");
+	new $("#style_override").append("<style>ul.tabs li {color: " + new $(".CodeMirror").css("color") + ";}</style>");
+	new $("#style_override").append("<style>ul.tabs li:hover {color: " + new $(".cm-keyword").css("color") + ";}</style>");
+	new $("#style_override").append("<style>ul.tabs li.selected {background: " + new $(".CodeMirror").css("background") + ";}</style>");
+	new $("#style_override").append("<style>ul.tabs li.selected {color: " + new $(".cm-variable").css("color") + ";}</style>");
+	new $("#style_override").append("<style>.CodeMirror-hints {background: " + new $(".CodeMirror").css("background") + ";}</style>");
+	new $("#style_override").append("<style>.CodeMirror-hint {color: " + new $(".cm-variable").css("color") + ";}</style>");
+	new $("#style_override").append("<style>.CodeMirror-hint-active {background: " + new $(".CodeMirror").css("background") + ";}</style>");
+	new $("#style_override").append("<style>.CodeMirror-hint-active {color: " + new $(".cm-keyword").css("color") + ";}</style>");
 }
 core.TabsManager.load = function(file,c) {
 	c(Utils.system_openFile(file),200);
 }
 core.TabsManager.createFileInNewTab = function() {
-	var name = js.Browser.window.prompt("Name of the new file","");
-	if(name == null) return;
-	core.TabsManager.registerDoc(name,new CodeMirror.Doc("","haxe"),"");
-	core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
+	core.FileDialog.saveFile(function(value) {
+		var path = core.TabsManager.convertPathToUnixFormat(value);
+		if(core.TabsManager.isAlreadyOpened(path)) return;
+		var name = core.TabsManager.getFileName(path);
+		core.TabsManager.registerDoc(name,new CodeMirror.Doc("","haxe"),path);
+		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
+	});
 }
-core.TabsManager.openFileInNewTab = function(path) {
+core.TabsManager.convertPathToUnixFormat = function(path) {
 	if(Utils.getOS() == 0) {
 		var ereg = new EReg("[\\\\]","g");
 		path = ereg.replace(path,"/");
 	}
+	return path;
+}
+core.TabsManager.isAlreadyOpened = function(path) {
+	var opened = false;
 	var _g1 = 0, _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i].path == path) {
 			core.TabsManager.selectDoc(i);
-			return;
+			opened = true;
+			break;
 		}
 	}
+	return opened;
+}
+core.TabsManager.getFileName = function(path) {
 	var pos = null;
 	if(Utils.getOS() == 0) {
 		pos = path.lastIndexOf("\\");
@@ -468,6 +516,12 @@ core.TabsManager.openFileInNewTab = function(path) {
 	} else pos = path.lastIndexOf("/");
 	var filename = null;
 	if(pos != -1) filename = HxOverrides.substr(path,pos + 1,null); else filename = path;
+	return filename;
+}
+core.TabsManager.openFileInNewTab = function(path) {
+	path = core.TabsManager.convertPathToUnixFormat(path);
+	if(core.TabsManager.isAlreadyOpened(path)) return;
+	var filename = core.TabsManager.getFileName(path);
 	core.TabsManager.load(path,function(body) {
 		core.TabsManager.registerDoc(filename,new CodeMirror.Doc(body,"haxe"),path);
 		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
@@ -960,6 +1014,7 @@ ui.menu.ViewMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 ui.menu.basic.MenuItem = function() { }
 ui.menu.basic.MenuItem.__name__ = true;
 ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
+	var _g = this;
 	var span = null;
 	if(_hotkey != null) {
 		span = js.Browser.document.createElement("span");
@@ -970,7 +1025,9 @@ ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunct
 	this.li = js.Browser.document.createElement("li");
 	var a = js.Browser.document.createElement("a");
 	a.style.left = "0";
-	a.setAttribute("onclick","$(document).triggerHandler(\"" + _onClickFunctionName + "\");");
+	a.onclick = function(e) {
+		if(_g.li.className != "disabled") new $(js.Browser.document).triggerHandler(_onClickFunctionName);
+	};
 	a.innerText = _text;
 	if(span != null) a.appendChild(span);
 	this.li.appendChild(a);
@@ -1053,5 +1110,3 @@ js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();
-
-//@ sourceMappingURL=ide.js.map
