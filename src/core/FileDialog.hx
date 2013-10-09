@@ -35,14 +35,22 @@ class FileDialog
 	
 	public static function openFile(_onClick:Dynamic):Void
 	{
+		input.value = "";
+		
 		onClick = _onClick;
 		
-		input.removeAttribute("nwsaveas");
+		if (input.hasAttribute("nwsaveas"))
+		{
+			input.removeAttribute("nwsaveas");
+		}
+		
 		input.click();
 	}
 	
 	public static function saveFile(_onClick:Dynamic, ?_name:String):Void
 	{
+		input.value = "";
+		
 		onClick = _onClick;
 		
 		if (_name == null)

@@ -3,8 +3,6 @@ import core.FileDialog;
 import core.ProjectAccess;
 import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
-import haxe.ds.StringMap.StringMap;
-import haxe.ds.StringMap.StringMap;
 import haxe.Timer;
 import js.Browser;
 import js.html.DivElement;
@@ -14,6 +12,7 @@ import js.html.File;
 import js.html.InputElement;
 import js.html.KeyboardEvent;
 import js.html.MouseEvent;
+import js.html.ScriptElement;
 import js.html.UListElement;
 import js.html.WheelEvent;
 import js.Lib;
@@ -27,24 +26,23 @@ import ui.menu.RunMenu;
 import ui.menu.SourceMenu;
 import ui.menu.ViewMenu;
 
-
 class Main {
 
 	static public var session:Session;
 	static public var settings:StringMap<String>;
-	static private var menus:StringMap<Menu>;
+	static private var menus:StringMap<Menu>;	
 	
 	// the program starts here	
-    static public function main():Void {
+    static public function main():Void {	
 		new JQuery(function():Void
-			{		
+			{	
 				show();
 				init();
 				initCorePlugin();
 			});
     }
 	
-	static private function show() 
+	static private function show():Void
 	{
 		Utils.gui.Window.get().show();
 	}
@@ -87,14 +85,15 @@ class Main {
 		Browser.window.ondragover = function(e) { e.preventDefault(); e.stopPropagation(); return false; };
 		Browser.window.ondrop = function(e:Dynamic) 
 		{
-		  e.preventDefault();
-		  e.stopPropagation();
+			e.preventDefault();
+			e.stopPropagation();
 
-		  for (i in 0...e.dataTransfer.files.length) 
-		  {
-			TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
-		  }
-		  return false;
+			for (i in 0...e.dataTransfer.files.length) 
+			{
+				TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
+			}
+
+			return false;
 		};
 		
 		Browser.window.onkeyup = function (e:KeyboardEvent)
@@ -210,6 +209,39 @@ class Main {
 		settings = new StringMap();
 		
 		FileDialog.init();
+		
+		var haxeCompletionServer = js.Node.require('child_process').spawn("haxe", ["--wait", "6001"]);
+
+		haxeCompletionServer.stderr.setEncoding('utf8');
+		haxeCompletionServer.stderr.on('data', function (data) {
+			var str:String = data.toString();
+			var lines = str.split("\n");
+			trace("ERROR: " + lines.join(""));
+		});
+		
+		haxeCompletionServer.on('close', function (code) {
+			trace('haxeCompletionServer process exit code ' + code);
+		});
+		
+		var haxeCompilerClient = js.Node.require('child_process').spawn("haxe", ["--connect", "6001", "--cwd", "..","HaxeEditor2.hxml"]);
+		
+		haxeCompilerClient.stdout.setEncoding('utf8');
+		haxeCompilerClient.stdout.on('data', function (data) {
+			var str:String = data.toString();
+			var lines = str.split("\n");
+			trace("OUTPUT: " + lines.join(""));
+		});
+		
+		haxeCompilerClient.stderr.setEncoding('utf8');
+		haxeCompilerClient.stderr.on('data', function (data) {
+			var str:String = data.toString();
+			var lines = str.split("\n");
+			trace("ERROR: " + lines.join(""));
+		});
+
+		haxeCompilerClient.on('close', function (code) {
+			trace('haxeCompilerClient process exit code ' + code);
+		});
     }
     
 	public static function resize():Void

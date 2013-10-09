@@ -6,3 +6,6 @@
 -cp ./externs/nodejs-std/src
 -cp ./externs/codemirror
 -dce full
+--next
+-cp src
+--macro "MacroUtils.embedJSinHtml()"

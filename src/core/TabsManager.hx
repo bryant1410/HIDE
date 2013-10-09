@@ -4,6 +4,7 @@ import js.Browser;
 import jQuery.*;
 import js.html.Element;
 import js.html.LIElement;
+import js.html.RGBColor;
 import js.html.SpanElement;
 
 //Code from Tern bin\includes\js\tern\doc\demo\demo.js
@@ -115,10 +116,19 @@ class TabsManager
 	}
 	
 	public static function applyRandomTheme():Void
-	{
+	{		
 		var theme:String = themes[Std.random(themes.length)];
 		editor.setOption("theme", theme);
 		new JQuery("body").css("background", new JQuery(".CodeMirror").css("background"));
+		new JQuery("#style_override").append("<style>ul.tabs li {background: " + new JQuery(".CodeMirror").css("background") + ";}</style>");
+		new JQuery("#style_override").append("<style>ul.tabs li {color: " + new JQuery(".CodeMirror").css("color") +  ";}</style>");
+		new JQuery("#style_override").append("<style>ul.tabs li:hover {color: " + new JQuery(".cm-keyword").css("color") +  ";}</style>");
+		new JQuery("#style_override").append("<style>ul.tabs li.selected {background: " + new JQuery(".CodeMirror").css("background") + ";}</style>");
+		new JQuery("#style_override").append("<style>ul.tabs li.selected {color: " + new JQuery(".cm-variable").css("color") + ";}</style>");
+		new JQuery("#style_override").append("<style>.CodeMirror-hints {background: " + new JQuery(".CodeMirror").css("background") + ";}</style>");
+		new JQuery("#style_override").append("<style>.CodeMirror-hint {color: " + new JQuery(".cm-variable").css("color") + ";}</style>");
+		new JQuery("#style_override").append("<style>.CodeMirror-hint-active {background: " + new JQuery(".CodeMirror").css("background") + ";}</style>");
+		new JQuery("#style_override").append("<style>.CodeMirror-hint-active {color: " + new JQuery(".cm-keyword").css("color") + ";}</style>");
 	}
 	
 	private static function load(file, c:Dynamic):Void 
@@ -128,13 +138,23 @@ class TabsManager
 	
 	public static function createFileInNewTab():Void
 	{
-		var name = Browser.window.prompt("Name of the new file", "");
-		if (name == null) return;
-		registerDoc(name, new CodeMirror.Doc("", "haxe"), "");
-		selectDoc(docs.length - 1);
+		FileDialog.saveFile(function (value:String)
+		{
+			var path:String = convertPathToUnixFormat(value);
+		
+			if (isAlreadyOpened(path))
+			{
+				return;
+			}
+			
+			var name:String = getFileName(path);
+			registerDoc(name, new CodeMirror.Doc("", "haxe"), path);
+			selectDoc(docs.length - 1);
+		}
+		);
 	}
 	
-	public static function openFileInNewTab(path:String):Void
+	private static function convertPathToUnixFormat(path:String):String
 	{
 		if (Utils.getOS() == Utils.WINDOWS)
 		{
@@ -143,15 +163,28 @@ class TabsManager
 			path = ereg.replace(path, "/");
 		}
 		
+		return path;
+	}
+	
+	private static function isAlreadyOpened(path:String):Bool
+	{
+		var opened:Bool = false;
+		
 		for (i in 0...docs.length)
 		{
 			if (docs[i].path == path)
 			{
 				selectDoc(i);
-				return;
+				opened = true;
+				break;
 			}
 		}
 		
+		return opened;
+	}
+	
+	private static function getFileName(path:String):String
+	{				
 		var pos:Int = null;
 		
 		if (Utils.getOS() == Utils.WINDOWS)
@@ -178,6 +211,20 @@ class TabsManager
 		{
 			filename = path;
 		}
+		
+		return filename;
+	}
+	
+	public static function openFileInNewTab(path:String):Void
+	{
+		path = convertPathToUnixFormat(path);
+		
+		if (isAlreadyOpened(path))
+		{
+			return;
+		}
+		
+		var filename:String = getFileName(path);
 		
 		load(path, function(body) 
 		{

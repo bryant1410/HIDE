@@ -42,7 +42,13 @@ class MenuButtonItem implements MenuItem
 		var a:AnchorElement = Browser.document.createAnchorElement();
 		a.style.left = "0";
 		
-		a.setAttribute("onclick", "$(document).triggerHandler(\"" + _onClickFunctionName + "\");");
+		a.onclick = function (e)
+		{
+			if (li.className != "disabled")
+			{
+				new JQuery(js.Browser.document).triggerHandler(_onClickFunctionName);
+			}
+		};
 		
 		a.innerText = _text;
 		
