@@ -5,12 +5,15 @@ import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
 import haxe.Timer;
 import js.Browser;
+import js.html.AnchorElement;
 import js.html.DivElement;
 import js.html.Element;
 import js.html.Event;
 import js.html.File;
 import js.html.InputElement;
 import js.html.KeyboardEvent;
+import js.html.LabelElement;
+import js.html.LIElement;
 import js.html.MouseEvent;
 import js.html.ScriptElement;
 import js.html.UListElement;
@@ -58,28 +61,7 @@ class Main {
 		{
 			resize();
 		}
-		
-		//var input_element:InputElement = Browser.document.createInputElement();
-		//input_element.id = "ProjectAccess_openFile_file";
-		//input_element.type = "file";
-		
-		//Browser.document.appendChild(input_element);
-		
-		//var gui = js.Node.require('nw.gui');
-//
-		// Create an empty menu
-		//var menu = untyped __js__("new gui.Menu();");
-		//
-		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close' })"));
-		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close All' })"));
-		//menu.append(untyped __js__("new gui.MenuItem({ label: 'Close Others' })"));
-		//
-		//Browser.document.getElementById("docs").addEventListener('contextmenu', function(ev:Event) { 
-		  //ev.preventDefault();
-		  //menu.popup(ev.x, ev.y);
-		  //return false;
-		//});
-		
+				
 		TabsManager.init();
 		
 		Browser.window.ondragover = function(e) { e.preventDefault(); e.stopPropagation(); return false; };
@@ -223,31 +205,162 @@ class Main {
 			trace('haxeCompletionServer process exit code ' + code);
 		});
 		
-		var haxeCompilerClient = js.Node.require('child_process').spawn("haxe", ["--connect", "6001", "--cwd", "..","HaxeEditor2.hxml"]);
+		//var haxeCompilerClient = js.Node.require('child_process').spawn("haxe", ["--connect", "6001", "--cwd", "..","HaxeEditor2.hxml"]);
+		//
+		//haxeCompilerClient.stdout.setEncoding('utf8');
+		//haxeCompilerClient.stdout.on('data', function (data) {
+			//var str:String = data.toString();
+			//var lines = str.split("\n");
+			//trace("OUTPUT: " + lines.join(""));
+		//});
+		//
+		//haxeCompilerClient.stderr.setEncoding('utf8');
+		//haxeCompilerClient.stderr.on('data', function (data) {
+			//var str:String = data.toString();
+			//var lines = str.split("\n");
+			//trace("ERROR: " + lines.join(""));
+		//});
+//
+		//haxeCompilerClient.on('close', function (code) {
+			//trace('haxeCompilerClient process exit code ' + code);
+		//});
 		
-		haxeCompilerClient.stdout.setEncoding('utf8');
-		haxeCompilerClient.stdout.on('data', function (data) {
-			var str:String = data.toString();
-			var lines = str.split("\n");
-			trace("OUTPUT: " + lines.join(""));
-		});
 		
-		haxeCompilerClient.stderr.setEncoding('utf8');
-		haxeCompilerClient.stderr.on('data', function (data) {
-			var str:String = data.toString();
-			var lines = str.split("\n");
-			trace("ERROR: " + lines.join(""));
-		});
-
-		haxeCompilerClient.on('close', function (code) {
-			trace('haxeCompilerClient process exit code ' + code);
-		});
+		//new TernAddon();
+		
+		var tree:UListElement = cast(Browser.document.getElementById("tree"), UListElement);
+		
+		var rootTreeElement:LIElement = createDirectoryElement("HIDE");		
+		
+		tree.appendChild(rootTreeElement);
+		
+		readDir("../", rootTreeElement);
     }
+	
+	public static function createDirectoryElement(text:String):LIElement
+	{
+		var directoryElement:LIElement = Browser.document.createLIElement();
+		
+		var a:AnchorElement = Browser.document.createAnchorElement();
+		a.className = "tree-toggler nav-header";
+		a.href = "#";
+		
+		var span = Browser.document.createSpanElement();
+		span.className = "glyphicon glyphicon-folder-open";
+		a.appendChild(span);
+		
+		span = Browser.document.createSpanElement();
+		span.textContent = text;
+		span.style.marginLeft = "5px";
+		a.appendChild(span);
+		
+		//var textNode = Browser.document.createTextNode(text);
+		//a.appendChild(textNode);
+		
+		a.onclick = function (e:MouseEvent):Void
+		{
+			new JQuery(directoryElement).children('ul.tree').toggle(300);
+			Main.resize();
+		};
+		
+		//var label:LabelElement = Browser.document.createLabelElement();
+		//label.className = "tree-toggler nav-header";
+		//label.textContent = text;
+		
+		directoryElement.appendChild(a);
+		
+		var ul:UListElement = Browser.document.createUListElement();
+		ul.className = "nav nav-list tree";
+		
+		directoryElement.appendChild(ul);
+		
+		return directoryElement;
+	}
+	
+	public static function readDir(path:String, topElement:LIElement):Void
+	{				
+		Utils.fs.readdir(path, function (error:js.Node.NodeErr, files:Array<String>):Void
+		{			
+			var foldersCount:Int = 0;
+			
+			for (file in files)
+			{
+				var filePath:String = Utils.path.join(path, file);
+				
+				Utils.fs.stat(filePath, function (error:js.Node.NodeErr, stat:js.Node.NodeStat)
+				{					
+					if (stat.isFile())
+					{
+						var li:LIElement = Browser.document.createLIElement();
+						
+						var a:AnchorElement = Browser.document.createAnchorElement();
+						a.href = "#";
+						a.textContent = file;
+						a.title = filePath;
+						a.onclick = function (e):Void
+						{
+							TabsManager.openFileInNewTab(filePath);
+						};
+						
+						if (StringTools.endsWith(file, ".hx"))
+						{
+							a.style.fontWeight = "bold";
+						}
+						else if (StringTools.endsWith(file, ".hxml"))
+						{
+							a.style.fontWeight = "bold";
+							a.style.color = "gray";
+						}
+						else
+						{
+							a.style.color = "gray";
+						}
+						
+						li.appendChild(a);
+						
+						var ul:UListElement = cast(topElement.getElementsByTagName("ul")[0], UListElement);
+						ul.appendChild(li);
+					}
+					else
+					{
+						if (!StringTools.startsWith(file, "."))
+						{
+							var ul:UListElement = cast(topElement.getElementsByTagName("ul")[0], UListElement);
+							
+							var directoryElement:LIElement = createDirectoryElement(file);
+							
+							//Lazy loading
+							directoryElement.onclick = function (e):Void
+							{
+								if (directoryElement.getElementsByTagName("ul")[0].childNodes.length == 0)
+								{
+									readDir(filePath, directoryElement);
+									e.stopPropagation();
+									e.preventDefault();
+									directoryElement.onclick = null;
+								}
+							}
+							
+							ul.appendChild(directoryElement);
+							ul.insertBefore(directoryElement, ul.childNodes[foldersCount]);
+							foldersCount++;
+						}
+					}
+				}
+				);
+			}
+			
+			new JQuery(topElement).children('ul.tree').show(300);
+		}
+		);
+	}
     
 	public static function resize():Void
 	{
 		var ul1:Element = Browser.document.getElementById("docs");
 		new JQuery(".CodeMirror").css("height", Std.string(Browser.window.innerHeight - 58 - ul1.clientHeight));
+		new JQuery("#tree_well").css("height", Std.string(Browser.window.innerHeight - 58));
+		new JQuery("#demospace").css("width", Std.string(Browser.window.innerWidth - 250));
 	}
 	
 	static function setFontSize(font_size:Int):Void

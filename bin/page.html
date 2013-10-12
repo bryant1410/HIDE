@@ -70,11 +70,11 @@
 	</script>	
 
 	<!-- CodeMirror -->
-	<script src="./includes/js/codemirror-3.18/lib/codemirror.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/lib/codemirror.js" type="text/javascript"></script>
 
 	<!-- CodeMirror modes -->	
 
-	<script src="./includes/js/codemirror-3.18/mode/haxe/haxe.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/mode/haxe/haxe.js" type="text/javascript"></script>
 	<!--
 	<script src="./includes/js/codemirror-3.18/mode/javascript/javascript.js" type="text/javascript"></script>
 	-->
@@ -83,15 +83,14 @@
 
 	<!-- Use older version of show-hint.js plugin to avoid regeneration of completion list when completion dialog is visible -->
 	<script src="./includes/js/codemirror/addon/hint/show-hint.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/edit/matchbrackets.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/edit/closebrackets.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/comment/comment.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/fold/foldcode.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/fold/foldgutter.js" type="text/javascript"></script>
-	<script src="./includes/js/codemirror-3.18/addon/fold/brace-fold.js"></script>
-	<script src="./includes/js/codemirror-3.18/addon/fold/comment-fold.js"></script>
-	<script src="./includes/js/codemirror-3.18/addon/selection/active-line.js" type="text/javascript"></script>
-
+	<script src="./includes/js/codemirror-git/addon/edit/matchbrackets.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/addon/edit/closebrackets.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/addon/comment/comment.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/addon/fold/foldcode.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/addon/fold/foldgutter.js" type="text/javascript"></script>
+	<script src="./includes/js/codemirror-git/addon/fold/brace-fold.js"></script>
+	<script src="./includes/js/codemirror-git/addon/fold/comment-fold.js"></script>
+	<script src="./includes/js/codemirror-git/addon/selection/active-line.js" type="text/javascript"></script>
 
 	<!-- CodeMirror addons for Tern -->
 	<script src="./includes/js/codemirror-3.18/addon/search/searchcursor.js"></script>
@@ -166,17 +165,15 @@
 		</div><!--/.nav-collapse -->
 	</div> <!-- /nav -->
 
-
-	<!--
-	<div id='tabs_placeholder' style="margin-top:45px;z-index:10;position:fixed;border-bottom:1px solid #bbb;width:100%;">
-		<ul class="tabs" id="docs"></ul>
-	</div>
-	-->
-
 	<div style="margin-top:53px;" id="panel">
-		<div id="demospace">
+		<div id="tree_well" class="well" style="overflow: scroll; float: left; width: 250px; padding: 0 0;">
+			<div>
+				<ul id="tree" class="nav nav-list">
+				</ul>
+			</div>
+		</div>
+		<div id="demospace" style="float: left;">
 			<form>
-				<!-- <div style="width: 100%; height: 100%; position: relative;" id="panel"> -->
 				<ul class="tabs" id="docs"></ul>
 				<textarea id='code' name='code'></textarea>
 			</form>

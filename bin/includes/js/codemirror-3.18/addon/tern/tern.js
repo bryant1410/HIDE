@@ -68,8 +68,8 @@
   };
 
   CodeMirror.TernServer.prototype = {
-    addDoc: function(name, doc) {
-      var data = {doc: doc, name: name, changed: null};
+    addDoc: function(name, doc, path) {
+      var data = {doc: doc, name: name, changed: null, path: path};
       this.server.addFile(name, docValue(this, data));
       CodeMirror.on(doc, "change", this.trackChange);
       return this.docs[name] = data;
@@ -185,6 +185,10 @@
         after = "\"]";
 		
 		var word = cm.getRange(from, to).toLowerCase();
+		
+		var doc = cm.getDoc();
+		
+		console.log(doc.indexFromPos(from));
 		
 		var filtered_results = [];
 		var sorted_results = [];
