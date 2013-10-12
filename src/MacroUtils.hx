@@ -83,7 +83,7 @@ class MacroUtils
 		
 		var ereg:EReg = ~/[<]script(.)+script[>]/g;
 		
-		html = ereg.map(html, function(_ereg:EReg)
+		html = ereg.map(html, function(_ereg:EReg):String
 		{
 			var script:String = _ereg.matched(0);
 			
@@ -96,6 +96,12 @@ class MacroUtils
 			
 			if (fast.has.src)
 			{
+				if (!FileSystem.exists("bin/" + fast.att.src))
+				{
+					trace("File not found: " + fast.att.src);
+					Sys.exit(1);
+				}
+				
 				embedded_script = "<script>" + File.getContent("bin/" + fast.att.src) +  "</script>" ;
 			}
 			else
@@ -109,7 +115,7 @@ class MacroUtils
 		
 		ereg = ~/[<]link(.+)[>]/g;
 		
-		html = ereg.map(html, function(_ereg:EReg)
+		html = ereg.map(html, function(_ereg:EReg):String
 		{
 			var script:String = _ereg.matched(0);
 			

@@ -176,26 +176,89 @@ Main.init = function() {
 	haxeCompletionServer.on("close",function(code) {
 		console.log("haxeCompletionServer process exit code " + code);
 	});
-	var haxeCompilerClient = js.Node.require("child_process").spawn("haxe",["--connect","6001","--cwd","..","HaxeEditor2.hxml"]);
-	haxeCompilerClient.stdout.setEncoding("utf8");
-	haxeCompilerClient.stdout.on("data",function(data) {
-		var str = data.toString();
-		var lines = str.split("\n");
-		console.log("OUTPUT: " + lines.join(""));
-	});
-	haxeCompilerClient.stderr.setEncoding("utf8");
-	haxeCompilerClient.stderr.on("data",function(data) {
-		var str = data.toString();
-		var lines = str.split("\n");
-		console.log("ERROR: " + lines.join(""));
-	});
-	haxeCompilerClient.on("close",function(code) {
-		console.log("haxeCompilerClient process exit code " + code);
+	var tree = js.Boot.__cast(js.Browser.document.getElementById("tree") , HTMLUListElement);
+	var rootTreeElement = Main.createDirectoryElement("HIDE");
+	tree.appendChild(rootTreeElement);
+	Main.readDir("../",rootTreeElement);
+}
+Main.createDirectoryElement = function(text) {
+	var directoryElement = js.Browser.document.createElement("li");
+	var a = js.Browser.document.createElement("a");
+	a.className = "tree-toggler nav-header";
+	a.href = "#";
+	var span = js.Browser.document.createElement("span");
+	span.className = "glyphicon glyphicon-folder-open";
+	a.appendChild(span);
+	span = js.Browser.document.createElement("span");
+	span.textContent = text;
+	span.style.marginLeft = "5px";
+	a.appendChild(span);
+	a.onclick = function(e) {
+		new $(directoryElement).children("ul.tree").toggle(300);
+		Main.resize();
+	};
+	directoryElement.appendChild(a);
+	var ul = js.Browser.document.createElement("ul");
+	ul.className = "nav nav-list tree";
+	directoryElement.appendChild(ul);
+	return directoryElement;
+}
+Main.readDir = function(path,topElement) {
+	Utils.fs.readdir(path,function(error,files) {
+		var foldersCount = 0;
+		var _g = 0;
+		while(_g < files.length) {
+			var file = [files[_g]];
+			++_g;
+			var filePath = [Utils.path.join(path,file[0])];
+			Utils.fs.stat(filePath[0],(function(filePath,file) {
+				return function(error1,stat) {
+					if(stat.isFile()) {
+						var li = js.Browser.document.createElement("li");
+						var a = js.Browser.document.createElement("a");
+						a.href = "#";
+						a.textContent = file[0];
+						a.title = filePath[0];
+						a.onclick = (function(filePath) {
+							return function(e) {
+								core.TabsManager.openFileInNewTab(filePath[0]);
+							};
+						})(filePath);
+						if(StringTools.endsWith(file[0],".hx")) a.style.fontWeight = "bold"; else if(StringTools.endsWith(file[0],".hxml")) {
+							a.style.fontWeight = "bold";
+							a.style.color = "gray";
+						} else a.style.color = "gray";
+						li.appendChild(a);
+						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						ul.appendChild(li);
+					} else if(!StringTools.startsWith(file[0],".")) {
+						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						var directoryElement = Main.createDirectoryElement(file[0]);
+						directoryElement.onclick = (function(filePath) {
+							return function(e) {
+								if(directoryElement.getElementsByTagName("ul")[0].childNodes.length == 0) {
+									Main.readDir(filePath[0],directoryElement);
+									e.stopPropagation();
+									e.preventDefault();
+									directoryElement.onclick = null;
+								}
+							};
+						})(filePath);
+						ul.appendChild(directoryElement);
+						ul.insertBefore(directoryElement,ul.childNodes[foldersCount]);
+						foldersCount++;
+					}
+				};
+			})(filePath,file));
+		}
+		new $(topElement).children("ul.tree").show(300);
 	});
 }
 Main.resize = function() {
 	var ul1 = js.Browser.document.getElementById("docs");
 	new $(".CodeMirror").css("height",Std.string(js.Browser.window.innerHeight - 58 - ul1.clientHeight));
+	new $("#tree_well").css("height",Std.string(js.Browser.window.innerHeight - 58));
+	new $("#demospace").css("width",Std.string(js.Browser.window.innerWidth - 250));
 }
 Main.setFontSize = function(font_size) {
 	new $(".CodeMirror").css("font-size",Std.string(font_size) + "px");
@@ -271,6 +334,16 @@ Std.parseInt = function(x) {
 }
 Std.random = function(x) {
 	return x <= 0?0:Math.floor(Math.random() * x);
+}
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+}
+StringTools.endsWith = function(s,end) {
+	var elen = end.length;
+	var slen = s.length;
+	return slen >= elen && HxOverrides.substr(s,slen - elen,elen) == end;
 }
 var Sys = function() { }
 Sys.__name__ = true;
@@ -449,18 +522,69 @@ core.TabsManager = function() { }
 core.TabsManager.__name__ = true;
 core.TabsManager.init = function() {
 	core.TabsManager.themes = ["3024-day","3024-night","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","midnight","monokai","neat","night","paraiso-dark","paraiso-light","rubyblue","solarized dark","solarized light","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"];
-	new $(js.Browser.document).on("closeTab",null,function(event,path) {
-		var _g1 = 0, _g = core.TabsManager.docs.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			if(core.TabsManager.docs[i] != null && core.TabsManager.docs[i].path == path) core.TabsManager.unregisterDoc(core.TabsManager.docs[i]);
-		}
-	});
 	CodeMirror.on(js.Browser.window,"load",function() {
 		core.TabsManager.initEditor();
 		Main.resize();
 		core.TabsManager.editor.refresh();
+		var contextMenu = js.Browser.document.createElement("div");
+		contextMenu.className = "dropdown";
+		contextMenu.style.position = "absolute";
+		contextMenu.style.display = "none";
+		js.Browser.document.onclick = function(e) {
+			contextMenu.style.display = "none";
+		};
+		var ul = js.Browser.document.createElement("ul");
+		ul.className = "dropdown-menu";
+		ul.style.display = "block";
+		ul.appendChild(core.TabsManager.createContextMenuItem("New File...",core.TabsManager.createFileInNewTab));
+		var li = js.Browser.document.createElement("li");
+		li.className = "divider";
+		ul.appendChild(li);
+		ul.appendChild(core.TabsManager.createContextMenuItem("Close",function() {
+			core.TabsManager.closeTab(contextMenu.getAttribute("path"));
+		}));
+		ul.appendChild(core.TabsManager.createContextMenuItem("Close All",function() {
+			core.TabsManager.closeAll();
+		}));
+		ul.appendChild(core.TabsManager.createContextMenuItem("Close Other",function() {
+			var path = contextMenu.getAttribute("path");
+			core.TabsManager.closeOthers(path);
+		}));
+		contextMenu.appendChild(ul);
+		js.Browser.document.body.appendChild(contextMenu);
+		js.Browser.document.getElementById("docs").addEventListener("contextmenu",function(ev) {
+			ev.preventDefault();
+			var clickedOnTab = false;
+			var _g = 0, _g1 = js.Browser.document.getElementById("docs").childNodes;
+			while(_g < _g1.length) {
+				var li1 = _g1[_g];
+				++_g;
+				if(ev.target == li1) {
+					clickedOnTab = true;
+					break;
+				}
+			}
+			if(clickedOnTab) {
+				var li1 = js.Boot.__cast(ev.target , HTMLLIElement);
+				contextMenu.setAttribute("path",li1.getAttribute("path"));
+				contextMenu.style.display = "block";
+				contextMenu.style.left = Std.string(ev.pageX) + "px";
+				contextMenu.style.top = Std.string(ev.pageY) + "px";
+			}
+			return false;
+		});
 	});
+}
+core.TabsManager.createContextMenuItem = function(text,onClick) {
+	var li = js.Browser.document.createElement("li");
+	li.onclick = function(e) {
+		onClick();
+	};
+	var a = js.Browser.document.createElement("a");
+	a.href = "#";
+	a.textContent = text;
+	li.appendChild(a);
+	return li;
 }
 core.TabsManager.applyRandomTheme = function() {
 	var theme = core.TabsManager.themes[Std.random(core.TabsManager.themes.length)];
@@ -526,12 +650,34 @@ core.TabsManager.openFileInNewTab = function(path) {
 		core.TabsManager.registerDoc(filename,new CodeMirror.Doc(body,"haxe"),path);
 		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
 	});
-	if(new $("#panel").css("display") == "none" && core.TabsManager.docs.length > 0) {
-		new $("#panel").css("display","block");
+	if(new $("#demospace").css("display") == "none" && core.TabsManager.docs.length > 0) {
+		new $("#demospace").css("display","block");
 		core.TabsManager.editor.refresh();
 		Main.updateMenu();
 	}
 	Main.resize();
+}
+core.TabsManager.closeAll = function() {
+	var _g1 = 0, _g = core.TabsManager.docs.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(core.TabsManager.docs[i] != null) core.TabsManager.closeTab(core.TabsManager.docs[i].path,false);
+	}
+}
+core.TabsManager.closeOthers = function(path) {
+	var _g1 = 0, _g = core.TabsManager.docs.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(core.TabsManager.docs[i] != null && path != core.TabsManager.docs[i].path) core.TabsManager.closeTab(core.TabsManager.docs[i].path);
+	}
+}
+core.TabsManager.closeTab = function(path,switchToTab) {
+	if(switchToTab == null) switchToTab = true;
+	var _g1 = 0, _g = core.TabsManager.docs.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(core.TabsManager.docs[i] != null && core.TabsManager.docs[i].path == path) core.TabsManager.unregisterDoc(core.TabsManager.docs[i],switchToTab);
+	}
 }
 core.TabsManager.closeActiveTab = function() {
 	core.TabsManager.unregisterDoc(core.TabsManager.curDoc);
@@ -568,11 +714,6 @@ core.TabsManager.initEditor = function() {
 		core.TabsManager.server.updateArgHints(cm);
 	});
 	core.TabsManager.openFileInNewTab("../src/Main.hx");
-	core.TabsManager.openFileInNewTab("../src/Utils.hx");
-	core.TabsManager.openFileInNewTab("../src/Session.hx");
-	core.TabsManager.openFileInNewTab("../src/core/FileAccess.hx");
-	core.TabsManager.openFileInNewTab("../src/core/ProjectAccess.hx");
-	core.TabsManager.openFileInNewTab("../src/core/TabsManager.hx");
 	CodeMirror.on(js.Browser.document.getElementById("docs"),"click",function(e) {
 		var target = e.target || e.srcElement;
 		if(target.nodeName.toLowerCase() != "li") return;
@@ -594,17 +735,20 @@ core.TabsManager.docID = function(name) {
 	return null;
 }
 core.TabsManager.registerDoc = function(name,doc,path) {
-	core.TabsManager.server.addDoc(name,doc);
+	core.TabsManager.server.addDoc(name,doc,path);
 	var data = { name : name, doc : doc, path : path};
 	core.TabsManager.docs.push(data);
 	var docTabs = js.Browser.document.getElementById("docs");
 	var li = js.Browser.document.createElement("li");
 	li.title = path;
 	li.innerText = name + "\t";
+	li.setAttribute("path",path);
 	var span = js.Browser.document.createElement("span");
 	span.style.position = "relative";
 	span.style.top = "2px";
-	span.setAttribute("onclick","$(document).triggerHandler(\"closeTab\", \"" + path + "\");");
+	span.onclick = function(e) {
+		core.TabsManager.closeTab(path);
+	};
 	var span2 = js.Browser.document.createElement("span");
 	span2.className = "glyphicon glyphicon-remove-circle";
 	span.appendChild(span2);
@@ -615,22 +759,17 @@ core.TabsManager.registerDoc = function(name,doc,path) {
 		core.TabsManager.curDoc = data;
 	}
 }
-core.TabsManager.unregisterDoc = function(doc) {
+core.TabsManager.unregisterDoc = function(doc,switchToTab) {
+	if(switchToTab == null) switchToTab = true;
 	var b = core.TabsManager.curDoc == doc;
 	core.TabsManager.server.delDoc(doc.name);
-	var j = null;
-	var _g1 = 0, _g = core.TabsManager.docs.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		j = i;
-		if(doc == core.TabsManager.docs[i]) break;
-	}
+	var j = Lambda.indexOf(core.TabsManager.docs,doc);
 	core.TabsManager.docs.splice(j,1);
 	var docList = js.Browser.document.getElementById("docs");
 	docList.removeChild(docList.childNodes[j]);
-	if(b && docList.childNodes.length > 0) core.TabsManager.selectDoc(Math.max(0,j - 1) | 0);
+	if(switchToTab && b && docList.childNodes.length > 0) core.TabsManager.selectDoc(Math.max(0,j - 1) | 0);
 	if(docList.childNodes.length == 0) {
-		new $("#panel").css("display","none");
+		new $("#demospace").css("display","none");
 		Main.updateMenu();
 	}
 	Main.resize();
@@ -1025,7 +1164,7 @@ ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunct
 	this.li = js.Browser.document.createElement("li");
 	var a = js.Browser.document.createElement("a");
 	a.style.left = "0";
-	a.onclick = function(e) {
+	if(_onClickFunction != null) a.onclick = function(e) {
 		if(_g.li.className != "disabled") new $(js.Browser.document).triggerHandler(_onClickFunctionName);
 	};
 	a.innerText = _text;

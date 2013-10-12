@@ -2,10 +2,14 @@ package core;
 import haxe.Timer;
 import js.Browser;
 import jQuery.*;
+import js.html.AnchorElement;
+import js.html.DivElement;
 import js.html.Element;
 import js.html.LIElement;
+import js.html.MouseEvent;
 import js.html.RGBColor;
 import js.html.SpanElement;
+import js.html.UListElement;
 
 //Code from Tern bin\includes\js\tern\doc\demo\demo.js
 //Ported to Haxe
@@ -67,18 +71,6 @@ class TabsManager
 		"xq-light"
 		];
 		
-	  new JQuery(Browser.document).on("closeTab",function(event, path)
-		{
-			for (i in 0...docs.length)
-			{				
-				if (docs[i] != null && docs[i].path == path)
-				{
-					unregisterDoc(docs[i]);
-				}
-			}
-	  	});
-
-
 		CodeMirror.on(Browser.window, "load", function() {
 		  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
 		  //probably we can supply here Haxe keywords, like so:
@@ -109,10 +101,97 @@ class TabsManager
 			//if (found) found(editor);
 		  //});
 		  
-		  Main.resize();
-		
-		  TabsManager.editor.refresh();
+			Main.resize();
+			
+			TabsManager.editor.refresh();
+		  
+			var contextMenu:DivElement = Browser.document.createDivElement();
+			contextMenu.className = "dropdown";
+			contextMenu.style.position = "absolute";
+			contextMenu.style.display = "none";
+			
+			Browser.document.onclick = function (e:MouseEvent)
+			{
+				contextMenu.style.display = "none";
+			};
+			
+			var ul:UListElement = Browser.document.createUListElement();
+			ul.className = "dropdown-menu";
+			ul.style.display = "block";
+			
+			ul.appendChild(createContextMenuItem("New File...", TabsManager.createFileInNewTab));
+			
+			var li:LIElement = Browser.document.createLIElement();
+			li.className = "divider";
+			
+			ul.appendChild(li);
+			ul.appendChild(createContextMenuItem("Close", function ()
+			{
+				TabsManager.closeTab(contextMenu.getAttribute("path"));
+			}
+			));
+			ul.appendChild(createContextMenuItem("Close All", function ()
+			{
+				closeAll();
+			}
+			));
+			
+			ul.appendChild(createContextMenuItem("Close Other", function ()
+			{
+				var path = contextMenu.getAttribute("path");
+				closeOthers(path);
+			}
+			));
+			
+			contextMenu.appendChild(ul);
+			
+			Browser.document.body.appendChild(contextMenu);
+			
+			Browser.document.getElementById("docs").addEventListener('contextmenu', function(ev:MouseEvent) 
+			{ 
+				ev.preventDefault();
+				
+				var clickedOnTab:Bool = false;
+				
+				for (li in Browser.document.getElementById("docs").childNodes)
+				{
+					if (ev.target == li)
+					{
+						clickedOnTab = true;
+						break;
+					}
+				}
+				
+				if (clickedOnTab)
+				{
+					var li:LIElement = cast(ev.target, LIElement);
+					contextMenu.setAttribute("path", li.getAttribute("path"));
+					
+					contextMenu.style.display = "block";
+					contextMenu.style.left = Std.string(ev.pageX) + "px";
+					contextMenu.style.top = Std.string(ev.pageY) + "px";
+				}
+				
+				return false;
+			}
+			);
 		});
+	}
+	
+	private static function createContextMenuItem(text:String, onClick:Dynamic):LIElement
+	{
+		var li:LIElement = Browser.document.createLIElement();
+		li.onclick = function (e:MouseEvent)
+		{
+			onClick();
+		};
+		
+		var a:AnchorElement = Browser.document.createAnchorElement();
+		a.href = "#";
+		a.textContent = text;
+		li.appendChild(a);
+		
+		return li;
 	}
 	
 	public static function applyRandomTheme():Void
@@ -232,14 +311,65 @@ class TabsManager
 			selectDoc(docs.length - 1);
 		});
 		
-		if (new JQuery("#panel").css("display") == "none" && docs.length > 0)
+		if (new JQuery("#demospace").css("display") == "none" && docs.length > 0)
 		{
-			new JQuery("#panel").css("display", "block");
+			new JQuery("#demospace").css("display", "block");
 			TabsManager.editor.refresh();
 			Main.updateMenu();
 		}
 		
 		Main.resize();
+	}
+	
+	public static function closeAll():Void
+	{
+		for (i in 0...docs.length)
+		{
+			if (docs[i] != null)
+			{
+				closeTab(docs[i].path, false);
+			}
+		}
+		
+		if (docs.length > 0)
+		{
+			Timer.delay(function ()
+			{
+				closeAll();
+			}
+			,30);
+		}
+	}
+	
+	public static function closeOthers(path:String):Void
+	{
+		for (i in 0...docs.length)
+		{
+			if (docs[i] != null && path != docs[i].path)
+			{
+				closeTab(docs[i].path);
+			}
+		}
+		
+		if (docs.length > 1)
+		{
+			Timer.delay(function ()
+			{
+				closeOthers(path);
+			}
+			,30);
+		}
+	}
+	
+	public static function closeTab(path:String, ?switchToTab:Bool = true):Void
+	{
+		for (i in 0...docs.length)
+		{				
+			if (docs[i] != null && docs[i].path == path)
+			{
+				unregisterDoc(docs[i], switchToTab);
+			}
+		}
 	}
 	
 	public static function closeActiveTab():Void
@@ -310,25 +440,10 @@ class TabsManager
 
 		  });
 
-		  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
-
+		  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); } );
+		  
 		  openFileInNewTab("../src/Main.hx");
-		  openFileInNewTab("../src/Utils.hx");	
-		  openFileInNewTab("../src/Session.hx");
-		  openFileInNewTab("../src/core/FileAccess.hx");
-		  openFileInNewTab("../src/core/ProjectAccess.hx");
-		  openFileInNewTab("../src/core/TabsManager.hx");
-										
-		  //registerDoc("Main.hx", editor.getDoc(),'');
 		  
-		  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
-		  
-		  //We can load files like this:
-		  
-		  //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
-			//registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
-		  //});
-
 		  CodeMirror.on(Browser.document.getElementById("docs"), "click", function(e) {
 			var target:Dynamic = e.target || e.srcElement;
 			if (target.nodeName.toLowerCase() != "li") return;
@@ -359,7 +474,7 @@ class TabsManager
 
 private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String):Void
 {	
-  server.addDoc(name, doc);
+  server.addDoc(name, doc, path);
   var data = {name: name, doc: doc, path: path};
   docs.push(data);
 
@@ -367,12 +482,16 @@ private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String
   var li:LIElement = Browser.document.createLIElement();
   li.title = path;
   li.innerText = name + "\t";
+  li.setAttribute("path", path);
   
   var span:SpanElement = Browser.document.createSpanElement();
   span.style.position = "relative";
   span.style.top = "2px";
   
-  span.setAttribute("onclick", "$(document).triggerHandler(\"closeTab\", \"" + path + "\");");
+  span.onclick = function (e)
+  {
+	  closeTab(path);
+  }
   
   var span2:SpanElement = Browser.document.createSpanElement();
   span2.className = "glyphicon glyphicon-remove-circle";
@@ -389,12 +508,11 @@ private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String
   }
 }
 
-private static function unregisterDoc(doc):Void
+private static function unregisterDoc(doc, ?switchToTab:Bool = true):Void
 {
 	var b = curDoc == doc;
 	
   server.delDoc(doc.name);
-  var j:Int = null;
   for (i in 0...docs.length) 
   {
 	  j = i;
@@ -405,14 +523,14 @@ private static function unregisterDoc(doc):Void
   var docList = Browser.document.getElementById("docs");
   docList.removeChild(docList.childNodes[j]);
   
-  if (b && docList.childNodes.length > 0)
+  if (switchToTab && b && docList.childNodes.length > 0)
   {
 	selectDoc(Std.int(Math.max(0, j - 1)));
   }
   
   if (docList.childNodes.length == 0)
   {
-	  new JQuery("#panel").css("display", "none");
+	  new JQuery("#demospace").css("display", "none");
 	  Main.updateMenu();
   }
   

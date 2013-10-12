@@ -12,7 +12,7 @@ class Utils
 {
 	public static var os = Node.require('os');
 	public static var fs:js.Node.NodeFS = Node.require("fs");
-	public static var path = Node.require("path");
+	public static var path:js.Node.NodePath = Node.require("path");
 	public static var exec = Node.require('child_process').exec;
 	public static var sys = Node.require('sys');
 	public static var nwworkingdir:String;
