@@ -16,6 +16,87 @@ EReg.prototype = {
 	}
 	,__class__: EReg
 }
+var FileTree = function() { }
+FileTree.__name__ = true;
+FileTree.init = function() {
+	var tree = js.Boot.__cast(js.Browser.document.getElementById("tree") , HTMLUListElement);
+	var rootTreeElement = FileTree.createDirectoryElement("HIDE");
+	tree.appendChild(rootTreeElement);
+	FileTree.readDir("../",rootTreeElement);
+}
+FileTree.createDirectoryElement = function(text) {
+	var directoryElement = js.Browser.document.createElement("li");
+	var a = js.Browser.document.createElement("a");
+	a.className = "tree-toggler nav-header";
+	a.href = "#";
+	var span = js.Browser.document.createElement("span");
+	span.className = "glyphicon glyphicon-folder-open";
+	a.appendChild(span);
+	span = js.Browser.document.createElement("span");
+	span.textContent = text;
+	span.style.marginLeft = "5px";
+	a.appendChild(span);
+	a.onclick = function(e) {
+		new $(directoryElement).children("ul.tree").toggle(300);
+		Main.resize();
+	};
+	directoryElement.appendChild(a);
+	var ul = js.Browser.document.createElement("ul");
+	ul.className = "nav nav-list tree";
+	directoryElement.appendChild(ul);
+	return directoryElement;
+}
+FileTree.readDir = function(path,topElement) {
+	Utils.fs.readdir(path,function(error,files) {
+		var foldersCount = 0;
+		var _g = 0;
+		while(_g < files.length) {
+			var file = [files[_g]];
+			++_g;
+			var filePath = [Utils.path.join(path,file[0])];
+			Utils.fs.stat(filePath[0],(function(filePath,file) {
+				return function(error1,stat) {
+					if(stat.isFile()) {
+						var li = js.Browser.document.createElement("li");
+						var a = js.Browser.document.createElement("a");
+						a.href = "#";
+						a.textContent = file[0];
+						a.title = filePath[0];
+						a.onclick = (function(filePath) {
+							return function(e) {
+								core.TabsManager.openFileInNewTab(filePath[0]);
+							};
+						})(filePath);
+						if(StringTools.endsWith(file[0],".hx")) a.style.fontWeight = "bold"; else if(StringTools.endsWith(file[0],".hxml")) {
+							a.style.fontWeight = "bold";
+							a.style.color = "gray";
+						} else a.style.color = "gray";
+						li.appendChild(a);
+						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						ul.appendChild(li);
+					} else if(!StringTools.startsWith(file[0],".")) {
+						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						var directoryElement = FileTree.createDirectoryElement(file[0]);
+						directoryElement.onclick = (function(filePath) {
+							return function(e) {
+								if(directoryElement.getElementsByTagName("ul")[0].childNodes.length == 0) {
+									FileTree.readDir(filePath[0],directoryElement);
+									e.stopPropagation();
+									e.preventDefault();
+									directoryElement.onclick = null;
+								}
+							};
+						})(filePath);
+						ul.appendChild(directoryElement);
+						ul.insertBefore(directoryElement,ul.childNodes[foldersCount]);
+						foldersCount++;
+					}
+				};
+			})(filePath,file));
+		}
+		new $(topElement).children("ul.tree").show(300);
+	});
+}
 var HxOverrides = function() { }
 HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
@@ -71,21 +152,38 @@ Main.init = function() {
 		Main.resize();
 	};
 	core.TabsManager.init();
-	js.Browser.window.ondragover = function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		return false;
-	};
-	js.Browser.window.ondrop = function(e) {
-		e.preventDefault();
-		e.stopPropagation();
-		var _g1 = 0, _g = e.dataTransfer.files.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			core.TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
+	Main.initDragAndDropListeners();
+	Main.initHotKeys();
+	Main.initMouseZoom();
+	Main.session = new Session();
+	Main.settings = new haxe.ds.StringMap();
+	core.FileDialog.init();
+	FileTree.init();
+	var layout = new $("#panel").layout({ center__paneSelector : ".outer-center", west__paneSelector : ".outer-west", west__size : 250, spacing_open : 8, spacing_closed : 12, center__childOptions : { center__paneSelector : ".middle-center", south__paneSelector : ".middle-south", south__size : 100, spacing_open : 8, spacing_closed : 12}, animatePaneSizing : true, stateManagement__enabled : true});
+	Utils.window.on("close",function(e) {
+		Utils.window.close(true);
+	});
+}
+Main.initMouseZoom = function() {
+	js.Browser.document.onmousewheel = function(e) {
+		if(e.altKey) {
+			if(e.wheelDeltaY < 0) {
+				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
+				font_size--;
+				Main.setFontSize(font_size);
+				e.preventDefault();
+				e.stopPropagation();
+			} else if(e.wheelDeltaY > 0) {
+				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
+				font_size++;
+				Main.setFontSize(font_size);
+				e.preventDefault();
+				e.stopPropagation();
+			}
 		}
-		return false;
 	};
+}
+Main.initHotKeys = function() {
 	js.Browser.window.onkeyup = function(e) {
 		if(e.ctrlKey) {
 			if(!e.shiftKey) switch(e.keyCode) {
@@ -146,119 +244,25 @@ Main.init = function() {
 			}
 		} else if(e.keyCode == 13 && e.shiftKey && e.altKey) Utils.toggleFullscreen();
 	};
-	js.Browser.document.onmousewheel = function(e) {
-		if(e.altKey) {
-			if(e.wheelDeltaY < 0) {
-				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				font_size--;
-				Main.setFontSize(font_size);
-				e.preventDefault();
-				e.stopPropagation();
-			} else if(e.wheelDeltaY > 0) {
-				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				font_size++;
-				Main.setFontSize(font_size);
-				e.preventDefault();
-				e.stopPropagation();
-			}
-		}
-	};
-	Main.session = new Session();
-	Main.settings = new haxe.ds.StringMap();
-	core.FileDialog.init();
-	var haxeCompletionServer = js.Node.require("child_process").spawn("haxe",["--wait","6001"]);
-	haxeCompletionServer.stderr.setEncoding("utf8");
-	haxeCompletionServer.stderr.on("data",function(data) {
-		var str = data.toString();
-		var lines = str.split("\n");
-		console.log("ERROR: " + lines.join(""));
-	});
-	haxeCompletionServer.on("close",function(code) {
-		console.log("haxeCompletionServer process exit code " + code);
-	});
-	var tree = js.Boot.__cast(js.Browser.document.getElementById("tree") , HTMLUListElement);
-	var rootTreeElement = Main.createDirectoryElement("HIDE");
-	tree.appendChild(rootTreeElement);
-	Main.readDir("../",rootTreeElement);
 }
-Main.createDirectoryElement = function(text) {
-	var directoryElement = js.Browser.document.createElement("li");
-	var a = js.Browser.document.createElement("a");
-	a.className = "tree-toggler nav-header";
-	a.href = "#";
-	var span = js.Browser.document.createElement("span");
-	span.className = "glyphicon glyphicon-folder-open";
-	a.appendChild(span);
-	span = js.Browser.document.createElement("span");
-	span.textContent = text;
-	span.style.marginLeft = "5px";
-	a.appendChild(span);
-	a.onclick = function(e) {
-		new $(directoryElement).children("ul.tree").toggle(300);
-		Main.resize();
+Main.initDragAndDropListeners = function() {
+	js.Browser.window.ondragover = function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		return false;
 	};
-	directoryElement.appendChild(a);
-	var ul = js.Browser.document.createElement("ul");
-	ul.className = "nav nav-list tree";
-	directoryElement.appendChild(ul);
-	return directoryElement;
-}
-Main.readDir = function(path,topElement) {
-	Utils.fs.readdir(path,function(error,files) {
-		var foldersCount = 0;
-		var _g = 0;
-		while(_g < files.length) {
-			var file = [files[_g]];
-			++_g;
-			var filePath = [Utils.path.join(path,file[0])];
-			Utils.fs.stat(filePath[0],(function(filePath,file) {
-				return function(error1,stat) {
-					if(stat.isFile()) {
-						var li = js.Browser.document.createElement("li");
-						var a = js.Browser.document.createElement("a");
-						a.href = "#";
-						a.textContent = file[0];
-						a.title = filePath[0];
-						a.onclick = (function(filePath) {
-							return function(e) {
-								core.TabsManager.openFileInNewTab(filePath[0]);
-							};
-						})(filePath);
-						if(StringTools.endsWith(file[0],".hx")) a.style.fontWeight = "bold"; else if(StringTools.endsWith(file[0],".hxml")) {
-							a.style.fontWeight = "bold";
-							a.style.color = "gray";
-						} else a.style.color = "gray";
-						li.appendChild(a);
-						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
-						ul.appendChild(li);
-					} else if(!StringTools.startsWith(file[0],".")) {
-						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
-						var directoryElement = Main.createDirectoryElement(file[0]);
-						directoryElement.onclick = (function(filePath) {
-							return function(e) {
-								if(directoryElement.getElementsByTagName("ul")[0].childNodes.length == 0) {
-									Main.readDir(filePath[0],directoryElement);
-									e.stopPropagation();
-									e.preventDefault();
-									directoryElement.onclick = null;
-								}
-							};
-						})(filePath);
-						ul.appendChild(directoryElement);
-						ul.insertBefore(directoryElement,ul.childNodes[foldersCount]);
-						foldersCount++;
-					}
-				};
-			})(filePath,file));
+	js.Browser.window.ondrop = function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		var _g1 = 0, _g = e.dataTransfer.files.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			core.TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
 		}
-		new $(topElement).children("ul.tree").show(300);
-	});
+		return false;
+	};
 }
 Main.resize = function() {
-	var ul1 = js.Browser.document.getElementById("docs");
-	new $(".CodeMirror").css("height",Std.string(js.Browser.window.innerHeight - 58 - ul1.clientHeight));
-	new $("#tree_well").css("height",Std.string(js.Browser.window.innerHeight - 58));
-	new $("#demospace").css("width",Std.string(js.Browser.window.innerWidth - 250));
 }
 Main.setFontSize = function(font_size) {
 	new $(".CodeMirror").css("font-size",Std.string(font_size) + "px");
@@ -279,36 +283,20 @@ Main.initMenu = function() {
 	haxe.Timer.delay(Main.updateMenu,100);
 }
 Main.updateMenu = function() {
-	var disabled_menu_items = new Array();
-	var _g = 0;
-	while(_g < 3) {
-		var i = _g++;
-		disabled_menu_items.push(new Array());
-	}
+	var fileMenuDisabledItems = new Array();
 	if(core.TabsManager.docs.length == 0) {
-		disabled_menu_items[0].push(6);
-		disabled_menu_items[0].push(10);
-		disabled_menu_items[0].push(11);
-		disabled_menu_items[0].push(12);
-		disabled_menu_items[1].push(0);
-		disabled_menu_items[1].push(1);
-		disabled_menu_items[1].push(3);
-		disabled_menu_items[1].push(4);
-		disabled_menu_items[1].push(5);
-		disabled_menu_items[1].push(6);
-		disabled_menu_items[1].push(7);
-		disabled_menu_items[1].push(9);
-		disabled_menu_items[1].push(10);
-	}
+		fileMenuDisabledItems.push("Close File");
+		fileMenuDisabledItems.push("Save");
+		fileMenuDisabledItems.push("Save as...");
+		fileMenuDisabledItems.push("Save all");
+		Main.menus.get("edit").setMenuEnabled(false);
+	} else Main.menus.get("edit").setMenuEnabled(true);
 	if(Main.session.current_project_xml == "") {
-		disabled_menu_items[0].push(3);
-		disabled_menu_items[0].push(8);
-		disabled_menu_items[2].push(0);
-		disabled_menu_items[2].push(1);
-	}
-	Main.menus.get("file").setDisabled(disabled_menu_items[0]);
-	Main.menus.get("edit").setDisabled(disabled_menu_items[1]);
-	Main.menus.get("run").setDisabled(disabled_menu_items[2]);
+		fileMenuDisabledItems.push("Close Project...");
+		fileMenuDisabledItems.push("Project Properties");
+		Main.menus.get("run").setMenuEnabled(false);
+	} else Main.menus.get("run").setMenuEnabled(true);
+	Main.menus.get("file").setDisabled(fileMenuDisabledItems);
 }
 var IMap = function() { }
 IMap.__name__ = true;
@@ -379,12 +367,20 @@ Utils.zoomIn = function() {
 Utils.zoomOut = function() {
 	Utils.window.zoomLevel = Utils.window.zoomLevel - 1;
 }
-Utils.system_openFile = function(filename) {
-	return Utils.fs.readFileSync(filename,"utf-8");
+Utils.capitalize = function(myString) {
+	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
+}
+Utils.system_openFile = function(filename,onLoaded) {
+	Utils.fs.readFile(filename,"utf-8",function(error,data) {
+		console.log(error);
+		onLoaded(data);
+	});
 }
 Utils.system_saveFile = function(filename,content) {
-	Utils.fs.writeFileSync(filename,content);
-	console.log("SYSTEM: file saved " + filename);
+	Utils.fs.writeFile(filename,content,null,function(error) {
+		console.log(error);
+		console.log("SYSTEM: file saved " + filename);
+	});
 }
 Utils.system_parse_project = function() {
 	var exec_str = "";
@@ -600,15 +596,18 @@ core.TabsManager.applyRandomTheme = function() {
 	new $("#style_override").append("<style>.CodeMirror-hint-active {background: " + new $(".CodeMirror").css("background") + ";}</style>");
 	new $("#style_override").append("<style>.CodeMirror-hint-active {color: " + new $(".cm-keyword").css("color") + ";}</style>");
 }
-core.TabsManager.load = function(file,c) {
-	c(Utils.system_openFile(file),200);
-}
 core.TabsManager.createFileInNewTab = function() {
 	core.FileDialog.saveFile(function(value) {
 		var path = core.TabsManager.convertPathToUnixFormat(value);
 		if(core.TabsManager.isAlreadyOpened(path)) return;
 		var name = core.TabsManager.getFileName(path);
-		core.TabsManager.registerDoc(name,new CodeMirror.Doc("","haxe"),path);
+		var mode = core.TabsManager.getMode(name);
+		var code = "";
+		if(Utils.path.extname(name) == ".hx") {
+			path = HxOverrides.substr(path,0,path.length - name.length) + Utils.capitalize(name);
+			code = "package ;\n\nclass " + Utils.path.basename(name) + "\n{\n\n}";
+		}
+		core.TabsManager.registerDoc(name,new CodeMirror.Doc(code,mode),path);
 		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
 	});
 }
@@ -642,20 +641,50 @@ core.TabsManager.getFileName = function(path) {
 	if(pos != -1) filename = HxOverrides.substr(path,pos + 1,null); else filename = path;
 	return filename;
 }
+core.TabsManager.getMode = function(filename) {
+	var mode = "haxe";
+	var _g = Utils.path.extname(filename);
+	switch(_g) {
+	case ".js":
+		mode = "javascript";
+		break;
+	case ".css":
+		mode = "css";
+		break;
+	case ".xml":
+		mode = "xml";
+		break;
+	case ".html":
+		mode = "text/html";
+		break;
+	case ".md":
+		mode = "markdown";
+		break;
+	case ".sh":case ".bat":
+		mode = "shell";
+		break;
+	case ".ml":
+		mode = "ocaml";
+		break;
+	default:
+	}
+	return mode;
+}
 core.TabsManager.openFileInNewTab = function(path) {
 	path = core.TabsManager.convertPathToUnixFormat(path);
 	if(core.TabsManager.isAlreadyOpened(path)) return;
 	var filename = core.TabsManager.getFileName(path);
-	core.TabsManager.load(path,function(body) {
-		core.TabsManager.registerDoc(filename,new CodeMirror.Doc(body,"haxe"),path);
+	Utils.system_openFile(path,function(data) {
+		var mode = core.TabsManager.getMode(filename);
+		core.TabsManager.registerDoc(filename,new CodeMirror.Doc(data,mode),path);
 		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
+		if(new $("#demospace").css("display") == "none" && core.TabsManager.docs.length > 0) {
+			new $("#demospace").css("display","block");
+			core.TabsManager.editor.refresh();
+			Main.updateMenu();
+		}
+		Main.resize();
 	});
-	if(new $("#demospace").css("display") == "none" && core.TabsManager.docs.length > 0) {
-		new $("#demospace").css("display","block");
-		core.TabsManager.editor.refresh();
-		Main.updateMenu();
-	}
-	Main.resize();
 }
 core.TabsManager.closeAll = function() {
 	var _g1 = 0, _g = core.TabsManager.docs.length;
@@ -663,6 +692,9 @@ core.TabsManager.closeAll = function() {
 		var i = _g1++;
 		if(core.TabsManager.docs[i] != null) core.TabsManager.closeTab(core.TabsManager.docs[i].path,false);
 	}
+	if(core.TabsManager.docs.length > 0) haxe.Timer.delay(function() {
+		core.TabsManager.closeAll();
+	},30);
 }
 core.TabsManager.closeOthers = function(path) {
 	var _g1 = 0, _g = core.TabsManager.docs.length;
@@ -670,6 +702,9 @@ core.TabsManager.closeOthers = function(path) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i] != null && path != core.TabsManager.docs[i].path) core.TabsManager.closeTab(core.TabsManager.docs[i].path);
 	}
+	if(core.TabsManager.docs.length > 1) haxe.Timer.delay(function() {
+		core.TabsManager.closeOthers(path);
+	},30);
 }
 core.TabsManager.closeTab = function(path,switchToTab) {
 	if(switchToTab == null) switchToTab = true;
@@ -763,7 +798,13 @@ core.TabsManager.unregisterDoc = function(doc,switchToTab) {
 	if(switchToTab == null) switchToTab = true;
 	var b = core.TabsManager.curDoc == doc;
 	core.TabsManager.server.delDoc(doc.name);
-	var j = Lambda.indexOf(core.TabsManager.docs,doc);
+	var j = null;
+	var _g1 = 0, _g = core.TabsManager.docs.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		j = i;
+		if(doc == core.TabsManager.docs[i]) break;
+	}
 	core.TabsManager.docs.splice(j,1);
 	var docList = js.Browser.document.getElementById("docs");
 	docList.removeChild(docList.childNodes[j]);
@@ -1019,14 +1060,25 @@ ui.menu.basic.Menu = function(_text,_headerText) {
 };
 ui.menu.basic.Menu.__name__ = true;
 ui.menu.basic.Menu.prototype = {
-	setDisabled: function(indexes) {
+	setMenuEnabled: function(enabled) {
 		var childNodes = this.ul.childNodes;
 		var _g1 = 0, _g = childNodes.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			var child = js.Boot.__cast(childNodes[i] , Element);
 			if(child.className != "divider") {
-				if(Lambda.indexOf(indexes,i) == -1) child.className = ""; else child.className = "disabled";
+				if(enabled) child.className = ""; else child.className = "disabled";
+			}
+		}
+	}
+	,setDisabled: function(menuItemNames) {
+		var childNodes = this.ul.childNodes;
+		var _g1 = 0, _g = childNodes.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var child = js.Boot.__cast(childNodes[i] , Element);
+			if(child.className != "divider") {
+				if(Lambda.indexOf(menuItemNames,child.textContent) == -1) child.className = ""; else child.className = "disabled";
 			}
 		}
 	}

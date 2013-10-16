@@ -210,11 +210,6 @@ class TabsManager
 		new JQuery("#style_override").append("<style>.CodeMirror-hint-active {color: " + new JQuery(".cm-keyword").css("color") + ";}</style>");
 	}
 	
-	private static function load(file, c:Dynamic):Void 
-	{
-		c(Utils.system_openFile(file), 200);
-	}
-	
 	public static function createFileInNewTab():Void
 	{
 		FileDialog.saveFile(function (value:String)
@@ -227,7 +222,18 @@ class TabsManager
 			}
 			
 			var name:String = getFileName(path);
-			registerDoc(name, new CodeMirror.Doc("", "haxe"), path);
+			var mode:String = getMode(name);
+			
+			var code:String = "";
+			
+			if (Utils.path.extname(name) == ".hx")
+			{
+				path = path.substr(0, path.length - name.length) + Utils.capitalize(name);
+				
+				code = "package ;\n\nclass " + Utils.path.basename(name) + "\n{\n\n}";
+			}
+			
+			registerDoc(name, new CodeMirror.Doc(code, mode), path);
 			selectDoc(docs.length - 1);
 		}
 		);
@@ -294,6 +300,33 @@ class TabsManager
 		return filename;
 	}
 	
+	private static function getMode(filename:String):String
+	{
+		var mode:String = "haxe";
+			
+		switch (Utils.path.extname(filename)) 
+		{
+			case ".js":
+				mode = "javascript";
+			case ".css":
+				mode = "css";
+			case ".xml":
+				mode = "xml";
+			case ".html":
+				mode = "text/html";
+			case ".md":
+				mode = "markdown";
+			case ".sh", ".bat":
+				mode = "shell";
+			case ".ml":
+				mode = "ocaml";
+			default:
+				
+		}
+		
+		return mode;
+	}
+	
 	public static function openFileInNewTab(path:String):Void
 	{
 		path = convertPathToUnixFormat(path);
@@ -305,20 +338,21 @@ class TabsManager
 		
 		var filename:String = getFileName(path);
 		
-		load(path, function(body) 
-		{
-			registerDoc(filename, new CodeMirror.Doc(body, "haxe"), path);
+		Utils.system_openFile(path, function(data:String):Void
+		{			
+			var mode:String = getMode(filename);
+			registerDoc(filename, new CodeMirror.Doc(data, mode), path);
 			selectDoc(docs.length - 1);
+			
+			if (new JQuery("#demospace").css("display") == "none" && docs.length > 0)
+			{
+				new JQuery("#demospace").css("display", "block");
+				TabsManager.editor.refresh();
+				Main.updateMenu();
+			}
+			
+			Main.resize();
 		});
-		
-		if (new JQuery("#demospace").css("display") == "none" && docs.length > 0)
-		{
-			new JQuery("#demospace").css("display", "block");
-			TabsManager.editor.refresh();
-			Main.updateMenu();
-		}
-		
-		Main.resize();
 	}
 	
 	public static function closeAll():Void
@@ -513,6 +547,7 @@ private static function unregisterDoc(doc, ?switchToTab:Bool = true):Void
 	var b = curDoc == doc;
 	
   server.delDoc(doc.name);
+  var j:Int = null;
   for (i in 0...docs.length) 
   {
 	  j = i;
