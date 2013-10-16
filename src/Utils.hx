@@ -66,20 +66,34 @@ class Utils
 		return myString.substr(0, 1) + myString.substr(1);
 	}
 	
-	public static function system_openFile(filename:String)
+	public static function system_openFile(filename:String, onLoaded:Dynamic):Void
     {
-		return fs.readFileSync(filename,"utf-8");
+		fs.readFile(filename, "utf-8", function (error:NodeErr, data:String):Void
+		{
+			trace(error);
+			onLoaded(data);
+		}
+		);
     }
     
-	public static function system_createFile(filename:String)
+	public static function system_createFile(filename:String):Void
 	{
-		fs.openSync(filename,"wx");
+		fs.open(filename, "wx", function (error:NodeErr, data):Void
+		{
+			trace(error);
+		}
+		);
 	}
 
-	public static function system_saveFile(filename, content)
+	public static function system_saveFile(filename, content):Void
     {
-		fs.writeFileSync(filename, content);
-		trace("SYSTEM: file saved "+filename);
+		fs.writeFile(filename, content, function (error:NodeErr):Void
+		{
+			trace(error);
+			trace("SYSTEM: file saved "+filename);
+		}
+		);
+		
     }
     
 	public static function system_parse_project()

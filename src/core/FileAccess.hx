@@ -9,17 +9,17 @@ class FileAccess
 		
 	}
 	
-	static public function createNewFile()
+	static public function createNewFile():Void
 	{
 		TabsManager.createFileInNewTab();
 	}
 	
-	static public function openFile()
+	static public function openFile():Void
 	{
 		FileDialog.openFile(TabsManager.openFileInNewTab);
 	}
 	
-	static public function saveActiveFile()
+	static public function saveActiveFile():Void
 	{
 		trace ("save active file");
 
@@ -50,7 +50,7 @@ class FileAccess
 		}
 	}
 	
-	static public function closeActiveFile()
+	static public function closeActiveFile():Void
 	{
 		TabsManager.closeActiveTab();
 	}

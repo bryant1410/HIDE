@@ -142,7 +142,7 @@ class Menu
 		div.appendChild(li);
 	}
 	
-	public function setDisabled(indexes:Array<Int>):Void
+public function setDisabled(menuItemNames:Array<String>):Void
 	{
 		var childNodes:NodeList = ul.childNodes;
 		
@@ -152,7 +152,30 @@ class Menu
 			
 			if (child.className != "divider")
 			{
-				if (Lambda.indexOf(indexes, i) == -1)
+				if (Lambda.indexOf(menuItemNames, child.textContent) == -1)
+				{
+					child.className = "";
+				}
+				else
+				{
+					child.className = "disabled";
+				}
+			}
+			
+		}
+	}
+	
+	public function setMenuEnabled(enabled:Bool):Void
+	{
+		var childNodes:NodeList = ul.childNodes;
+		
+		for (i in 0...childNodes.length)
+		{
+			var child:Element = cast(childNodes[i], Element);
+			
+			if (child.className != "divider")
+			{
+				if (enabled)
 				{
 					child.className = "";
 				}
