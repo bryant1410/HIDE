@@ -1,55 +1,55 @@
 hide
 ====
 
-Haxe Integrated Development Environment (HIDE) are written using Haxe and Javascript.
+Haxe Integrated Development Environment (HIDE) is written in Haxe and Javascript.
 
-Thanks to group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under terms of MIT License.
+Thanks to a group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under the terms of the MIT License.
 
 Google Group:
 [HIDE Google Group](https://groups.google.com/forum/#!forum/haxeide)
 
-You can discuss almost anything related to HIDE. Including new features, features requests and just give feedback about HIDE.
+There, you can discuss anything related to HIDE; including features requests, bugs, or just give feedback about HIDE.
 
-Please note, that HIDE currently is in active development. HIDE currently is not ready for use. 
-this information is for curious people and contributors.
+Please note that HIDE is in active development. HIDE is currently not ready for use. 
+This information is for curious people and contributors.
 
 ###How to run:
 
 1. Download node-webkit binary from https://github.com/rogerwang/node-webkit
-2. Extract contents of archive to bin/ folder of HIDE, so it should look like this: 
+2. Extract the contents of the archive to the bin/ folder of HIDE, so it looks like this: 
 ![Alt text](http://s13.postimg.org/9l0qcxo87/screenshot_204.png)
 3. Run nw.exe
 
-We will provide easier ways to run and distribute HIDE, when it will be ready for use.
+We will provide easier ways to run and distribute HIDE when it is ready for use.
 
 ###How to compile:
-1. You will need Haxe 3 and make sure you have installed jQueryExtern and hxparse(currently not used yet) haxelibs:
+1. You will need Haxe 3. Make sure you have installed the jQueryExtern and hxparse(currently not used) haxelibs:
 
     haxelib install jQueryExtern
     haxelib install hxparse
 
-2. If you are on Windows, open HaxeEditor2.hxproj using FlashDevelop, if you are on Linux or Mac, you should be able to compile HIDE using this command:
+2. If you are on Windows, open HaxeEditor2.hxproj using FlashDevelop. If you are on Linux or Mac, you should be able to compile HIDE using this command:
 
     haxe HaxeEditor2.hxml
     
-3. On Windows, you can start HIDE using run.bat, if you will provide path to node-webkit.
+3. On Windows, you can start HIDE using run.bat, if you provide the path to node-webkit.
 On Linux, you can run it like this:
 
     nw /path/to/hide/bin
     
-Mac users can run it using instructions on node-webkit page:
+Mac users can run it using the instructions on the node-webkit page:
 https://github.com/rogerwang/node-webkit/wiki/How-to-run-apps
 
-Main thing you need to know is, you need to run nw with path/to/hide/bin folder argument.
+The main thing you need to know is that you need to run nw with the path/to/hide/bin folder argument.
 
 ###How to contribute:
-1. Before doing something it's better to start discussion at [HIDE Google Group](https://groups.google.com/forum/#!forum/haxeide) or create issue here
-2. If you have questions about how it works, and wonder where to look for something, you can write your questions in HIDE Google Group. We will try to answer them as soon as we have time.
+1. Before doing something it's better to start a discussion at [HIDE Google Group](https://groups.google.com/forum/#!forum/haxeide) or create an issue on [GitHub](https://github.com/misterpah/hide/issues?state=open).
+2. If you have questions about how it works, or wonder where to find for something, you can ask your questions in the HIDE Google Group. We will try to answer them as soon as possible.
 
 Contributions are welcome.
 
 ###Current TODOs:
-1. New Project Dialog(should be implemented using Bootstrap 3, similar to Cactus IDE
+1. New Project Dialog(should be implemented using Bootstrap 3, similar to Cactus IDE)
 
 ###License:
-HIDE is licensed under terms of MIT License. CodeMirror and Tern are licensed under terms of MIT License.
+HIDE is licensed under the terms of the MIT License. CodeMirror and Tern are licensed under the terms of the MIT License.
