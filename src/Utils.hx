@@ -1,13 +1,10 @@
 package ;
 
-import jQuery.JQuery;
+import jQuery.*;
 import js.Browser;
 import js.Node;
 import ui.*;
-/**
- * ...
- * @author AS3Boyan
- */
+
 class Utils
 {
 	public static var os = Node.require('os');
@@ -24,11 +21,7 @@ class Utils
 	inline public static var LINUX:Int = 1;
 	inline public static var OTHER:Int = 2;
 
-	public function new() 
-	{
-		
-	}
-	
+
 	public static function getOS():Int
 	{
 		var os_type:Int = null;
@@ -44,22 +37,8 @@ class Utils
         }
 		
 		return os_type;
-    }
-	
-	public static function toggleFullscreen():Void
-	{
-		Utils.window.toggleFullscreen();
-	}
-	
-	public static function zoomIn():Void
-	{
-		Utils.window.zoomLevel = Utils.window.zoomLevel + 1;
-	}
-	
-	public static function zoomOut():Void
-	{
-		Utils.window.zoomLevel = Utils.window.zoomLevel - 1;
-	}
+    }	
+
 	
 	public static function capitalize(myString:String)
 	{
@@ -82,18 +61,72 @@ class Utils
 		trace("SYSTEM: file saved "+filename);
     }
     
+
+	public static function loadJavascript(script)
+	{
+		JQueryStatic.ajaxSetup({async:false});
+		JQueryStatic.getScript(script);
+		JQueryStatic.ajaxSetup({async:true});
+	}
+
+	public static function loadCss(css)
+	{
+		new JQuery("head").append("<link rel='stylesheet' type='text/css' href='"+css+"'/>");
+	}
+    
+
+	public static function system_get_completion(position:Int)
+	{
+		var exec_str = "";
+		var join_str = "";
+		var join_str_cd = "";
+
+		var path = Main.session['active_file'];
+		var file_obj = Main.opened_file_stack[path];
+
+		if (getOS() == LINUX)
+			{
+			join_str = " ; ";
+			join_str_cd = "";
+			}
+		if (getOS() == WINDOWS)
+			{
+			join_str = " & ";
+			join_str_cd = " /D ";
+			}		
+
+		var exec_str = "cd " + join_str_cd + Main.session['project_folder']+join_str + "haxe "+ Main.session['project_xml_parameter'] + " --display " + path + "@"+ position;
+
+			trace(exec_str);
+
+		Utils.exec(exec_str,
+			function(error,stdout:String,stderr:String){
+				trace (error);
+				//trace (stdout);
+				//trace (stderr);
+				//var the_error = false;
+				//if (stderr != ""){the_error = true;}
+				if (error == null)
+					{
+					new JQuery(Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
+					}
+				
+				});
+
+	}
+
 	public static function system_parse_project()
     {
 		var exec_str = "";
 
-		var filename = Main.session.current_project_xml;
+		var filename = Main.session['project_xml'];
 	    var projectFolder = filename.split(path.sep);
 	    projectFolder.pop();
 	    //trace(projectFolder);
-	    Main.session.current_project_folder = projectFolder.join(path.sep);		
+	    Main.session['project_folder'] = projectFolder.join(path.sep);		
 		
-		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.current_project_folder +" & openfl display -hxml flash";}
-		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.current_project_folder + " ; openfl display -hxml flash"; }
+		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session['project_folder'] +" & openfl display -hxml flash";}
+		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session['project_folder'] + " ; openfl display -hxml flash"; }
 		trace(exec_str);
 
 		Utils.exec(exec_str,
@@ -105,7 +138,8 @@ class Utils
 					var notify = new Notify();
 					notify.type = "error";
 					notify.content = "not a valid HaxeFlixel Project File (XML)";
-					notify.show();						
+					notify.show();	
+					Main.session['project_xml'] = "";					
 					}
 				if (the_error == false) {
 					//new JQuery('#projectContent').html(stdout);
@@ -132,12 +166,14 @@ class Utils
 							content_push.push(cur);
 							}                        
 						}
-			        Main.session.current_project_xml_parameter = content_push.join(' ');					
-			        trace(Main.session.current_project_xml_parameter);
+			        Main.session['project_xml_parameter'] = content_push.join(' ');					
+			        trace(Main.session['project_xml_parameter']);
 					//new JQuery('#projectContent').html(content_push.join(' '));   
-					new JQuery(Browser.document).trigger("projectAccess_parseProject_complete");
+					new JQuery(Browser.document).triggerHandler("core_utils_parseProject_complete");
 				} // stdout != ""
 			});
 	
-	}
+	}    
+
+
 }
