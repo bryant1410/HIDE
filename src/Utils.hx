@@ -115,6 +115,35 @@ class Utils
 
 	}
 
+
+	public static function system_create_project(exec_str:String)
+	{
+		var join_str = "";
+		var join_str_cd = "";
+		var default_folder = "";
+
+		if (getOS() == LINUX)
+			{
+			join_str = " ; ";
+			join_str_cd = "";
+			default_folder = "~/HIDE";
+			}
+		if (getOS() == WINDOWS)
+			{
+			join_str = " & ";
+			join_str_cd = " /D ";
+			default_folder = "C:/HIDE";
+
+			}		
+
+		Utils.exec("cd "+ join_str_cd + default_folder + join_str + exec_str, function (error,stdout,stderr)
+			{
+				trace(error);
+				trace(stdout);
+				trace(stderr);
+			});
+	}
+
 	public static function system_parse_project()
     {
 		var exec_str = "";

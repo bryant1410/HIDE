@@ -10,13 +10,14 @@ import js.Lib;
 import jQuery.*;
 import component.*;
 import plugin.*;
-import plugin.misterpah.*;
+//import plugin.misterpah.*;
 
 class Main {
 
 	static public var session:Map<String,String>;
 	static public var settings:Map<String,String>;
 	static public var opened_file_stack:Map<String,Map<String,String>>;
+
 	//static private var menus:StringMap<Menu>;
 	
 	// the program starts here	
@@ -57,10 +58,17 @@ class Main {
     {
 		Utils.gui.Window.get().showDevTools();
 		new plugin.FileMenu();
+		new plugin.NewProject();
+		new plugin.CompileMenu();
+		
+
 		new plugin.misterpah.Editor();
+		new plugin.misterpah.CompileTo();
 		new plugin.misterpah.FileAccess();
 		new plugin.misterpah.ProjectAccess();
 		new plugin.misterpah.Keyboardshortcut();
+		new plugin.misterpah.ProjectTypeFlixel();
+		new plugin.misterpah.ProjectTypeOpenFL();
 		//initMenu();
 		//EditorCMNative.init();
     }

@@ -60,10 +60,15 @@ Main.init = function() {
 Main.pluginManager = function() {
 	Utils.gui.Window.get().showDevTools();
 	new plugin.FileMenu();
+	new plugin.NewProject();
+	new plugin.CompileMenu();
 	new plugin.misterpah.Editor();
+	new plugin.misterpah.CompileTo();
 	new plugin.misterpah.FileAccess();
 	new plugin.misterpah.ProjectAccess();
 	new plugin.misterpah.Keyboardshortcut();
+	new plugin.misterpah.ProjectTypeFlixel();
+	new plugin.misterpah.ProjectTypeOpenFL();
 }
 var IMap = function() { }
 IMap.__name__ = true;
@@ -132,6 +137,26 @@ Utils.system_get_completion = function(position) {
 	Utils.exec(exec_str1,function(error,stdout,stderr) {
 		console.log(error);
 		if(error == null) new $(js.Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
+	});
+}
+Utils.system_create_project = function(exec_str) {
+	var join_str = "";
+	var join_str_cd = "";
+	var default_folder = "";
+	if(Utils.getOS() == 1) {
+		join_str = " ; ";
+		join_str_cd = "";
+		default_folder = "~/HIDE";
+	}
+	if(Utils.getOS() == 0) {
+		join_str = " & ";
+		join_str_cd = " /D ";
+		default_folder = "C:/HIDE";
+	}
+	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
+		console.log(error);
+		console.log(stdout);
+		console.log(stderr);
 	});
 }
 Utils.system_parse_project = function() {
@@ -346,6 +371,19 @@ ui.Menu.prototype = {
 	,__class__: ui.Menu
 }
 var plugin = {}
+plugin.CompileMenu = function() {
+	ui.Menu.call(this,"Compile");
+	this.create_ui();
+};
+plugin.CompileMenu.__name__ = true;
+plugin.CompileMenu.__super__ = ui.Menu;
+plugin.CompileMenu.prototype = $extend(ui.Menu.prototype,{
+	create_ui: function() {
+		this.addMenuItem("Flash","core_compileTo_flash",null,null);
+		this.addToDocument();
+	}
+	,__class__: plugin.CompileMenu
+});
 plugin.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();
@@ -371,7 +409,107 @@ plugin.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	}
 	,__class__: plugin.FileMenu
 });
+plugin.NewProject = function() {
+	this.registered_type = new Array();
+	this.register_hook();
+};
+plugin.NewProject.__name__ = true;
+plugin.NewProject.prototype = {
+	new_project_ui: function() {
+		var _g = this;
+		var retStr = "";
+		retStr += "<div class=\"row\">";
+		var _g1 = 0, _g2 = this.registered_type.length;
+		while(_g1 < _g2) {
+			var each = _g1++;
+			var cur = this.registered_type[each];
+			console.log(cur.get("plugin_name"));
+			retStr += ["<div class=\"col-xs-2\">","<label>","<img width=64 class=\"img-rounded\" src=\"" + cur.get("plugin_image") + "\" />","<p class=\"text-center\"><input type=\"radio\" name=\"NewProject_radio\" value=\"" + cur.get("plugin_name") + "\" /><br/>" + cur.get("plugin_name") + "</p>","</label>","</div>"].join("\n");
+		}
+		retStr += "</div>";
+		var radio_plugin_name = new Array();
+		var _g1 = 0, _g2 = this.registered_type.length;
+		while(_g1 < _g2) {
+			var each = _g1++;
+			var cur = this.registered_type[each];
+			retStr += ["<div id=\"radio_" + cur.get("plugin_name") + "\" style=\"display:none;\">","<h2>" + cur.get("plugin_name") + "</h2>","<p>" + cur.get("plugin_description") + "</p>","<p><b>Help:</b> " + cur.get("plugin_help") + "</p>","<p><b>This will execute:</b> " + cur.get("plugin_execute") + "</p>","<p><b>With optional parameter:</b> <input style=\"width:100%;\" id=\"optional_" + cur.get("plugin_name") + "\" value=\"" + cur.get("plugin_extraParam") + "\" /></p>","</div>"].join("\n");
+			radio_plugin_name.push("radio_" + cur.get("plugin_name"));
+		}
+		retStr += "<br/>";
+		retStr += "<button style=\"display:none;\" id=\"NewProject_submit\" type=\"button\" class=\"btn btn-primary btn-lg btn-block\">Create Project</button>";
+		var dialog = new ui.ModalDialog();
+		dialog.title = "New Project";
+		dialog.id = "new_project_modal_id";
+		dialog.content = retStr;
+		dialog.header = true;
+		dialog.footer = false;
+		dialog.show();
+		new $("input[name='NewProject_radio']").on("click",null,function() {
+			new $("#NewProject_submit").css("display","block");
+			var _g1 = 0, _g2 = radio_plugin_name.length;
+			while(_g1 < _g2) {
+				var each = _g1++;
+				new $("#" + radio_plugin_name[each]).css("display","none");
+			}
+			var selected = new $("input[name='NewProject_radio']:checked").val();
+			new $("#radio_" + Std.string(selected)).css("display","block");
+		});
+		new $("#NewProject_submit").on("click",null,function() {
+			var selected = new $("input[name='NewProject_radio']:checked").val();
+			var _g2 = 0, _g1 = _g.registered_type.length;
+			while(_g2 < _g1) {
+				var each = _g2++;
+				var cur = _g.registered_type[each];
+				if(selected == cur.get("plugin_name")) {
+					var execute = cur.get("plugin_execute");
+					var optional = new $("#optional_" + Std.string(cur.get("plugin_name"))).val();
+					Utils.system_create_project(Std.string(execute) + " " + Std.string(optional));
+					dialog.hide();
+				}
+			}
+		});
+	}
+	,registerNewType: function(event,data) {
+		this.registered_type.push(data);
+	}
+	,register_hook: function() {
+		new $(js.Browser.document).on("core_project_newProject",null,$bind(this,this.new_project_ui));
+		new $(js.Browser.document).on("core_project_registerNewTypeProject",null,$bind(this,this.registerNewType));
+	}
+	,__class__: plugin.NewProject
+}
 plugin.misterpah = {}
+plugin.misterpah.CompileTo = function() {
+	this.register_hook();
+};
+plugin.misterpah.CompileTo.__name__ = true;
+plugin.misterpah.CompileTo.prototype = {
+	compile_to_flash: function() {
+		var exec_str = "";
+		var join_str = "";
+		var join_str_cd = "";
+		var path = Main.session.get("project_xml");
+		if(Utils.getOS() == 1) {
+			join_str = " ; ";
+			join_str_cd = "";
+		}
+		if(Utils.getOS() == 0) {
+			join_str = " & ";
+			join_str_cd = " /D ";
+		}
+		var exec_str1 = "cd " + join_str_cd + Main.session.get("project_folder") + join_str + " openfl test flash";
+		console.log(exec_str1);
+		Utils.exec(exec_str1,function(error,stdout,stderr) {
+			console.log(error);
+			console.log(stdout);
+			console.log(stderr);
+		});
+	}
+	,register_hook: function() {
+		new $(js.Browser.document).on("core_compileTo_flash",null,$bind(this,this.compile_to_flash));
+	}
+	,__class__: plugin.misterpah.CompileTo
+}
 plugin.misterpah.Editor = function() {
 	this.tab_index = new Array();
 	this.completion_list = new Array();
@@ -563,6 +701,44 @@ plugin.misterpah.ProjectAccess.prototype = {
 	}
 	,__class__: plugin.misterpah.ProjectAccess
 }
+plugin.misterpah.ProjectTypeFlixel = function() {
+	var parameter = new haxe.ds.StringMap();
+	parameter.set("plugin_name","Flixel");
+	parameter.set("plugin_description","HaxeFlixel is a 2D game framework built with OpenFL and Haxe that delivers cross platform games, completely free for personal and commercial use.");
+	parameter.set("plugin_help","change <i>project_name</i> in <b>optional parameter</b> to your project name.");
+	parameter.set("plugin_image","./plugin/misterpah/img/flixel.png");
+	parameter.set("plugin_execute","haxelib run flixel new");
+	parameter.set("plugin_extraParam","-name project_name");
+	this.parameter_wrap = new Array();
+	this.parameter_wrap.push(parameter);
+	this.register_hook();
+};
+plugin.misterpah.ProjectTypeFlixel.__name__ = true;
+plugin.misterpah.ProjectTypeFlixel.prototype = {
+	register_hook: function() {
+		new $(js.Browser.document).triggerHandler("core_project_registerNewTypeProject",this.parameter_wrap);
+	}
+	,__class__: plugin.misterpah.ProjectTypeFlixel
+}
+plugin.misterpah.ProjectTypeOpenFL = function() {
+	var parameter = new haxe.ds.StringMap();
+	parameter.set("plugin_name","OpenFL");
+	parameter.set("plugin_description","OpenFL is a software development kit that provides an environment for building fast, native games and applications for iOS, Android, BlackBerry, Windows, Mac, Linux, Flash and HTML5.");
+	parameter.set("plugin_help","change project_name to your project name.");
+	parameter.set("plugin_image","./plugin/misterpah/img/openfl.png");
+	parameter.set("plugin_execute","openfl create project");
+	parameter.set("plugin_extraParam","project_name");
+	this.parameter_wrap = new Array();
+	this.parameter_wrap.push(parameter);
+	this.register_hook();
+};
+plugin.misterpah.ProjectTypeOpenFL.__name__ = true;
+plugin.misterpah.ProjectTypeOpenFL.prototype = {
+	register_hook: function() {
+		new $(js.Browser.document).triggerHandler("core_project_registerNewTypeProject",this.parameter_wrap);
+	}
+	,__class__: plugin.misterpah.ProjectTypeOpenFL
+}
 ui.FileDialog = function(_onClick) {
 	new $("#temp").html("<input id='temp_fileDialog' type='file' />");
 	new $("#temp_fileDialog").click();
@@ -616,6 +792,39 @@ ui.Separator.prototype = {
 		return this.li;
 	}
 	,__class__: ui.Separator
+}
+ui.ModalDialog = function() {
+	this.title = "";
+	this.id = "";
+	this.content = "";
+	this.header = true;
+	this.footer = true;
+	this.ok_text = "";
+	this.cancel_text = "";
+};
+ui.ModalDialog.__name__ = true;
+ui.ModalDialog.prototype = {
+	hide: function() {
+		new $("#" + this.id).modal("hide");
+	}
+	,show: function() {
+		var _g = this;
+		this.updateModalDialog();
+		new $("#" + this.id).modal("show");
+		new $("#" + this.id).on("hidden.bs.modal",null,function() {
+			new $("#" + _g.id).remove();
+		});
+	}
+	,updateModalDialog: function() {
+		var retStr = ["<div class='modal fade' id='" + this.id + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>","<div class='modal-dialog'>","<div class='modal-content'>"].join("\n");
+		if(this.header == true) retStr += ["<div class='modal-header'>","<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>","<h4 class='modal-title'>" + this.title + "</h4>","</div>"].join("\n");
+		retStr += ["<div class='modal-body'>",this.content,"</div>"].join("\n");
+		if(this.footer == true) retStr += ["<div class='modal-footer'>","<button type='button' class='btn btn-default' data-dismiss='modal'>" + this.cancel_text + "</button>","<button type='button' class='btn btn-primary button_ok'>" + this.ok_text + "</button>","</div>"].join("\n");
+		retStr += ["</div>","</div>","</div>"].join("\n");
+		new $("#modal_position").html(retStr);
+		new $("#style_overide").append("<style>.modal{overflow:hidden}</style>");
+	}
+	,__class__: ui.ModalDialog
 }
 ui.Notify = function() {
 	this.type = "";
