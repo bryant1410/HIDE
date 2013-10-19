@@ -1,4 +1,5 @@
 package core;
+import core.TabsManager.Doc;
 import jQuery.*;
 import ui.*;
 
@@ -53,5 +54,29 @@ class FileAccess
 	static public function closeActiveFile():Void
 	{
 		TabsManager.closeActiveTab();
+	}
+	
+	static public function saveActiveFileAs():Void
+	{
+		var curDoc:Doc = TabsManager.curDoc;
+		var curDoc_val = curDoc.doc.cm.getValue();
+		
+		FileDialog.saveFile(function (path:String):Void
+		{
+			Utils.system_saveFile(path, curDoc_val);
+			curDoc.path = path;
+		}
+		, curDoc.name);
+	}
+	
+	static public function saveAll():Void
+	{
+		for (doc in TabsManager.docs)
+		{
+			if (doc != null)
+			{
+				Utils.system_saveFile(doc.path, doc.doc.getValue());
+			}
+		}
 	}
 }

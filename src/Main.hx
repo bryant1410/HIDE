@@ -4,11 +4,13 @@ import core.FileDialog;
 import core.ProjectAccess;
 import core.TabsManager;
 import haxe.ds.StringMap.StringMap;
+import haxe.Json;
 import haxe.Timer;
 import jQuery.*;
 import js.Browser;
 import js.html.KeyboardEvent;
 import js.html.WheelEvent;
+import js.Lib;
 import ui.menu.basic.Menu;
 import ui.menu.EditMenu;
 import ui.menu.FileMenu;
@@ -24,26 +26,21 @@ class Main {
 	static private var menus:StringMap<Menu>;	
 	
 	// the program starts here	
-    static public function main():Void {	
+    static public function main():Void 
+	{	
 		new JQuery(function():Void
 			{	
-				show();
 				init();
-				initCorePlugin();
 			});
     }
-	
-	static private function show():Void
-	{
-		Utils.gui.Window.get().show();
-	}
 
-    static public function close():Void {
+    static public function close():Void 
+	{
     	Sys.exit(0);
     }
     
 	// the editor will always run this first. 
-    static function init()
+    static function init():Void
     {
 		Browser.window.onresize = function (e)
 		{
@@ -68,35 +65,11 @@ class Main {
 		
 		FileTree.init();
 		
-		var layout = untyped new JQuery("#panel").layout(
-		{
-			center__paneSelector:	".outer-center",
-			west__paneSelector:		".outer-west",
-			west__size:				250,
-			spacing_open:			8,  // ALL panes
-			spacing_closed:			12, // ALL panes
-			
-			center__childOptions: {
-				center__paneSelector:	".middle-center",
-				south__paneSelector:	".middle-south",
-				south__size:			100,
-				spacing_open:			8,  // ALL panes
-				spacing_closed:			12 // ALL panes
-			},
-			
-			animatePaneSizing:			true,
-			stateManagement__enabled:	true
-		});
+		Layout.init();
 		
-		//var state = layout.readState();
-		//trace(layout.readCookie());
+		initCorePlugin();
 		
-		Utils.window.on("close", function (e)
-		{
-			//layout.saveCookie();
-			Utils.window.close(true);
-		}
-		);
+		PreserveWindowState.init();
     }
 	
 	static private function initMouseZoom():Void
