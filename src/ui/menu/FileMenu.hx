@@ -30,8 +30,8 @@ class FileMenu extends Menu
 		addMenuItem("Project Properties", "component_projectAccess_configure", ProjectAccess.configureProject);
 		addSeparator();
 		addMenuItem("Save", "component_fileAccess_save", FileAccess.saveActiveFile, "Ctrl-S");
-		addMenuItem("Save as...", "component_saveAs", null, "Ctrl-Shift-S");
-		addMenuItem("Save all", "component_saveAll", null);
+		addMenuItem("Save as...", "component_saveAs", FileAccess.saveActiveFileAs, "Ctrl-Shift-S");
+		addMenuItem("Save all", "component_saveAll", FileAccess.saveAll);
 		addSeparator();
 		addMenuItem("Exit", "component_exit", Main.close, "Alt-F4");
 		addToDocument();

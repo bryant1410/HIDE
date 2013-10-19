@@ -70,7 +70,11 @@ class Utils
     {
 		fs.readFile(filename, "utf-8", function (error:NodeErr, data:String):Void
 		{
-			trace(error);
+			if (error != null)
+			{
+				trace(error);
+			}
+			
 			onLoaded(data);
 		}
 		);
@@ -80,7 +84,10 @@ class Utils
 	{
 		fs.open(filename, "wx", function (error:NodeErr, data):Void
 		{
-			trace(error);
+			if (error != null)
+			{
+				trace(error);
+			}
 		}
 		);
 	}
@@ -89,7 +96,11 @@ class Utils
     {
 		fs.writeFile(filename, content, function (error:NodeErr):Void
 		{
-			trace(error);
+			if (error != null)
+			{
+				trace(error);
+			}
+			
 			trace("SYSTEM: file saved "+filename);
 		}
 		);

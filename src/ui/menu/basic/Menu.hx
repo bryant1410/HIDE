@@ -41,6 +41,7 @@ class MenuButtonItem implements MenuItem
 		
 		var a:AnchorElement = Browser.document.createAnchorElement();
 		a.style.left = "0";
+		a.setAttribute("text", _text);
 		
 		if (_onClickFunction != null) 
 		{
@@ -151,8 +152,10 @@ public function setDisabled(menuItemNames:Array<String>):Void
 			var child:Element = cast(childNodes[i], Element);
 			
 			if (child.className != "divider")
-			{
-				if (Lambda.indexOf(menuItemNames, child.textContent) == -1)
+			{				
+				var a:AnchorElement = cast(child.firstChild, AnchorElement);
+								
+				if (Lambda.indexOf(menuItemNames, a.getAttribute("text")) == -1)
 				{
 					child.className = "";
 				}
@@ -161,7 +164,6 @@ public function setDisabled(menuItemNames:Array<String>):Void
 					child.className = "disabled";
 				}
 			}
-			
 		}
 	}
 	

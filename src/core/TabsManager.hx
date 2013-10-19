@@ -344,9 +344,9 @@ class TabsManager
 			registerDoc(filename, new CodeMirror.Doc(data, mode), path);
 			selectDoc(docs.length - 1);
 			
-			if (new JQuery("#demospace").css("display") == "none" && docs.length > 0)
+			if (new JQuery("#sourceCodeEditor").css("display") == "none" && docs.length > 0)
 			{
-				new JQuery("#demospace").css("display", "block");
+				new JQuery("#sourceCodeEditor").css("display", "block");
 				TabsManager.editor.refresh();
 				Main.updateMenu();
 			}
@@ -565,7 +565,7 @@ private static function unregisterDoc(doc, ?switchToTab:Bool = true):Void
   
   if (docList.childNodes.length == 0)
   {
-	  new JQuery("#demospace").css("display", "none");
+	  new JQuery("#sourceCodeEditor").css("display", "none");
 	  Main.updateMenu();
   }
   

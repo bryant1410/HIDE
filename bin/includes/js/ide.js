@@ -132,17 +132,27 @@ Lambda.indexOf = function(it,v) {
 	}
 	return -1;
 }
+var Layout = function() { }
+Layout.__name__ = true;
+Layout.init = function() {
+	Layout.layout = new $("#panel").layout({ center__paneSelector : ".outer-center", west__paneSelector : ".outer-west", west__size : 250, spacing_open : 8, spacing_closed : 12, center__childOptions : { center__paneSelector : ".middle-center", south__paneSelector : ".middle-south", south__size : 100, spacing_open : 8, spacing_closed : 12}, animatePaneSizing : true, stateManagement__enabled : true});
+	Layout.initPreserveLayout();
+}
+Layout.initPreserveLayout = function() {
+	var localStorage = js.Browser.getLocalStorage();
+	Utils.window.on("close",function(e) {
+		var stateString = JSON.stringify(Layout.layout.readState());
+		localStorage.setItem("state",stateString);
+	});
+	var state = localStorage.getItem("state");
+	if(state != null) Layout.layout.loadState(JSON.parse(state),true);
+}
 var Main = function() { }
 Main.__name__ = true;
 Main.main = function() {
 	new $(function() {
-		Main.show();
 		Main.init();
-		Main.initCorePlugin();
 	});
-}
-Main.show = function() {
-	Utils.gui.Window.get().show();
 }
 Main.close = function() {
 	Sys.exit(0);
@@ -159,10 +169,9 @@ Main.init = function() {
 	Main.settings = new haxe.ds.StringMap();
 	core.FileDialog.init();
 	FileTree.init();
-	var layout = new $("#panel").layout({ center__paneSelector : ".outer-center", west__paneSelector : ".outer-west", west__size : 250, spacing_open : 8, spacing_closed : 12, center__childOptions : { center__paneSelector : ".middle-center", south__paneSelector : ".middle-south", south__size : 100, spacing_open : 8, spacing_closed : 12}, animatePaneSizing : true, stateManagement__enabled : true});
-	Utils.window.on("close",function(e) {
-		Utils.window.close(true);
-	});
+	Layout.init();
+	Main.initCorePlugin();
+	PreserveWindowState.init();
 }
 Main.initMouseZoom = function() {
 	js.Browser.document.onmousewheel = function(e) {
@@ -300,6 +309,68 @@ Main.updateMenu = function() {
 }
 var IMap = function() { }
 IMap.__name__ = true;
+var PreserveWindowState = function() { }
+PreserveWindowState.__name__ = true;
+PreserveWindowState.init = function() {
+	PreserveWindowState.initWindowState();
+	Utils.window.on("maximize",function() {
+		PreserveWindowState.isMaximizationEvent = true;
+		PreserveWindowState.currWinMode = "maximized";
+	});
+	Utils.window.on("unmaximize",function() {
+		PreserveWindowState.currWinMode = "normal";
+		PreserveWindowState.restoreWindowState();
+	});
+	Utils.window.on("minimize",function() {
+		PreserveWindowState.currWinMode = "minimized";
+	});
+	Utils.window.on("restore",function() {
+		PreserveWindowState.currWinMode = "normal";
+	});
+	Utils.window.window.addEventListener("resize",function(e) {
+		if(PreserveWindowState.resizeTimeout != null) PreserveWindowState.resizeTimeout.stop();
+		PreserveWindowState.resizeTimeout = new haxe.Timer(500);
+		PreserveWindowState.resizeTimeout.run = function() {
+			if(PreserveWindowState.isMaximizationEvent) PreserveWindowState.isMaximizationEvent = false; else if(PreserveWindowState.currWinMode == "maximized") PreserveWindowState.currWinMode = "normal";
+			PreserveWindowState.resizeTimeout.stop();
+			PreserveWindowState.dumpWindowState();
+		};
+	},false);
+	Utils.window.on("close",function(e) {
+		PreserveWindowState.saveWindowState();
+		Utils.window.close(true);
+	});
+}
+PreserveWindowState.initWindowState = function() {
+	var windowState = js.Browser.getLocalStorage().getItem("windowState");
+	if(windowState != null) PreserveWindowState.winState = JSON.parse(windowState);
+	if(PreserveWindowState.winState != null) {
+		PreserveWindowState.currWinMode = PreserveWindowState.winState.mode;
+		if(PreserveWindowState.currWinMode == "maximized") Utils.window.maximize(); else PreserveWindowState.restoreWindowState();
+	} else {
+		PreserveWindowState.currWinMode = "normal";
+		PreserveWindowState.dumpWindowState();
+	}
+	Utils.window.show();
+}
+PreserveWindowState.dumpWindowState = function() {
+	if(PreserveWindowState.winState == null) PreserveWindowState.winState = { };
+	if(PreserveWindowState.currWinMode == "maximized") PreserveWindowState.winState.mode = "maximized"; else PreserveWindowState.winState.mode = "normal";
+	if(PreserveWindowState.currWinMode == "normal") {
+		PreserveWindowState.winState.x = Utils.window.x;
+		PreserveWindowState.winState.y = Utils.window.y;
+		PreserveWindowState.winState.width = Utils.window.width;
+		PreserveWindowState.winState.height = Utils.window.height;
+	}
+}
+PreserveWindowState.restoreWindowState = function() {
+	Utils.window.resizeTo(PreserveWindowState.winState.width,PreserveWindowState.winState.height);
+	Utils.window.moveTo(PreserveWindowState.winState.x,PreserveWindowState.winState.y);
+}
+PreserveWindowState.saveWindowState = function() {
+	PreserveWindowState.dumpWindowState();
+	js.Browser.getLocalStorage().setItem("windowState",JSON.stringify(PreserveWindowState.winState));
+}
 var Session = function() {
 	this.current_project_folder = "";
 	this.current_project_xml_parameter = "";
@@ -372,13 +443,13 @@ Utils.capitalize = function(myString) {
 }
 Utils.system_openFile = function(filename,onLoaded) {
 	Utils.fs.readFile(filename,"utf-8",function(error,data) {
-		console.log(error);
+		if(error != null) console.log(error);
 		onLoaded(data);
 	});
 }
 Utils.system_saveFile = function(filename,content) {
 	Utils.fs.writeFile(filename,content,null,function(error) {
-		console.log(error);
+		if(error != null) console.log(error);
 		console.log("SYSTEM: file saved " + filename);
 	});
 }
@@ -441,6 +512,22 @@ core.FileAccess.saveActiveFile = function() {
 }
 core.FileAccess.closeActiveFile = function() {
 	core.TabsManager.closeActiveTab();
+}
+core.FileAccess.saveActiveFileAs = function() {
+	var curDoc = core.TabsManager.curDoc;
+	var curDoc_val = curDoc.doc.cm.getValue();
+	core.FileDialog.saveFile(function(path) {
+		Utils.system_saveFile(path,curDoc_val);
+		curDoc.path = path;
+	},curDoc.name);
+}
+core.FileAccess.saveAll = function() {
+	var _g = 0, _g1 = core.TabsManager.docs;
+	while(_g < _g1.length) {
+		var doc = _g1[_g];
+		++_g;
+		if(doc != null) Utils.system_saveFile(doc.path,doc.doc.getValue());
+	}
 }
 core.FileDialog = function() { }
 core.FileDialog.__name__ = true;
@@ -678,8 +765,8 @@ core.TabsManager.openFileInNewTab = function(path) {
 		var mode = core.TabsManager.getMode(filename);
 		core.TabsManager.registerDoc(filename,new CodeMirror.Doc(data,mode),path);
 		core.TabsManager.selectDoc(core.TabsManager.docs.length - 1);
-		if(new $("#demospace").css("display") == "none" && core.TabsManager.docs.length > 0) {
-			new $("#demospace").css("display","block");
+		if(new $("#sourceCodeEditor").css("display") == "none" && core.TabsManager.docs.length > 0) {
+			new $("#sourceCodeEditor").css("display","block");
 			core.TabsManager.editor.refresh();
 			Main.updateMenu();
 		}
@@ -810,7 +897,7 @@ core.TabsManager.unregisterDoc = function(doc,switchToTab) {
 	docList.removeChild(docList.childNodes[j]);
 	if(switchToTab && b && docList.childNodes.length > 0) core.TabsManager.selectDoc(Math.max(0,j - 1) | 0);
 	if(docList.childNodes.length == 0) {
-		new $("#demospace").css("display","none");
+		new $("#sourceCodeEditor").css("display","none");
 		Main.updateMenu();
 	}
 	Main.resize();
@@ -987,6 +1074,15 @@ js.Boot.__cast = function(o,t) {
 }
 js.Browser = function() { }
 js.Browser.__name__ = true;
+js.Browser.getLocalStorage = function() {
+	try {
+		var s = js.Browser.window.localStorage;
+		s.getItem("");
+		return s;
+	} catch( e ) {
+		return null;
+	}
+}
 var ui = {}
 ui.ModalDialog = function() {
 	this.title = "";
@@ -1078,7 +1174,8 @@ ui.menu.basic.Menu.prototype = {
 			var i = _g1++;
 			var child = js.Boot.__cast(childNodes[i] , Element);
 			if(child.className != "divider") {
-				if(Lambda.indexOf(menuItemNames,child.textContent) == -1) child.className = ""; else child.className = "disabled";
+				var a = js.Boot.__cast(child.firstChild , HTMLAnchorElement);
+				if(Lambda.indexOf(menuItemNames,a.getAttribute("text")) == -1) child.className = ""; else child.className = "disabled";
 			}
 		}
 	}
@@ -1140,8 +1237,8 @@ ui.menu.FileMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 		this.addMenuItem("Project Properties","component_projectAccess_configure",core.ProjectAccess.configureProject);
 		this.addSeparator();
 		this.addMenuItem("Save","component_fileAccess_save",core.FileAccess.saveActiveFile,"Ctrl-S");
-		this.addMenuItem("Save as...","component_saveAs",null,"Ctrl-Shift-S");
-		this.addMenuItem("Save all","component_saveAll",null);
+		this.addMenuItem("Save as...","component_saveAs",core.FileAccess.saveActiveFileAs,"Ctrl-Shift-S");
+		this.addMenuItem("Save all","component_saveAll",core.FileAccess.saveAll);
 		this.addSeparator();
 		this.addMenuItem("Exit","component_exit",Main.close,"Alt-F4");
 		this.addToDocument();
@@ -1216,6 +1313,7 @@ ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunct
 	this.li = js.Browser.document.createElement("li");
 	var a = js.Browser.document.createElement("a");
 	a.style.left = "0";
+	a.setAttribute("text",_text);
 	if(_onClickFunction != null) a.onclick = function(e) {
 		if(_g.li.className != "disabled") new $(js.Browser.document).triggerHandler(_onClickFunctionName);
 	};
@@ -1289,6 +1387,7 @@ if(version[0] > 0 || version[1] >= 9) {
 	js.Node.setImmediate = setImmediate;
 	js.Node.clearImmediate = clearImmediate;
 }
+PreserveWindowState.isMaximizationEvent = false;
 Utils.os = js.Node.require("os");
 Utils.fs = js.Node.require("fs");
 Utils.path = js.Node.require("path");
