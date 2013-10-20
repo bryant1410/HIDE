@@ -5,6 +5,7 @@
 -main Main
 -cp ./externs/nodejs-std/src
 -cp ./externs/codemirror
+-cp ./externs/json
 -dce full
 --next
 -cp src

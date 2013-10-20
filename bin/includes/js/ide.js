@@ -609,53 +609,56 @@ core.TabsManager.init = function() {
 		core.TabsManager.initEditor();
 		Main.resize();
 		core.TabsManager.editor.refresh();
-		var contextMenu = js.Browser.document.createElement("div");
-		contextMenu.className = "dropdown";
-		contextMenu.style.position = "absolute";
+		core.TabsManager.createContextMenu();
+	});
+}
+core.TabsManager.createContextMenu = function() {
+	var contextMenu = js.Browser.document.createElement("div");
+	contextMenu.className = "dropdown";
+	contextMenu.style.position = "absolute";
+	contextMenu.style.display = "none";
+	js.Browser.document.onclick = function(e) {
 		contextMenu.style.display = "none";
-		js.Browser.document.onclick = function(e) {
-			contextMenu.style.display = "none";
-		};
-		var ul = js.Browser.document.createElement("ul");
-		ul.className = "dropdown-menu";
-		ul.style.display = "block";
-		ul.appendChild(core.TabsManager.createContextMenuItem("New File...",core.TabsManager.createFileInNewTab));
-		var li = js.Browser.document.createElement("li");
-		li.className = "divider";
-		ul.appendChild(li);
-		ul.appendChild(core.TabsManager.createContextMenuItem("Close",function() {
-			core.TabsManager.closeTab(contextMenu.getAttribute("path"));
-		}));
-		ul.appendChild(core.TabsManager.createContextMenuItem("Close All",function() {
-			core.TabsManager.closeAll();
-		}));
-		ul.appendChild(core.TabsManager.createContextMenuItem("Close Other",function() {
-			var path = contextMenu.getAttribute("path");
-			core.TabsManager.closeOthers(path);
-		}));
-		contextMenu.appendChild(ul);
-		js.Browser.document.body.appendChild(contextMenu);
-		js.Browser.document.getElementById("docs").addEventListener("contextmenu",function(ev) {
-			ev.preventDefault();
-			var clickedOnTab = false;
-			var _g = 0, _g1 = js.Browser.document.getElementById("docs").childNodes;
-			while(_g < _g1.length) {
-				var li1 = _g1[_g];
-				++_g;
-				if(ev.target == li1) {
-					clickedOnTab = true;
-					break;
-				}
+	};
+	var ul = js.Browser.document.createElement("ul");
+	ul.className = "dropdown-menu";
+	ul.style.display = "block";
+	ul.appendChild(core.TabsManager.createContextMenuItem("New File...",core.TabsManager.createFileInNewTab));
+	var li = js.Browser.document.createElement("li");
+	li.className = "divider";
+	ul.appendChild(li);
+	ul.appendChild(core.TabsManager.createContextMenuItem("Close",function() {
+		core.TabsManager.closeTab(contextMenu.getAttribute("path"));
+	}));
+	ul.appendChild(core.TabsManager.createContextMenuItem("Close All",function() {
+		core.TabsManager.closeAll();
+	}));
+	ul.appendChild(core.TabsManager.createContextMenuItem("Close Other",function() {
+		var path = contextMenu.getAttribute("path");
+		core.TabsManager.closeOthers(path);
+	}));
+	contextMenu.appendChild(ul);
+	js.Browser.document.body.appendChild(contextMenu);
+	js.Browser.document.getElementById("docs").addEventListener("contextmenu",function(ev) {
+		ev.preventDefault();
+		var clickedOnTab = false;
+		var _g = 0, _g1 = js.Browser.document.getElementById("docs").childNodes;
+		while(_g < _g1.length) {
+			var li1 = _g1[_g];
+			++_g;
+			if(ev.target == li1) {
+				clickedOnTab = true;
+				break;
 			}
-			if(clickedOnTab) {
-				var li1 = js.Boot.__cast(ev.target , HTMLLIElement);
-				contextMenu.setAttribute("path",li1.getAttribute("path"));
-				contextMenu.style.display = "block";
-				contextMenu.style.left = Std.string(ev.pageX) + "px";
-				contextMenu.style.top = Std.string(ev.pageY) + "px";
-			}
-			return false;
-		});
+		}
+		if(clickedOnTab) {
+			var li1 = js.Boot.__cast(ev.target , HTMLLIElement);
+			contextMenu.setAttribute("path",li1.getAttribute("path"));
+			contextMenu.style.display = "block";
+			contextMenu.style.left = Std.string(ev.pageX) + "px";
+			contextMenu.style.top = Std.string(ev.pageY) + "px";
+		}
+		return false;
 	});
 }
 core.TabsManager.createContextMenuItem = function(text,onClick) {
@@ -879,6 +882,7 @@ core.TabsManager.registerDoc = function(name,doc,path) {
 	if(core.TabsManager.editor.getDoc() == doc) {
 		core.TabsManager.setSelectedDoc(core.TabsManager.docs.length - 1);
 		core.TabsManager.curDoc = data;
+		js.Browser.window.curDoc = core.TabsManager.curDoc;
 	}
 }
 core.TabsManager.unregisterDoc = function(doc,switchToTab) {
@@ -915,6 +919,7 @@ core.TabsManager.selectDoc = function(pos) {
 	if(core.TabsManager.curDoc != null) core.TabsManager.server.hideDoc(core.TabsManager.curDoc.name);
 	core.TabsManager.setSelectedDoc(pos);
 	core.TabsManager.curDoc = core.TabsManager.docs[pos];
+	js.Browser.window.curDoc = core.TabsManager.curDoc;
 	core.TabsManager.editor.swapDoc(core.TabsManager.curDoc.doc);
 }
 var haxe = {}

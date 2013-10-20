@@ -188,6 +188,7 @@
 		
 		var doc = cm.getDoc();
 		
+		console.log(window.curDoc);
 		console.log(doc.indexFromPos(from));
 		
 		var filtered_results = [];

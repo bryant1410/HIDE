@@ -105,77 +105,82 @@ class TabsManager
 			
 			TabsManager.editor.refresh();
 		  
-			var contextMenu:DivElement = Browser.document.createDivElement();
-			contextMenu.className = "dropdown";
-			contextMenu.style.position = "absolute";
-			contextMenu.style.display = "none";
-			
-			Browser.document.onclick = function (e:MouseEvent)
-			{
-				contextMenu.style.display = "none";
-			};
-			
-			var ul:UListElement = Browser.document.createUListElement();
-			ul.className = "dropdown-menu";
-			ul.style.display = "block";
-			
-			ul.appendChild(createContextMenuItem("New File...", TabsManager.createFileInNewTab));
-			
-			var li:LIElement = Browser.document.createLIElement();
-			li.className = "divider";
-			
-			ul.appendChild(li);
-			ul.appendChild(createContextMenuItem("Close", function ()
-			{
-				TabsManager.closeTab(contextMenu.getAttribute("path"));
-			}
-			));
-			ul.appendChild(createContextMenuItem("Close All", function ()
-			{
-				closeAll();
-			}
-			));
-			
-			ul.appendChild(createContextMenuItem("Close Other", function ()
-			{
-				var path = contextMenu.getAttribute("path");
-				closeOthers(path);
-			}
-			));
-			
-			contextMenu.appendChild(ul);
-			
-			Browser.document.body.appendChild(contextMenu);
-			
-			Browser.document.getElementById("docs").addEventListener('contextmenu', function(ev:MouseEvent) 
-			{ 
-				ev.preventDefault();
-				
-				var clickedOnTab:Bool = false;
-				
-				for (li in Browser.document.getElementById("docs").childNodes)
-				{
-					if (ev.target == li)
-					{
-						clickedOnTab = true;
-						break;
-					}
-				}
-				
-				if (clickedOnTab)
-				{
-					var li:LIElement = cast(ev.target, LIElement);
-					contextMenu.setAttribute("path", li.getAttribute("path"));
-					
-					contextMenu.style.display = "block";
-					contextMenu.style.left = Std.string(ev.pageX) + "px";
-					contextMenu.style.top = Std.string(ev.pageY) + "px";
-				}
-				
-				return false;
-			}
-			);
+			createContextMenu();
 		});
+	}
+	
+	private static function createContextMenu():Void
+	{
+		var contextMenu:DivElement = Browser.document.createDivElement();
+		contextMenu.className = "dropdown";
+		contextMenu.style.position = "absolute";
+		contextMenu.style.display = "none";
+		
+		Browser.document.onclick = function (e:MouseEvent)
+		{
+			contextMenu.style.display = "none";
+		};
+		
+		var ul:UListElement = Browser.document.createUListElement();
+		ul.className = "dropdown-menu";
+		ul.style.display = "block";
+		
+		ul.appendChild(createContextMenuItem("New File...", TabsManager.createFileInNewTab));
+		
+		var li:LIElement = Browser.document.createLIElement();
+		li.className = "divider";
+		
+		ul.appendChild(li);
+		ul.appendChild(createContextMenuItem("Close", function ()
+		{
+			TabsManager.closeTab(contextMenu.getAttribute("path"));
+		}
+		));
+		ul.appendChild(createContextMenuItem("Close All", function ()
+		{
+			closeAll();
+		}
+		));
+		
+		ul.appendChild(createContextMenuItem("Close Other", function ()
+		{
+			var path = contextMenu.getAttribute("path");
+			closeOthers(path);
+		}
+		));
+		
+		contextMenu.appendChild(ul);
+		
+		Browser.document.body.appendChild(contextMenu);
+		
+		Browser.document.getElementById("docs").addEventListener('contextmenu', function(ev:MouseEvent) 
+		{ 
+			ev.preventDefault();
+			
+			var clickedOnTab:Bool = false;
+			
+			for (li in Browser.document.getElementById("docs").childNodes)
+			{
+				if (ev.target == li)
+				{
+					clickedOnTab = true;
+					break;
+				}
+			}
+			
+			if (clickedOnTab)
+			{
+				var li:LIElement = cast(ev.target, LIElement);
+				contextMenu.setAttribute("path", li.getAttribute("path"));
+				
+				contextMenu.style.display = "block";
+				contextMenu.style.left = Std.string(ev.pageX) + "px";
+				contextMenu.style.top = Std.string(ev.pageY) + "px";
+			}
+			
+			return false;
+		}
+		);
 	}
 	
 	private static function createContextMenuItem(text:String, onClick:Dynamic):LIElement
@@ -539,6 +544,7 @@ private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String
   {
     setSelectedDoc(docs.length - 1);
     curDoc = data;
+	untyped Browser.window.curDoc = curDoc;
   }
 }
 
@@ -598,6 +604,7 @@ public static function selectDoc(pos):Void
 	}
 	setSelectedDoc(pos);
 	curDoc = docs[pos];
+	untyped Browser.window.curDoc = curDoc;
 	editor.swapDoc(curDoc.doc);
 }
 	
