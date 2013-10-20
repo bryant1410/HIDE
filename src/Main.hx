@@ -61,7 +61,7 @@ class Main {
 		
 		FileDialog.init();		
 		
-		//new TernAddon();
+		//TernAddon.init();
 		
 		FileTree.init();
 		
