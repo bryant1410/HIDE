@@ -451,7 +451,12 @@ class TabsManager
 			"Ctrl-Space": function(cm) { server.complete(cm); },
 			"Alt-.": function(cm) { server.jumpToDef(cm); },
 			"Alt-,": function(cm) { server.jumpBack(cm); },
-			"Ctrl-Q": function(cm) { server.rename(cm); }
+			"Ctrl-Q": function(cm) { server.rename(cm); },
+			//".": function(cm) 
+			//{ 
+				//untyped setTimeout(function(){server.complete(cm);}, 100); 
+				//untyped throw CodeMirror.Pass; // tell CodeMirror we didn't handle the key 
+			//} 
 		  };
 
 		  editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), {
@@ -544,7 +549,6 @@ private static function registerDoc(name:String, doc:CodeMirror.Doc, path:String
   {
     setSelectedDoc(docs.length - 1);
     curDoc = data;
-	untyped Browser.window.curDoc = curDoc;
   }
 }
 
@@ -604,7 +608,6 @@ public static function selectDoc(pos):Void
 	}
 	setSelectedDoc(pos);
 	curDoc = docs[pos];
-	untyped Browser.window.curDoc = curDoc;
 	editor.swapDoc(curDoc.doc);
 }
 	

@@ -178,7 +178,7 @@
 	 
     ts.request(cm, {type: "completions", types: true, docs: true, urls: true, caseInsensitive:true, sort:false, filter:false}, function(error, data) {
       if (error) return showError(ts, cm, error);
-      var completions = [], after = "";
+      var after = "";
       var from = data.start, to = data.end;
       if (cm.getRange(Pos(from.line, from.ch - 2), from) == "[\"" &&
           cm.getRange(to, Pos(to.line, to.ch + 2)) != "\"]")
@@ -188,8 +188,24 @@
 		
 		var doc = cm.getDoc();
 		
-		console.log(window.curDoc);
-		console.log(doc.indexFromPos(from));
+		$(document).triggerHandler("getCompletion", {data:data, after:after, from:from, to:to, word:word, doc:doc, ts:ts, c:c});
+    });
+  }
+  
+  $(document).on("processHint", processHint);
+  
+  function processHint(event, params)
+  {
+		var data = params.data;
+		var from = params.from;
+		var to = params.to;
+		var after = params.after;
+		var ts = params.ts;
+		var word = params.word;
+		var doc = params.doc;
+		var c = params.c;
+	  
+		var completions = [];
 		
 		var filtered_results = [];
 		var sorted_results = [];
@@ -229,43 +245,42 @@
 		}
 		
 	  for (var i = 0; i < sorted_results.length; ++i) {
-        var completion = sorted_results[i];
+		var completion = sorted_results[i];
 		
 		var className = typeToIcon(completion.type);
-        if (data.guess) className += " " + cls + "guess";
-        completions.push({text: completion.name + after,
-                          displayText: completion.name,
-                          className: className,
-                          data: completion});
-      }
+		if (data.guess) className += " " + cls + "guess";
+		completions.push({text: completion.name + after,
+						  displayText: completion.name,
+						  className: className,
+						  data: completion});
+	  }
 		
 		
-      for (var i = 0; i < filtered_results.length; ++i) {
-        var completion = filtered_results[i];
+	  for (var i = 0; i < filtered_results.length; ++i) {
+		var completion = filtered_results[i];
 		
 		var className = typeToIcon(completion.type);
-        if (data.guess) className += " " + cls + "guess";
-        completions.push({text: completion.name + after,
-                          displayText: completion.name,
-                          className: className,
-                          data: completion});
-      }
+		if (data.guess) className += " " + cls + "guess";
+		completions.push({text: completion.name + after,
+						  displayText: completion.name,
+						  className: className,
+						  data: completion});
+	  }
 
-      var obj = {from: from, to: to, list: completions};
-      var tooltip = null;
-      CodeMirror.on(obj, "close", function() { remove(tooltip); });
-      CodeMirror.on(obj, "update", function() { remove(tooltip); });
-      CodeMirror.on(obj, "select", function(cur, node) {
-        remove(tooltip);
-        var content = ts.options.completionTip ? ts.options.completionTip(cur.data) : cur.data.doc;
-        if (content) {
-          tooltip = makeTooltip(node.parentNode.getBoundingClientRect().right + window.pageXOffset,
-                                node.getBoundingClientRect().top + window.pageYOffset, content);
-          tooltip.className += " " + cls + "hint-doc";
-        }
-      });
-      c(obj);
-    });
+	  var obj = {from: from, to: to, list: completions};
+	  var tooltip = null;
+	  CodeMirror.on(obj, "close", function() { remove(tooltip); });
+	  CodeMirror.on(obj, "update", function() { remove(tooltip); });
+	  CodeMirror.on(obj, "select", function(cur, node) {
+		remove(tooltip);
+		var content = ts.options.completionTip ? ts.options.completionTip(cur.data) : cur.data.doc;
+		if (content) {
+		  tooltip = makeTooltip(node.parentNode.getBoundingClientRect().right + window.pageXOffset,
+								node.getBoundingClientRect().top + window.pageYOffset, content);
+		  tooltip.className += " " + cls + "hint-doc";
+		}
+	  });
+	  c(obj);
   }
 
   function typeToIcon(type) {
