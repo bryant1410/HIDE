@@ -18,6 +18,7 @@ import ui.menu.HelpMenu;
 import ui.menu.RunMenu;
 import ui.menu.SourceMenu;
 import ui.menu.ViewMenu;
+import ui.NewProjectDialog;
 
 class Main {
 
@@ -70,6 +71,11 @@ class Main {
 		initCorePlugin();
 		
 		PreserveWindowState.init();
+		
+		CompletionServer.init();
+		CompletionClient.init();
+		
+		NewProjectDialog.init();
     }
 	
 	static private function initMouseZoom():Void
@@ -100,7 +106,7 @@ class Main {
 	
 	static private function initHotKeys():Void
 	{
-		Browser.window.onkeyup = function (e:KeyboardEvent)
+		Browser.window.addEventListener("keyup", function (e:KeyboardEvent)
 		{
 			if (e.ctrlKey)
 			{
@@ -137,6 +143,8 @@ class Main {
 						//Ctrl-S
 						case 83:
 							FileAccess.saveActiveFile();
+						case 'N'.code:
+							FileAccess.createNewFile();
 						default:
 							
 					}			
@@ -164,10 +172,12 @@ class Main {
 							ProjectAccess.openProject();
 						//Ctrl-Shift-S
 						case 83:
-							//Save as...
+							FileAccess.saveActiveFileAs();
 						//Ctrl-Shift-T
 						case 'T'.code:
 							TabsManager.applyRandomTheme();
+						case 'N'.code:
+							ProjectAccess.createNewProject();
 						default:
 							
 					}		
@@ -181,7 +191,7 @@ class Main {
 					Utils.toggleFullscreen();
 				}
 			}
-		};
+		});
 	}
     
 	private static function initDragAndDropListeners():Void

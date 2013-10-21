@@ -99,7 +99,7 @@
             (pos.ch && closeOn.test(line.charAt(pos.ch - 1))))
           completion.close();
         else
-          debounce = setTimeout(update, 170);
+          debounce = setTimeout(update, 80);
       }
       this.cm.on("cursorActivity", activity);
       this.onClose = done;

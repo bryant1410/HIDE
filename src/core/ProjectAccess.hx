@@ -1,35 +1,38 @@
 package core;
 import jQuery.*;
 import ui.*;
+import ui.NewProjectDialog;
 import Utils;
 
 class ProjectAccess
 {
 	public static function createNewProject()
 	{
-		trace ("create a new project");
+		NewProjectDialog.show();
 		
+		//trace ("create a new project");
+		//
 		// this is how to notify the user
-		var notify = new Notify();
-		notify.type = "error";
-		notify.content = "Just to test notify!";
-		notify.show();
-		
+		//var notify = new Notify();
+		//notify.type = "error";
+		//notify.content = "Just to test notify!";
+		//notify.show();
+		//
 		// this is how to open a model
-		var modalDialog = new ModalDialog();
-		modalDialog.id='projectAccess_new';
-		modalDialog.title= 'New Project';
-		modalDialog.content = 'this is just a sample';
-		modalDialog.ok_text = "Create";
-		modalDialog.cancel_text = "Cancel";
-		modalDialog.show();
-		
-		new JQuery("#projectAccess_new .button_ok").on("click",
-			function()
-			{
-				trace("you've clicked the OK button");
+		//var modalDialog = new ModalDialog();
+		//modalDialog.id='projectAccess_new';
+		//modalDialog.title= 'New Project';
+		//modalDialog.content = 'this is just a sample';
+		//modalDialog.ok_text = "Create";
+		//modalDialog.cancel_text = "Cancel";
+		//modalDialog.show();
+		//
+		//new JQuery("#projectAccess_new .button_ok").on("click",
+			//function()
+			//{
+				//trace("you've clicked the OK button");
 				//modal.hide();
-			});
+			//});
 	}
 	
 	public static function openProject()

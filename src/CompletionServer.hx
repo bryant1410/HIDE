@@ -9,6 +9,11 @@ class CompletionServer
 
 	public function new() 
 	{
+		
+	}
+	
+	public static function init():Void
+	{
 		var haxeCompletionServer = js.Node.require('child_process').spawn("haxe", ["--wait", "6001"]);
 
 		haxeCompletionServer.stderr.setEncoding('utf8');
