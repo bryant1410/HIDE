@@ -1,4 +1,6 @@
 package ui;
+import core.FileDialog;
+import haxe.ds.StringMap;
 import haxe.Timer;
 import jQuery.JQuery;
 import js.Browser;
@@ -8,6 +10,7 @@ import js.html.DivElement;
 import js.html.Event;
 import js.html.HeadingElement;
 import js.html.InputElement;
+import js.html.LabelElement;
 import js.html.LIElement;
 import js.html.MouseEvent;
 import js.html.OptionElement;
@@ -26,6 +29,15 @@ class NewProjectDialog
 	private static var list:SelectElement;
 	private static var selectedCategory:String;
 	static private var description:ParagraphElement;
+	static private var helpBlock:ParagraphElement;
+	static private var projectName:InputElement;
+	static private var projectLocation:InputElement;
+	static private var checkbox:InputElement;
+	static private var page1:DivElement;
+	static private var page2:DivElement;
+	static private var backButton:ButtonElement;
+	static private var textfieldsWithCheckboxes:StringMap<InputElement>;
+	static private var checkboxes:StringMap<InputElement>;
 	
 	public function new() 
 	{
@@ -67,10 +79,13 @@ class NewProjectDialog
 		body.style.overflow = "hidden";
 		content.appendChild(body);
 		
-		var page1:DivElement = createPage1();
+		textfieldsWithCheckboxes = new StringMap();
+		checkboxes = new StringMap();
+		
+		createPage1();
 		body.appendChild(page1);
 		
-		var page2:DivElement = createPage2();
+		createPage2();
 		page2.style.display = "none";
 		body.appendChild(page2);
 		
@@ -78,7 +93,7 @@ class NewProjectDialog
 		footer.className = "modal-footer";
 		content.appendChild(footer);
 		
-		var backButton:ButtonElement = Browser.document.createButtonElement();
+		backButton = Browser.document.createButtonElement();
 		backButton.type = "button";
 		backButton.className = "btn btn-default disabled";
 		backButton.textContent = "Back";
@@ -106,6 +121,15 @@ class NewProjectDialog
 		{
 			if (nextButton.className.indexOf("disabled") == -1)
 			{
+				if (selectedCategory != "OpenFL/Samples")
+				{
+					projectName.value = StringTools.replace(selectedCategory, "/", "") + StringTools.replace(list.value, " ", "") + "1";
+				}
+				else
+				{
+					projectName.value = list.value;
+				}
+				
 				new JQuery(page1).hide(300);
 				new JQuery(page2).show(300);
 				backButton.className = "btn btn-default";
@@ -123,7 +147,15 @@ class NewProjectDialog
 		
 		finishButton.onclick = function (e:MouseEvent)
 		{
-			
+			if (projectLocation.value != "" && projectName.value != "")
+			{
+				saveData("Package");
+				saveData("Company");
+				saveData("License");
+				saveData("URL");
+				
+				hide();
+			}
 		}
 		;
 		
@@ -149,16 +181,76 @@ class NewProjectDialog
 			}
 		}
 		);
+		
+		var location:String = Browser.getLocalStorage().getItem("Location");
+		
+		if (location != null)
+		{
+			projectLocation.value = location;
+		}
+		
+		loadData("Package");
+		loadData("Company");
+		loadData("License");
+		loadData("URL");
+		
+		loadCheckboxState("Package");
+		loadCheckboxState("Company");
+		loadCheckboxState("License");
+		loadCheckboxState("URL");
 	}
 	
 	public static function show():Void
-	{
+	{		
+		if (page1.style.display == "none")
+		{
+			backButton.click();
+		}
+		
 		untyped new JQuery(modal).modal("show");
+	}
+	
+	public static function hide():Void
+	{
+		untyped new JQuery(modal).modal("hide");
+	}
+	
+	private static function loadData(_text:String):Void
+	{
+		var text:String = Browser.getLocalStorage().getItem(_text);
+		
+		if (text != null)
+		{
+			textfieldsWithCheckboxes.get(_text).value = text;
+		}
+	}
+	
+	private static function saveData(_text:String):Void
+	{
+		if (checkboxes.get(_text).checked)
+		{
+			Browser.getLocalStorage().setItem(_text, textfieldsWithCheckboxes.get(_text).value);
+		}
+	}
+	
+	private static function loadCheckboxState(_text:String):Void
+	{
+		var text:String = Browser.getLocalStorage().getItem(_text + "Checkbox");
+		
+		if (text != null)
+		{
+			checkboxes.get(_text).checked = JSON.parse(text);
+		}
+	}
+	
+	private static function saveCheckboxState(_text:String):Void
+	{
+		Browser.getLocalStorage().setItem(_text, JSON.stringify(checkboxes.get(_text + "Checkbox").checked));
 	}
 	
 	private static function createPage1():DivElement
 	{
-		var page1:DivElement = Browser.document.createDivElement();
+		page1 = Browser.document.createDivElement();
 		
 		var well:DivElement = Browser.document.createDivElement();
 		well.className = "well";
@@ -199,50 +291,78 @@ class NewProjectDialog
 	
 	private static function createPage2():DivElement
 	{
-		var page2:DivElement = Browser.document.createDivElement();
-		
-		var projectName:InputElement = Browser.document.createInputElement();
-		projectName.type = "text";
-		projectName.className = "form-control";
-		projectName.placeholder = "Name";
-		page2.appendChild(projectName);
+		page2 = Browser.document.createDivElement();
+		page2.style.padding = "15px";
 		
 		var row:DivElement = Browser.document.createDivElement();
 		row.className = "row";
 		
-		var col:DivElement  = Browser.document.createDivElement();
-		col.className = "col-md-8";
-		row.appendChild(col);
+		projectName = Browser.document.createInputElement();
+		projectName.type = "text";
+		projectName.className = "form-control";
+		projectName.placeholder = "Name";
+		projectName.style.width = "100%";
+		row.appendChild(projectName);
+		
+		page2.appendChild(row);
+		
+		//var row:DivElement = Browser.document.createDivElement();
+		//row.className = "row";
+		
+		//var col:DivElement  = Browser.document.createDivElement();
+		//col.className = "col-md-8";
+		//row.appendChild(col);
+		
+		//var inputGroup:DivElement = Browser.document.createDivElement();
+		//inputGroup.className = "input-group";
+		//row.appendChild(inputGroup);
+		
+		row = Browser.document.createDivElement();
+		row.className = "row";
 		
 		var inputGroup:DivElement = Browser.document.createDivElement();
 		inputGroup.className = "input-group";
-		col.appendChild(inputGroup);
+		inputGroup.style.display = "inline";
+		row.appendChild(inputGroup);
 		
-		var projectLocation:InputElement = Browser.document.createInputElement();
+		projectLocation = Browser.document.createInputElement();
 		projectLocation.type = "text";
 		projectLocation.className = "form-control";
 		projectLocation.placeholder = "Location";
+		projectLocation.style.width = "80%";
 		inputGroup.appendChild(projectLocation);
 		
-		var col2:DivElement  = Browser.document.createDivElement();
-		col2.className = "col-md-4";
-		row.appendChild(col2);
+		//var inputGroupAddon:SpanElement = Browser.document.createSpanElement();
+		//inputGroupAddon.className = "input-group-addon";
+		//inputGroup.appendChild(inputGroupAddon);
 		
-		var inputGroup2:DivElement = Browser.document.createDivElement();
-		inputGroup2.className = "input-group";
-		col2.appendChild(inputGroup2);
+		//var col2:DivElement  = Browser.document.createDivElement();
+		//col2.className = "col-md-4";
+		//row.appendChild(col2);
+		//
+		//var inputGroup2:DivElement = Browser.document.createDivElement();
+		//inputGroup2.className = "input-group";
+		//col2.appendChild(inputGroup2);
 		
 		var browseButton:ButtonElement = Browser.document.createButtonElement();
 		browseButton.type = "button";
 		browseButton.className = "btn btn-default";
 		browseButton.textContent = "Browse...";
+		browseButton.style.width = "20%";
 		
 		browseButton.onclick = function (e:MouseEvent)
 		{
-			
+			FileDialog.openFolder(function (path:String):Void
+			{
+				projectLocation.value = path;
+				updateHelpBlock();
+				
+				Browser.getLocalStorage().setItem("Location", path);
+			}
+			);
 		};
 		
-		inputGroup2.appendChild(browseButton);
+		inputGroup.appendChild(browseButton);
 		
 		page2.appendChild(row);
 		
@@ -251,10 +371,71 @@ class NewProjectDialog
 		createTextWithCheckbox(page2, "License");
 		createTextWithCheckbox(page2, "URL");
 		
+		row = Browser.document.createDivElement();
+		row.className = "row";
+		
+		var checkboxDiv:DivElement = Browser.document.createDivElement();
+		checkboxDiv.className = "checkbox";
+		row.appendChild(checkboxDiv);
+		
+		var label:LabelElement = Browser.document.createLabelElement();
+		checkboxDiv.appendChild(label);
+		
+		checkbox = Browser.document.createInputElement();
+		checkbox.type = "checkbox";
+		checkbox.checked = true;
+		label.appendChild(checkbox);
+		
+		checkbox.onchange = function (e):Void
+		{
+			updateHelpBlock();
+		};
+		
+		label.appendChild(Browser.document.createTextNode("Create directory for project"));
+		
+		page2.appendChild(row);
+		
+		row = Browser.document.createDivElement();
+		
+		helpBlock = Browser.document.createParagraphElement();
+		helpBlock.className = "help-block";
+		row.appendChild(helpBlock);
+		
+		projectLocation.onchange = function (e):Void
+		{
+			updateHelpBlock();
+		};
+		
+		projectName.onchange = function (e):Void
+		{			
+			updateHelpBlock();
+		}
+		
+		page2.appendChild(row);
+		
 		return page2;
 	}
 	
-	private static function createTextWithCheckbox(_page2:DivElement, _text:String)
+	private static function updateHelpBlock():Void
+	{
+		if (projectLocation.value != "")
+		{
+			var str:String = "";
+			
+			if (checkbox.checked == true && projectName.value != "")
+			{
+				str = projectName.value;
+			}
+			
+			helpBlock.innerText = "Project will be created in: " + projectLocation.value + str;
+		}
+		else
+		{
+			helpBlock.innerText = "";
+		}
+	}
+	
+	private static function createTextWithCheckbox(_page2:DivElement, _text:String):Void
 	{
 		var row:DivElement = Browser.document.createDivElement();
 		row.className = "row";
@@ -272,10 +453,14 @@ class NewProjectDialog
 		checkbox.checked = true;
 		inputGroupAddon.appendChild(checkbox);
 		
+		checkboxes.set(_text, checkbox);
+		
 		var text:InputElement = Browser.document.createInputElement();
 		text.type = "text";
 		text.className = "form-control";
 		text.placeholder = _text;
+		
+		textfieldsWithCheckboxes.set(_text, text);
 		
 		checkbox.onchange = function (e)
 		{

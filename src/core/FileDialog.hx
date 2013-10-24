@@ -44,6 +44,11 @@ class FileDialog
 			input.removeAttribute("nwsaveas");
 		}
 		
+		if (input.hasAttribute("nwdirectory"))
+		{
+			input.removeAttribute("nwdirectory");
+		}
+		
 		input.click();
 	}
 	
@@ -58,7 +63,27 @@ class FileDialog
 			_name = "";
 		}
 		
+		if (input.hasAttribute("nwdirectory"))
+		{
+			input.removeAttribute("nwdirectory");
+		}
+		
 		input.setAttribute("nwsaveas", _name);
+		input.click();
+	}
+	
+	public static function openFolder(_onClick:Dynamic):Void
+	{
+		input.value = "";
+		
+		onClick = _onClick;
+		
+		if (input.hasAttribute("nwsaveas"))
+		{
+			input.removeAttribute("nwsaveas");
+		}
+		
+		input.setAttribute("nwdirectory", "");
 		input.click();
 	}
 	
