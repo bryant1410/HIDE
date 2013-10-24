@@ -21,7 +21,7 @@ class Layout
 		{
 			center__paneSelector:	".outer-center",
 			west__paneSelector:		".outer-west",
-			west__size:				250,
+			west__size:				200,
 			spacing_open:			8,  // ALL panes
 			spacing_closed:			12, // ALL panes
 			

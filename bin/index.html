@@ -599,7 +599,7 @@ ul.tabs {
   z-index: 0;
 }
 ul.tabs li {
-  font-size: 11pt;
+  font-size: 9pt;
   color: #777;
   cursor: pointer;
   margin: 0 2px 0 0;
@@ -646,15 +646,6 @@ ul.tabs li.selected:before {
 }
 ul.tabs li.selected:after {
   box-shadow: -2px 2px 0 white;
-}
-
-#commands {
-  font-family: "Ubuntu Mono";
-  font-size: 11pt;
-  position: absolute;
-  right: 0;
-  top: 0;
-  max-width: 10em;
 }
 
 .CodeMirror div.CodeMirror-cursor {
@@ -18547,170 +18538,6 @@ G=function(b,c,a){a=F(b,c,a);a===e?delete b[c]:b[c]=a},F=function(b,c,a){var d=b
 });
 </script>
 
-	<!-- Demo code http://ternjs.net/doc/demo.html -->
-	<!-- 
-	<script>var useWorker = false;
-
-var server, editor, defs = [];
-var Pos = CodeMirror.Pos;
-
-// Document management
-
-var docs = [], curDoc;
-
-function findDoc(name) { return docs[docID(name)]; }
-function docID(name) { for (var i = 0; i < docs.length; ++i) if (docs[i].name == name) return i; }
-
-function registerDoc(name, doc) {
-  server.addDoc(name, doc);
-  var data = {name: name, doc: doc};
-  docs.push(data);
-  var docTabs = document.getElementById("docs");
-  var li = docTabs.appendChild(document.createElement("li"));
-  li.appendChild(document.createTextNode(name));
-  if (editor.getDoc() == doc) {
-    setSelectedDoc(docs.length - 1);
-    curDoc = data;
-  }
-}
-
-function unregisterDoc(doc) {
-  server.delDoc(doc.name);
-  for (var i = 0; i < docs.length && doc != docs[i]; ++i) {}
-  docs.splice(i, 1);
-  var docList = document.getElementById("docs");
-  docList.removeChild(docList.childNodes[i]);
-  selectDoc(Math.max(0, i - 1));
-}
-
-function setSelectedDoc(pos) {
-  var docTabs = document.getElementById("docs");
-  for (var i = 0; i < docTabs.childNodes.length; ++i)
-    docTabs.childNodes[i].className = pos == i ? "selected" : "";
-}
-
-function selectDoc(pos) {
-  server.hideDoc(curDoc.name);
-  setSelectedDoc(pos);
-  curDoc = docs[pos];
-  editor.swapDoc(curDoc.doc);
-}
-
-// Initialization
-
-function load(file, c) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("get", file, true);
-  xhr.send();
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState == 4) c(xhr.responseText, xhr.status);
-  };
-}
-
-CodeMirror.on(window, "load", function() {
-  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
-  //probably we can supply here Haxe keywords, like so:
-  //this, typedef, class, interface, package, private, public, static, var, function, trace, switch, case and etc.
-  //http://haxe.org/ref/keywords
-  //We can create file similar to ecma5.json and provide description for each keyword
-  
-  //We can even provide completion for classes here, like String.
-	
-  //var files = ["./includes/js/tern/defs/ecma5.json"];
-  //var files = ["./includes/js/tern/defs/ecma5.json", "./includes/js/tern/defs/browser.json", "./includes/js/tern/defs/jquery.json"];
-  //var loaded = 0;
-  //for (var i = 0; i < files.length; ++i) (function(i) {
-    //load(files[i], function(json) {
-      //defs[i] = JSON.parse(json);
-      //if (++loaded == files.length) initEditor();
-    //});
-  //})(i);
-  
-  initEditor();
-
-  //var cmds = document.getElementById("commands");
-  //CodeMirror.on(cmds, "change", function() {
-    //if (!editor || cmds.selectedIndex == 0) return;
-    //var found = commands[cmds.value];
-    //cmds.selectedIndex = 0;
-    //editor.focus();
-    //if (found) found(editor);
-  //});
-});
-
-function initEditor() {
-  var keyMap = {
-    "Ctrl-I": function(cm) { server.showType(cm); },
-    "Ctrl-Space": function(cm) { server.complete(cm); },
-    "Alt-.": function(cm) { server.jumpToDef(cm); },
-    "Alt-,": function(cm) { server.jumpBack(cm); },
-    "Ctrl-Q": function(cm) { server.rename(cm); }
-  };
-
-  editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-    lineNumbers: true,
-    extraKeys: keyMap,
-    matchBrackets: true
-  });
-
-  server = new CodeMirror.TernServer({
-    defs: defs,
-    plugins: {requirejs: {}, doc_comment: true},
-    switchToDoc: function(name) { selectDoc(docID(name)); },
-    workerDeps: ["./includes/js/acorn/acorn.js", "./includes/js/acorn/acorn_loose.js",
-                 "./includes/js/acorn/util/walk.js", "./includes/js/tern/lib/signal.js", "./includes/js/tern/lib/tern.js",
-                 "./includes/js/tern/lib/def.js", "./includes/js/tern/lib/infer.js", "./includes/js/tern/lib/comment.js",
-                 "./includes/js/tern/plugin/requirejs.js", "./includes/js/tern/plugin/doc_comment.js"],
-    workerScript: "./includes/js/codemirror-3.18/addon/tern/worker.js",
-    useWorker: useWorker
-
-  });
-
-  editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
-
-  registerDoc("Main.hx", editor.getDoc());
-  
-  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
-  
-  //We can load files like this:
-  
-  //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
-    //registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
-  //});
-
-  CodeMirror.on(document.getElementById("docs"), "click", function(e) {
-    var target = e.target || e.srcElement;
-    if (target.nodeName.toLowerCase() != "li") return;
-    for (var i = 0, c = target.parentNode.firstChild; ; ++i, (c = c.nextSibling))
-      if (c == target) return selectDoc(i);
-  });
-}
-
-var commands = {
-  complete: function(cm) { server.complete(cm); },
-  jumptodef: function(cm) { server.jumpToDef(cm); },
-  findtype: function(cm) { server.showType(cm); },
-  rename: function(cm) { server.rename(cm); },
-  
-  //Command for creating new file
-  
-  addfile: function() {
-    var name = prompt("Name of the new file", "");
-    if (name == null) return;
-    if (!name) name = "test";
-    var i = 0;
-    while (findDoc(name + (i || ""))) ++i;
-    registerDoc(name + (i || ""), new CodeMirror.Doc("", "haxe"));
-    selectDoc(docs.length - 1);
-  },
-  delfile: function() {
-    if (docs.length == 1) return;
-    unregisterDoc(curDoc);
-  }
-};
-</script>
-	 -->
-
 	<!-- Tern plugins -->
 
 	<!-- <script>(function(mod) {
@@ -19558,7 +19385,7 @@ Lambda.indexOf = function(it,v) {
 var Layout = function() { }
 Layout.__name__ = true;
 Layout.init = function() {
-	Layout.layout = new $("#panel").layout({ center__paneSelector : ".outer-center", west__paneSelector : ".outer-west", west__size : 250, spacing_open : 8, spacing_closed : 12, center__childOptions : { center__paneSelector : ".middle-center", south__paneSelector : ".middle-south", south__size : 100, spacing_open : 8, spacing_closed : 12}, animatePaneSizing : true, stateManagement__enabled : true});
+	Layout.layout = new $("#panel").layout({ center__paneSelector : ".outer-center", west__paneSelector : ".outer-west", west__size : 200, spacing_open : 8, spacing_closed : 12, center__childOptions : { center__paneSelector : ".middle-center", south__paneSelector : ".middle-south", south__size : 100, spacing_open : 8, spacing_closed : 12}, animatePaneSizing : true, stateManagement__enabled : true});
 	Layout.initPreserveLayout();
 }
 Layout.initPreserveLayout = function() {
@@ -19626,9 +19453,9 @@ Main.initHotKeys = function() {
 				core.TabsManager.closeActiveTab();
 				break;
 			case 48:
-				new $(".CodeMirror").css("font-size","11pt");
-				new $(".CodeMirror-hint").css("font-size","11pt");
-				new $(".CodeMirror-hints").css("font-size",Std.string(9.9) + "pt");
+				new $(".CodeMirror").css("font-size","8pt");
+				new $(".CodeMirror-hint").css("font-size","8t");
+				new $(".CodeMirror-hints").css("font-size",Std.string(7.2) + "pt");
 				break;
 			case 189:
 				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
@@ -19723,6 +19550,7 @@ Main.initMenu = function() {
 	Main.menus.set("run",new ui.menu.RunMenu());
 	Main.menus.set("help",new ui.menu.HelpMenu());
 	haxe.Timer.delay(Main.updateMenu,100);
+	haxe.Timer.delay(Main.updateMenu,10000);
 }
 Main.updateMenu = function() {
 	var fileMenuDisabledItems = new Array();
@@ -19836,6 +19664,9 @@ StringTools.endsWith = function(s,end) {
 	var elen = end.length;
 	var slen = s.length;
 	return slen >= elen && HxOverrides.substr(s,slen - elen,elen) == end;
+}
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
 }
 var Sys = function() { }
 Sys.__name__ = true;
@@ -19978,13 +19809,22 @@ core.FileDialog.openFile = function(_onClick) {
 	core.FileDialog.input.value = "";
 	core.FileDialog.onClick = _onClick;
 	if(core.FileDialog.input.hasAttribute("nwsaveas")) core.FileDialog.input.removeAttribute("nwsaveas");
+	if(core.FileDialog.input.hasAttribute("nwdirectory")) core.FileDialog.input.removeAttribute("nwdirectory");
 	core.FileDialog.input.click();
 }
 core.FileDialog.saveFile = function(_onClick,_name) {
 	core.FileDialog.input.value = "";
 	core.FileDialog.onClick = _onClick;
 	if(_name == null) _name = "";
+	if(core.FileDialog.input.hasAttribute("nwdirectory")) core.FileDialog.input.removeAttribute("nwdirectory");
 	core.FileDialog.input.setAttribute("nwsaveas",_name);
+	core.FileDialog.input.click();
+}
+core.FileDialog.openFolder = function(_onClick) {
+	core.FileDialog.input.value = "";
+	core.FileDialog.onClick = _onClick;
+	if(core.FileDialog.input.hasAttribute("nwsaveas")) core.FileDialog.input.removeAttribute("nwsaveas");
+	core.FileDialog.input.setAttribute("nwdirectory","");
 	core.FileDialog.input.click();
 }
 core.ProjectAccess = function() { }
@@ -20535,36 +20375,39 @@ ui.NewProjectDialog.init = function() {
 	body.className = "modal-body";
 	body.style.overflow = "hidden";
 	content.appendChild(body);
-	var page1 = ui.NewProjectDialog.createPage1();
-	body.appendChild(page1);
-	var page2 = ui.NewProjectDialog.createPage2();
-	page2.style.display = "none";
-	body.appendChild(page2);
+	ui.NewProjectDialog.textfieldsWithCheckboxes = new haxe.ds.StringMap();
+	ui.NewProjectDialog.checkboxes = new haxe.ds.StringMap();
+	ui.NewProjectDialog.createPage1();
+	body.appendChild(ui.NewProjectDialog.page1);
+	ui.NewProjectDialog.createPage2();
+	ui.NewProjectDialog.page2.style.display = "none";
+	body.appendChild(ui.NewProjectDialog.page2);
 	var footer = js.Browser.document.createElement("div");
 	footer.className = "modal-footer";
 	content.appendChild(footer);
-	var backButton = js.Browser.document.createElement("button");
-	backButton.type = "button";
-	backButton.className = "btn btn-default disabled";
-	backButton.textContent = "Back";
-	footer.appendChild(backButton);
+	ui.NewProjectDialog.backButton = js.Browser.document.createElement("button");
+	ui.NewProjectDialog.backButton.type = "button";
+	ui.NewProjectDialog.backButton.className = "btn btn-default disabled";
+	ui.NewProjectDialog.backButton.textContent = "Back";
+	footer.appendChild(ui.NewProjectDialog.backButton);
 	var nextButton = js.Browser.document.createElement("button");
 	nextButton.type = "button";
 	nextButton.className = "btn btn-default";
 	nextButton.textContent = "Next";
-	backButton.onclick = function(e) {
-		if(backButton.className.indexOf("disabled") == -1) {
-			new $(page1).show(300);
-			new $(page2).hide(300);
-			backButton.className = "btn btn-default disabled";
+	ui.NewProjectDialog.backButton.onclick = function(e) {
+		if(ui.NewProjectDialog.backButton.className.indexOf("disabled") == -1) {
+			new $(ui.NewProjectDialog.page1).show(300);
+			new $(ui.NewProjectDialog.page2).hide(300);
+			ui.NewProjectDialog.backButton.className = "btn btn-default disabled";
 			nextButton.className = "btn btn-default";
 		}
 	};
 	nextButton.onclick = function(e) {
 		if(nextButton.className.indexOf("disabled") == -1) {
-			new $(page1).hide(300);
-			new $(page2).show(300);
-			backButton.className = "btn btn-default";
+			if(ui.NewProjectDialog.selectedCategory != "OpenFL/Samples") ui.NewProjectDialog.projectName.value = StringTools.replace(ui.NewProjectDialog.selectedCategory,"/","") + StringTools.replace(ui.NewProjectDialog.list.value," ","") + "1"; else ui.NewProjectDialog.projectName.value = ui.NewProjectDialog.list.value;
+			new $(ui.NewProjectDialog.page1).hide(300);
+			new $(ui.NewProjectDialog.page2).show(300);
+			ui.NewProjectDialog.backButton.className = "btn btn-default";
 			nextButton.className = "btn btn-default disabled";
 		}
 	};
@@ -20574,6 +20417,13 @@ ui.NewProjectDialog.init = function() {
 	finishButton.className = "btn btn-default";
 	finishButton.textContent = "Finish";
 	finishButton.onclick = function(e) {
+		if(ui.NewProjectDialog.projectLocation.value != "" && ui.NewProjectDialog.projectName.value != "") {
+			ui.NewProjectDialog.saveData("Package");
+			ui.NewProjectDialog.saveData("Company");
+			ui.NewProjectDialog.saveData("License");
+			ui.NewProjectDialog.saveData("URL");
+			ui.NewProjectDialog.hide();
+		}
 	};
 	footer.appendChild(finishButton);
 	var cancelButton = js.Browser.document.createElement("button");
@@ -20587,19 +20437,44 @@ ui.NewProjectDialog.init = function() {
 	js.Browser.window.addEventListener("keyup",function(e) {
 		if(e.keyCode == 27) new $(ui.NewProjectDialog.modal).modal("hide");
 	});
+	var location = js.Browser.getLocalStorage().getItem("Location");
+	if(location != null) ui.NewProjectDialog.projectLocation.value = location;
+	ui.NewProjectDialog.loadData("Package");
+	ui.NewProjectDialog.loadData("Company");
+	ui.NewProjectDialog.loadData("License");
+	ui.NewProjectDialog.loadData("URL");
+	ui.NewProjectDialog.loadCheckboxState("Package");
+	ui.NewProjectDialog.loadCheckboxState("Company");
+	ui.NewProjectDialog.loadCheckboxState("License");
+	ui.NewProjectDialog.loadCheckboxState("URL");
 }
 ui.NewProjectDialog.show = function() {
+	if(ui.NewProjectDialog.page1.style.display == "none") ui.NewProjectDialog.backButton.click();
 	new $(ui.NewProjectDialog.modal).modal("show");
 }
+ui.NewProjectDialog.hide = function() {
+	new $(ui.NewProjectDialog.modal).modal("hide");
+}
+ui.NewProjectDialog.loadData = function(_text) {
+	var text = js.Browser.getLocalStorage().getItem(_text);
+	if(text != null) ui.NewProjectDialog.textfieldsWithCheckboxes.get(_text).value = text;
+}
+ui.NewProjectDialog.saveData = function(_text) {
+	if(ui.NewProjectDialog.checkboxes.get(_text).checked) js.Browser.getLocalStorage().setItem(_text,ui.NewProjectDialog.textfieldsWithCheckboxes.get(_text).value);
+}
+ui.NewProjectDialog.loadCheckboxState = function(_text) {
+	var text = js.Browser.getLocalStorage().getItem(_text + "Checkbox");
+	if(text != null) ui.NewProjectDialog.checkboxes.get(_text).checked = JSON.parse(text);
+}
 ui.NewProjectDialog.createPage1 = function() {
-	var page1 = js.Browser.document.createElement("div");
+	ui.NewProjectDialog.page1 = js.Browser.document.createElement("div");
 	var well = js.Browser.document.createElement("div");
 	well.className = "well";
 	well.style["float"] = "left";
 	well.style.width = "50%";
 	well.style.height = "250px";
 	well.style.marginBottom = "0";
-	page1.appendChild(well);
+	ui.NewProjectDialog.page1.appendChild(well);
 	var tree = js.Browser.document.createElement("ul");
 	tree.className = "nav nav-list";
 	well.appendChild(tree);
@@ -20609,55 +20484,93 @@ ui.NewProjectDialog.createPage1 = function() {
 	ui.NewProjectDialog.list.style["float"] = "left";
 	ui.NewProjectDialog.list.style.width = "50%";
 	ui.NewProjectDialog.list.style.height = "250px";
-	page1.appendChild(ui.NewProjectDialog.list);
-	page1.appendChild(js.Browser.document.createElement("br"));
+	ui.NewProjectDialog.page1.appendChild(ui.NewProjectDialog.list);
+	ui.NewProjectDialog.page1.appendChild(js.Browser.document.createElement("br"));
 	ui.NewProjectDialog.description = js.Browser.document.createElement("p");
 	ui.NewProjectDialog.description.style.width = "100%";
 	ui.NewProjectDialog.description.style.height = "50px";
 	ui.NewProjectDialog.description.style.overflow = "auto";
 	ui.NewProjectDialog.description.textContent = "Description";
-	page1.appendChild(ui.NewProjectDialog.description);
-	return page1;
+	ui.NewProjectDialog.page1.appendChild(ui.NewProjectDialog.description);
+	return ui.NewProjectDialog.page1;
 }
 ui.NewProjectDialog.createPage2 = function() {
-	var page2 = js.Browser.document.createElement("div");
-	var projectName = js.Browser.document.createElement("input");
-	projectName.type = "text";
-	projectName.className = "form-control";
-	projectName.placeholder = "Name";
-	page2.appendChild(projectName);
+	ui.NewProjectDialog.page2 = js.Browser.document.createElement("div");
+	ui.NewProjectDialog.page2.style.padding = "15px";
 	var row = js.Browser.document.createElement("div");
 	row.className = "row";
-	var col = js.Browser.document.createElement("div");
-	col.className = "col-md-8";
-	row.appendChild(col);
+	ui.NewProjectDialog.projectName = js.Browser.document.createElement("input");
+	ui.NewProjectDialog.projectName.type = "text";
+	ui.NewProjectDialog.projectName.className = "form-control";
+	ui.NewProjectDialog.projectName.placeholder = "Name";
+	ui.NewProjectDialog.projectName.style.width = "100%";
+	row.appendChild(ui.NewProjectDialog.projectName);
+	ui.NewProjectDialog.page2.appendChild(row);
+	row = js.Browser.document.createElement("div");
+	row.className = "row";
 	var inputGroup = js.Browser.document.createElement("div");
 	inputGroup.className = "input-group";
-	col.appendChild(inputGroup);
-	var projectLocation = js.Browser.document.createElement("input");
-	projectLocation.type = "text";
-	projectLocation.className = "form-control";
-	projectLocation.placeholder = "Location";
-	inputGroup.appendChild(projectLocation);
-	var col2 = js.Browser.document.createElement("div");
-	col2.className = "col-md-4";
-	row.appendChild(col2);
-	var inputGroup2 = js.Browser.document.createElement("div");
-	inputGroup2.className = "input-group";
-	col2.appendChild(inputGroup2);
+	inputGroup.style.display = "inline";
+	row.appendChild(inputGroup);
+	ui.NewProjectDialog.projectLocation = js.Browser.document.createElement("input");
+	ui.NewProjectDialog.projectLocation.type = "text";
+	ui.NewProjectDialog.projectLocation.className = "form-control";
+	ui.NewProjectDialog.projectLocation.placeholder = "Location";
+	ui.NewProjectDialog.projectLocation.style.width = "80%";
+	inputGroup.appendChild(ui.NewProjectDialog.projectLocation);
 	var browseButton = js.Browser.document.createElement("button");
 	browseButton.type = "button";
 	browseButton.className = "btn btn-default";
 	browseButton.textContent = "Browse...";
+	browseButton.style.width = "20%";
 	browseButton.onclick = function(e) {
+		core.FileDialog.openFolder(function(path) {
+			ui.NewProjectDialog.projectLocation.value = path;
+			ui.NewProjectDialog.updateHelpBlock();
+			js.Browser.getLocalStorage().setItem("Location",path);
+		});
 	};
-	inputGroup2.appendChild(browseButton);
-	page2.appendChild(row);
-	ui.NewProjectDialog.createTextWithCheckbox(page2,"Package");
-	ui.NewProjectDialog.createTextWithCheckbox(page2,"Company");
-	ui.NewProjectDialog.createTextWithCheckbox(page2,"License");
-	ui.NewProjectDialog.createTextWithCheckbox(page2,"URL");
-	return page2;
+	inputGroup.appendChild(browseButton);
+	ui.NewProjectDialog.page2.appendChild(row);
+	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"Package");
+	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"Company");
+	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"License");
+	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"URL");
+	row = js.Browser.document.createElement("div");
+	row.className = "row";
+	var checkboxDiv = js.Browser.document.createElement("div");
+	checkboxDiv.className = "checkbox";
+	row.appendChild(checkboxDiv);
+	var label = js.Browser.document.createElement("label");
+	checkboxDiv.appendChild(label);
+	ui.NewProjectDialog.checkbox = js.Browser.document.createElement("input");
+	ui.NewProjectDialog.checkbox.type = "checkbox";
+	ui.NewProjectDialog.checkbox.checked = true;
+	label.appendChild(ui.NewProjectDialog.checkbox);
+	ui.NewProjectDialog.checkbox.onchange = function(e) {
+		ui.NewProjectDialog.updateHelpBlock();
+	};
+	label.appendChild(js.Browser.document.createTextNode("Create directory for project"));
+	ui.NewProjectDialog.page2.appendChild(row);
+	row = js.Browser.document.createElement("div");
+	ui.NewProjectDialog.helpBlock = js.Browser.document.createElement("p");
+	ui.NewProjectDialog.helpBlock.className = "help-block";
+	row.appendChild(ui.NewProjectDialog.helpBlock);
+	ui.NewProjectDialog.projectLocation.onchange = function(e) {
+		ui.NewProjectDialog.updateHelpBlock();
+	};
+	ui.NewProjectDialog.projectName.onchange = function(e) {
+		ui.NewProjectDialog.updateHelpBlock();
+	};
+	ui.NewProjectDialog.page2.appendChild(row);
+	return ui.NewProjectDialog.page2;
+}
+ui.NewProjectDialog.updateHelpBlock = function() {
+	if(ui.NewProjectDialog.projectLocation.value != "") {
+		var str = "";
+		if(ui.NewProjectDialog.checkbox.checked == true && ui.NewProjectDialog.projectName.value != "") str = ui.NewProjectDialog.projectName.value;
+		ui.NewProjectDialog.helpBlock.innerText = "Project will be created in: " + ui.NewProjectDialog.projectLocation.value + str;
+	} else ui.NewProjectDialog.helpBlock.innerText = "";
 }
 ui.NewProjectDialog.createTextWithCheckbox = function(_page2,_text) {
 	var row = js.Browser.document.createElement("div");
@@ -20672,10 +20585,12 @@ ui.NewProjectDialog.createTextWithCheckbox = function(_page2,_text) {
 	checkbox.type = "checkbox";
 	checkbox.checked = true;
 	inputGroupAddon.appendChild(checkbox);
+	ui.NewProjectDialog.checkboxes.set(_text,checkbox);
 	var text = js.Browser.document.createElement("input");
 	text.type = "text";
 	text.className = "form-control";
 	text.placeholder = _text;
+	ui.NewProjectDialog.textfieldsWithCheckboxes.set(_text,text);
 	checkbox.onchange = function(e) {
 		if(checkbox.checked) text.disabled = false; else text.disabled = true;
 	};
@@ -21087,7 +21002,6 @@ Main.main();
 	.CodeMirror{
 		width: 100%; 
 		height: 100%;
-		font-size: 11pt;
 		font-family: "Ubuntu Mono";
 		line-height: 1.3;
 	}
@@ -21113,7 +21027,7 @@ Main.main();
 	</style>
 </head>
 
-<body style="overflow:hidden;">
+<body style="overflow: hidden;">
 	<div id="haxe:trace"></div>
 	
 	<div style="position: absolute; top: 50px; left: 0px; width: 100%; z-index: 1000;" id='notify_position'></div>
@@ -21148,8 +21062,8 @@ Main.main();
 		</div>
 		
 		<div class="outer-west ui-layout-west">
-			<div id="tree_well" class="well" style="overflow: auto; padding: 0; margin: 0; width: 100%; height: 100%;">
-				<ul id="tree" class="nav nav-list">
+			<div id="tree_well" class="well" style="overflow: auto; padding: 0; margin: 0; width: 100%; height: 100%; font-size: 10pt; line-height: 1;">
+				<ul id="tree" class="nav nav-list" style="padding: 5px 0px;">
 				</ul>
 			</div>
 		</div>

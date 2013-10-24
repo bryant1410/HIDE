@@ -119,9 +119,9 @@ class Main {
 							TabsManager.closeActiveTab();
 						//Ctrl-0
 						case 48:
-							new JQuery(".CodeMirror").css("font-size", "11pt");
-							new JQuery(".CodeMirror-hint").css("font-size", "11pt");
-							new JQuery(".CodeMirror-hints").css("font-size", Std.string(11*0.9) +"pt");
+							new JQuery(".CodeMirror").css("font-size", "8pt");
+							new JQuery(".CodeMirror-hint").css("font-size", "8t");
+							new JQuery(".CodeMirror-hints").css("font-size", Std.string(8*0.9) +"pt");
 						//Ctrl-'-'
 						case 189:
 							var font_size:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
@@ -244,6 +244,7 @@ class Main {
 		menus.set("help", new HelpMenu());
 		
 		Timer.delay(updateMenu, 100);
+		Timer.delay(updateMenu, 10000);
 	}
 	
 	public static function updateMenu():Void
