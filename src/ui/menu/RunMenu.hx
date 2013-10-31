@@ -16,8 +16,8 @@ class RunMenu extends Menu
 	
 	function createUI()
 	{
-		addMenuItem("Run Project", "component_run_project", null);
-		addMenuItem("Build Project", "component_build_project", null);
+		addMenuItem("Run Project", "component_run_project", BuildTools.runProject, "F5");
+		addMenuItem("Build Project", "component_build_project", BuildTools.buildProject, "F8");
 		addToDocument();
 	}
 	

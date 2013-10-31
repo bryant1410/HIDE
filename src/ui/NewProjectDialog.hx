@@ -1,5 +1,7 @@
 package ui;
 import core.FileDialog;
+import core.ProjectAccess;
+import core.TabsManager;
 import haxe.ds.StringMap;
 import haxe.Timer;
 import jQuery.JQuery;
@@ -32,12 +34,13 @@ class NewProjectDialog
 	static private var helpBlock:ParagraphElement;
 	static private var projectName:InputElement;
 	static private var projectLocation:InputElement;
-	static private var checkbox:InputElement;
+	static private var createDirectoryForProject:InputElement;
 	static private var page1:DivElement;
 	static private var page2:DivElement;
 	static private var backButton:ButtonElement;
 	static private var textfieldsWithCheckboxes:StringMap<InputElement>;
 	static private var checkboxes:StringMap<InputElement>;
+	static private var nextButton:ButtonElement;
 	
 	public function new() 
 	{
@@ -100,7 +103,7 @@ class NewProjectDialog
 		
 		footer.appendChild(backButton);
 		
-		var nextButton:ButtonElement = Browser.document.createButtonElement();
+		nextButton = Browser.document.createButtonElement();
 		nextButton.type = "button";
 		nextButton.className = "btn btn-default";
 		nextButton.textContent = "Next";
@@ -109,10 +112,7 @@ class NewProjectDialog
 		{
 			if (backButton.className.indexOf("disabled") == -1)
 			{
-				new JQuery(page1).show(300);
-				new JQuery(page2).hide(300);
-				backButton.className = "btn btn-default disabled";
-				nextButton.className = "btn btn-default";
+				showPage1();
 			}
 		}
 		;
@@ -121,19 +121,7 @@ class NewProjectDialog
 		{
 			if (nextButton.className.indexOf("disabled") == -1)
 			{
-				if (selectedCategory != "OpenFL/Samples")
-				{
-					projectName.value = StringTools.replace(selectedCategory, "/", "") + StringTools.replace(list.value, " ", "") + "1";
-				}
-				else
-				{
-					projectName.value = list.value;
-				}
-				
-				new JQuery(page1).hide(300);
-				new JQuery(page2).show(300);
-				backButton.className = "btn btn-default";
-				nextButton.className = "btn btn-default disabled";
+				showPage2();
 			}
 		}
 		;
@@ -147,14 +135,13 @@ class NewProjectDialog
 		
 		finishButton.onclick = function (e:MouseEvent)
 		{
-			if (projectLocation.value != "" && projectName.value != "")
+			if (page1.style.display != "none" || projectName.value == "" )
 			{
-				saveData("Package");
-				saveData("Company");
-				saveData("License");
-				saveData("URL");
-				
-				hide();
+				generateProjectName(createProject);
+			}
+			else 
+			{
+				createProject();
 			}
 		}
 		;
@@ -198,6 +185,299 @@ class NewProjectDialog
 		loadCheckboxState("Company");
 		loadCheckboxState("License");
 		loadCheckboxState("URL");
+		loadCheckboxState("CreateDirectory");
+	}
+	
+	static private function showPage1() 
+	{
+		new JQuery(page1).show(300);
+		new JQuery(page2).hide(300);
+		backButton.className = "btn btn-default disabled";
+		nextButton.className = "btn btn-default";
+	}
+	
+	static private function showPage2() 
+	{
+		generateProjectName();
+				
+		new JQuery(page1).hide(300);
+		new JQuery(page2).show(300);
+		backButton.className = "btn btn-default";
+		nextButton.className = "btn btn-default disabled";
+	}
+	
+	static private function createProject():Void
+	{
+		if (projectLocation.value != "" && projectName.value != "")
+		{
+			Utils.fs.exists(projectLocation.value, function (exists:Bool):Void
+			{
+				if (exists)
+				{
+					js.Node.process.chdir(Utils.path.join(projectLocation.value));
+					
+					var project:Project = new Project();
+					
+					switch (selectedCategory) 
+					{
+						case "Haxe":
+							createDirectoryRecursively(projectLocation.value, [projectName.value, "src"], function ():Void
+							{				
+								var pathToMain:String  = Utils.path.join(projectLocation.value, projectName.value, "src");
+								pathToMain = Utils.path.join(pathToMain, "Main.hx");
+								
+								var code:String = "package ;\n\nclass Main\n{\nstatic public function main()\n{\n}\n}";
+								
+								Utils.fs.writeFile(pathToMain, code, function (error):Void
+								{
+									if (error != null)
+									{
+										trace(error);
+									}
+									
+									TabsManager.openFileInNewTab(pathToMain);
+								}
+								);
+							}
+							);
+							
+							project.type = Project.HAXE;
+							
+							switch (list.value) 
+							{
+								case "Flash Project":
+									project.target = "flash";
+								case "JavaScript Project":
+									project.target = "html5";
+								case "Neko Project":
+									project.target = "neko";
+								case "PHP Project":
+									project.target = "php";
+								case "C++ Project":
+									project.target = "cpp";
+								case "Java Project":
+									project.target = "java";
+								case "C# Project":
+									project.target = "csharp";
+								default:
+									
+							}
+							
+							var pathToMain:String  = Utils.path.join(projectName.value, "src");
+							pathToMain = Utils.path.join(pathToMain, "Main.hx");
+							
+							project.main = pathToMain;
+						case "OpenFL":
+							switch (list.value) 
+							{
+								case "OpenFL Project":		
+									var projectPackage:String = textfieldsWithCheckboxes.get("Package").value;
+									
+									var str:String = "";
+									
+									if (checkboxes.get("Package").checked && projectPackage != "")
+									{
+										str = projectPackage + ".";
+									}
+									
+									var params:Array<String> = ["project", str + projectName.value];
+									
+									var projectCompany:String = textfieldsWithCheckboxes.get("Company").value;
+									
+									if (checkboxes.get("Company").checked && projectCompany != "")
+									{
+										params.push(projectCompany);
+									}
+									
+									createOpenFLProject(params);
+								case "OpenFL Extension":
+									createOpenFLProject(["extension", projectName.value]);
+								default:
+									
+							}
+							
+							project.type = Project.OPENFL;
+							project.target = "html5";
+							project.main = "project.xml";
+						case "OpenFL/Samples":
+							
+							createOpenFLProject([list.value]);
+								
+							//switch (list.value) 
+							//{
+								//case "ActuateExample":
+									//
+								//case "AddingAnimation":
+									//
+								//case "AddingText":
+									//
+								//case "DisplayingABitmap":
+									//
+								//case "HandlingKeyboardEvents":
+									//
+								//case "HandlingMouseEvent":
+									//
+								//case "HerokuShaders":
+									//
+								//case "PiratePig":
+									//
+								//case "PlayingSound":
+									//
+								//case "SimpleBox2D":
+									//
+								//case "SimpleOpenGLView":
+									//
+								//default:
+									//
+							//}
+							
+							project.type = Project.OPENFL;
+							project.target = "html5";
+							project.main = "project.xml";
+						default:
+							
+					}
+					
+					var name:String = projectName.value;
+							
+					if (name != "")
+					{
+						project.name = name;
+					}
+					
+					var projectPackage:String = textfieldsWithCheckboxes.get("Package").value;
+					
+					if (checkboxes.get("Package").checked && projectPackage != "")
+					{
+						project.projectPackage = projectPackage;
+					}
+					
+					var company:String = textfieldsWithCheckboxes.get("Company").value;
+					
+					if (checkboxes.get("Company").checked && company != "")
+					{
+						project.company = company;
+					}
+					
+					var license:String = textfieldsWithCheckboxes.get("License").value;
+					
+					if (checkboxes.get("License").checked && license != "")
+					{
+						project.license = license;
+					}
+					
+					var url:String = textfieldsWithCheckboxes.get("URL").value;
+					
+					if (checkboxes.get("URL").checked && url != "")
+					{
+						project.url = url;
+					}
+					
+					var path:String;
+					
+					if (createDirectoryForProject.checked)
+					{
+						path = Utils.path.join(projectLocation.value, projectName.value, "project.hide");
+					}
+					else 
+					{
+						path = Utils.path.join(projectLocation.value, "project.hide");
+					}
+					
+					Utils.system_saveFile(path, JSON.stringify(project));
+					
+					ProjectAccess.currentProject = project;
+					Main.updateMenu();
+					
+					saveData("Package");
+					saveData("Company");
+					saveData("License");
+					saveData("URL");
+					
+					saveCheckboxState("Package");
+					saveCheckboxState("Company");
+					saveCheckboxState("License");
+					saveCheckboxState("URL");
+					saveCheckboxState("CreateDirectory");
+					
+					hide();
+				}
+			}
+			);
+		}
+	}
+	
+	static private function createDirectory(path:String, ?onCreated:Dynamic):Void
+	{
+		Utils.fs.mkdir(path, function (error):Void
+		{								
+			if (error != null)
+			{
+				trace(error);
+			}
+			
+			if (onCreated != null)
+			{
+				onCreated();
+			}
+		}
+		);
+	}
+	
+	static private function createDirectoryRecursively(path:String, folderPath:Array<String>, ?onCreated:Dynamic):Void
+	{
+		var fullPath:String = Utils.path.join(path, folderPath[0]);
+		
+		createDirectory(fullPath, function ():Void
+		{
+			folderPath.splice(0, 1);
+			
+			if (folderPath.length > 0)
+			{
+				createDirectoryRecursively(fullPath, folderPath, onCreated);
+			}
+			else
+			{
+				onCreated();
+			}
+		}
+		);
+	}
+	
+	static private function generateProjectName(?onGenerated:Dynamic):Void
+	{
+		if (selectedCategory != "OpenFL/Samples")
+		{
+			var value:String = StringTools.replace(list.value, "+", "p");
+			value = StringTools.replace(value, "#", "sharp");
+			value = StringTools.replace(value, " ", "");
+			
+			if (selectedCategory != "OpenFL")
+			{
+				value = StringTools.replace(selectedCategory, "/", "") + value;
+			}
+			
+			generateFolderName(projectLocation.value, value, 1, onGenerated);
+		}
+		else
+		{
+			projectName.value = list.value;
+			updateHelpBlock();
+			
+			if (onGenerated != null)
+			{
+				onGenerated();
+			}
+		}
+		
+		if (selectedCategory != "Haxe")
+		{
+			createDirectoryForProject.parentElement.parentElement.style.display = "none";
+		}
+		else
+		{
+			createDirectoryForProject.parentElement.parentElement.style.display = "block";
+		}
 	}
 	
 	public static function show():Void
@@ -215,6 +495,77 @@ class NewProjectDialog
 		untyped new JQuery(modal).modal("hide");
 	}
 	
+	private static function createOpenFLProject(params:Array<String>):Void
+	{
+		var OpenFLTools = Utils.process.spawn("haxelib", ["run", "openfl", "create"].concat(params));
+						
+		var log:String = "";
+		
+		OpenFLTools.stderr.setEncoding('utf8');
+		OpenFLTools.stderr.on('data', function (data) {
+				var str:String = data.toString();
+				log += str;
+		}
+		);
+		
+		OpenFLTools.on('close', function (code:Int) {
+			trace("exit code: " + Std.string(code));
+			
+			trace(log);
+			
+			var path:String = Utils.path.join(projectLocation.value, projectName.value);
+			
+			if (list.value != projectName.value)
+			{				
+				Utils.fs.rename(Utils.path.join(projectLocation.value, list.value), path, function (error):Void
+				{
+					if (error != null)
+					{
+						trace(error);
+					}
+					
+					TabsManager.openFileInNewTab(Utils.path.join(path, "Source", "Main.hx"));
+				}
+				);
+			}
+			else
+			{
+				TabsManager.openFileInNewTab(Utils.path.join(path, "Source", "Main.hx"));
+			}
+		}
+		);
+	}
+	
+	private static function generateFolderName(path:String, folder:String, n:Int, ?onGenerated:Dynamic):Void
+	{		
+		if (path != "" && folder != "")
+		{
+			Utils.fs.exists(Utils.path.join(path, folder + Std.string(n)), function (exists:Bool):Void
+			{
+				if (exists)
+				{
+					generateFolderName(path, folder, n + 1, onGenerated);
+				}
+				else 
+				{
+					projectName.value = folder + Std.string(n);
+					updateHelpBlock();
+					
+					if (onGenerated != null)
+					{
+						onGenerated();
+					}
+				}
+			}
+			);
+		}
+		else
+		{
+			projectName.value = folder + Std.string(n);
+			updateHelpBlock();
+		}
+	}
+	
 	private static function loadData(_text:String):Void
 	{
 		var text:String = Browser.getLocalStorage().getItem(_text);
@@ -229,7 +580,12 @@ class NewProjectDialog
 	{
 		if (checkboxes.get(_text).checked)
 		{
-			Browser.getLocalStorage().setItem(_text, textfieldsWithCheckboxes.get(_text).value);
+			var value:String = textfieldsWithCheckboxes.get(_text).value;
+			
+			if (value != "")
+			{
+				Browser.getLocalStorage().setItem(_text, value);
+			}
 		}
 	}
 	
@@ -245,7 +601,7 @@ class NewProjectDialog
 	
 	private static function saveCheckboxState(_text:String):Void
 	{
-		Browser.getLocalStorage().setItem(_text, JSON.stringify(checkboxes.get(_text + "Checkbox").checked));
+		Browser.getLocalStorage().setItem(_text + "Checkbox", JSON.stringify(checkboxes.get(_text).checked));
 	}
 	
 	private static function createPage1():DivElement
@@ -381,12 +737,14 @@ class NewProjectDialog
 		var label:LabelElement = Browser.document.createLabelElement();
 		checkboxDiv.appendChild(label);
 		
-		checkbox = Browser.document.createInputElement();
-		checkbox.type = "checkbox";
-		checkbox.checked = true;
-		label.appendChild(checkbox);
+		createDirectoryForProject = Browser.document.createInputElement();
+		createDirectoryForProject.type = "checkbox";
+		createDirectoryForProject.checked = true;
+		label.appendChild(createDirectoryForProject);
 		
-		checkbox.onchange = function (e):Void
+		checkboxes.set("CreateDirectory", createDirectoryForProject);
+		
+		createDirectoryForProject.onchange = function (e):Void
 		{
 			updateHelpBlock();
 		};
@@ -404,10 +762,12 @@ class NewProjectDialog
 		projectLocation.onchange = function (e):Void
 		{
 			updateHelpBlock();
+			generateFolderName(projectLocation.value, projectName.value, 1);
 		};
 		
 		projectName.onchange = function (e):Void
 		{			
+			projectName.value = Utils.capitalize(projectName.value);
 			updateHelpBlock();
 		}
 		
@@ -422,12 +782,12 @@ class NewProjectDialog
 		{
 			var str:String = "";
 			
-			if (checkbox.checked == true && projectName.value != "")
+			if ((selectedCategory != "Haxe" || createDirectoryForProject.checked == true) && projectName.value != "")
 			{
 				str = projectName.value;
 			}
 			
-			helpBlock.innerText = "Project will be created in: " + projectLocation.value + str;
+			helpBlock.innerText = "Project will be created in: " + Utils.path.join(projectLocation.value, str);
 		}
 		else
 		{
@@ -575,10 +935,15 @@ class NewProjectDialog
 		var select:SelectElement = Browser.document.createSelectElement();
 		select.size = 10;		
 		
-		select.onchange = function (e)
+		select.onchange = function (e):Void
 		{
 			checkSelectedOptions();
-		}
+		};
+		
+		select.ondblclick = function (e):Void
+		{
+			showPage2();
+		};
 		
 		return select;
 	}
@@ -623,6 +988,7 @@ class NewProjectDialog
 		}
 		
 		list.selectedIndex = 0;
+		checkSelectedOptions();
 	}
 	
 	private static function createListItem(text:String):OptionElement
