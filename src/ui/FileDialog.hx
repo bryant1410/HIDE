@@ -3,16 +3,23 @@ package ui;
 import jQuery.*;
 import js.Browser;
 
-class FileDialog
+
+@:keep @:expose  class FileDialog
 {
-	public function new(_onClick:Dynamic)
+	public static function new(event_name:String)
 	{
-		new JQuery('#temp').html("<input id='temp_fileDialog' type='file' />");		
-		new JQuery("#temp_fileDialog").click();
-		new JQuery("#temp_fileDialog").on("change",function():Void
-			{
-			_onClick(new JQuery("#temp_fileDialog").val());
+		new JQuery('#temp').html("<input id='temp_fileDialog' type='file' />");
+
+		if (event_name != "init")
+		{
+		var chooser = new JQuery("#temp_fileDialog");
+		chooser.change(function(evt) {
+			var filepath = chooser.val();
+			//new JQuery(js.Browser.document).triggerHandler(event_name,filepath);
+			untyped $(document).triggerHandler(event_name,filepath);
 			});
-		new JQuery('#temp').html();
+		chooser.trigger('click'); 
+		}
+
 	}
 }

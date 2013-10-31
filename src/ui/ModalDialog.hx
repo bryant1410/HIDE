@@ -1,8 +1,8 @@
 package ui;
 
 import jQuery.*;
-	
-class ModalDialog
+
+@:keep @:expose class ModalDialog
 {
 	public var id:String;
 	public var title:String;

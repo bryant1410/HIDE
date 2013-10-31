@@ -1,9 +1,56 @@
-(function () { "use strict";
 function $extend(from, fields) {
 	function inherit() {}; inherit.prototype = from; var proto = new inherit();
 	for (var name in fields) proto[name] = fields[name];
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
+}
+var FileObject = function() {
+	this.file_stack = new Array();
+};
+FileObject.__name__ = true;
+FileObject.prototype = {
+	remove: function(path) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) this.file_stack.splice(position,1); else position += 1;
+			}
+		}
+	}
+	,update_content: function(path,new_content) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) this.file_stack[position][1] = new_content; else position += 1;
+			}
+		}
+	}
+	,find: function(path) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) return each; else position += 1;
+			}
+			return ["not found"];
+		} else return ["null"];
+	}
+	,add: function(path,content,className) {
+		var a = new Array();
+		a[0] = path;
+		a[1] = content;
+		a[2] = className;
+		return this.file_stack.push(a);
+	}
+	,__class__: FileObject
 }
 var HxOverrides = function() { }
 HxOverrides.__name__ = true;
@@ -28,50 +75,116 @@ HxOverrides.iter = function(a) {
 		return this.arr[this.cur++];
 	}};
 }
-var Lambda = function() { }
-Lambda.__name__ = true;
-Lambda.indexOf = function(it,v) {
-	var i = 0;
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var v2 = $it0.next();
-		if(v == v2) return i;
-		i++;
-	}
-	return -1;
-}
 var Main = function() { }
 Main.__name__ = true;
 Main.main = function() {
 	new $(function() {
 		Main.init();
-		Main.pluginManager();
+		Utils.gui.Window.get().showDevTools();
+		new $(js.Browser.document).on("core_register_plugin",null,Main.register_plugin);
+		Utils.init_ui();
+		Main.plugin_load_all();
+		Main.plugin_manager();
 	});
 }
 Main.init = function() {
-	Main.session = new haxe.ds.StringMap();
-	Main.session.set("project_xml","");
-	Main.session.set("project_xml_parameter","");
-	Main.session.set("project_folder","");
-	Main.session.set("active_file","");
-	Main.settings = new haxe.ds.StringMap();
-	Main.opened_file_stack = new haxe.ds.StringMap();
+	Main.session = new Session();
+	Main.file_stack = new FileObject();
+	Main.plugin_index = new Array();
 }
-Main.pluginManager = function() {
-	Utils.gui.Window.get().showDevTools();
-	new plugin.FileMenu();
-	new plugin.NewProject();
-	new plugin.CompileMenu();
-	new plugin.misterpah.Editor();
-	new plugin.misterpah.CompileTo();
-	new plugin.misterpah.FileAccess();
-	new plugin.misterpah.ProjectAccess();
-	new plugin.misterpah.Keyboardshortcut();
-	new plugin.misterpah.ProjectTypeFlixel();
-	new plugin.misterpah.ProjectTypeOpenFL();
+Main.register_plugin = function(event,data) {
+	var filename = js.Boot.__cast(data.get("filename") , String);
+	if(filename != "plugin.sample.Dummy.js") Main.plugin_index.push(data);
+}
+Main.plugin_load_all = function() {
+	new menu.FileMenu();
+	var plugin_list = Utils.list_plugin();
+	var _g = 0;
+	while(_g < plugin_list.length) {
+		var each = plugin_list[_g];
+		++_g;
+		Utils.loadJavascript("./plugin/" + each);
+	}
+}
+Main.plugin_manager = function() {
+	Main.modal = new ui.ModalDialog();
+	Main.modal.title = "HIDE Plugin Manager";
+	Main.modal.id = "plugin_manager";
+	var retStr = "<div style='height:300px;overflow:scroll;width:100%;'>";
+	retStr += ["<div class=\"panel panel-default\">"].join("\n");
+	retStr += ["<table class=\"table\">","<thead>","<tr>","<th>Activate</th>","<th>Plugin Name</th>","<th>Feature</th>","<th>Version</th>","</tr>","</thead>"].join("\n");
+	retStr += "<tbody>";
+	var i = 0;
+	var _g = 0, _g1 = Main.plugin_index;
+	while(_g < _g1.length) {
+		var each = _g1[_g];
+		++_g;
+		retStr += "<tr>";
+		retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>";
+		retStr += "<td>" + Std.string(each.get("name")) + "</td>";
+		retStr += "<td>" + Std.string(each.get("feature")) + "</td>";
+		retStr += "<td>" + Std.string(each.get("version")) + "</td>";
+		retStr += "</tr>";
+		i += 1;
+	}
+	retStr += "</tbody>";
+	retStr += "</table>";
+	retStr += ["</div>"].join("\n");
+	retStr += "</div>";
+	Main.modal.ok_text = "Activate Plugin";
+	Main.modal.cancel_text = "Cancel";
+	Main.modal.content = retStr;
+	Main.modal.header = true;
+	Main.modal.show();
+	new $("#plugin_manager .button_ok").click(Main.plugin_execute_init);
+}
+Main.plugin_execute_init = function(event) {
+	Main.modal.hide();
+	var activated_plugin = new Array();
+	var _g1 = 0, _g = Main.plugin_index.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var checkbox_checked = new $("#plugin_checkbox" + i).prop("checked");
+		if(checkbox_checked == true) {
+			var cur = Main.plugin_index[i];
+			activated_plugin.push(cur.get("filename"));
+		}
+	}
+	if(activated_plugin.length > 0) {
+		var _g = 0;
+		while(_g < activated_plugin.length) {
+			var each = activated_plugin[_g];
+			++_g;
+			var plugin_init = each + ".init";
+			$(document).triggerHandler(plugin_init);
+		}
+	} else {
+		var default_plugin = new Array();
+		default_plugin.push("plugin.misterpah.Editor.js");
+		default_plugin.push("plugin.misterpah.FileAccess.js");
+		default_plugin.push("plugin.misterpah.ProjectAccess.js");
+		console.log("default plugin");
+		var _g = 0;
+		while(_g < default_plugin.length) {
+			var each = default_plugin[_g];
+			++_g;
+			var plugin_init = each + ".init";
+			$(document).triggerHandler(plugin_init);
+		}
+	}
 }
 var IMap = function() { }
 IMap.__name__ = true;
+var Session = function() {
+	this.project_xml = "";
+	this.project_xml_parameter = "";
+	this.project_folder = "";
+	this.active_file = "";
+};
+Session.__name__ = true;
+Session.prototype = {
+	__class__: Session
+}
 var Std = function() { }
 Std.__name__ = true;
 Std.string = function(s) {
@@ -83,7 +196,7 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
-var js = {}
+var js = js || {}
 js.Node = function() { }
 js.Node.__name__ = true;
 var Utils = function() { }
@@ -93,18 +206,46 @@ Utils.getOS = function() {
 	var _g = Utils.os.type();
 	switch(_g) {
 	case "Windows_NT":
-		os_type = 0;
+		os_type = Utils.WINDOWS;
 		break;
 	case "Linux":
-		os_type = 1;
+		os_type = Utils.LINUX;
 		break;
 	default:
-		os_type = 2;
+		os_type = Utils.OTHER;
 	}
 	return os_type;
 }
+Utils.system_dirContent = function(path) {
+	return Utils.fs.readdirSync(path);
+}
+Utils.register_plugin = function(plugin_credentials) {
+	new $(js.Browser.document).triggerHandler("core_register_plugin",[plugin_credentials]);
+}
+Utils.list_plugin = function() {
+	var returnList = new Array();
+	var list = Utils.system_dirContent("./plugin");
+	var _g = 0;
+	while(_g < list.length) {
+		var each = list[_g];
+		++_g;
+		if(each.indexOf("plugin") == 0) returnList.push(each);
+	}
+	return returnList;
+}
+Utils.init_ui = function() {
+	new ui.Notify();
+	new ui.FileDialog("init");
+	new ui.ModalDialog();
+}
+Utils.capitalize = function(myString) {
+	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
+}
 Utils.system_openFile = function(filename) {
 	return Utils.fs.readFileSync(filename,"utf-8");
+}
+Utils.system_createFile = function(filename) {
+	Utils.fs.openSync(filename,"wx");
 }
 Utils.system_saveFile = function(filename,content) {
 	Utils.fs.writeFileSync(filename,content);
@@ -122,17 +263,16 @@ Utils.system_get_completion = function(position) {
 	var exec_str = "";
 	var join_str = "";
 	var join_str_cd = "";
-	var path = Main.session.get("active_file");
-	var file_obj = Main.opened_file_stack.get(path);
-	if(Utils.getOS() == 1) {
+	var path = Main.session.active_file;
+	if(Utils.getOS() == Utils.LINUX) {
 		join_str = " ; ";
 		join_str_cd = "";
 	}
-	if(Utils.getOS() == 0) {
+	if(Utils.getOS() == Utils.WINDOWS) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
-	var exec_str1 = "cd " + join_str_cd + Main.session.get("project_folder") + join_str + "haxe " + Main.session.get("project_xml_parameter") + " --display " + path + "@" + position;
+	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
 	console.log(exec_str1);
 	Utils.exec(exec_str1,function(error,stdout,stderr) {
 		console.log(error);
@@ -143,12 +283,12 @@ Utils.system_create_project = function(exec_str) {
 	var join_str = "";
 	var join_str_cd = "";
 	var default_folder = "";
-	if(Utils.getOS() == 1) {
+	if(Utils.getOS() == Utils.LINUX) {
 		join_str = " ; ";
 		join_str_cd = "";
 		default_folder = "~/HIDE";
 	}
-	if(Utils.getOS() == 0) {
+	if(Utils.getOS() == Utils.WINDOWS) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 		default_folder = "C:/HIDE";
@@ -161,14 +301,12 @@ Utils.system_create_project = function(exec_str) {
 }
 Utils.system_parse_project = function() {
 	var exec_str = "";
-	var filename = Main.session.get("project_xml");
+	var filename = Main.session.project_xml;
 	var projectFolder = filename.split(Utils.path.sep);
 	projectFolder.pop();
-	var v = projectFolder.join(Utils.path.sep);
-	Main.session.set("project_folder",v);
-	v;
-	if(Utils.getOS() == 0) exec_str = "cd /D " + Main.session.get("project_folder") + " & openfl display -hxml flash";
-	if(Utils.getOS() == 1) exec_str = "cd " + Main.session.get("project_folder") + " ; openfl display -hxml flash";
+	Main.session.project_folder = projectFolder.join(Utils.path.sep);
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & openfl display -hxml flash";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash";
 	console.log(exec_str);
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		var the_error = false;
@@ -178,8 +316,7 @@ Utils.system_parse_project = function() {
 			notify.type = "error";
 			notify.content = "not a valid HaxeFlixel Project File (XML)";
 			notify.show();
-			Main.session.set("project_xml","");
-			"";
+			Main.session.project_xml = "";
 		}
 		if(the_error == false) {
 			var content_push = new Array();
@@ -191,33 +328,20 @@ Utils.system_parse_project = function() {
 				var cur = content[i1];
 				if(cur.indexOf("-lib") == 0) content_push.push(cur); else if(cur.indexOf("-cp") == 0) content_push.push(cur); else if(cur.indexOf("-main") == 0) content_push.push(cur); else if(cur.indexOf("-D") == 0) content_push.push(cur);
 			}
-			var v = content_push.join(" ");
-			Main.session.set("project_xml_parameter",v);
-			v;
-			console.log(Main.session.get("project_xml_parameter"));
+			Main.session.project_xml_parameter = content_push.join(" ");
+			console.log(Main.session.project_xml_parameter);
 			new $(js.Browser.document).triggerHandler("core_utils_parseProject_complete");
 		}
 	});
 }
-var haxe = {}
-haxe.ds = {}
-haxe.ds.StringMap = function() {
-	this.h = { };
-};
+var haxe = haxe || {}
+if(!haxe.ds) haxe.ds = {}
+haxe.ds.StringMap = function() { }
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
-	remove: function(key) {
-		key = "$" + key;
-		if(!this.h.hasOwnProperty(key)) return false;
-		delete(this.h[key]);
-		return true;
-	}
-	,get: function(key) {
+	get: function(key) {
 		return this.h["$" + key];
-	}
-	,set: function(key,value) {
-		this.h["$" + key] = value;
 	}
 	,__class__: haxe.ds.StringMap
 }
@@ -336,7 +460,7 @@ js.Boot.__cast = function(o,t) {
 }
 js.Browser = function() { }
 js.Browser.__name__ = true;
-var ui = {}
+var ui = ui || {}
 ui.Menu = function(_text,_headerText) {
 	this.li = js.Browser.document.createElement("li");
 	this.li.className = "dropdown";
@@ -370,27 +494,14 @@ ui.Menu.prototype = {
 	}
 	,__class__: ui.Menu
 }
-var plugin = {}
-plugin.CompileMenu = function() {
-	ui.Menu.call(this,"Compile");
-	this.create_ui();
-};
-plugin.CompileMenu.__name__ = true;
-plugin.CompileMenu.__super__ = ui.Menu;
-plugin.CompileMenu.prototype = $extend(ui.Menu.prototype,{
-	create_ui: function() {
-		this.addMenuItem("Flash","core_compileTo_flash",null,null);
-		this.addToDocument();
-	}
-	,__class__: plugin.CompileMenu
-});
-plugin.FileMenu = function() {
+var menu = menu || {}
+menu.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();
 };
-plugin.FileMenu.__name__ = true;
-plugin.FileMenu.__super__ = ui.Menu;
-plugin.FileMenu.prototype = $extend(ui.Menu.prototype,{
+menu.FileMenu.__name__ = true;
+menu.FileMenu.__super__ = ui.Menu;
+menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	create_ui: function() {
 		this.addMenuItem("New Project...","core_project_newProject",null,"Ctrl-Shift-N");
 		this.addMenuItem("Open Project...","core_project_openProject",null,"Ctrl-Shift-O");
@@ -407,345 +518,18 @@ plugin.FileMenu.prototype = $extend(ui.Menu.prototype,{
 		this.addMenuItem("Exit","core_exit",null,"Alt-F4");
 		this.addToDocument();
 	}
-	,__class__: plugin.FileMenu
+	,__class__: menu.FileMenu
 });
-plugin.NewProject = function() {
-	this.registered_type = new Array();
-	this.register_hook();
-};
-plugin.NewProject.__name__ = true;
-plugin.NewProject.prototype = {
-	new_project_ui: function() {
-		var _g = this;
-		var retStr = "";
-		retStr += "<div class=\"row\">";
-		var _g1 = 0, _g2 = this.registered_type.length;
-		while(_g1 < _g2) {
-			var each = _g1++;
-			var cur = this.registered_type[each];
-			console.log(cur.get("plugin_name"));
-			retStr += ["<div class=\"col-xs-2\">","<label>","<img width=64 class=\"img-rounded\" src=\"" + cur.get("plugin_image") + "\" />","<p class=\"text-center\"><input type=\"radio\" name=\"NewProject_radio\" value=\"" + cur.get("plugin_name") + "\" /><br/>" + cur.get("plugin_name") + "</p>","</label>","</div>"].join("\n");
-		}
-		retStr += "</div>";
-		var radio_plugin_name = new Array();
-		var _g1 = 0, _g2 = this.registered_type.length;
-		while(_g1 < _g2) {
-			var each = _g1++;
-			var cur = this.registered_type[each];
-			retStr += ["<div id=\"radio_" + cur.get("plugin_name") + "\" style=\"display:none;\">","<h2>" + cur.get("plugin_name") + "</h2>","<p>" + cur.get("plugin_description") + "</p>","<p><b>Help:</b> " + cur.get("plugin_help") + "</p>","<p><b>This will execute:</b> " + cur.get("plugin_execute") + "</p>","<p><b>With optional parameter:</b> <input style=\"width:100%;\" id=\"optional_" + cur.get("plugin_name") + "\" value=\"" + cur.get("plugin_extraParam") + "\" /></p>","</div>"].join("\n");
-			radio_plugin_name.push("radio_" + cur.get("plugin_name"));
-		}
-		retStr += "<br/>";
-		retStr += "<button style=\"display:none;\" id=\"NewProject_submit\" type=\"button\" class=\"btn btn-primary btn-lg btn-block\">Create Project</button>";
-		var dialog = new ui.ModalDialog();
-		dialog.title = "New Project";
-		dialog.id = "new_project_modal_id";
-		dialog.content = retStr;
-		dialog.header = true;
-		dialog.footer = false;
-		dialog.show();
-		new $("input[name='NewProject_radio']").on("click",null,function() {
-			new $("#NewProject_submit").css("display","block");
-			var _g1 = 0, _g2 = radio_plugin_name.length;
-			while(_g1 < _g2) {
-				var each = _g1++;
-				new $("#" + radio_plugin_name[each]).css("display","none");
-			}
-			var selected = new $("input[name='NewProject_radio']:checked").val();
-			new $("#radio_" + Std.string(selected)).css("display","block");
-		});
-		new $("#NewProject_submit").on("click",null,function() {
-			var selected = new $("input[name='NewProject_radio']:checked").val();
-			var _g2 = 0, _g1 = _g.registered_type.length;
-			while(_g2 < _g1) {
-				var each = _g2++;
-				var cur = _g.registered_type[each];
-				if(selected == cur.get("plugin_name")) {
-					var execute = cur.get("plugin_execute");
-					var optional = new $("#optional_" + Std.string(cur.get("plugin_name"))).val();
-					Utils.system_create_project(Std.string(execute) + " " + Std.string(optional));
-					dialog.hide();
-				}
-			}
-		});
-	}
-	,registerNewType: function(event,data) {
-		this.registered_type.push(data);
-	}
-	,register_hook: function() {
-		new $(js.Browser.document).on("core_project_newProject",null,$bind(this,this.new_project_ui));
-		new $(js.Browser.document).on("core_project_registerNewTypeProject",null,$bind(this,this.registerNewType));
-	}
-	,__class__: plugin.NewProject
-}
-plugin.misterpah = {}
-plugin.misterpah.CompileTo = function() {
-	this.register_hook();
-};
-plugin.misterpah.CompileTo.__name__ = true;
-plugin.misterpah.CompileTo.prototype = {
-	compile_to_flash: function() {
-		var exec_str = "";
-		var join_str = "";
-		var join_str_cd = "";
-		var path = Main.session.get("project_xml");
-		if(Utils.getOS() == 1) {
-			join_str = " ; ";
-			join_str_cd = "";
-		}
-		if(Utils.getOS() == 0) {
-			join_str = " & ";
-			join_str_cd = " /D ";
-		}
-		var exec_str1 = "cd " + join_str_cd + Main.session.get("project_folder") + join_str + " openfl test flash";
-		console.log(exec_str1);
-		Utils.exec(exec_str1,function(error,stdout,stderr) {
-			console.log(error);
-			console.log(stdout);
-			console.log(stderr);
-		});
-	}
-	,register_hook: function() {
-		new $(js.Browser.document).on("core_compileTo_flash",null,$bind(this,this.compile_to_flash));
-	}
-	,__class__: plugin.misterpah.CompileTo
-}
-plugin.misterpah.Editor = function() {
-	this.tab_index = new Array();
-	this.completion_list = new Array();
-	Utils.loadJavascript("./plugin/misterpah/codemirror-3.18/lib/codemirror.js");
-	Utils.loadJavascript("./plugin/misterpah/codemirror-3.18/mode/haxe/haxe.js");
-	Utils.loadJavascript("./plugin/misterpah/jquery.xml2json.js");
-	Utils.loadJavascript("./plugin/misterpah/show-hint-3.15.js");
-	Utils.loadCss("./plugin/misterpah/codemirror-3.18/lib/codemirror.css");
-	Utils.loadCss("./plugin/misterpah/show-hint-custom.css");
-	this.create_ui();
-	this.register_hooks();
-};
-plugin.misterpah.Editor.__name__ = true;
-plugin.misterpah.Editor.prototype = {
-	show_tab: function(path,tabShow) {
-		if(tabShow == null) tabShow = true;
-		var tab_number = Lambda.indexOf(this.tab_index,path);
-		var file_obj = Main.opened_file_stack.get(path);
-		Main.session.set("active_file",path);
-		this.cm.setOption("value",file_obj.get("content"));
-		if(tabShow == true) $("#misterpah_editor_tabs_position li:eq(" + tab_number + ") a").tab("show");
-		new $("#misterpah_editor_cm_position").css("display","block");
-	}
-	,make_tab: function() {
-		var path = Main.session.get("active_file");
-		var file_obj = Main.opened_file_stack.get(path);
-		this.tab_index.push(path);
-		new $("#misterpah_editor_tabs_position ul").append("<li><a data-path='" + path + "' data-toggle='tab'>" + file_obj.get("className") + "</a></li>");
-		this.show_tab(path);
-		this.cm.setOption("value",file_obj.get("content"));
-		this.editor_resize();
-	}
-	,editor_resize: function() {
-		var win = Utils.gui.Window.get();
-		var win_height = js.Boot.__cast(win.height , Int);
-		var doc_height = new $(js.Browser.document).height();
-		var nav_height = new $(".nav").height();
-		var tab_height = new $("#misterpah_editor_tabs_position").height();
-		new $(".CodeMirror").css("height",win_height - nav_height - tab_height - 38 + "px");
-	}
-	,simpleCompletion: function(cm) {
-		var cur = cm.getCursor();
-		var start = cur.ch;
-		var end = start;
-		return { list : this.completion_list, from : cur, to : cur};
-	}
-	,register_hooks: function() {
-		var _g = this;
-		new $(js.Browser.document).on("show.bs.tab",null,function(e) {
-			var target = new $(e.target);
-			_g.show_tab(target.attr("data-path"),false);
-		});
-		new $(js.Browser.document).on("plugin_misterpah_fileAccess_openFile_complete",null,function() {
-			new $("#editor_position").css("display","block");
-			_g.make_tab();
-		});
-		new $(js.Browser.window).on("resize",null,function() {
-			_g.editor_resize();
-		});
-		new $(js.Browser.document).on("core_utils_getCompletion_complete",null,function(event,data) {
-			var completion_array = $.xml2json(data);
-			_g.completion_list = new Array();
-			if(completion_array.i == null) {
-			} else {
-				var _g2 = 0, _g1 = completion_array.i.length;
-				while(_g2 < _g1) {
-					var each = _g2++;
-					_g.completion_list.push(completion_array.i[each].n);
-				}
-			}
-			CodeMirror.showHint(_g.cm,$bind(_g,_g.simpleCompletion));
-		});
-	}
-	,create_ui: function() {
-		new $("#editor_position").css("display","none");
-		new $("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
-		new $("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
-		new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
-		this.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, matchBrackets : true, autoCloseBrackets : true, mode : "haxe"});
-		CodeMirror.on(this.cm,"change",function(cm) {
-			var path = Main.session.get("active_file");
-			if(path == "") {
-				console.log("ignore");
-				return;
-			}
-			var file_obj = Main.opened_file_stack.get(path);
-			file_obj.set("content",cm.getValue());
-			Main.opened_file_stack.set(path,file_obj);
-			var cursor_pos = cm.indexFromPos(cm.getCursor());
-			if(cm.getValue().charAt(cursor_pos - 1) == ".") {
-				new $(js.Browser.document).triggerHandler("core_file_save");
-				Utils.system_get_completion(cursor_pos);
-			}
-		});
-		this.editor_resize();
-		CodeMirror.registerHelper("hint","haxe",$bind(this,this.simpleCompletion));
-	}
-	,__class__: plugin.misterpah.Editor
-}
-plugin.misterpah.FileAccess = function() {
-	this.register_hooks();
-};
-plugin.misterpah.FileAccess.__name__ = true;
-plugin.misterpah.FileAccess.prototype = {
-	close_file: function() {
-		var path = Main.session.get("active_file");
-		Main.opened_file_stack.remove(path);
-		new $(js.Browser.document).triggerHandler("plugin_misterpah_fileAccess_closeFile_complete");
-	}
-	,save_file: function() {
-		var path = Main.session.get("active_file");
-		var file_obj = Main.opened_file_stack.get(path);
-		Utils.system_saveFile(path,file_obj.get("content"));
-	}
-	,openFileHandler: function(path) {
-		if(Main.opened_file_stack.get(path) == null) {
-			var content = Utils.system_openFile(path);
-			var fileObj = new haxe.ds.StringMap();
-			fileObj.set("content",content);
-			var filename_split = path.split(Utils.path.sep);
-			var className = filename_split[filename_split.length - 1].split(".")[0];
-			fileObj.set("className",className);
-			Main.opened_file_stack.set(path,fileObj);
-			Main.session.set("active_file",path);
-			new $(js.Browser.document).triggerHandler("plugin_misterpah_fileAccess_openFile_complete");
-		}
-	}
-	,open_file: function() {
-		new ui.FileDialog($bind(this,this.openFileHandler));
-	}
-	,new_file: function() {
-		console.log("new_file bebeh");
-	}
-	,register_hooks: function() {
-		new $(js.Browser.document).on("core_file_newFile",null,$bind(this,this.new_file));
-		new $(js.Browser.document).on("core_file_openFile",null,$bind(this,this.open_file));
-		new $(js.Browser.document).on("core_file_save",null,$bind(this,this.save_file));
-		new $(js.Browser.document).on("core_file_close",null,$bind(this,this.close_file));
-	}
-	,__class__: plugin.misterpah.FileAccess
-}
-plugin.misterpah.Keyboardshortcut = function() {
-	this.register_hooks();
-};
-plugin.misterpah.Keyboardshortcut.__name__ = true;
-plugin.misterpah.Keyboardshortcut.prototype = {
-	register_shortcutKey: function() {
-		jwerty.key("ctrl+N",function() {
-			$(document).triggerHandler("core_file_newFile");
-		});
-		jwerty.key("ctrl+O",function() {
-			$(document).triggerHandler("core_file_openFile");
-		});
-		jwerty.key("ctrl+S",function() {
-			$(document).triggerHandler("core_file_save");
-		});
-		jwerty.key("ctrl+W",function() {
-			$(document).triggerHandler("core_file_close");
-		});
-		jwerty.key("ctrl+shift+O",function() {
-			$(document).triggerHandler("core_project_openProject");
-		});
-	}
-	,register_hooks: function() {
-		Utils.loadJavascript("./plugin/misterpah/jwerty.js");
-		this.register_shortcutKey();
-	}
-	,__class__: plugin.misterpah.Keyboardshortcut
-}
-plugin.misterpah.ProjectAccess = function() {
-	this.register_hooks();
-};
-plugin.misterpah.ProjectAccess.__name__ = true;
-plugin.misterpah.ProjectAccess.prototype = {
-	close_project: function() {
-	}
-	,openFileHandler: function(path) {
-		Main.session.set("project_xml",path);
-		path;
-		Utils.system_parse_project();
-		console.log(Main.session);
-	}
-	,open_project: function() {
-		new ui.FileDialog($bind(this,this.openFileHandler));
-	}
-	,register_hooks: function() {
-		new $(js.Browser.document).on("core_project_openProject",null,$bind(this,this.open_project));
-		new $(js.Browser.document).on("core_project_closeProject",null,$bind(this,this.close_project));
-	}
-	,__class__: plugin.misterpah.ProjectAccess
-}
-plugin.misterpah.ProjectTypeFlixel = function() {
-	var parameter = new haxe.ds.StringMap();
-	parameter.set("plugin_name","Flixel");
-	parameter.set("plugin_description","HaxeFlixel is a 2D game framework built with OpenFL and Haxe that delivers cross platform games, completely free for personal and commercial use.");
-	parameter.set("plugin_help","change <i>project_name</i> in <b>optional parameter</b> to your project name.");
-	parameter.set("plugin_image","./plugin/misterpah/img/flixel.png");
-	parameter.set("plugin_execute","haxelib run flixel new");
-	parameter.set("plugin_extraParam","-name project_name");
-	this.parameter_wrap = new Array();
-	this.parameter_wrap.push(parameter);
-	this.register_hook();
-};
-plugin.misterpah.ProjectTypeFlixel.__name__ = true;
-plugin.misterpah.ProjectTypeFlixel.prototype = {
-	register_hook: function() {
-		new $(js.Browser.document).triggerHandler("core_project_registerNewTypeProject",this.parameter_wrap);
-	}
-	,__class__: plugin.misterpah.ProjectTypeFlixel
-}
-plugin.misterpah.ProjectTypeOpenFL = function() {
-	var parameter = new haxe.ds.StringMap();
-	parameter.set("plugin_name","OpenFL");
-	parameter.set("plugin_description","OpenFL is a software development kit that provides an environment for building fast, native games and applications for iOS, Android, BlackBerry, Windows, Mac, Linux, Flash and HTML5.");
-	parameter.set("plugin_help","change project_name to your project name.");
-	parameter.set("plugin_image","./plugin/misterpah/img/openfl.png");
-	parameter.set("plugin_execute","openfl create project");
-	parameter.set("plugin_extraParam","project_name");
-	this.parameter_wrap = new Array();
-	this.parameter_wrap.push(parameter);
-	this.register_hook();
-};
-plugin.misterpah.ProjectTypeOpenFL.__name__ = true;
-plugin.misterpah.ProjectTypeOpenFL.prototype = {
-	register_hook: function() {
-		new $(js.Browser.document).triggerHandler("core_project_registerNewTypeProject",this.parameter_wrap);
-	}
-	,__class__: plugin.misterpah.ProjectTypeOpenFL
-}
-ui.FileDialog = function(_onClick) {
+ui.FileDialog = function(event_name) {
 	new $("#temp").html("<input id='temp_fileDialog' type='file' />");
-	new $("#temp_fileDialog").click();
-	new $("#temp_fileDialog").on("change",null,function() {
-		_onClick(new $("#temp_fileDialog").val());
-	});
-	new $("#temp").html();
+	if(event_name != "init") {
+		var chooser = new $("#temp_fileDialog");
+		chooser.change(function(evt) {
+			var filepath = chooser.val();
+			$(document).triggerHandler(event_name,filepath);
+		});
+		chooser.trigger("click");
+	}
 };
 ui.FileDialog.__name__ = true;
 ui.FileDialog.prototype = {
@@ -753,6 +537,9 @@ ui.FileDialog.prototype = {
 }
 ui.MenuItem = function() { }
 ui.MenuItem.__name__ = true;
+ui.MenuItem.prototype = {
+	__class__: ui.MenuItem
+}
 ui.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
 	var span = null;
 	if(_hotkey != null) {
@@ -852,9 +639,6 @@ ui.Notify.prototype = {
 	}
 	,__class__: ui.Notify
 }
-function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
-var $_, $fid = 0;
-function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
 String.prototype.__class__ = String;
 String.__name__ = true;
 Array.prototype.__class__ = Array;
@@ -888,8 +672,13 @@ Utils.os = js.Node.require("os");
 Utils.fs = js.Node.require("fs");
 Utils.path = js.Node.require("path");
 Utils.exec = js.Node.require("child_process").exec;
+Utils.sys = js.Node.require("sys");
 Utils.gui = js.Node.require("nw.gui");
-js.Browser.window = typeof window != "undefined" ? window : null;
+Utils.window = Utils.gui.Window.get();
+Utils.WINDOWS = 0;
+Utils.LINUX = 1;
+Utils.OTHER = 2;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
-})();
+
+//@ sourceMappingURL=ide.js.map

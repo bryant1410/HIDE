@@ -1,78 +1,164 @@
-/*
-import core.FileAccess;
-import core.FileDialog;
-import core.ProjectAccess;
-*/
 package ;
-import haxe.ds.StringMap.StringMap;
 import js.Browser;
 import js.Lib;
 import jQuery.*;
-import component.*;
-import plugin.*;
-//import plugin.misterpah.*;
 
-class Main {
-
-	static public var session:Map<String,String>;
-	static public var settings:Map<String,String>;
-	static public var opened_file_stack:Map<String,Map<String,String>>;
-
-	//static private var menus:StringMap<Menu>;
+@:keep @:expose class Main {
 	
+	static public var session:Session;
+	static public var file_stack:FileObject;
+
+    static public var plugin_index:Array<Dynamic>;
+
+    static private var modal:ui.ModalDialog;
+
 	// the program starts here	
     static public function main():Void 
     {
+    	// execute once everything is loaded
 		new JQuery(function():Void
 			{		
-			init();
-			pluginManager();
+            init();
+            Utils.gui.Window.get().showDevTools();
+            new JQuery(js.Browser.document).on("core_register_plugin", register_plugin);
+            // needed because STATIC wont generate/call unused HX
+            Utils.init_ui();                
+			plugin_load_all();
+            plugin_manager();
+            //plugin_execute_init();
 			});
     }
-	
 
 	// the editor will always run this first. 
     static function init()
     {
-		// var session are used for storing vital information regarding the current usage
-		session = new Map();
-		session.set("project_xml","");
-		session.set("project_xml_parameter","");
-		session.set("project_folder","");
-		session.set("active_file","");
-
-		// var settings are predefined variables for the IDE.
-		settings = new Map();
-		
-		// var opened_file_stack are predifined as variables for all of the opened file.
-		opened_file_stack = new Map();
-		/*
-		var fileObj = new Map();
-		fileObj.set("value","black");
-		opened_file_stack.set("path/to/the/file/abc.hx",fileObj);
-		*/
+    	session = new Session();
+    	file_stack = new FileObject();
+        plugin_index = new Array();
     }
+
+    static function register_plugin(event,data:Map<String,Array<Dynamic>>)
+    {
+        //trace(data.get('filename'));
+        var filename:String = cast(data.get('filename'),String);
+        if (filename != 'plugin.sample.Dummy.js')
+        {
+        plugin_index.push(data);    
+        }
+        
+    }
+
+
 	
 	// this function will manage all of the plugin. including everything regarding HIDE.
-    static function pluginManager():Void
+    static function plugin_load_all():Void
     {
-		Utils.gui.Window.get().showDevTools();
-		new plugin.FileMenu();
-		new plugin.NewProject();
-		new plugin.CompileMenu();
-		
+    	new menu.FileMenu();
 
-		new plugin.misterpah.Editor();
-		new plugin.misterpah.CompileTo();
-		new plugin.misterpah.FileAccess();
-		new plugin.misterpah.ProjectAccess();
-		new plugin.misterpah.Keyboardshortcut();
-		new plugin.misterpah.ProjectTypeFlixel();
-		new plugin.misterpah.ProjectTypeOpenFL();
-		//initMenu();
-		//EditorCMNative.init();
+        var plugin_list = Utils.list_plugin();       
+        for (each in plugin_list)
+            {
+            //trace(each);
+            Utils.loadJavascript("./plugin/"+each);
+            //trace(each+".init");
+            }
+    }
+
+
+    static function plugin_manager():Void
+    {
+        modal = new ui.ModalDialog();
+        modal.title = "HIDE Plugin Manager";
+        modal.id = "plugin_manager";
+        var retStr ="<div style='height:300px;overflow:scroll;width:100%;'>";
+
+        retStr += ['<div class="panel panel-default">'
+            ].join("\n");
+
+        retStr += ['<table class="table">',
+                    '<thead>',
+                    '<tr>',
+                    '<th>Activate</th>',
+                    '<th>Plugin Name</th>',
+                    '<th>Feature</th>',
+                    '<th>Version</th>',
+                    '</tr>',
+                    '</thead>'].join("\n");
+
+        retStr += '<tbody>';
+        var i = 0;
+        for (each in plugin_index)
+        {
+        retStr += "<tr>";
+        retStr += "<td><input type='checkbox' id='plugin_checkbox"+i+"' value='"+i+"'></td>";
+        retStr += "<td>"+each.get("name")+"</td>";
+        retStr += "<td>"+each.get("feature")+"</td>";
+        retStr += "<td>"+each.get("version")+"</td>";
+        retStr += "</tr>";
+        i+= 1;
+        }
+        retStr += '</tbody>';
+        retStr += '</table>';
+
+        retStr += [
+            '</div>'].join("\n");        
+
+
+        retStr += "</div>";
+        modal.ok_text = "Activate Plugin";
+        modal.cancel_text = "Cancel";
+        modal.content = retStr;
+        modal.header = true;
+        
+        modal.show();
+
+
+        new JQuery("#plugin_manager .button_ok").click(plugin_execute_init);
+    }
+
+    static function plugin_execute_init(event):Void
+    {
+        // execute plugin which selected;
+        modal.hide();
+        var activated_plugin = new Array();
+
+        for (i in 0...plugin_index.length)
+        {
+            var checkbox_checked = new JQuery("#plugin_checkbox"+i).prop("checked");
+            if (checkbox_checked == true)
+            {
+                var cur = plugin_index[i];
+                activated_plugin.push(cur.get('filename'));
+            }
+        }        
+
+        //trace(activated_plugin);
+
+        if (activated_plugin.length > 0)
+        {
+        for (each in activated_plugin)
+            {
+                var plugin_init = each + ".init";
+                untyped $(document).triggerHandler(plugin_init);
+            }
+        }
+        else
+        {
+            // load default plugin
+
+            var default_plugin = new Array();
+            default_plugin.push("plugin.misterpah.Editor.js");
+            default_plugin.push("plugin.misterpah.FileAccess.js");
+            default_plugin.push("plugin.misterpah.ProjectAccess.js");
+
+            trace("default plugin");
+            for (each in default_plugin)
+            {
+                var plugin_init = each + ".init";
+                untyped $(document).triggerHandler(plugin_init);
+            }            
+        }
     }
 	
     
 }
-

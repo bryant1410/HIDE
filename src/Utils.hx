@@ -5,7 +5,7 @@ import js.Browser;
 import js.Node;
 import ui.*;
 
-class Utils
+@:keep @:expose class Utils
 {
 	public static var os = Node.require('os');
 	public static var fs:js.Node.NodeFS = Node.require("fs");
@@ -17,10 +17,9 @@ class Utils
 	public static var gui = Node.require("nw.gui");
 	public static var window:Dynamic = gui.Window.get();
 	
-	inline public static var WINDOWS:Int = 0;
-	inline public static var LINUX:Int = 1;
-	inline public static var OTHER:Int = 2;
-
+	public static var WINDOWS:Int = 0;
+	public static var LINUX:Int = 1;
+	public static var OTHER:Int = 2;
 
 	public static function getOS():Int
 	{
@@ -38,6 +37,40 @@ class Utils
 		
 		return os_type;
     }	
+
+    private static function system_dirContent(path:String)
+    {
+    	return fs.readdirSync(path);
+    }
+
+    public static function register_plugin(plugin_credentials:Map<String,String>)
+    {
+ 		new JQuery(js.Browser.document).triggerHandler("core_register_plugin",[plugin_credentials]);
+    }
+
+
+    public static function list_plugin()
+    {
+    	var returnList = new Array<String>();
+    	var list = Utils.system_dirContent("./plugin");
+    	for (each in list)
+    		{
+			if (each.indexOf("plugin") == 0)
+				{
+					returnList.push(each);
+				}
+    		}
+    	return returnList;
+    }
+
+
+    // needed because STATIC wont generate/call unused HX
+    public static function init_ui()
+    {
+    	new ui.Notify();
+    	new ui.FileDialog('init');
+    	new ui.ModalDialog();
+    }
 
 	
 	public static function capitalize(myString:String)
@@ -62,8 +95,9 @@ class Utils
     }
     
 
-	public static function loadJavascript(script)
+	public static function loadJavascript(script:String)
 	{
+		
 		JQueryStatic.ajaxSetup({async:false});
 		JQueryStatic.getScript(script);
 		JQueryStatic.ajaxSetup({async:true});
@@ -81,8 +115,8 @@ class Utils
 		var join_str = "";
 		var join_str_cd = "";
 
-		var path = Main.session['active_file'];
-		var file_obj = Main.opened_file_stack[path];
+		var path = Main.session.active_file;
+		//var file_obj = Main.file_stack.find(path);
 
 		if (getOS() == LINUX)
 			{
@@ -95,9 +129,9 @@ class Utils
 			join_str_cd = " /D ";
 			}		
 
-		var exec_str = "cd " + join_str_cd + Main.session['project_folder']+join_str + "haxe "+ Main.session['project_xml_parameter'] + " --display " + path + "@"+ position;
+		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
 
-			trace(exec_str);
+		trace(exec_str);
 
 		Utils.exec(exec_str,
 			function(error,stdout:String,stderr:String){
@@ -148,14 +182,14 @@ class Utils
     {
 		var exec_str = "";
 
-		var filename = Main.session['project_xml'];
+		var filename = Main.session.project_xml;
 	    var projectFolder = filename.split(path.sep);
 	    projectFolder.pop();
 	    //trace(projectFolder);
-	    Main.session['project_folder'] = projectFolder.join(path.sep);		
+	    Main.session.project_folder = projectFolder.join(path.sep);		
 		
-		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session['project_folder'] +" & openfl display -hxml flash";}
-		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session['project_folder'] + " ; openfl display -hxml flash"; }
+		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & openfl display -hxml flash";}
+		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash"; }
 		trace(exec_str);
 
 		Utils.exec(exec_str,
@@ -168,7 +202,7 @@ class Utils
 					notify.type = "error";
 					notify.content = "not a valid HaxeFlixel Project File (XML)";
 					notify.show();	
-					Main.session['project_xml'] = "";					
+					Main.session.project_xml = "";					
 					}
 				if (the_error == false) {
 					//new JQuery('#projectContent').html(stdout);
@@ -195,14 +229,13 @@ class Utils
 							content_push.push(cur);
 							}                        
 						}
-			        Main.session['project_xml_parameter'] = content_push.join(' ');					
-			        trace(Main.session['project_xml_parameter']);
+			        Main.session.project_xml_parameter = content_push.join(' ');					
+			        trace(Main.session.project_xml_parameter);
 					//new JQuery('#projectContent').html(content_push.join(' '));   
 					new JQuery(Browser.document).triggerHandler("core_utils_parseProject_complete");
 				} // stdout != ""
 			});
 	
 	}    
-
 
 }

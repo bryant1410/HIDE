@@ -16,12 +16,12 @@ import js.html.UListElement;
  * @author AS3Boyan
  */
 
-interface MenuItem
+@:keep @:expose interface MenuItem
 {
 	public function getElement():Element;
 }
  
-class MenuButtonItem implements MenuItem
+@:keep @:expose class MenuButtonItem implements MenuItem
 {	
 	var li:LIElement;
 	

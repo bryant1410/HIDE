@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.misterpah.ProjectAccess.js
+-main plugin.misterpah.ProjectAccess
+-cp ../../externs/hide
+-dce full

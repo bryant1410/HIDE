@@ -2,7 +2,7 @@ package ui;
 
 import jQuery.*;
 
-class Notify
+@:keep @:expose class Notify
 {
 	public  var type:String;
 	public  var content:String;
