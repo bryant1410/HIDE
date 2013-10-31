@@ -16,9 +16,9 @@ body {
   font-family: "Helvetica Neue", "Lucida Grande", "Lucida Sans Unicode", Helvetica, Arial, sans-serif;
   color: #222;
   font-size: 11pt;
-  max-width: 100%;
+  max-width: 700px;
   margin: 0 0 0 60px;
-  padding: 10px 0 4em;
+  padding: 60px 0 4em;
 }
 
 #top {
@@ -71,7 +71,7 @@ body {
 }
 
 code, pre { font-family: "Ubuntu Mono", monospace; }
-code { color: #124f55; font-size: 100%; }
+code { color: #124f55; font-size: 110%; }
 pre {
   border-left: 3px solid #def;
   padding: 2px 0 2px 10px;

@@ -57,34 +57,23 @@ function load(file, c) {
 }
 
 CodeMirror.on(window, "load", function() {
-  //Those defs(ecma5.json, browser.json, jquery.json) contain default completion for JavaScript, 
-  //probably we can supply here Haxe keywords, like so:
-  //this, typedef, class, interface, package, private, public, static, var, function, trace, switch, case and etc.
-  //http://haxe.org/ref/keywords
-  //We can create file similar to ecma5.json and provide description for each keyword
-  
-  //We can even provide completion for classes here, like String.
-	
-  //var files = ["./includes/js/tern/defs/ecma5.json"];
-  //var files = ["./includes/js/tern/defs/ecma5.json", "./includes/js/tern/defs/browser.json", "./includes/js/tern/defs/jquery.json"];
-  //var loaded = 0;
-  //for (var i = 0; i < files.length; ++i) (function(i) {
-    //load(files[i], function(json) {
-      //defs[i] = JSON.parse(json);
-      //if (++loaded == files.length) initEditor();
-    //});
-  //})(i);
-  
-  initEditor();
+  var files = ["../defs/ecma5.json", "../defs/browser.json", "../defs/jquery.json"];
+  var loaded = 0;
+  for (var i = 0; i < files.length; ++i) (function(i) {
+    load(files[i], function(json) {
+      defs[i] = JSON.parse(json);
+      if (++loaded == files.length) initEditor();
+    });
+  })(i);
 
-  //var cmds = document.getElementById("commands");
-  //CodeMirror.on(cmds, "change", function() {
-    //if (!editor || cmds.selectedIndex == 0) return;
-    //var found = commands[cmds.value];
-    //cmds.selectedIndex = 0;
-    //editor.focus();
-    //if (found) found(editor);
-  //});
+  var cmds = document.getElementById("commands");
+  CodeMirror.on(cmds, "change", function() {
+    if (!editor || cmds.selectedIndex == 0) return;
+    var found = commands[cmds.value];
+    cmds.selectedIndex = 0;
+    editor.focus();
+    if (found) found(editor);
+  });
 });
 
 function initEditor() {
@@ -106,26 +95,22 @@ function initEditor() {
     defs: defs,
     plugins: {requirejs: {}, doc_comment: true},
     switchToDoc: function(name) { selectDoc(docID(name)); },
-    workerDeps: ["./includes/js/acorn/acorn.js", "./includes/js/acorn/acorn_loose.js",
-                 "./includes/js/acorn/util/walk.js", "./includes/js/tern/lib/signal.js", "./includes/js/tern/lib/tern.js",
-                 "./includes/js/tern/lib/def.js", "./includes/js/tern/lib/infer.js", "./includes/js/tern/lib/comment.js",
-                 "./includes/js/tern/plugin/requirejs.js", "./includes/js/tern/plugin/doc_comment.js"],
-    workerScript: "./includes/js/codemirror-3.18/addon/tern/worker.js",
+    workerDeps: ["../../../acorn/acorn.js", "../../../acorn/acorn_loose.js",
+                 "../../../acorn/util/walk.js", "../../../../lib/signal.js", "../../../../lib/tern.js",
+                 "../../../../lib/def.js", "../../../../lib/infer.js", "../../../../lib/comment.js",
+                 "../../../../plugin/requirejs.js", "../../../../plugin/doc_comment.js"],
+    workerScript: "../node_modules/codemirror/addon/tern/worker.js",
     useWorker: useWorker
 
   });
 
   editor.on("cursorActivity", function(cm) { server.updateArgHints(cm); });
 
-  registerDoc("Main.hx", editor.getDoc());
-  
-  //registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
-  
-  //We can load files like this:
-  
-  //load("./includes/js/tern/doc/demo/underscore.js", function(body) {
-    //registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
-  //});
+  registerDoc("test.js", editor.getDoc());
+  registerDoc("test_dep.js", new CodeMirror.Doc(document.getElementById("requirejs_test_dep").firstChild.nodeValue, "javascript"));
+  load("demo/underscore.js", function(body) {
+    registerDoc("underscore.js", new CodeMirror.Doc(body, "javascript"));
+  });
 
   CodeMirror.on(document.getElementById("docs"), "click", function(e) {
     var target = e.target || e.srcElement;
@@ -140,16 +125,13 @@ var commands = {
   jumptodef: function(cm) { server.jumpToDef(cm); },
   findtype: function(cm) { server.showType(cm); },
   rename: function(cm) { server.rename(cm); },
-  
-  //Command for creating new file
-  
   addfile: function() {
-    var name = prompt("Name of the new file", "");
+    var name = prompt("Name of the new buffer", "");
     if (name == null) return;
     if (!name) name = "test";
     var i = 0;
     while (findDoc(name + (i || ""))) ++i;
-    registerDoc(name + (i || ""), new CodeMirror.Doc("", "haxe"));
+    registerDoc(name + (i || ""), new CodeMirror.Doc("", "javascript"));
     selectDoc(docs.length - 1);
   },
   delfile: function() {

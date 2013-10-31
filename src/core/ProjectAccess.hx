@@ -6,58 +6,69 @@ import Utils;
 
 class ProjectAccess
 {
+	public static var currentProject:Project;
+	
 	public static function createNewProject()
 	{
 		NewProjectDialog.show();
-		
-		//trace ("create a new project");
-		//
-		// this is how to notify the user
-		//var notify = new Notify();
-		//notify.type = "error";
-		//notify.content = "Just to test notify!";
-		//notify.show();
-		//
-		// this is how to open a model
-		//var modalDialog = new ModalDialog();
-		//modalDialog.id='projectAccess_new';
-		//modalDialog.title= 'New Project';
-		//modalDialog.content = 'this is just a sample';
-		//modalDialog.ok_text = "Create";
-		//modalDialog.cancel_text = "Cancel";
-		//modalDialog.show();
-		//
-		//new JQuery("#projectAccess_new .button_ok").on("click",
-			//function()
-			//{
-				//trace("you've clicked the OK button");
-				//modal.hide();
-			//});
 	}
 	
 	public static function openProject()
-	{
-		trace("open a project");
-
-		if (Main.session.current_project_xml == "")
+	{		
+		FileDialog.openFile(function (path:String):Void
 		{
-			FileDialog.openFile(function (path):Void
-			{
-				Main.session.current_project_xml = path;
-				Utils.system_parse_project();	
+			Utils.system_openFile(path, function (content:String):Void
+			{			
+				var project:Project;
+				
+				switch (Utils.path.extname(path)) 
+				{
+					case ".xml":
+						project = new Project();
+						project.type = Project.OPENFL;
+						project.target = "html5";
+						project.main = path;
+						OpenFLTools.getParams(Utils.path.dirname(path), project.target, function (params:Array<String>)
+						{
+							project.args = params;
+							saveProject(path, project);
+						}
+						);
+						
+						FileTree.load("OpenFLProject");
+					case ".hxml":
+						project = new Project();
+						project.type = Project.HXML;
+						project.main = path;
+						project.args = content.split("\n");
+						
+						saveProject(path, project);
+					default:
+						project = JSON.parse(content);				
+				}
+				
+				currentProject = project;
+				Main.updateMenu();
 			}
 			);
 		}
-		else
-		{
-			var notify = new Notify();
-			notify.type = "error";
-			notify.content = "Only One project could be open at one time. Please close the project first.";
-			notify.show();			
-		}
-
+		);
 	}
 
+	public static function saveProject(path:String, project:Project):Void
+	{
+		var pathToProjectFile:String = Utils.path.join(Utils.path.dirname(path), "project.hide");
+							
+		Utils.fs.exists(pathToProjectFile, function (exists:Bool):Void
+		{
+			if (!exists)
+			{
+				Utils.system_saveFile(pathToProjectFile, JSON.stringify(project));
+			}
+		}
+		);
+	}
+	
 	/*
 	public static function parseProject()
 	{
@@ -86,28 +97,13 @@ class ProjectAccess
 	}
 	*/
 	
-	public static function configureProject()
+	public static function configureProject():Void
 	{
 		trace("configure project");
 	}
 	
-	public static function closeProject()
+	public static function closeProject():Void
 	{
-		trace ("close project");
-		
-		if (Main.session.current_project_xml != "")
-		{
-		Main.session.current_project_xml = "";
-		Main.session.current_project_folder = "";
-		Main.session.current_project_xml_parameter = "";			
-		}
-		else
-		{
-			var notify = new Notify();
-			notify.type = "error";
-			notify.content = "No project to close.";
-			notify.show();				
-		}
-
+		currentProject = null;			
 	}
 }

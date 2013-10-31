@@ -5,22 +5,74 @@ function $extend(from, fields) {
 	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
 	return proto;
 }
+var BuildTools = function() { }
+BuildTools.__name__ = true;
+BuildTools.runProject = function() {
+	if(core.ProjectAccess.currentProject.type == 1) CompilerClient.buildOpenFLProject(["build",core.ProjectAccess.currentProject.target],function() {
+		var nekoToolsClient = Utils.process.spawn("nekotools",["server","-p","8000"]);
+		nekoToolsClient.stdout.setEncoding("utf8");
+		nekoToolsClient.stdout.on("data",function(data) {
+			var str = data.toString();
+			console.log(str);
+		});
+		nekoToolsClient.stderr.setEncoding("utf8");
+		nekoToolsClient.stderr.on("data",function(data) {
+			var str = data.toString();
+			console.log(str);
+		});
+		nekoToolsClient.on("close",function(code) {
+			if(code == 0) {
+			} else console.log("Neko Tools Server process exit code " + Std.string(code));
+		});
+		var $window = Utils.gui.Window.open("http://localhost:8000/Export/html5/bin/index.html",{ position : "center"});
+	});
+}
+BuildTools.buildProject = function() {
+	if(core.ProjectAccess.currentProject.type == 1) CompilerClient.buildOpenFLProject(["build",core.ProjectAccess.currentProject.target]); else CompilerClient.buildProject("haxe",core.ProjectAccess.currentProject.args);
+}
+var CompilerClient = function() { }
+CompilerClient.__name__ = true;
+CompilerClient.buildProject = function(process,params,onComplete) {
+	var haxeCompilerClient = Utils.process.spawn(process,params);
+	haxeCompilerClient.stdout.setEncoding("utf8");
+	haxeCompilerClient.stdout.on("data",function(data) {
+		var str = data.toString();
+		console.log("OUTPUT: " + str);
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("output").firstElementChild , HTMLTextAreaElement);
+		textarea.value += "OUTPUT: " + str;
+	});
+	haxeCompilerClient.stderr.setEncoding("utf8");
+	haxeCompilerClient.stderr.on("data",function(data) {
+		var str = data.toString();
+		console.log("ERROR: " + str);
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("output").firstElementChild , HTMLTextAreaElement);
+		textarea.value += "ERROR: " + str;
+	});
+	haxeCompilerClient.on("close",function(code) {
+		console.log("haxeCompilerClient process exit code " + code);
+		if(code == 0 && onComplete != null) onComplete();
+	});
+}
+CompilerClient.buildOpenFLProject = function(params,onComplete) {
+	CompilerClient.buildProject("haxelib",["run","openfl"].concat(params),onComplete);
+}
 var CompletionClient = function() { }
 CompletionClient.__name__ = true;
 CompletionClient.init = function() {
-	new $(js.Browser.document).on("getCompletion",null,function(event,data) {
+	new $(window.document).on("getCompletion",null,function(event,data) {
 		if(core.TabsManager.editor.state.completionActive != null && core.TabsManager.editor.state.completionActive.widget != null) {
 			data.data.completions = CompletionClient.completions;
-			new $(js.Browser.document).triggerHandler("processHint",data);
+			new $(window.document).triggerHandler("processHint",data);
 		} else {
 			console.log("get Haxe completion");
 			var projectArguments = new Array();
-			projectArguments.push("-main Main2");
-			projectArguments.push("-swf Main2.swf");
-			projectArguments.push("-cp src");
+			projectArguments = projectArguments.concat(core.ProjectAccess.currentProject.args);
 			projectArguments.push("--display");
 			projectArguments.push(core.TabsManager.curDoc.path + "@" + Std.string(data.doc.indexFromPos(data.from)));
-			var haxeCompilerClient = js.Node.require("child_process").spawn("haxe",["--connect","6001","--cwd",".."].concat(projectArguments));
+			console.log(projectArguments);
+			var haxeCompilerClient = Utils.process.spawn("haxe",["--connect","6001"].concat(projectArguments));
 			var xml = "";
 			haxeCompilerClient.stderr.setEncoding("utf8");
 			haxeCompilerClient.stderr.on("data",function(data1) {
@@ -30,7 +82,8 @@ CompletionClient.init = function() {
 			haxeCompilerClient.on("close",function(code) {
 				if(code == 0) {
 					var obj = $.xml2json(xml);
-					var array = js.Boot.__cast(obj.i , Array);
+					var array;
+					array = js.Boot.__cast(obj.i , Array);
 					var completionItem;
 					var _g = 0;
 					while(_g < array.length) {
@@ -39,7 +92,7 @@ CompletionClient.init = function() {
 						data.data.completions.push({ name : o.n, type : "fn()"});
 					}
 					CompletionClient.completions = data.data.completions;
-					new $(js.Browser.document).triggerHandler("processHint",data);
+					new $(window.document).triggerHandler("processHint",data);
 				} else {
 					console.log("haxeCompilerClient process exit code " + Std.string(code));
 					console.log(xml);
@@ -76,20 +129,32 @@ EReg.prototype = {
 var FileTree = function() { }
 FileTree.__name__ = true;
 FileTree.init = function() {
-	var tree = js.Boot.__cast(js.Browser.document.getElementById("tree") , HTMLUListElement);
-	var rootTreeElement = FileTree.createDirectoryElement("HIDE");
+	FileTree.load("HIDE");
+}
+FileTree.load = function(projectName) {
+	var tree;
+	tree = js.Boot.__cast(window.document.getElementById("tree") , HTMLUListElement);
+	new $(tree).children().remove();
+	var rootTreeElement = FileTree.createDirectoryElement(projectName);
 	tree.appendChild(rootTreeElement);
-	FileTree.readDir("../",rootTreeElement);
+	FileTree.readDir("./",rootTreeElement);
 }
 FileTree.createDirectoryElement = function(text) {
-	var directoryElement = js.Browser.document.createElement("li");
-	var a = js.Browser.document.createElement("a");
+	var directoryElement;
+	var _this = window.document;
+	directoryElement = _this.createElement("li");
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
 	a.className = "tree-toggler nav-header";
 	a.href = "#";
-	var span = js.Browser.document.createElement("span");
+	var span;
+	var _this = window.document;
+	span = _this.createElement("span");
 	span.className = "glyphicon glyphicon-folder-open";
 	a.appendChild(span);
-	span = js.Browser.document.createElement("span");
+	var _this = window.document;
+	span = _this.createElement("span");
 	span.textContent = text;
 	span.style.marginLeft = "5px";
 	a.appendChild(span);
@@ -98,7 +163,9 @@ FileTree.createDirectoryElement = function(text) {
 		Main.resize();
 	};
 	directoryElement.appendChild(a);
-	var ul = js.Browser.document.createElement("ul");
+	var ul;
+	var _this = window.document;
+	ul = _this.createElement("ul");
 	ul.className = "nav nav-list tree";
 	directoryElement.appendChild(ul);
 	return directoryElement;
@@ -114,8 +181,12 @@ FileTree.readDir = function(path,topElement) {
 			Utils.fs.stat(filePath[0],(function(filePath,file) {
 				return function(error1,stat) {
 					if(stat.isFile()) {
-						var li = js.Browser.document.createElement("li");
-						var a = js.Browser.document.createElement("a");
+						var li;
+						var _this = window.document;
+						li = _this.createElement("li");
+						var a;
+						var _this = window.document;
+						a = _this.createElement("a");
 						a.href = "#";
 						a.textContent = file[0];
 						a.title = filePath[0];
@@ -129,10 +200,12 @@ FileTree.readDir = function(path,topElement) {
 							a.style.color = "gray";
 						} else a.style.color = "gray";
 						li.appendChild(a);
-						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						var ul;
+						ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
 						ul.appendChild(li);
 					} else if(!StringTools.startsWith(file[0],".")) {
-						var ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
+						var ul;
+						ul = js.Boot.__cast(topElement.getElementsByTagName("ul")[0] , HTMLUListElement);
 						var directoryElement = FileTree.createDirectoryElement(file[0]);
 						directoryElement.onclick = (function(filePath) {
 							return function(e) {
@@ -215,7 +288,7 @@ Main.close = function() {
 	Sys.exit(0);
 }
 Main.init = function() {
-	js.Browser.window.onresize = function(e) {
+	window.onresize = function(e) {
 		Main.resize();
 	};
 	core.TabsManager.init();
@@ -234,7 +307,7 @@ Main.init = function() {
 	ui.NewProjectDialog.init();
 }
 Main.initMouseZoom = function() {
-	js.Browser.document.onmousewheel = function(e) {
+	window.document.onmousewheel = function(e) {
 		if(e.altKey) {
 			if(e.wheelDeltaY < 0) {
 				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
@@ -253,84 +326,98 @@ Main.initMouseZoom = function() {
 	};
 }
 Main.initHotKeys = function() {
-	js.Browser.window.addEventListener("keyup",function(e) {
+	window.addEventListener("keyup",function(e) {
 		if(e.ctrlKey) {
-			if(!e.shiftKey) switch(e.keyCode) {
-			case 87:
-				core.TabsManager.closeActiveTab();
-				break;
-			case 48:
-				new $(".CodeMirror").css("font-size","8pt");
-				new $(".CodeMirror-hint").css("font-size","8t");
-				new $(".CodeMirror-hints").css("font-size",Std.string(7.2) + "pt");
-				break;
-			case 189:
-				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				font_size--;
-				Main.setFontSize(font_size);
-				break;
-			case 187:
-				var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				font_size++;
-				Main.setFontSize(font_size);
-				break;
-			case 9:
-				core.TabsManager.showNextTab();
-				e.preventDefault();
-				e.stopPropagation();
-				break;
-			case 79:
-				core.FileAccess.openFile();
-				break;
-			case 83:
-				core.FileAccess.saveActiveFile();
-				break;
-			case 78:
-				core.FileAccess.createNewFile();
-				break;
-			default:
-			} else switch(e.keyCode) {
-			case 48:
-				Utils.window.zoomLevel = 0;
-				break;
-			case 189:
-				Utils.zoomOut();
-				break;
-			case 187:
-				Utils.zoomIn();
-				break;
-			case 9:
-				core.TabsManager.showPreviousTab();
-				e.preventDefault();
-				e.stopPropagation();
-				break;
-			case 79:
-				core.ProjectAccess.openProject();
-				break;
-			case 83:
-				core.FileAccess.saveActiveFileAs();
-				break;
-			case 84:
-				core.TabsManager.applyRandomTheme();
-				break;
-			case 78:
-				core.ProjectAccess.createNewProject();
-				break;
-			default:
+			if(!e.shiftKey) {
+				var _g = e.keyCode;
+				switch(_g) {
+				case 87:
+					core.TabsManager.closeActiveTab();
+					break;
+				case 48:
+					new $(".CodeMirror").css("font-size","8pt");
+					new $(".CodeMirror-hint").css("font-size","8t");
+					new $(".CodeMirror-hints").css("font-size",Std.string(7.2) + "pt");
+					break;
+				case 189:
+					var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
+					font_size--;
+					Main.setFontSize(font_size);
+					break;
+				case 187:
+					var font_size = Std.parseInt(new $(".CodeMirror").css("font-size"));
+					font_size++;
+					Main.setFontSize(font_size);
+					break;
+				case 9:
+					core.TabsManager.showNextTab();
+					e.preventDefault();
+					e.stopPropagation();
+					break;
+				case 79:
+					core.FileAccess.openFile();
+					break;
+				case 83:
+					core.FileAccess.saveActiveFile();
+					break;
+				case 78:
+					core.FileAccess.createNewFile();
+					break;
+				default:
+				}
+			} else {
+				var _g = e.keyCode;
+				switch(_g) {
+				case 48:
+					Utils.window.zoomLevel = 0;
+					break;
+				case 189:
+					Utils.zoomOut();
+					break;
+				case 187:
+					Utils.zoomIn();
+					break;
+				case 9:
+					core.TabsManager.showPreviousTab();
+					e.preventDefault();
+					e.stopPropagation();
+					break;
+				case 79:
+					core.ProjectAccess.openProject();
+					break;
+				case 83:
+					core.FileAccess.saveActiveFileAs();
+					break;
+				case 84:
+					core.TabsManager.applyRandomTheme();
+					break;
+				case 78:
+					core.ProjectAccess.createNewProject();
+					break;
+				case 82:
+					Utils.window.reloadIgnoringCache();
+					break;
+				default:
+				}
 			}
-		} else if(e.keyCode == 13 && e.shiftKey && e.altKey) Utils.toggleFullscreen();
+		} else if(e.keyCode == 13 && e.shiftKey && e.altKey) Utils.toggleFullscreen(); else if(e.keyCode == 116) {
+			if(core.ProjectAccess.currentProject != null) BuildTools.runProject();
+		} else if(e.keyCode == 119) {
+			if(core.ProjectAccess.currentProject != null) BuildTools.buildProject();
+		}
 	});
 }
 Main.initDragAndDropListeners = function() {
-	js.Browser.window.ondragover = function(e) {
+	window.ondragover = function(e) {
 		e.preventDefault();
 		e.stopPropagation();
 		return false;
 	};
-	js.Browser.window.ondrop = function(e) {
+	window.ondrop = function(e) {
 		e.preventDefault();
 		e.stopPropagation();
-		var _g1 = 0, _g = e.dataTransfer.files.length;
+		var _g1 = 0;
+		var _g = e.dataTransfer.files.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			core.TabsManager.openFileInNewTab(e.dataTransfer.files[i].path);
@@ -339,6 +426,7 @@ Main.initDragAndDropListeners = function() {
 	};
 }
 Main.resize = function() {
+	if(core.TabsManager.editor != null) core.TabsManager.editor.refresh();
 }
 Main.setFontSize = function(font_size) {
 	new $(".CodeMirror").css("font-size",Std.string(font_size) + "px");
@@ -356,6 +444,7 @@ Main.initMenu = function() {
 	Main.menus.set("source",new ui.menu.SourceMenu());
 	Main.menus.set("run",new ui.menu.RunMenu());
 	Main.menus.set("help",new ui.menu.HelpMenu());
+	Main.menus.set("developertools",new ui.menu.DeveloperToolsMenu());
 	haxe.Timer.delay(Main.updateMenu,100);
 	haxe.Timer.delay(Main.updateMenu,10000);
 }
@@ -368,7 +457,7 @@ Main.updateMenu = function() {
 		fileMenuDisabledItems.push("Save all");
 		Main.menus.get("edit").setMenuEnabled(false);
 	} else Main.menus.get("edit").setMenuEnabled(true);
-	if(Main.session.current_project_xml == "") {
+	if(core.ProjectAccess.currentProject == null) {
 		fileMenuDisabledItems.push("Close Project...");
 		fileMenuDisabledItems.push("Project Properties");
 		Main.menus.get("run").setMenuEnabled(false);
@@ -377,6 +466,36 @@ Main.updateMenu = function() {
 }
 var IMap = function() { }
 IMap.__name__ = true;
+Math.__name__ = true;
+var OpenFLTools = function() { }
+OpenFLTools.__name__ = true;
+OpenFLTools.getParams = function(path,target,onLoaded) {
+	js.Node.process.chdir(path);
+	var openFLTools = Utils.process.spawn("haxelib",["run","openfl","display",target]);
+	var params = new Array();
+	openFLTools.stdout.setEncoding("utf8");
+	openFLTools.stdout.on("data",function(data) {
+		var str = data.toString();
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("output").firstElementChild , HTMLTextAreaElement);
+		textarea.value += "OUTPUT: " + str;
+		params = params.concat(str.split("\n"));
+	});
+	openFLTools.stderr.setEncoding("utf8");
+	openFLTools.stderr.on("data",function(data) {
+		var str = data.toString();
+		console.log("ERROR: " + str);
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("output").firstElementChild , HTMLTextAreaElement);
+		textarea.value += "ERROR: " + str;
+	});
+	openFLTools.on("close",function(code) {
+		console.log("OpenFL tools process exit code " + code);
+		if(code == 0) {
+			if(onLoaded != null) onLoaded(params);
+		}
+	});
+}
 var PreserveWindowState = function() { }
 PreserveWindowState.__name__ = true;
 PreserveWindowState.init = function() {
@@ -439,10 +558,14 @@ PreserveWindowState.saveWindowState = function() {
 	PreserveWindowState.dumpWindowState();
 	js.Browser.getLocalStorage().setItem("windowState",JSON.stringify(PreserveWindowState.winState));
 }
+var Project = function() {
+	this.customArgs = false;
+};
+Project.__name__ = true;
+Project.prototype = {
+	__class__: Project
+}
 var Session = function() {
-	this.current_project_folder = "";
-	this.current_project_xml_parameter = "";
-	this.current_project_xml = "";
 };
 Session.__name__ = true;
 Session.prototype = {
@@ -460,7 +583,7 @@ Std.parseInt = function(x) {
 	return v;
 }
 Std.random = function(x) {
-	return x <= 0?0:Math.floor(Math.random() * x);
+	if(x <= 0) return 0; else return Math.floor(Math.random() * x);
 }
 var StringTools = function() { }
 StringTools.__name__ = true;
@@ -510,7 +633,7 @@ Utils.zoomOut = function() {
 	Utils.window.zoomLevel = Utils.window.zoomLevel - 1;
 }
 Utils.capitalize = function(myString) {
-	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
+	return HxOverrides.substr(myString,0,1).toUpperCase() + HxOverrides.substr(myString,1,null);
 }
 Utils.system_openFile = function(filename,onLoaded) {
 	Utils.fs.readFile(filename,"utf-8",function(error,data) {
@@ -522,40 +645,6 @@ Utils.system_saveFile = function(filename,content) {
 	Utils.fs.writeFile(filename,content,null,function(error) {
 		if(error != null) console.log(error);
 		console.log("SYSTEM: file saved " + filename);
-	});
-}
-Utils.system_parse_project = function() {
-	var exec_str = "";
-	var filename = Main.session.current_project_xml;
-	var projectFolder = filename.split(Utils.path.sep);
-	projectFolder.pop();
-	Main.session.current_project_folder = projectFolder.join(Utils.path.sep);
-	if(Utils.getOS() == 0) exec_str = "cd /D " + Main.session.current_project_folder + " & openfl display -hxml flash";
-	if(Utils.getOS() == 1) exec_str = "cd " + Main.session.current_project_folder + " ; openfl display -hxml flash";
-	console.log(exec_str);
-	Utils.exec(exec_str,function(error,stdout,stderr) {
-		var the_error = false;
-		if(stderr != "") the_error = true;
-		if(the_error == true) {
-			var notify = new ui.Notify();
-			notify.type = "error";
-			notify.content = "not a valid HaxeFlixel Project File (XML)";
-			notify.show();
-		}
-		if(the_error == false) {
-			var content_push = new Array();
-			var content = stdout.split("\n");
-			var i = 0;
-			var _g1 = 0, _g = content.length;
-			while(_g1 < _g) {
-				var i1 = _g1++;
-				var cur = content[i1];
-				if(cur.indexOf("-lib") == 0) content_push.push(cur); else if(cur.indexOf("-cp") == 0) content_push.push(cur); else if(cur.indexOf("-main") == 0) content_push.push(cur); else if(cur.indexOf("-D") == 0) content_push.push(cur);
-			}
-			Main.session.current_project_xml_parameter = content_push.join(" ");
-			console.log(Main.session.current_project_xml_parameter);
-			new $(js.Browser.document).trigger("projectAccess_parseProject_complete");
-		}
 	});
 }
 var core = {}
@@ -593,7 +682,8 @@ core.FileAccess.saveActiveFileAs = function() {
 	},curDoc.name);
 }
 core.FileAccess.saveAll = function() {
-	var _g = 0, _g1 = core.TabsManager.docs;
+	var _g = 0;
+	var _g1 = core.TabsManager.docs;
 	while(_g < _g1.length) {
 		var doc = _g1[_g];
 		++_g;
@@ -603,14 +693,15 @@ core.FileAccess.saveAll = function() {
 core.FileDialog = function() { }
 core.FileDialog.__name__ = true;
 core.FileDialog.init = function() {
-	core.FileDialog.input = js.Browser.document.createElement("input");
+	var _this = window.document;
+	core.FileDialog.input = _this.createElement("input");
 	core.FileDialog.input.type = "file";
 	core.FileDialog.input.style.display = "none";
 	core.FileDialog.input.addEventListener("change",function(e) {
 		var value = core.FileDialog.input.value;
 		if(value != "") core.FileDialog.onClick(value);
 	});
-	js.Browser.document.body.appendChild(core.FileDialog.input);
+	window.document.body.appendChild(core.FileDialog.input);
 }
 core.FileDialog.openFile = function(_onClick) {
 	core.FileDialog.input.value = "";
@@ -640,38 +731,54 @@ core.ProjectAccess.createNewProject = function() {
 	ui.NewProjectDialog.show();
 }
 core.ProjectAccess.openProject = function() {
-	console.log("open a project");
-	if(Main.session.current_project_xml == "") core.FileDialog.openFile(function(path) {
-		Main.session.current_project_xml = path;
-		Utils.system_parse_project();
-	}); else {
-		var notify = new ui.Notify();
-		notify.type = "error";
-		notify.content = "Only One project could be open at one time. Please close the project first.";
-		notify.show();
-	}
+	core.FileDialog.openFile(function(path) {
+		Utils.system_openFile(path,function(content) {
+			var project;
+			var _g = Utils.path.extname(path);
+			switch(_g) {
+			case ".xml":
+				project = new Project();
+				project.type = 1;
+				project.target = "html5";
+				project.main = path;
+				OpenFLTools.getParams(Utils.path.dirname(path),project.target,function(params) {
+					project.args = params;
+					core.ProjectAccess.saveProject(path,project);
+				});
+				FileTree.load("OpenFLProject");
+				break;
+			case ".hxml":
+				project = new Project();
+				project.type = 2;
+				project.main = path;
+				project.args = content.split("\n");
+				core.ProjectAccess.saveProject(path,project);
+				break;
+			default:
+				project = JSON.parse(content);
+			}
+			core.ProjectAccess.currentProject = project;
+			Main.updateMenu();
+		});
+	});
+}
+core.ProjectAccess.saveProject = function(path,project) {
+	var pathToProjectFile = Utils.path.join(Utils.path.dirname(path),"project.hide");
+	Utils.fs.exists(pathToProjectFile,function(exists) {
+		if(!exists) Utils.system_saveFile(pathToProjectFile,JSON.stringify(project));
+	});
 }
 core.ProjectAccess.configureProject = function() {
 	console.log("configure project");
 }
 core.ProjectAccess.closeProject = function() {
-	console.log("close project");
-	if(Main.session.current_project_xml != "") {
-		Main.session.current_project_xml = "";
-		Main.session.current_project_folder = "";
-		Main.session.current_project_xml_parameter = "";
-	} else {
-		var notify = new ui.Notify();
-		notify.type = "error";
-		notify.content = "No project to close.";
-		notify.show();
-	}
+	core.ProjectAccess.currentProject = null;
 }
 core.TabsManager = function() { }
 core.TabsManager.__name__ = true;
 core.TabsManager.init = function() {
 	core.TabsManager.themes = ["3024-day","3024-night","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","midnight","monokai","neat","night","paraiso-dark","paraiso-light","rubyblue","solarized dark","solarized light","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"];
-	CodeMirror.on(js.Browser.window,"load",function() {
+	CodeMirror.on(window,"load",function() {
 		core.TabsManager.initEditor();
 		Main.resize();
 		core.TabsManager.editor.refresh();
@@ -679,18 +786,24 @@ core.TabsManager.init = function() {
 	});
 }
 core.TabsManager.createContextMenu = function() {
-	var contextMenu = js.Browser.document.createElement("div");
+	var contextMenu;
+	var _this = window.document;
+	contextMenu = _this.createElement("div");
 	contextMenu.className = "dropdown";
 	contextMenu.style.position = "absolute";
 	contextMenu.style.display = "none";
-	js.Browser.document.onclick = function(e) {
+	window.document.onclick = function(e) {
 		contextMenu.style.display = "none";
 	};
-	var ul = js.Browser.document.createElement("ul");
+	var ul;
+	var _this = window.document;
+	ul = _this.createElement("ul");
 	ul.className = "dropdown-menu";
 	ul.style.display = "block";
 	ul.appendChild(core.TabsManager.createContextMenuItem("New File...",core.TabsManager.createFileInNewTab));
-	var li = js.Browser.document.createElement("li");
+	var li;
+	var _this = window.document;
+	li = _this.createElement("li");
 	li.className = "divider";
 	ul.appendChild(li);
 	ul.appendChild(core.TabsManager.createContextMenuItem("Close",function() {
@@ -704,11 +817,12 @@ core.TabsManager.createContextMenu = function() {
 		core.TabsManager.closeOthers(path);
 	}));
 	contextMenu.appendChild(ul);
-	js.Browser.document.body.appendChild(contextMenu);
-	js.Browser.document.getElementById("docs").addEventListener("contextmenu",function(ev) {
+	window.document.body.appendChild(contextMenu);
+	window.document.getElementById("docs").addEventListener("contextmenu",function(ev) {
 		ev.preventDefault();
 		var clickedOnTab = false;
-		var _g = 0, _g1 = js.Browser.document.getElementById("docs").childNodes;
+		var _g = 0;
+		var _g1 = window.document.getElementById("docs").childNodes;
 		while(_g < _g1.length) {
 			var li1 = _g1[_g];
 			++_g;
@@ -718,7 +832,8 @@ core.TabsManager.createContextMenu = function() {
 			}
 		}
 		if(clickedOnTab) {
-			var li1 = js.Boot.__cast(ev.target , HTMLLIElement);
+			var li1;
+			li1 = js.Boot.__cast(ev.target , HTMLLIElement);
 			contextMenu.setAttribute("path",li1.getAttribute("path"));
 			contextMenu.style.display = "block";
 			contextMenu.style.left = Std.string(ev.pageX) + "px";
@@ -728,11 +843,15 @@ core.TabsManager.createContextMenu = function() {
 	});
 }
 core.TabsManager.createContextMenuItem = function(text,onClick) {
-	var li = js.Browser.document.createElement("li");
+	var li;
+	var _this = window.document;
+	li = _this.createElement("li");
 	li.onclick = function(e) {
 		onClick();
 	};
-	var a = js.Browser.document.createElement("a");
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
 	a.href = "#";
 	a.textContent = text;
 	li.appendChild(a);
@@ -776,7 +895,8 @@ core.TabsManager.convertPathToUnixFormat = function(path) {
 }
 core.TabsManager.isAlreadyOpened = function(path) {
 	var opened = false;
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i].path == path) {
@@ -843,7 +963,8 @@ core.TabsManager.openFileInNewTab = function(path) {
 	});
 }
 core.TabsManager.closeAll = function() {
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i] != null) core.TabsManager.closeTab(core.TabsManager.docs[i].path,false);
@@ -853,7 +974,8 @@ core.TabsManager.closeAll = function() {
 	},30);
 }
 core.TabsManager.closeOthers = function(path) {
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i] != null && path != core.TabsManager.docs[i].path) core.TabsManager.closeTab(core.TabsManager.docs[i].path);
@@ -864,7 +986,8 @@ core.TabsManager.closeOthers = function(path) {
 }
 core.TabsManager.closeTab = function(path,switchToTab) {
 	if(switchToTab == null) switchToTab = true;
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i] != null && core.TabsManager.docs[i].path == path) core.TabsManager.unregisterDoc(core.TabsManager.docs[i],switchToTab);
@@ -897,7 +1020,7 @@ core.TabsManager.initEditor = function() {
 	}, 'Ctrl-Q' : function(cm) {
 		core.TabsManager.server.rename(cm);
 	}};
-	core.TabsManager.editor = CodeMirror.fromTextArea(js.Browser.document.getElementById("code"),{ lineNumbers : true, extraKeys : keyMap, matchBrackets : true, dragDrop : false, autoCloseBrackets : true, foldGutter : { rangeFinder : new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)}, gutters : ["CodeMirror-linenumbers","CodeMirror-foldgutter"]});
+	core.TabsManager.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),{ lineNumbers : true, extraKeys : keyMap, matchBrackets : true, dragDrop : false, autoCloseBrackets : true, foldGutter : { rangeFinder : new CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)}, gutters : ["CodeMirror-linenumbers","CodeMirror-foldgutter"]});
 	core.TabsManager.server = new CodeMirror.TernServer({ defs : [], plugins : { doc_comment : true}, switchToDoc : function(name) {
 		core.TabsManager.selectDoc(core.TabsManager.docID(name));
 	}, workerDeps : ["./includes/js/acorn/acorn.js","./includes/js/acorn/acorn_loose.js","./includes/js/acorn/util/walk.js","./includes/js/tern/lib/signal.js","./includes/js/tern/lib/tern.js","./includes/js/tern/lib/def.js","./includes/js/tern/lib/infer.js","./includes/js/tern/lib/comment.js","./includes/js/tern/plugin/doc_comment.js"], workerScript : "./includes/js/codemirror-3.18/addon/tern/worker.js", useWorker : core.TabsManager.useWorker});
@@ -905,7 +1028,7 @@ core.TabsManager.initEditor = function() {
 		core.TabsManager.server.updateArgHints(cm);
 	});
 	core.TabsManager.openFileInNewTab("../src/Main.hx");
-	CodeMirror.on(js.Browser.document.getElementById("docs"),"click",function(e) {
+	CodeMirror.on(window.document.getElementById("docs"),"click",function(e) {
 		var target = e.target || e.srcElement;
 		if(target.nodeName.toLowerCase() != "li") return;
 		var i = 0;
@@ -918,7 +1041,8 @@ core.TabsManager.initEditor = function() {
 	});
 }
 core.TabsManager.docID = function(name) {
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(core.TabsManager.docs[i].name == name) return i;
@@ -929,18 +1053,24 @@ core.TabsManager.registerDoc = function(name,doc,path) {
 	core.TabsManager.server.addDoc(name,doc,path);
 	var data = { name : name, doc : doc, path : path};
 	core.TabsManager.docs.push(data);
-	var docTabs = js.Browser.document.getElementById("docs");
-	var li = js.Browser.document.createElement("li");
+	var docTabs = window.document.getElementById("docs");
+	var li;
+	var _this = window.document;
+	li = _this.createElement("li");
 	li.title = path;
 	li.innerText = name + "\t";
 	li.setAttribute("path",path);
-	var span = js.Browser.document.createElement("span");
+	var span;
+	var _this = window.document;
+	span = _this.createElement("span");
 	span.style.position = "relative";
 	span.style.top = "2px";
 	span.onclick = function(e) {
 		core.TabsManager.closeTab(path);
 	};
-	var span2 = js.Browser.document.createElement("span");
+	var span2;
+	var _this = window.document;
+	span2 = _this.createElement("span");
 	span2.className = "glyphicon glyphicon-remove-circle";
 	span.appendChild(span2);
 	li.appendChild(span);
@@ -955,16 +1085,22 @@ core.TabsManager.unregisterDoc = function(doc,switchToTab) {
 	var b = core.TabsManager.curDoc == doc;
 	core.TabsManager.server.delDoc(doc.name);
 	var j = null;
-	var _g1 = 0, _g = core.TabsManager.docs.length;
+	var _g1 = 0;
+	var _g = core.TabsManager.docs.length;
 	while(_g1 < _g) {
 		var i = _g1++;
 		j = i;
 		if(doc == core.TabsManager.docs[i]) break;
 	}
 	core.TabsManager.docs.splice(j,1);
-	var docList = js.Browser.document.getElementById("docs");
+	var docList = window.document.getElementById("docs");
 	docList.removeChild(docList.childNodes[j]);
-	if(switchToTab && b && docList.childNodes.length > 0) core.TabsManager.selectDoc(Math.max(0,j - 1) | 0);
+	if(switchToTab && b && docList.childNodes.length > 0) core.TabsManager.selectDoc((function($this) {
+		var $r;
+		var x = Math.max(0,j - 1);
+		$r = x | 0;
+		return $r;
+	}(this)));
 	if(docList.childNodes.length == 0) {
 		new $("#sourceCodeEditor").css("display","none");
 		Main.updateMenu();
@@ -972,11 +1108,13 @@ core.TabsManager.unregisterDoc = function(doc,switchToTab) {
 	Main.resize();
 }
 core.TabsManager.setSelectedDoc = function(pos) {
-	var docTabs = js.Browser.document.getElementById("docs");
-	var _g1 = 0, _g = docTabs.childNodes.length;
+	var docTabs = window.document.getElementById("docs");
+	var _g1 = 0;
+	var _g = docTabs.childNodes.length;
 	while(_g1 < _g) {
 		var i = _g1++;
-		var child = js.Boot.__cast(docTabs.childNodes[i] , Element);
+		var child;
+		child = js.Boot.__cast(docTabs.childNodes[i] , Element);
 		if(pos == i) child.className = "selected"; else child.className = "";
 	}
 }
@@ -1003,13 +1141,12 @@ haxe.Timer.delay = function(f,time_ms) {
 	return t;
 }
 haxe.Timer.prototype = {
-	run: function() {
-		console.log("run");
-	}
-	,stop: function() {
+	stop: function() {
 		if(this.id == null) return;
 		clearInterval(this.id);
 		this.id = null;
+	}
+	,run: function() {
 	}
 	,__class__: haxe.Timer
 }
@@ -1020,11 +1157,11 @@ haxe.ds.StringMap = function() {
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
 haxe.ds.StringMap.prototype = {
-	get: function(key) {
-		return this.h["$" + key];
-	}
-	,set: function(key,value) {
+	set: function(key,value) {
 		this.h["$" + key] = value;
+	}
+	,get: function(key) {
+		return this.h["$" + key];
 	}
 	,__class__: haxe.ds.StringMap
 }
@@ -1042,7 +1179,8 @@ js.Boot.__string_rec = function(o,s) {
 				if(o.length == 2) return o[0];
 				var str = o[0] + "(";
 				s += "\t";
-				var _g1 = 2, _g = o.length;
+				var _g1 = 2;
+				var _g = o.length;
 				while(_g1 < _g) {
 					var i = _g1++;
 					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
@@ -1101,7 +1239,8 @@ js.Boot.__interfLoop = function(cc,cl) {
 	if(cc == cl) return true;
 	var intf = cc.__interfaces__;
 	if(intf != null) {
-		var _g1 = 0, _g = intf.length;
+		var _g1 = 0;
+		var _g = intf.length;
 		while(_g1 < _g) {
 			var i = _g1++;
 			var i1 = intf[i];
@@ -1145,7 +1284,7 @@ js.Browser = function() { }
 js.Browser.__name__ = true;
 js.Browser.getLocalStorage = function() {
 	try {
-		var s = js.Browser.window.localStorage;
+		var s = window.localStorage;
 		s.getItem("");
 		return s;
 	} catch( e ) {
@@ -1156,29 +1295,41 @@ var ui = {}
 ui.NewProjectDialog = function() { }
 ui.NewProjectDialog.__name__ = true;
 ui.NewProjectDialog.init = function() {
-	ui.NewProjectDialog.modal = js.Browser.document.createElement("div");
+	var _this = window.document;
+	ui.NewProjectDialog.modal = _this.createElement("div");
 	ui.NewProjectDialog.modal.className = "modal fade";
-	var dialog = js.Browser.document.createElement("div");
+	var dialog;
+	var _this = window.document;
+	dialog = _this.createElement("div");
 	dialog.className = "modal-dialog";
 	ui.NewProjectDialog.modal.appendChild(dialog);
-	var content = js.Browser.document.createElement("div");
+	var content;
+	var _this = window.document;
+	content = _this.createElement("div");
 	content.className = "modal-content";
 	dialog.appendChild(content);
-	var header = js.Browser.document.createElement("div");
+	var header;
+	var _this = window.document;
+	header = _this.createElement("div");
 	header.className = "modal-header";
 	content.appendChild(header);
-	var button = js.Browser.document.createElement("button");
+	var button;
+	var _this = window.document;
+	button = _this.createElement("button");
 	button.type = "button";
 	button.className = "close";
 	button.setAttribute("data-dismiss","modal");
 	button.setAttribute("aria-hidden","true");
 	button.innerHTML = "&times;";
 	header.appendChild(button);
-	var h4 = js.Boot.__cast(js.Browser.document.createElement("h4") , HTMLHeadingElement);
+	var h4;
+	h4 = js.Boot.__cast(window.document.createElement("h4") , HTMLHeadingElement);
 	h4.className = "modal-title";
 	h4.textContent = "New Project";
 	header.appendChild(h4);
-	var body = js.Browser.document.createElement("div");
+	var body;
+	var _this = window.document;
+	body = _this.createElement("div");
 	body.className = "modal-body";
 	body.style.overflow = "hidden";
 	content.appendChild(body);
@@ -1189,59 +1340,50 @@ ui.NewProjectDialog.init = function() {
 	ui.NewProjectDialog.createPage2();
 	ui.NewProjectDialog.page2.style.display = "none";
 	body.appendChild(ui.NewProjectDialog.page2);
-	var footer = js.Browser.document.createElement("div");
+	var footer;
+	var _this = window.document;
+	footer = _this.createElement("div");
 	footer.className = "modal-footer";
 	content.appendChild(footer);
-	ui.NewProjectDialog.backButton = js.Browser.document.createElement("button");
+	var _this = window.document;
+	ui.NewProjectDialog.backButton = _this.createElement("button");
 	ui.NewProjectDialog.backButton.type = "button";
 	ui.NewProjectDialog.backButton.className = "btn btn-default disabled";
 	ui.NewProjectDialog.backButton.textContent = "Back";
 	footer.appendChild(ui.NewProjectDialog.backButton);
-	var nextButton = js.Browser.document.createElement("button");
-	nextButton.type = "button";
-	nextButton.className = "btn btn-default";
-	nextButton.textContent = "Next";
+	var _this = window.document;
+	ui.NewProjectDialog.nextButton = _this.createElement("button");
+	ui.NewProjectDialog.nextButton.type = "button";
+	ui.NewProjectDialog.nextButton.className = "btn btn-default";
+	ui.NewProjectDialog.nextButton.textContent = "Next";
 	ui.NewProjectDialog.backButton.onclick = function(e) {
-		if(ui.NewProjectDialog.backButton.className.indexOf("disabled") == -1) {
-			new $(ui.NewProjectDialog.page1).show(300);
-			new $(ui.NewProjectDialog.page2).hide(300);
-			ui.NewProjectDialog.backButton.className = "btn btn-default disabled";
-			nextButton.className = "btn btn-default";
-		}
+		if(ui.NewProjectDialog.backButton.className.indexOf("disabled") == -1) ui.NewProjectDialog.showPage1();
 	};
-	nextButton.onclick = function(e) {
-		if(nextButton.className.indexOf("disabled") == -1) {
-			if(ui.NewProjectDialog.selectedCategory != "OpenFL/Samples") ui.NewProjectDialog.projectName.value = StringTools.replace(ui.NewProjectDialog.selectedCategory,"/","") + StringTools.replace(ui.NewProjectDialog.list.value," ","") + "1"; else ui.NewProjectDialog.projectName.value = ui.NewProjectDialog.list.value;
-			new $(ui.NewProjectDialog.page1).hide(300);
-			new $(ui.NewProjectDialog.page2).show(300);
-			ui.NewProjectDialog.backButton.className = "btn btn-default";
-			nextButton.className = "btn btn-default disabled";
-		}
+	ui.NewProjectDialog.nextButton.onclick = function(e) {
+		if(ui.NewProjectDialog.nextButton.className.indexOf("disabled") == -1) ui.NewProjectDialog.showPage2();
 	};
-	footer.appendChild(nextButton);
-	var finishButton = js.Browser.document.createElement("button");
+	footer.appendChild(ui.NewProjectDialog.nextButton);
+	var finishButton;
+	var _this = window.document;
+	finishButton = _this.createElement("button");
 	finishButton.type = "button";
 	finishButton.className = "btn btn-default";
 	finishButton.textContent = "Finish";
 	finishButton.onclick = function(e) {
-		if(ui.NewProjectDialog.projectLocation.value != "" && ui.NewProjectDialog.projectName.value != "") {
-			ui.NewProjectDialog.saveData("Package");
-			ui.NewProjectDialog.saveData("Company");
-			ui.NewProjectDialog.saveData("License");
-			ui.NewProjectDialog.saveData("URL");
-			ui.NewProjectDialog.hide();
-		}
+		if(ui.NewProjectDialog.page1.style.display != "none" || ui.NewProjectDialog.projectName.value == "") ui.NewProjectDialog.generateProjectName(ui.NewProjectDialog.createProject); else ui.NewProjectDialog.createProject();
 	};
 	footer.appendChild(finishButton);
-	var cancelButton = js.Browser.document.createElement("button");
+	var cancelButton;
+	var _this = window.document;
+	cancelButton = _this.createElement("button");
 	cancelButton.type = "button";
 	cancelButton.className = "btn btn-default";
 	cancelButton.setAttribute("data-dismiss","modal");
 	cancelButton.textContent = "Cancel";
 	footer.appendChild(cancelButton);
-	js.Browser.document.body.appendChild(ui.NewProjectDialog.modal);
+	window.document.body.appendChild(ui.NewProjectDialog.modal);
 	ui.NewProjectDialog.updateListItems("Haxe");
-	js.Browser.window.addEventListener("keyup",function(e) {
+	window.addEventListener("keyup",function(e) {
 		if(e.keyCode == 27) new $(ui.NewProjectDialog.modal).modal("hide");
 	});
 	var location = js.Browser.getLocalStorage().getItem("Location");
@@ -1254,6 +1396,151 @@ ui.NewProjectDialog.init = function() {
 	ui.NewProjectDialog.loadCheckboxState("Company");
 	ui.NewProjectDialog.loadCheckboxState("License");
 	ui.NewProjectDialog.loadCheckboxState("URL");
+	ui.NewProjectDialog.loadCheckboxState("CreateDirectory");
+}
+ui.NewProjectDialog.showPage1 = function() {
+	new $(ui.NewProjectDialog.page1).show(300);
+	new $(ui.NewProjectDialog.page2).hide(300);
+	ui.NewProjectDialog.backButton.className = "btn btn-default disabled";
+	ui.NewProjectDialog.nextButton.className = "btn btn-default";
+}
+ui.NewProjectDialog.showPage2 = function() {
+	ui.NewProjectDialog.generateProjectName();
+	new $(ui.NewProjectDialog.page1).hide(300);
+	new $(ui.NewProjectDialog.page2).show(300);
+	ui.NewProjectDialog.backButton.className = "btn btn-default";
+	ui.NewProjectDialog.nextButton.className = "btn btn-default disabled";
+}
+ui.NewProjectDialog.createProject = function() {
+	if(ui.NewProjectDialog.projectLocation.value != "" && ui.NewProjectDialog.projectName.value != "") Utils.fs.exists(ui.NewProjectDialog.projectLocation.value,function(exists) {
+		if(exists) {
+			js.Node.process.chdir(Utils.path.join(ui.NewProjectDialog.projectLocation.value));
+			var project = new Project();
+			var _g = ui.NewProjectDialog.selectedCategory;
+			switch(_g) {
+			case "Haxe":
+				ui.NewProjectDialog.createDirectoryRecursively(ui.NewProjectDialog.projectLocation.value,[ui.NewProjectDialog.projectName.value,"src"],function() {
+					var pathToMain = Utils.path.join(ui.NewProjectDialog.projectLocation.value,ui.NewProjectDialog.projectName.value,"src");
+					pathToMain = Utils.path.join(pathToMain,"Main.hx");
+					var code = "package ;\n\nclass Main\n{\nstatic public function main()\n{\n}\n}";
+					Utils.fs.writeFile(pathToMain,code,null,function(error) {
+						if(error != null) console.log(error);
+						core.TabsManager.openFileInNewTab(pathToMain);
+					});
+				});
+				project.type = 0;
+				var _g1 = ui.NewProjectDialog.list.value;
+				switch(_g1) {
+				case "Flash Project":
+					project.target = "flash";
+					break;
+				case "JavaScript Project":
+					project.target = "html5";
+					break;
+				case "Neko Project":
+					project.target = "neko";
+					break;
+				case "PHP Project":
+					project.target = "php";
+					break;
+				case "C++ Project":
+					project.target = "cpp";
+					break;
+				case "Java Project":
+					project.target = "java";
+					break;
+				case "C# Project":
+					project.target = "csharp";
+					break;
+				default:
+				}
+				var pathToMain = Utils.path.join(ui.NewProjectDialog.projectName.value,"src");
+				pathToMain = Utils.path.join(pathToMain,"Main.hx");
+				project.main = pathToMain;
+				break;
+			case "OpenFL":
+				var _g1 = ui.NewProjectDialog.list.value;
+				switch(_g1) {
+				case "OpenFL Project":
+					var projectPackage = ui.NewProjectDialog.textfieldsWithCheckboxes.get("Package").value;
+					var str = "";
+					if(ui.NewProjectDialog.checkboxes.get("Package").checked && projectPackage != "") str = projectPackage + ".";
+					var params = ["project",str + ui.NewProjectDialog.projectName.value];
+					var projectCompany = ui.NewProjectDialog.textfieldsWithCheckboxes.get("Company").value;
+					if(ui.NewProjectDialog.checkboxes.get("Company").checked && projectCompany != "") params.push(projectCompany);
+					ui.NewProjectDialog.createOpenFLProject(params);
+					break;
+				case "OpenFL Extension":
+					ui.NewProjectDialog.createOpenFLProject(["extension",ui.NewProjectDialog.projectName.value]);
+					break;
+				default:
+				}
+				project.type = 1;
+				project.target = "html5";
+				project.main = "project.xml";
+				break;
+			case "OpenFL/Samples":
+				ui.NewProjectDialog.createOpenFLProject([ui.NewProjectDialog.list.value]);
+				project.type = 1;
+				project.target = "html5";
+				project.main = "project.xml";
+				break;
+			default:
+			}
+			var name = ui.NewProjectDialog.projectName.value;
+			if(name != "") project.name = name;
+			var projectPackage = ui.NewProjectDialog.textfieldsWithCheckboxes.get("Package").value;
+			if(ui.NewProjectDialog.checkboxes.get("Package").checked && projectPackage != "") project.projectPackage = projectPackage;
+			var company = ui.NewProjectDialog.textfieldsWithCheckboxes.get("Company").value;
+			if(ui.NewProjectDialog.checkboxes.get("Company").checked && company != "") project.company = company;
+			var license = ui.NewProjectDialog.textfieldsWithCheckboxes.get("License").value;
+			if(ui.NewProjectDialog.checkboxes.get("License").checked && license != "") project.license = license;
+			var url = ui.NewProjectDialog.textfieldsWithCheckboxes.get("URL").value;
+			if(ui.NewProjectDialog.checkboxes.get("URL").checked && url != "") project.url = url;
+			var path;
+			if(ui.NewProjectDialog.createDirectoryForProject.checked) path = Utils.path.join(ui.NewProjectDialog.projectLocation.value,ui.NewProjectDialog.projectName.value,"project.hide"); else path = Utils.path.join(ui.NewProjectDialog.projectLocation.value,"project.hide");
+			Utils.system_saveFile(path,JSON.stringify(project));
+			core.ProjectAccess.currentProject = project;
+			Main.updateMenu();
+			ui.NewProjectDialog.saveData("Package");
+			ui.NewProjectDialog.saveData("Company");
+			ui.NewProjectDialog.saveData("License");
+			ui.NewProjectDialog.saveData("URL");
+			ui.NewProjectDialog.saveCheckboxState("Package");
+			ui.NewProjectDialog.saveCheckboxState("Company");
+			ui.NewProjectDialog.saveCheckboxState("License");
+			ui.NewProjectDialog.saveCheckboxState("URL");
+			ui.NewProjectDialog.saveCheckboxState("CreateDirectory");
+			ui.NewProjectDialog.hide();
+		}
+	});
+}
+ui.NewProjectDialog.createDirectory = function(path,onCreated) {
+	Utils.fs.mkdir(path,null,function(error) {
+		if(error != null) console.log(error);
+		if(onCreated != null) onCreated();
+	});
+}
+ui.NewProjectDialog.createDirectoryRecursively = function(path,folderPath,onCreated) {
+	var fullPath = Utils.path.join(path,folderPath[0]);
+	ui.NewProjectDialog.createDirectory(fullPath,function() {
+		folderPath.splice(0,1);
+		if(folderPath.length > 0) ui.NewProjectDialog.createDirectoryRecursively(fullPath,folderPath,onCreated); else onCreated();
+	});
+}
+ui.NewProjectDialog.generateProjectName = function(onGenerated) {
+	if(ui.NewProjectDialog.selectedCategory != "OpenFL/Samples") {
+		var value = StringTools.replace(ui.NewProjectDialog.list.value,"+","p");
+		value = StringTools.replace(value,"#","sharp");
+		value = StringTools.replace(value," ","");
+		if(ui.NewProjectDialog.selectedCategory != "OpenFL") value = StringTools.replace(ui.NewProjectDialog.selectedCategory,"/","") + value;
+		ui.NewProjectDialog.generateFolderName(ui.NewProjectDialog.projectLocation.value,value,1,onGenerated);
+	} else {
+		ui.NewProjectDialog.projectName.value = ui.NewProjectDialog.list.value;
+		ui.NewProjectDialog.updateHelpBlock();
+		if(onGenerated != null) onGenerated();
+	}
+	if(ui.NewProjectDialog.selectedCategory != "Haxe") ui.NewProjectDialog.createDirectoryForProject.parentElement.parentElement.style.display = "none"; else ui.NewProjectDialog.createDirectoryForProject.parentElement.parentElement.style.display = "block";
 }
 ui.NewProjectDialog.show = function() {
 	if(ui.NewProjectDialog.page1.style.display == "none") ui.NewProjectDialog.backButton.click();
@@ -1262,38 +1549,85 @@ ui.NewProjectDialog.show = function() {
 ui.NewProjectDialog.hide = function() {
 	new $(ui.NewProjectDialog.modal).modal("hide");
 }
+ui.NewProjectDialog.createOpenFLProject = function(params) {
+	var OpenFLTools = Utils.process.spawn("haxelib",["run","openfl","create"].concat(params));
+	var log = "";
+	OpenFLTools.stderr.setEncoding("utf8");
+	OpenFLTools.stderr.on("data",function(data) {
+		var str = data.toString();
+		log += str;
+	});
+	OpenFLTools.on("close",function(code) {
+		console.log("exit code: " + Std.string(code));
+		console.log(log);
+		var path = Utils.path.join(ui.NewProjectDialog.projectLocation.value,ui.NewProjectDialog.projectName.value);
+		if(ui.NewProjectDialog.list.value != ui.NewProjectDialog.projectName.value) Utils.fs.rename(Utils.path.join(ui.NewProjectDialog.projectLocation.value,ui.NewProjectDialog.list.value),path,function(error) {
+			if(error != null) console.log(error);
+			core.TabsManager.openFileInNewTab(Utils.path.join(path,"Source","Main.hx"));
+		}); else core.TabsManager.openFileInNewTab(Utils.path.join(path,"Source","Main.hx"));
+	});
+}
+ui.NewProjectDialog.generateFolderName = function(path,folder,n,onGenerated) {
+	if(path != "" && folder != "") Utils.fs.exists(Utils.path.join(path,folder + Std.string(n)),function(exists) {
+		if(exists) ui.NewProjectDialog.generateFolderName(path,folder,n + 1,onGenerated); else {
+			ui.NewProjectDialog.projectName.value = folder + Std.string(n);
+			ui.NewProjectDialog.updateHelpBlock();
+			if(onGenerated != null) onGenerated();
+		}
+	}); else {
+		ui.NewProjectDialog.projectName.value = folder + Std.string(n);
+		ui.NewProjectDialog.updateHelpBlock();
+	}
+}
 ui.NewProjectDialog.loadData = function(_text) {
 	var text = js.Browser.getLocalStorage().getItem(_text);
 	if(text != null) ui.NewProjectDialog.textfieldsWithCheckboxes.get(_text).value = text;
 }
 ui.NewProjectDialog.saveData = function(_text) {
-	if(ui.NewProjectDialog.checkboxes.get(_text).checked) js.Browser.getLocalStorage().setItem(_text,ui.NewProjectDialog.textfieldsWithCheckboxes.get(_text).value);
+	if(ui.NewProjectDialog.checkboxes.get(_text).checked) {
+		var value = ui.NewProjectDialog.textfieldsWithCheckboxes.get(_text).value;
+		if(value != "") js.Browser.getLocalStorage().setItem(_text,value);
+	}
 }
 ui.NewProjectDialog.loadCheckboxState = function(_text) {
 	var text = js.Browser.getLocalStorage().getItem(_text + "Checkbox");
 	if(text != null) ui.NewProjectDialog.checkboxes.get(_text).checked = JSON.parse(text);
 }
+ui.NewProjectDialog.saveCheckboxState = function(_text) {
+	js.Browser.getLocalStorage().setItem(_text + "Checkbox",JSON.stringify(ui.NewProjectDialog.checkboxes.get(_text).checked));
+}
 ui.NewProjectDialog.createPage1 = function() {
-	ui.NewProjectDialog.page1 = js.Browser.document.createElement("div");
-	var well = js.Browser.document.createElement("div");
+	var _this = window.document;
+	ui.NewProjectDialog.page1 = _this.createElement("div");
+	var well;
+	var _this = window.document;
+	well = _this.createElement("div");
 	well.className = "well";
-	well.style["float"] = "left";
+	well.style.float = "left";
 	well.style.width = "50%";
 	well.style.height = "250px";
 	well.style.marginBottom = "0";
 	ui.NewProjectDialog.page1.appendChild(well);
-	var tree = js.Browser.document.createElement("ul");
+	var tree;
+	var _this = window.document;
+	tree = _this.createElement("ul");
 	tree.className = "nav nav-list";
 	well.appendChild(tree);
 	tree.appendChild(ui.NewProjectDialog.createCategory("Haxe"));
 	tree.appendChild(ui.NewProjectDialog.createCategoryWithSubcategories("OpenFL",["Samples"]));
 	ui.NewProjectDialog.list = ui.NewProjectDialog.createList();
-	ui.NewProjectDialog.list.style["float"] = "left";
+	ui.NewProjectDialog.list.style.float = "left";
 	ui.NewProjectDialog.list.style.width = "50%";
 	ui.NewProjectDialog.list.style.height = "250px";
 	ui.NewProjectDialog.page1.appendChild(ui.NewProjectDialog.list);
-	ui.NewProjectDialog.page1.appendChild(js.Browser.document.createElement("br"));
-	ui.NewProjectDialog.description = js.Browser.document.createElement("p");
+	ui.NewProjectDialog.page1.appendChild((function($this) {
+		var $r;
+		var _this = window.document;
+		$r = _this.createElement("br");
+		return $r;
+	}(this)));
+	var _this = window.document;
+	ui.NewProjectDialog.description = _this.createElement("p");
 	ui.NewProjectDialog.description.style.width = "100%";
 	ui.NewProjectDialog.description.style.height = "50px";
 	ui.NewProjectDialog.description.style.overflow = "auto";
@@ -1302,30 +1636,40 @@ ui.NewProjectDialog.createPage1 = function() {
 	return ui.NewProjectDialog.page1;
 }
 ui.NewProjectDialog.createPage2 = function() {
-	ui.NewProjectDialog.page2 = js.Browser.document.createElement("div");
+	var _this = window.document;
+	ui.NewProjectDialog.page2 = _this.createElement("div");
 	ui.NewProjectDialog.page2.style.padding = "15px";
-	var row = js.Browser.document.createElement("div");
+	var row;
+	var _this = window.document;
+	row = _this.createElement("div");
 	row.className = "row";
-	ui.NewProjectDialog.projectName = js.Browser.document.createElement("input");
+	var _this = window.document;
+	ui.NewProjectDialog.projectName = _this.createElement("input");
 	ui.NewProjectDialog.projectName.type = "text";
 	ui.NewProjectDialog.projectName.className = "form-control";
 	ui.NewProjectDialog.projectName.placeholder = "Name";
 	ui.NewProjectDialog.projectName.style.width = "100%";
 	row.appendChild(ui.NewProjectDialog.projectName);
 	ui.NewProjectDialog.page2.appendChild(row);
-	row = js.Browser.document.createElement("div");
+	var _this = window.document;
+	row = _this.createElement("div");
 	row.className = "row";
-	var inputGroup = js.Browser.document.createElement("div");
+	var inputGroup;
+	var _this = window.document;
+	inputGroup = _this.createElement("div");
 	inputGroup.className = "input-group";
 	inputGroup.style.display = "inline";
 	row.appendChild(inputGroup);
-	ui.NewProjectDialog.projectLocation = js.Browser.document.createElement("input");
+	var _this = window.document;
+	ui.NewProjectDialog.projectLocation = _this.createElement("input");
 	ui.NewProjectDialog.projectLocation.type = "text";
 	ui.NewProjectDialog.projectLocation.className = "form-control";
 	ui.NewProjectDialog.projectLocation.placeholder = "Location";
 	ui.NewProjectDialog.projectLocation.style.width = "80%";
 	inputGroup.appendChild(ui.NewProjectDialog.projectLocation);
-	var browseButton = js.Browser.document.createElement("button");
+	var browseButton;
+	var _this = window.document;
+	browseButton = _this.createElement("button");
 	browseButton.type = "button";
 	browseButton.className = "btn btn-default";
 	browseButton.textContent = "Browse...";
@@ -1343,30 +1687,41 @@ ui.NewProjectDialog.createPage2 = function() {
 	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"Company");
 	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"License");
 	ui.NewProjectDialog.createTextWithCheckbox(ui.NewProjectDialog.page2,"URL");
-	row = js.Browser.document.createElement("div");
+	var _this = window.document;
+	row = _this.createElement("div");
 	row.className = "row";
-	var checkboxDiv = js.Browser.document.createElement("div");
+	var checkboxDiv;
+	var _this = window.document;
+	checkboxDiv = _this.createElement("div");
 	checkboxDiv.className = "checkbox";
 	row.appendChild(checkboxDiv);
-	var label = js.Browser.document.createElement("label");
+	var label;
+	var _this = window.document;
+	label = _this.createElement("label");
 	checkboxDiv.appendChild(label);
-	ui.NewProjectDialog.checkbox = js.Browser.document.createElement("input");
-	ui.NewProjectDialog.checkbox.type = "checkbox";
-	ui.NewProjectDialog.checkbox.checked = true;
-	label.appendChild(ui.NewProjectDialog.checkbox);
-	ui.NewProjectDialog.checkbox.onchange = function(e) {
+	var _this = window.document;
+	ui.NewProjectDialog.createDirectoryForProject = _this.createElement("input");
+	ui.NewProjectDialog.createDirectoryForProject.type = "checkbox";
+	ui.NewProjectDialog.createDirectoryForProject.checked = true;
+	label.appendChild(ui.NewProjectDialog.createDirectoryForProject);
+	ui.NewProjectDialog.checkboxes.set("CreateDirectory",ui.NewProjectDialog.createDirectoryForProject);
+	ui.NewProjectDialog.createDirectoryForProject.onchange = function(e) {
 		ui.NewProjectDialog.updateHelpBlock();
 	};
-	label.appendChild(js.Browser.document.createTextNode("Create directory for project"));
+	label.appendChild(window.document.createTextNode("Create directory for project"));
 	ui.NewProjectDialog.page2.appendChild(row);
-	row = js.Browser.document.createElement("div");
-	ui.NewProjectDialog.helpBlock = js.Browser.document.createElement("p");
+	var _this = window.document;
+	row = _this.createElement("div");
+	var _this = window.document;
+	ui.NewProjectDialog.helpBlock = _this.createElement("p");
 	ui.NewProjectDialog.helpBlock.className = "help-block";
 	row.appendChild(ui.NewProjectDialog.helpBlock);
 	ui.NewProjectDialog.projectLocation.onchange = function(e) {
 		ui.NewProjectDialog.updateHelpBlock();
+		ui.NewProjectDialog.generateFolderName(ui.NewProjectDialog.projectLocation.value,ui.NewProjectDialog.projectName.value,1);
 	};
 	ui.NewProjectDialog.projectName.onchange = function(e) {
+		ui.NewProjectDialog.projectName.value = Utils.capitalize(ui.NewProjectDialog.projectName.value);
 		ui.NewProjectDialog.updateHelpBlock();
 	};
 	ui.NewProjectDialog.page2.appendChild(row);
@@ -1375,25 +1730,35 @@ ui.NewProjectDialog.createPage2 = function() {
 ui.NewProjectDialog.updateHelpBlock = function() {
 	if(ui.NewProjectDialog.projectLocation.value != "") {
 		var str = "";
-		if(ui.NewProjectDialog.checkbox.checked == true && ui.NewProjectDialog.projectName.value != "") str = ui.NewProjectDialog.projectName.value;
-		ui.NewProjectDialog.helpBlock.innerText = "Project will be created in: " + ui.NewProjectDialog.projectLocation.value + str;
+		if((ui.NewProjectDialog.selectedCategory != "Haxe" || ui.NewProjectDialog.createDirectoryForProject.checked == true) && ui.NewProjectDialog.projectName.value != "") str = ui.NewProjectDialog.projectName.value;
+		ui.NewProjectDialog.helpBlock.innerText = "Project will be created in: " + Utils.path.join(ui.NewProjectDialog.projectLocation.value,str);
 	} else ui.NewProjectDialog.helpBlock.innerText = "";
 }
 ui.NewProjectDialog.createTextWithCheckbox = function(_page2,_text) {
-	var row = js.Browser.document.createElement("div");
+	var row;
+	var _this = window.document;
+	row = _this.createElement("div");
 	row.className = "row";
-	var inputGroup = js.Browser.document.createElement("div");
+	var inputGroup;
+	var _this = window.document;
+	inputGroup = _this.createElement("div");
 	inputGroup.className = "input-group";
 	row.appendChild(inputGroup);
-	var inputGroupAddon = js.Browser.document.createElement("span");
+	var inputGroupAddon;
+	var _this = window.document;
+	inputGroupAddon = _this.createElement("span");
 	inputGroupAddon.className = "input-group-addon";
 	inputGroup.appendChild(inputGroupAddon);
-	var checkbox = js.Browser.document.createElement("input");
+	var checkbox;
+	var _this = window.document;
+	checkbox = _this.createElement("input");
 	checkbox.type = "checkbox";
 	checkbox.checked = true;
 	inputGroupAddon.appendChild(checkbox);
 	ui.NewProjectDialog.checkboxes.set(_text,checkbox);
-	var text = js.Browser.document.createElement("input");
+	var text;
+	var _this = window.document;
+	text = _this.createElement("input");
 	text.type = "text";
 	text.className = "form-control";
 	text.placeholder = _text;
@@ -1405,18 +1770,26 @@ ui.NewProjectDialog.createTextWithCheckbox = function(_page2,_text) {
 	_page2.appendChild(row);
 }
 ui.NewProjectDialog.createCategory = function(text) {
-	var li = js.Browser.document.createElement("li");
-	var a = js.Browser.document.createElement("a");
+	var li;
+	var _this = window.document;
+	li = _this.createElement("li");
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
 	a.href = "#";
 	a.addEventListener("click",function(e) {
 		var parent = li.parentElement.parentElement;
-		var topA = js.Boot.__cast(parent.getElementsByTagName("a")[0] , HTMLAnchorElement);
+		var topA;
+		topA = js.Boot.__cast(parent.getElementsByTagName("a")[0] , HTMLAnchorElement);
 		if(parent.className == "well") ui.NewProjectDialog.updateListItems(a.textContent); else ui.NewProjectDialog.updateListItems(topA.innerText + "/" + a.textContent);
 	});
-	var span = js.Browser.document.createElement("span");
+	var span;
+	var _this = window.document;
+	span = _this.createElement("span");
 	span.className = "glyphicon glyphicon-folder-open";
 	a.appendChild(span);
-	span = js.Browser.document.createElement("span");
+	var _this = window.document;
+	span = _this.createElement("span");
 	span.textContent = text;
 	span.style.marginLeft = "5px";
 	a.appendChild(span);
@@ -1442,12 +1815,15 @@ ui.NewProjectDialog.updateListItems = function(category) {
 }
 ui.NewProjectDialog.createCategoryWithSubcategories = function(text,subcategories) {
 	var li = ui.NewProjectDialog.createCategory(text);
-	var a = js.Boot.__cast(li.getElementsByTagName("a")[0] , HTMLAnchorElement);
+	var a;
+	a = js.Boot.__cast(li.getElementsByTagName("a")[0] , HTMLAnchorElement);
 	a.className = "tree-toggler nav-header";
 	a.onclick = function(e) {
 		new $(li).children("ul.tree").toggle(300);
 	};
-	var ul = js.Browser.document.createElement("ul");
+	var ul;
+	var _this = window.document;
+	ul = _this.createElement("ul");
 	ul.className = "nav nav-list tree";
 	li.appendChild(ul);
 	li.onclick = function(e) {
@@ -1465,16 +1841,22 @@ ui.NewProjectDialog.createCategoryWithSubcategories = function(text,subcategorie
 	return li;
 }
 ui.NewProjectDialog.createList = function() {
-	var select = js.Browser.document.createElement("select");
+	var select;
+	var _this = window.document;
+	select = _this.createElement("select");
 	select.size = 10;
 	select.onchange = function(e) {
 		ui.NewProjectDialog.checkSelectedOptions();
+	};
+	select.ondblclick = function(e) {
+		ui.NewProjectDialog.showPage2();
 	};
 	return select;
 }
 ui.NewProjectDialog.checkSelectedOptions = function() {
 	if(ui.NewProjectDialog.list.selectedOptions.length > 0) {
-		var option = js.Boot.__cast(ui.NewProjectDialog.list.selectedOptions[0] , HTMLOptionElement);
+		var option;
+		option = js.Boot.__cast(ui.NewProjectDialog.list.selectedOptions[0] , HTMLOptionElement);
 		ui.NewProjectDialog.updateDescription(ui.NewProjectDialog.selectedCategory,option.label);
 	}
 }
@@ -1503,54 +1885,37 @@ ui.NewProjectDialog.setListItems = function(list,items) {
 		list.appendChild(ui.NewProjectDialog.createListItem(item));
 	}
 	list.selectedIndex = 0;
+	ui.NewProjectDialog.checkSelectedOptions();
 }
 ui.NewProjectDialog.createListItem = function(text) {
-	var option = js.Browser.document.createElement("option");
+	var option;
+	var _this = window.document;
+	option = _this.createElement("option");
 	option.textContent = text;
 	option.value = text;
 	return option;
 }
-ui.Notify = function() {
-	this.type = "";
-	this.content = "";
-};
-ui.Notify.__name__ = true;
-ui.Notify.prototype = {
-	show: function() {
-		var type_error = "";
-		var type_error_text = "";
-		var skip = true;
-		if(this.type == "error") {
-			type_error = "danger";
-			type_error_text = "Error";
-			skip = false;
-		} else if(this.type == "warning") {
-			type_error = "warning";
-			type_error_text = "Warning";
-			skip = false;
-		}
-		if(skip == false) {
-			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " :</strong><br/>" + this.content,"</div>"].join("\n");
-			new $("#notify_position").html(retStr);
-		}
-	}
-	,__class__: ui.Notify
-}
 ui.menu = {}
 ui.menu.basic = {}
 ui.menu.basic.Menu = function(_text,_headerText) {
-	this.li = js.Browser.document.createElement("li");
+	var _this = window.document;
+	this.li = _this.createElement("li");
 	this.li.className = "dropdown";
-	var a = js.Browser.document.createElement("a");
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
 	a.href = "#";
 	a.className = "dropdown-toggle";
 	a.setAttribute("data-toggle","dropdown");
 	a.innerText = _text;
 	this.li.appendChild(a);
-	this.ul = js.Browser.document.createElement("ul");
+	var _this = window.document;
+	this.ul = _this.createElement("ul");
 	this.ul.className = "dropdown-menu";
 	if(_headerText != null) {
-		var li_header = js.Browser.document.createElement("li");
+		var li_header;
+		var _this = window.document;
+		li_header = _this.createElement("li");
 		li_header.className = "dropdown-header";
 		li_header.innerText = _headerText;
 		this.ul.appendChild(li_header);
@@ -1559,41 +1924,62 @@ ui.menu.basic.Menu = function(_text,_headerText) {
 };
 ui.menu.basic.Menu.__name__ = true;
 ui.menu.basic.Menu.prototype = {
-	setMenuEnabled: function(enabled) {
+	addMenuItem: function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
+		this.ul.appendChild(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey).getElement());
+	}
+	,addSeparator: function() {
+		this.ul.appendChild(new ui.menu.basic.Separator().getElement());
+	}
+	,addToDocument: function() {
+		var div;
+		div = js.Boot.__cast(window.document.getElementById("position-navbar") , Element);
+		div.appendChild(this.li);
+	}
+	,setDisabled: function(menuItemNames) {
 		var childNodes = this.ul.childNodes;
-		var _g1 = 0, _g = childNodes.length;
+		var _g1 = 0;
+		var _g = childNodes.length;
 		while(_g1 < _g) {
 			var i = _g1++;
-			var child = js.Boot.__cast(childNodes[i] , Element);
+			var child;
+			child = js.Boot.__cast(childNodes[i] , Element);
+			if(child.className != "divider") {
+				var a;
+				a = js.Boot.__cast(child.firstChild , HTMLAnchorElement);
+				if(Lambda.indexOf(menuItemNames,a.getAttribute("text")) == -1) child.className = ""; else child.className = "disabled";
+			}
+		}
+	}
+	,setMenuEnabled: function(enabled) {
+		var childNodes = this.ul.childNodes;
+		var _g1 = 0;
+		var _g = childNodes.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var child;
+			child = js.Boot.__cast(childNodes[i] , Element);
 			if(child.className != "divider") {
 				if(enabled) child.className = ""; else child.className = "disabled";
 			}
 		}
 	}
-	,setDisabled: function(menuItemNames) {
-		var childNodes = this.ul.childNodes;
-		var _g1 = 0, _g = childNodes.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var child = js.Boot.__cast(childNodes[i] , Element);
-			if(child.className != "divider") {
-				var a = js.Boot.__cast(child.firstChild , HTMLAnchorElement);
-				if(Lambda.indexOf(menuItemNames,a.getAttribute("text")) == -1) child.className = ""; else child.className = "disabled";
-			}
-		}
-	}
-	,addToDocument: function() {
-		var div = js.Boot.__cast(js.Browser.document.getElementById("position-navbar") , Element);
-		div.appendChild(this.li);
-	}
-	,addSeparator: function() {
-		this.ul.appendChild(new ui.menu.basic.Separator().getElement());
-	}
-	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
-		this.ul.appendChild(new ui.menu.basic.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey).getElement());
-	}
 	,__class__: ui.menu.basic.Menu
 }
+ui.menu.DeveloperToolsMenu = function() {
+	ui.menu.basic.Menu.call(this,"Developer Tools");
+	this.createUI();
+};
+ui.menu.DeveloperToolsMenu.__name__ = true;
+ui.menu.DeveloperToolsMenu.__super__ = ui.menu.basic.Menu;
+ui.menu.DeveloperToolsMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
+	createUI: function() {
+		this.addMenuItem("Open HIDE project","openHIDEProject",null);
+		this.addMenuItem("Rebuild HIDE(and reload)","rebuildHIDE",null,"Ctrl-Shift-R");
+		this.addMenuItem("Reload page","reloadHIDEPage",null);
+		this.addToDocument();
+	}
+	,__class__: ui.menu.DeveloperToolsMenu
+});
 ui.menu.EditMenu = function() {
 	ui.menu.basic.Menu.call(this,"Edit");
 	this.createUI();
@@ -1669,8 +2055,8 @@ ui.menu.RunMenu.__name__ = true;
 ui.menu.RunMenu.__super__ = ui.menu.basic.Menu;
 ui.menu.RunMenu.prototype = $extend(ui.menu.basic.Menu.prototype,{
 	createUI: function() {
-		this.addMenuItem("Run Project","component_run_project",null);
-		this.addMenuItem("Build Project","component_build_project",null);
+		this.addMenuItem("Run Project","component_run_project",BuildTools.runProject,"F5");
+		this.addMenuItem("Build Project","component_build_project",BuildTools.buildProject,"F8");
 		this.addToDocument();
 	}
 	,__class__: ui.menu.RunMenu
@@ -1708,17 +2094,21 @@ ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunct
 	var _g = this;
 	var span = null;
 	if(_hotkey != null) {
-		span = js.Browser.document.createElement("span");
+		var _this = window.document;
+		span = _this.createElement("span");
 		span.style.color = "silver";
-		span.style["float"] = "right";
+		span.style.float = "right";
 		span.innerText = _hotkey;
 	}
-	this.li = js.Browser.document.createElement("li");
-	var a = js.Browser.document.createElement("a");
+	var _this = window.document;
+	this.li = _this.createElement("li");
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
 	a.style.left = "0";
 	a.setAttribute("text",_text);
 	if(_onClickFunction != null) a.onclick = function(e) {
-		if(_g.li.className != "disabled") new $(js.Browser.document).triggerHandler(_onClickFunctionName);
+		if(_g.li.className != "disabled") new $(window.document).triggerHandler(_onClickFunctionName);
 	};
 	a.innerText = _text;
 	if(span != null) a.appendChild(span);
@@ -1728,16 +2118,17 @@ ui.menu.basic.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunct
 ui.menu.basic.MenuButtonItem.__name__ = true;
 ui.menu.basic.MenuButtonItem.__interfaces__ = [ui.menu.basic.MenuItem];
 ui.menu.basic.MenuButtonItem.prototype = {
-	registerEvent: function(_onClickFunctionName,_onClickFunction) {
-		if(_onClickFunction != null) new $(js.Browser.document).on(_onClickFunctionName,_onClickFunction);
-	}
-	,getElement: function() {
+	getElement: function() {
 		return this.li;
+	}
+	,registerEvent: function(_onClickFunctionName,_onClickFunction) {
+		if(_onClickFunction != null) new $(window.document).on(_onClickFunctionName,_onClickFunction);
 	}
 	,__class__: ui.menu.basic.MenuButtonItem
 }
 ui.menu.basic.Separator = function() {
-	this.li = js.Browser.document.createElement("li");
+	var _this = window.document;
+	this.li = _this.createElement("li");
 	this.li.className = "divider";
 };
 ui.menu.basic.Separator.__name__ = true;
@@ -1751,7 +2142,6 @@ ui.menu.basic.Separator.prototype = {
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
-Math.__name__ = ["Math"];
 Math.NaN = Number.NaN;
 Math.NEGATIVE_INFINITY = Number.NEGATIVE_INFINITY;
 Math.POSITIVE_INFINITY = Number.POSITIVE_INFINITY;
@@ -1773,6 +2163,16 @@ var Bool = Boolean;
 Bool.__ename__ = ["Bool"];
 var Class = { __name__ : ["Class"]};
 var Enum = { };
+if(Array.prototype.map == null) Array.prototype.map = function(f) {
+	var a = [];
+	var _g1 = 0;
+	var _g = this.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		a[i] = f(this[i]);
+	}
+	return a;
+};
 var module, setImmediate, clearImmediate;
 js.Node.setTimeout = setTimeout;
 js.Node.clearTimeout = clearTimeout;
@@ -1794,12 +2194,10 @@ PreserveWindowState.isMaximizationEvent = false;
 Utils.os = js.Node.require("os");
 Utils.fs = js.Node.require("fs");
 Utils.path = js.Node.require("path");
-Utils.exec = js.Node.require("child_process").exec;
+Utils.process = js.Node.require("child_process");
 Utils.gui = js.Node.require("nw.gui");
 Utils.window = Utils.gui.Window.get();
 core.TabsManager.useWorker = false;
 core.TabsManager.docs = [];
-js.Browser.window = typeof window != "undefined" ? window : null;
-js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 })();

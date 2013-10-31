@@ -12,6 +12,7 @@ import js.html.KeyboardEvent;
 import js.html.WheelEvent;
 import js.Lib;
 import ui.menu.basic.Menu;
+import ui.menu.DeveloperToolsMenu;
 import ui.menu.EditMenu;
 import ui.menu.FileMenu;
 import ui.menu.HelpMenu;
@@ -61,8 +62,6 @@ class Main {
 		settings = new StringMap();
 		
 		FileDialog.init();		
-		
-		//TernAddon.init();
 		
 		FileTree.init();
 		
@@ -178,17 +177,34 @@ class Main {
 							TabsManager.applyRandomTheme();
 						case 'N'.code:
 							ProjectAccess.createNewProject();
+						case 'R'.code:
+							Utils.window.reloadIgnoringCache();
 						default:
 							
 					}		
 				}
-				//trace(e.keyCode);
 			}
 			else
 			{
 				if (e.keyCode == 13 && e.shiftKey && e.altKey)
 				{
 					Utils.toggleFullscreen();
+				}
+				//F5
+				else if (e.keyCode == 116)
+				{
+					if (ProjectAccess.currentProject != null)
+					{
+						BuildTools.runProject();
+					}
+				}
+				//F8
+				else if (e.keyCode == 119) 
+				{
+					if (ProjectAccess.currentProject != null)
+					{
+						BuildTools.buildProject();
+					}
 				}
 			}
 		});
@@ -212,12 +228,11 @@ class Main {
 	}
     
 	public static function resize():Void
-	{
-		//var ul1:Element = Browser.document.getElementById("docs");
-		//new JQuery(".CodeMirror").css("height", Std.string(Browser.window.innerHeight - 58 - ul1.clientHeight - 75) + "px");
-		//new JQuery("#tree_well").css("height", Std.string(Browser.window.innerHeight - 58));
-		//new JQuery("#demospace").css("width", Std.string(Browser.window.innerWidth - 250));
-		//new JQuery("#panel").css("height", Std.string(Browser.window.innerHeight - 50));
+	{		
+		if (TabsManager.editor != null)
+		{
+			TabsManager.editor.refresh();
+		}
 	}
 	
 	static function setFontSize(font_size:Int):Void
@@ -242,6 +257,7 @@ class Main {
 		menus.set("source", new SourceMenu());
 		menus.set("run", new RunMenu());
 		menus.set("help", new HelpMenu());
+		menus.set("developertools", new DeveloperToolsMenu());
 		
 		Timer.delay(updateMenu, 100);
 		Timer.delay(updateMenu, 10000);
@@ -265,7 +281,7 @@ class Main {
 			menus.get("edit").setMenuEnabled(true);
 		}
 		
-		if (session.current_project_xml == "")
+		if (ProjectAccess.currentProject == null)
 		{
 			fileMenuDisabledItems.push("Close Project...");
 			fileMenuDisabledItems.push("Project Properties");

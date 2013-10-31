@@ -21,13 +21,20 @@ class FileTree
 	
 	public static function init():Void
 	{
+		load("HIDE");
+	}
+	
+	public static function load(projectName:String):Void
+	{
 		var tree:UListElement = cast(Browser.document.getElementById("tree"), UListElement);
 		
-		var rootTreeElement:LIElement = createDirectoryElement("HIDE");		
+		new JQuery(tree).children().remove();
+		
+		var rootTreeElement:LIElement = createDirectoryElement(projectName);		
 		
 		tree.appendChild(rootTreeElement);
 		
-		readDir("../", rootTreeElement);
+		readDir("./", rootTreeElement);
 	}
 	
 	private static function createDirectoryElement(text:String):LIElement

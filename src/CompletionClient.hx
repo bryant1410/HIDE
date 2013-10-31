@@ -1,4 +1,5 @@
 package ;
+import core.ProjectAccess;
 import core.TabsManager;
 import jQuery.JQuery;
 import js.Browser;
@@ -67,15 +68,20 @@ class CompletionClient
 				//projectArguments.push("-dce");
 				//projectArguments.push("full");
 				
-				projectArguments.push("-main Main2");
-				projectArguments.push("-swf Main2.swf");
-				projectArguments.push("-cp src");
+				//projectArguments.push("-main Main2");
+				//projectArguments.push("-swf Main2.swf");
+				//projectArguments.push("-cp src");
 				//
+				
+				projectArguments = projectArguments.concat(ProjectAccess.currentProject.args);
+				
 				projectArguments.push("--display");
 				
 				projectArguments.push(TabsManager.curDoc.path + "@" + Std.string(data.doc.indexFromPos(data.from)));
 				
-				var haxeCompilerClient = js.Node.require('child_process').spawn("haxe", ["--connect", "6001", "--cwd", ".."].concat(projectArguments));
+				trace(projectArguments);
+				
+				var haxeCompilerClient = Utils.process.spawn("haxe", ["--connect", "6001"].concat(projectArguments));
 				
 				var xml:String = "";
 				
