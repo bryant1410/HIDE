@@ -5,6 +5,11 @@ Haxe Integrated Development Environment (HIDE) is written in Haxe and Javascript
 
 Thanks to a group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under the terms of the MIT License.
 
+Google Plus:
+[Haxe Integrated Development Environment](https://plus.google.com/113245482496557815887)
+
+
+
 Google Group:
 [HIDE Google Group](https://groups.google.com/forum/#!forum/haxeide)
 
