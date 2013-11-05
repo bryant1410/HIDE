@@ -6,7 +6,7 @@ import js.Browser;
 
 @:keep @:expose  class FileDialog
 {
-	public static function new(event_name:String)
+	public function new(event_name:String)
 	{
 		new JQuery('#temp').html("<input id='temp_fileDialog' type='file' />");
 
