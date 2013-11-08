@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.misterpah.EditorAce.js
+-main plugin.misterpah.EditorAce
+-cp ../../externs/hide
+-dce full

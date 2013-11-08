@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.boyan.ShortcutKey.js
+-main plugin.boyan.ShortcutKey
+-cp ../../externs/hide
+-dce full
