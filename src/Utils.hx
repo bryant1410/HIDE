@@ -183,13 +183,26 @@ import ui.*;
 		var exec_str = "";
 
 		var filename = Main.session.project_xml;
+
+		var temp = filename.split(".");
+		var filename_ext = temp.pop();
+
+
+
 	    var projectFolder = filename.split(path.sep);
 	    projectFolder.pop();
 	    //trace(projectFolder);
 	    Main.session.project_folder = projectFolder.join(path.sep);		
-		
-		if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & openfl display -hxml flash";}
-		if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash"; }
+		if (filename_ext == "xml")
+			{
+			if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & openfl display -hxml flash";}
+			if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash"; }			
+			}
+		if (filename_ext == "hxml")
+			{
+			if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & type "+ filename;}
+			if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; cat "+filename; }							
+			}
 		trace(exec_str);
 
 		Utils.exec(exec_str,
