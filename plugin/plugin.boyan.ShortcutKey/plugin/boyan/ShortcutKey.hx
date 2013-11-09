@@ -83,6 +83,7 @@ import js.html.KeyboardEvent;
                         //Ctrl-Shift-O
                         case 79:
                             //ProjectAccess.openProject();
+                            new JQuery(js.Browser.document).triggerHandler("core_project_openProject");
                         //Ctrl-Shift-S
                         case 83:
                             //FileAccess.saveActiveFileAs();

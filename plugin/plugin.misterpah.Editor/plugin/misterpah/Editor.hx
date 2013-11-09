@@ -11,7 +11,7 @@ import Utils;
 	private static var plugin:Map<String,String>;
     private static var tab_index:Array<String>;
     private static var cm:CodeMirror;
-    private static var completion_list:Array<String>;
+    public static var completion_list:Array<String>;
 
 
     public static function main()
@@ -37,14 +37,15 @@ import Utils;
         tab_index = new Array();
         completion_list = new Array();
 
-        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.18/lib/codemirror.js");
-        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.18/mode/haxe/haxe.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/mode/haxe/haxe.js");
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/jquery.xml2json.js");
 
         // somehow show-hint 3.18 were not working. we'll be use show-hint.js version 3.15;
-        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/show-hint-3.15.js");
-        Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.18/lib/codemirror.css");
-        Utils.loadCss("./plugin/support_files/plugin.misterpah/show-hint-custom.css");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror.hint.haxe.js");
+        Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.css");
+        Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.css");
 
         create_ui();
         register_hooks(); 	
@@ -72,22 +73,24 @@ import Utils;
             if (path == "") {trace("ignore");return;}
             
             var file_obj = Main.file_stack.find(path);
-            //file_obj.set('content',cm.getValue());
             Main.file_stack.update_content(path,cm.getValue());
-            //.set(path,file_obj);
 
             var cursor_pos = cm.indexFromPos(cm.getCursor());
             if (cm.getValue().charAt(cursor_pos - 1) == '.')
                 {
                     new JQuery(js.Browser.document).triggerHandler("core_file_save");
                     Utils.system_get_completion(cursor_pos);
+                    untyped sessionStorage.cursor_pos = cm.getCursor().ch;
                 }
 
             });
 
         editor_resize();
-        CodeMirror.registerHelper("hint","haxe",simpleCompletion);      
     }
+
+ 
+
+
 
 
     public static function register_hooks()
@@ -110,38 +113,39 @@ import Utils;
             editor_resize();
             });
 
-        
-        // this is to process / add / remove from the completion results
-        new JQuery(js.Browser.document).on("core_utils_getCompletion_complete",function(event,data){
-
-            var completion_array:Dynamic = untyped $.xml2json(data);
-            
-            completion_list = new Array();
-            if (completion_array.i == null) // type completion
-            {
-
-            }
-            else
-            {
-                for (each in 0...completion_array.i.length)
-                {
-                    completion_list.push(completion_array.i[each].n);
-                }               
-            }
-
-            CodeMirror.showHint(cm,simpleCompletion);
-            });
-
-
+        new JQuery(js.Browser.document).on("core_utils_getCompletion_complete",handle_getCompletion_complete);
     }
 
-    private static  function simpleCompletion(cm:CodeMirror)
+    /*
+    private static function simpleCompletion(cm:CodeMirror)
     {
         var cur = cm.getCursor();
         var start = cur.ch;
         var end = start;
         return {list: completion_list, from: cur, to: cur};
     }
+    */
+
+   static private function handle_getCompletion_complete(event,data)
+    {
+        trace("completion_handler");
+        var completion_array:Dynamic = untyped $.xml2json(data);
+        
+        completion_list = new Array();
+        if (completion_array.i == null) // type completion
+            {
+
+            }
+        else
+            {
+                for (each in 0...completion_array.i.length)
+                {
+                    completion_list.push(completion_array.i[each].n);
+                }
+            }
+        CodeMirror.showHint(cm,untyped haxeHint);        
+        //new JQuery(js.Browser.document).triggerHandler("codemirror_haxe_hint");
+    }    
 
 
 

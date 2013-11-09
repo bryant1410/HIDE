@@ -112,6 +112,7 @@ plugin.boyan.ShortcutKey.register_hooks = function() {
 			case 9:
 				break;
 			case 79:
+				new $(js.Browser.document).triggerHandler("core_project_openProject");
 				break;
 			case 83:
 				break;

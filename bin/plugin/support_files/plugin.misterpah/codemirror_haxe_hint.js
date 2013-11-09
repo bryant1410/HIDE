@@ -8,7 +8,7 @@ I (misterpah) never truly understand this thing with the code.
 NEVER change this file unless you REALLY understands it.
 
 */
-(function () {
+
     /* required scripts for codemirror autocompete */
     ////////////////////////////////
     // CODEMIRROR AUTOCOMPLETE START
@@ -110,22 +110,16 @@ NEVER change this file unless you REALLY understands it.
     
     function haxeHint(cm,options)
         {
-		var id = session['current_active_file'];
-		var tab_index = tabs[id];
-		var carot_pos = editors[id]['carot_pos'];
-		var classname = editors[id]['classname'];        
-        
-        var haxe_completion = localStorage.haxeHint.split(",");
+        var haxe_completion:Array<String> = plugin.misterpah.Editor.completion_list; //localStorage.haxeHint.split(",");
 
-        var cur = editors[id]['cm'].getCursor();
-        var curLine = editors[id]['cm'].getLine(cur.line);
+        var cur = cm.getCursor();
+        var curLine = cm.getLine(cur.line);
         var start = cur.ch;
         var end = start;
         //return {list:haxe_completion,from:CodeMirror.Pos(cur.line,start),to:CodeMirror.Pos(cur.line,end)};
-        return scriptHint(editors[id]['cm'], haxe_completion, function(e,cur) {return e.getTokenAt(cur);},options);
+        return scriptHint(cm, haxe_completion, function(e,cur) {return e.getTokenAt(cur);},options);
         }
 
 
-
+    console.log("hoi");
     CodeMirror.registerHelper("hint","haxe", haxeHint);
-})();

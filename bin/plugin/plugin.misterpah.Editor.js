@@ -192,12 +192,13 @@ plugin.misterpah.Editor.init = function() {
 	console.log(plugin.misterpah.Editor.plugin.get("filename") + " started");
 	plugin.misterpah.Editor.tab_index = new Array();
 	plugin.misterpah.Editor.completion_list = new Array();
-	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.18/lib/codemirror.js");
-	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.18/mode/haxe/haxe.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/mode/haxe/haxe.js");
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/jquery.xml2json.js");
-	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/show-hint-3.15.js");
-	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.18/lib/codemirror.css");
-	Utils.loadCss("./plugin/support_files/plugin.misterpah/show-hint-custom.css");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror.hint.haxe.js");
+	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.css");
+	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.css");
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
 }
@@ -219,10 +220,10 @@ plugin.misterpah.Editor.create_ui = function() {
 		if(cm.getValue().charAt(cursor_pos - 1) == ".") {
 			new $(js.Browser.document).triggerHandler("core_file_save");
 			Utils.system_get_completion(cursor_pos);
+			sessionStorage.cursor_pos = cm.getCursor().ch;
 		}
 	});
 	plugin.misterpah.Editor.editor_resize();
-	CodeMirror.registerHelper("hint","haxe",plugin.misterpah.Editor.simpleCompletion);
 }
 plugin.misterpah.Editor.register_hooks = function() {
 	new $(js.Browser.document).on("show.bs.tab",null,function(e) {
@@ -236,25 +237,21 @@ plugin.misterpah.Editor.register_hooks = function() {
 	new $(js.Browser.window).on("resize",null,function() {
 		plugin.misterpah.Editor.editor_resize();
 	});
-	new $(js.Browser.document).on("core_utils_getCompletion_complete",null,function(event,data) {
-		var completion_array = $.xml2json(data);
-		plugin.misterpah.Editor.completion_list = new Array();
-		if(completion_array.i == null) {
-		} else {
-			var _g1 = 0, _g = completion_array.i.length;
-			while(_g1 < _g) {
-				var each = _g1++;
-				plugin.misterpah.Editor.completion_list.push(completion_array.i[each].n);
-			}
-		}
-		CodeMirror.showHint(plugin.misterpah.Editor.cm,plugin.misterpah.Editor.simpleCompletion);
-	});
+	new $(js.Browser.document).on("core_utils_getCompletion_complete",null,plugin.misterpah.Editor.handle_getCompletion_complete);
 }
-plugin.misterpah.Editor.simpleCompletion = function(cm) {
-	var cur = cm.getCursor();
-	var start = cur.ch;
-	var end = start;
-	return { list : plugin.misterpah.Editor.completion_list, from : cur, to : cur};
+plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
+	console.log("completion_handler");
+	var completion_array = $.xml2json(data);
+	plugin.misterpah.Editor.completion_list = new Array();
+	if(completion_array.i == null) {
+	} else {
+		var _g1 = 0, _g = completion_array.i.length;
+		while(_g1 < _g) {
+			var each = _g1++;
+			plugin.misterpah.Editor.completion_list.push(completion_array.i[each].n);
+		}
+	}
+	CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 }
 plugin.misterpah.Editor.editor_resize = function() {
 	var win = Utils.gui.Window.get();
