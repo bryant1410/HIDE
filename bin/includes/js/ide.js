@@ -163,6 +163,7 @@ Main.plugin_execute_init = function(event) {
 		default_plugin.push("plugin.misterpah.Editor.js");
 		default_plugin.push("plugin.misterpah.FileAccess.js");
 		default_plugin.push("plugin.misterpah.ProjectAccess.js");
+		default_plugin.push("plugin.boyan.ShortcutKey.js");
 		console.log("default plugin");
 		var _g = 0;
 		while(_g < default_plugin.length) {
@@ -273,9 +274,7 @@ Utils.system_get_completion = function(position) {
 		join_str_cd = " /D ";
 	}
 	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
-	console.log(exec_str1);
 	Utils.exec(exec_str1,function(error,stdout,stderr) {
-		console.log(error);
 		if(error == null) new $(js.Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
 	});
 }

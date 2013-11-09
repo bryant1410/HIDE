@@ -60,6 +60,7 @@ public function refresh() : Void;
 public function indexFromPos(position:Pos):Int;
 
 public function getCursor( ?start : Bool ) : Pos;
+public function setCursor( pos:Pos ) : Void;
 
 public function getLine(param1:Dynamic):Dynamic;
 	

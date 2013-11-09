@@ -12,6 +12,7 @@ import Utils;
     private static var tab_index:Array<String>;
     private static var cm:CodeMirror;
     public static var completion_list:Array<String>;
+    private static var cursor_type:String;
 
 
     public static function main()
@@ -48,12 +49,14 @@ import Utils;
         Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.css");
 
         create_ui();
-        register_hooks(); 	
+        register_hooks(); 
+
     }
 
 
     public static function create_ui()
     {
+
         new JQuery("#editor_position").css("display","none");
         new JQuery("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
         new JQuery("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
@@ -79,8 +82,18 @@ import Utils;
             if (cm.getValue().charAt(cursor_pos - 1) == '.')
                 {
                     new JQuery(js.Browser.document).triggerHandler("core_file_save");
+                    cursor_type = ".";
                     Utils.system_get_completion(cursor_pos);
                     untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+                    
+                }
+            if (cm.getValue().charAt(cursor_pos - 1) == '(')
+                {
+                    new JQuery(js.Browser.document).triggerHandler("core_file_save");
+                    cursor_type = "(";
+                    Utils.system_get_completion(cursor_pos);
+                    untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+                    
                 }
 
             });
@@ -95,7 +108,7 @@ import Utils;
 
     public static function register_hooks()
     {
-
+        cursor_type = "";
         new JQuery(js.Browser.document).on("show.bs.tab",function(e):Void
             {
                 var target = new JQuery(e.target);
@@ -128,22 +141,49 @@ import Utils;
 
    static private function handle_getCompletion_complete(event,data)
     {
-        trace("completion_handler");
+        //trace("completion_handler");
         var completion_array:Dynamic = untyped $.xml2json(data);
         
-        completion_list = new Array();
-        if (completion_array.i == null) // type completion
-            {
+        
 
-            }
-        else
+        completion_list = new Array();
+        
+        if (cursor_type == ".") // properties/method available
             {
-                for (each in 0...completion_array.i.length)
+                trace(completion_array);
+
+                if (Std.is(completion_array,String))
                 {
-                    completion_list.push(completion_array.i[each].n);
+                    //completion_list.push(completion_array);
                 }
+                else
+                {
+                    for (each in 0...completion_array.i.length)
+                    {
+                        completion_list.push(completion_array.i[each].n);
+                    }
+                }
+                CodeMirror.showHint(cm,untyped haxeHint);                    
             }
-        CodeMirror.showHint(cm,untyped haxeHint);        
+        else if (cursor_type == "(") // function properties
+            {
+                trace(completion_array);
+                var cur_pos = cm.getCursor();
+
+                completion_array = StringTools.replace(completion_array,"->",",");
+                var completion_array_exploded = completion_array.split(",");
+                var return_type = completion_array_exploded.pop();
+                completion_array = completion_array_exploded.join(",");
+
+                completion_array = StringTools.replace(completion_array,"Void","");
+
+
+
+                completion_list.push(completion_array);
+                CodeMirror.showHint(cm,untyped haxeHint); 
+                cm.setCursor(cur_pos);
+            }
+
         //new JQuery(js.Browser.document).triggerHandler("codemirror_haxe_hint");
     }    
 

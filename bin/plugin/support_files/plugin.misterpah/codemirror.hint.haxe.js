@@ -4,9 +4,11 @@ function haxeHint(cm,options)
 
   var haxe_completion = plugin.misterpah.Editor.completion_list;
   var cur = cm.getCursor();
+  console.dir(haxe_completion);
 
-  var updated_completion = update_completion(cm,haxe_completion);
+  var updated_completion = update_completion(cm,haxe_completion);  
   return updated_completion;
+  
   }
 
 

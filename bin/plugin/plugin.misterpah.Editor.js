@@ -39,6 +39,11 @@ Std.__name__ = true;
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
+}
 var haxe = {}
 haxe.ds = {}
 haxe.ds.StringMap = function() {
@@ -219,6 +224,13 @@ plugin.misterpah.Editor.create_ui = function() {
 		var cursor_pos = cm.indexFromPos(cm.getCursor());
 		if(cm.getValue().charAt(cursor_pos - 1) == ".") {
 			new $(js.Browser.document).triggerHandler("core_file_save");
+			plugin.misterpah.Editor.cursor_type = ".";
+			Utils.system_get_completion(cursor_pos);
+			sessionStorage.cursor_pos = cm.getCursor().ch;
+		}
+		if(cm.getValue().charAt(cursor_pos - 1) == "(") {
+			new $(js.Browser.document).triggerHandler("core_file_save");
+			plugin.misterpah.Editor.cursor_type = "(";
 			Utils.system_get_completion(cursor_pos);
 			sessionStorage.cursor_pos = cm.getCursor().ch;
 		}
@@ -226,6 +238,7 @@ plugin.misterpah.Editor.create_ui = function() {
 	plugin.misterpah.Editor.editor_resize();
 }
 plugin.misterpah.Editor.register_hooks = function() {
+	plugin.misterpah.Editor.cursor_type = "";
 	new $(js.Browser.document).on("show.bs.tab",null,function(e) {
 		var target = new $(e.target);
 		plugin.misterpah.Editor.show_tab(target.attr("data-path"),false);
@@ -240,18 +253,31 @@ plugin.misterpah.Editor.register_hooks = function() {
 	new $(js.Browser.document).on("core_utils_getCompletion_complete",null,plugin.misterpah.Editor.handle_getCompletion_complete);
 }
 plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
-	console.log("completion_handler");
 	var completion_array = $.xml2json(data);
 	plugin.misterpah.Editor.completion_list = new Array();
-	if(completion_array.i == null) {
-	} else {
-		var _g1 = 0, _g = completion_array.i.length;
-		while(_g1 < _g) {
-			var each = _g1++;
-			plugin.misterpah.Editor.completion_list.push(completion_array.i[each].n);
+	if(plugin.misterpah.Editor.cursor_type == ".") {
+		console.log(completion_array);
+		if(js.Boot.__instanceof(completion_array,String)) {
+		} else {
+			var _g1 = 0, _g = completion_array.i.length;
+			while(_g1 < _g) {
+				var each = _g1++;
+				plugin.misterpah.Editor.completion_list.push(completion_array.i[each].n);
+			}
 		}
+		CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
+	} else if(plugin.misterpah.Editor.cursor_type == "(") {
+		console.log(completion_array);
+		var cur_pos = plugin.misterpah.Editor.cm.getCursor();
+		completion_array = StringTools.replace(completion_array,"->",",");
+		var completion_array_exploded = completion_array.split(",");
+		var return_type = completion_array_exploded.pop();
+		completion_array = completion_array_exploded.join(",");
+		completion_array = StringTools.replace(completion_array,"Void","");
+		plugin.misterpah.Editor.completion_list.push(completion_array);
+		CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
+		plugin.misterpah.Editor.cm.setCursor(cur_pos);
 	}
-	CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 }
 plugin.misterpah.Editor.editor_resize = function() {
 	var win = Utils.gui.Window.get();

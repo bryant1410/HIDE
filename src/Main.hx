@@ -150,6 +150,7 @@ import jQuery.*;
             default_plugin.push("plugin.misterpah.Editor.js");
             default_plugin.push("plugin.misterpah.FileAccess.js");
             default_plugin.push("plugin.misterpah.ProjectAccess.js");
+            default_plugin.push("plugin.boyan.ShortcutKey.js");
 
             trace("default plugin");
             for (each in default_plugin)
