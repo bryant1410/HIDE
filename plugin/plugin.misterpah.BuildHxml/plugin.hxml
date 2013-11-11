@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.misterpah.BuildHxml.js
+-main plugin.misterpah.BuildHxml
+-cp ../../externs/hide
+-dce full

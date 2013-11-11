@@ -4,21 +4,21 @@ import ui.Menu;
 
 /**
  * ...
- * @author Misterpah
+ * @author AS3Boyan
  */
-class CompileMenu extends Menu
+class EditMenu extends Menu
 {
 
 	public function new() 
 	{
-		super("Compile");
+		super("Edit");
 		create_ui();
 		//register_hooks();
 	}
 	
 	function create_ui()
 	{
-		addMenuItem("Flash", "core_compileTo_flash", null, "F5");
+		addMenuItem("HIDE Plugin", "core_plugin_pluginManager", null, null);
 		addToDocument();
 	}
 	

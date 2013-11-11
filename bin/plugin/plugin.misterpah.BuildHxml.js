@@ -65,73 +65,59 @@ js.Boot.__instanceof = function(o,cl) {
 js.Browser = function() { }
 js.Browser.__name__ = true;
 var plugin = {}
-plugin.boyan = {}
-plugin.boyan.ShortcutKey = function() { }
-$hxExpose(plugin.boyan.ShortcutKey, "plugin.boyan.ShortcutKey");
-plugin.boyan.ShortcutKey.__name__ = true;
-plugin.boyan.ShortcutKey.main = function() {
-	plugin.boyan.ShortcutKey.plugin = new haxe.ds.StringMap();
-	plugin.boyan.ShortcutKey.plugin.set("name","Shortcut Key");
-	plugin.boyan.ShortcutKey.plugin.set("filename","plugin.boyan.ShortcutKey.js");
-	plugin.boyan.ShortcutKey.plugin.set("feature","Shortcut");
-	plugin.boyan.ShortcutKey.plugin.set("listen_event","");
-	plugin.boyan.ShortcutKey.plugin.set("trigger_event","");
-	plugin.boyan.ShortcutKey.plugin.set("version","0.1");
-	plugin.boyan.ShortcutKey.plugin.set("required","");
-	new $(js.Browser.document).on(plugin.boyan.ShortcutKey.plugin.get("filename") + ".init",null,plugin.boyan.ShortcutKey.init);
-	Utils.register_plugin(plugin.boyan.ShortcutKey.plugin);
+plugin.misterpah = {}
+plugin.misterpah.BuildHxml = function() { }
+$hxExpose(plugin.misterpah.BuildHxml, "plugin.misterpah.BuildHxml");
+plugin.misterpah.BuildHxml.__name__ = true;
+plugin.misterpah.BuildHxml.main = function() {
+	plugin.misterpah.BuildHxml.plugin = new haxe.ds.StringMap();
+	plugin.misterpah.BuildHxml.plugin.set("name","Build HXML");
+	plugin.misterpah.BuildHxml.plugin.set("filename","plugin.misterpah.BuildHxml.js");
+	plugin.misterpah.BuildHxml.plugin.set("feature","Build HXML");
+	plugin.misterpah.BuildHxml.plugin.set("listen_event","plugin_misterpah_BuildHxml");
+	plugin.misterpah.BuildHxml.plugin.set("trigger_event","plugin_misterpah_BuildHxml");
+	plugin.misterpah.BuildHxml.plugin.set("version","0.1");
+	plugin.misterpah.BuildHxml.plugin.set("required","");
+	new $(js.Browser.document).on(plugin.misterpah.BuildHxml.plugin.get("filename") + ".init",null,plugin.misterpah.BuildHxml.init);
+	Utils.register_plugin(plugin.misterpah.BuildHxml.plugin);
 }
-plugin.boyan.ShortcutKey.init = function() {
-	console.log(plugin.boyan.ShortcutKey.plugin.get("filename") + " started");
-	plugin.boyan.ShortcutKey.create_ui();
-	plugin.boyan.ShortcutKey.register_hooks();
+plugin.misterpah.BuildHxml.init = function() {
+	console.log(plugin.misterpah.BuildHxml.plugin.get("filename") + " started");
+	plugin.misterpah.BuildHxml.create_ui();
+	plugin.misterpah.BuildHxml.register_hooks();
 }
-plugin.boyan.ShortcutKey.create_ui = function() {
+plugin.misterpah.BuildHxml.create_ui = function() {
+	Main.compilemenu.addMenuItem("to Project configuration","plugin_misterpah_BuildHxml",null,"F8");
 }
-plugin.boyan.ShortcutKey.register_hooks = function() {
+plugin.misterpah.BuildHxml.register_hooks = function() {
+	new $(js.Browser.document).on("plugin_misterpah_BuildHxml",null,plugin.misterpah.BuildHxml.hook_BuildHxml);
 	js.Browser.window.addEventListener("keyup",function(e) {
-		if(e.ctrlKey) {
-			if(!e.shiftKey) switch(e.keyCode) {
-			case 79:
-				new $(js.Browser.document).triggerHandler("core_file_openFile");
-				break;
-			case 83:
-				new $(js.Browser.document).triggerHandler("core_file_save");
-				break;
-			case 78:
-				new $(js.Browser.document).triggerHandler("core_file_newFile");
-				break;
-			case 87:
-				new $(js.Browser.document).triggerHandler("core_file_close");
-				break;
-			default:
-			} else switch(e.keyCode) {
-			case 48:
-				break;
-			case 189:
-				break;
-			case 187:
-				break;
-			case 9:
-				break;
-			case 79:
-				new $(js.Browser.document).triggerHandler("core_project_openProject");
-				break;
-			case 83:
-				break;
-			case 84:
-				break;
-			case 78:
-				break;
-			case 82:
-				break;
-			default:
-			}
-		} else if(e.keyCode == 13 && e.shiftKey && e.altKey) {
-		} else if(e.keyCode == 116) {
-		} else if(e.keyCode == 119) {
-		} else if(e.keyCode == 115 && e.altKey) window.close();
+		if(e.keyCode == 119) plugin.misterpah.BuildHxml.hook_BuildHxml("","");
 	});
+}
+plugin.misterpah.BuildHxml.hook_BuildHxml = function(event,data) {
+	var filename = Main.session.project_xml;
+	var filename_split = filename.split(".");
+	var ext = filename_split.pop();
+	var join_str = "";
+	var join_str_cd = "";
+	if(ext == "hxml") {
+		console.log("hxml");
+		if(Utils.getOS() == Utils.LINUX) {
+			join_str = " ; ";
+			join_str_cd = "";
+		}
+		if(Utils.getOS() == Utils.WINDOWS) {
+			join_str = " & ";
+			join_str_cd = " /D ";
+		}
+		var exec_str = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + filename;
+		Utils.exec(exec_str,function(error,stdout,stderr) {
+			console.log(error);
+			console.log(stdout);
+			console.log(stderr);
+		});
+	} else console.log("Project type " + ext + " are not supported");
 }
 String.prototype.__class__ = String;
 String.__name__ = true;
@@ -147,7 +133,7 @@ var Class = { __name__ : ["Class"]};
 var Enum = { };
 js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
-plugin.boyan.ShortcutKey.main();
+plugin.misterpah.BuildHxml.main();
 function $hxExpose(src, path) {
 	var o = typeof window != "undefined" ? window : exports;
 	var parts = path.split(".");

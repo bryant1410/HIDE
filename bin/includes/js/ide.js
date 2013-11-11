@@ -84,20 +84,39 @@ Main.main = function() {
 		new $(js.Browser.document).on("core_register_plugin",null,Main.register_plugin);
 		Utils.init_ui();
 		Main.plugin_load_all();
-		Main.plugin_manager();
+		Main.plugin_load_default();
 	});
 }
 Main.init = function() {
 	Main.session = new Session();
 	Main.file_stack = new FileObject();
 	Main.plugin_index = new Array();
+	Main.plugin_loaded = new Array();
 }
 Main.register_plugin = function(event,data) {
 	var filename = js.Boot.__cast(data.get("filename") , String);
 	if(filename != "plugin.sample.Dummy.js") Main.plugin_index.push(data);
 }
+Main.plugin_load_default = function() {
+	var default_plugin = new Array();
+	default_plugin.push("plugin.boyan.ShortcutKey.js");
+	default_plugin.push("plugin.misterpah.BuildHxml.js");
+	default_plugin.push("plugin.misterpah.Editor.js");
+	default_plugin.push("plugin.misterpah.FileAccess.js");
+	default_plugin.push("plugin.misterpah.ProjectAccess.js");
+	console.log("default plugin");
+	var _g = 0;
+	while(_g < default_plugin.length) {
+		var each = default_plugin[_g];
+		++_g;
+		Main.plugin_loaded.push(each);
+		var plugin_init = each + ".init";
+		$(document).triggerHandler(plugin_init);
+	}
+}
 Main.plugin_load_all = function() {
 	new menu.FileMenu();
+	Main.compilemenu = new menu.CompileMenu();
 	var plugin_list = Utils.list_plugin();
 	var _g = 0;
 	while(_g < plugin_list.length) {
@@ -112,7 +131,7 @@ Main.plugin_manager = function() {
 	Main.modal.id = "plugin_manager";
 	var retStr = "<div style='height:300px;overflow:scroll;width:100%;'>";
 	retStr += ["<div class=\"panel panel-default\">"].join("\n");
-	retStr += ["<table class=\"table\">","<thead>","<tr>","<th>Activate</th>","<th>Plugin Name</th>","<th>Feature</th>","<th>Version</th>","</tr>","</thead>"].join("\n");
+	retStr += ["<table class=\"table\">","<thead>","<tr>","<th>Activate</th>","<th>Plugin Name</th>","<th>Version</th>","</tr>","</thead>"].join("\n");
 	retStr += "<tbody>";
 	var i = 0;
 	var _g = 0, _g1 = Main.plugin_index;
@@ -122,7 +141,6 @@ Main.plugin_manager = function() {
 		retStr += "<tr>";
 		retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>";
 		retStr += "<td>" + Std.string(each.get("name")) + "</td>";
-		retStr += "<td>" + Std.string(each.get("feature")) + "</td>";
 		retStr += "<td>" + Std.string(each.get("version")) + "</td>";
 		retStr += "</tr>";
 		i += 1;
@@ -150,24 +168,11 @@ Main.plugin_execute_init = function(event) {
 			activated_plugin.push(cur.get("filename"));
 		}
 	}
-	if(activated_plugin.length > 0) {
+	console.log(activated_plugin);
+	if(activated_plugin.length >= 1) {
 		var _g = 0;
 		while(_g < activated_plugin.length) {
 			var each = activated_plugin[_g];
-			++_g;
-			var plugin_init = each + ".init";
-			$(document).triggerHandler(plugin_init);
-		}
-	} else {
-		var default_plugin = new Array();
-		default_plugin.push("plugin.misterpah.Editor.js");
-		default_plugin.push("plugin.misterpah.FileAccess.js");
-		default_plugin.push("plugin.misterpah.ProjectAccess.js");
-		default_plugin.push("plugin.boyan.ShortcutKey.js");
-		console.log("default plugin");
-		var _g = 0;
-		while(_g < default_plugin.length) {
-			var each = default_plugin[_g];
 			++_g;
 			var plugin_init = each + ".init";
 			$(document).triggerHandler(plugin_init);
@@ -246,7 +251,7 @@ Utils.system_openFile = function(filename) {
 	return Utils.fs.readFileSync(filename,"utf-8");
 }
 Utils.system_createFile = function(filename) {
-	Utils.fs.openSync(filename,"wx");
+	Utils.fs.openSync(filename,"a+");
 }
 Utils.system_saveFile = function(filename,content) {
 	Utils.fs.writeFileSync(filename,content);
@@ -297,6 +302,8 @@ Utils.system_create_project = function(exec_str) {
 		console.log(stdout);
 		console.log(stderr);
 	});
+}
+Utils.system_compile_flash = function() {
 }
 Utils.system_parse_project = function() {
 	var exec_str = "";
@@ -502,6 +509,19 @@ ui.Menu.prototype = {
 	,__class__: ui.Menu
 }
 var menu = menu || {}
+menu.CompileMenu = function() {
+	ui.Menu.call(this,"Compile");
+	this.create_ui();
+};
+menu.CompileMenu.__name__ = true;
+menu.CompileMenu.__super__ = ui.Menu;
+menu.CompileMenu.prototype = $extend(ui.Menu.prototype,{
+	create_ui: function() {
+		this.addMenuItem("Flash","core_compileTo_flash",null,"F5");
+		this.addToDocument();
+	}
+	,__class__: menu.CompileMenu
+});
 menu.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();
@@ -512,23 +532,23 @@ menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	create_ui: function() {
 		this.addMenuItem("New Project...","core_project_newProject",null,"Ctrl-Shift-N");
 		this.addMenuItem("Open Project...","core_project_openProject",null,"Ctrl-Shift-O");
-		this.addMenuItem("Project Properties","core_project_projectProperties",null);
 		this.addMenuItem("Close Project...","core_project_closeProject",null);
 		this.addSeparator();
 		this.addMenuItem("New File...","core_file_newFile",null,"Ctrl-N");
 		this.addMenuItem("Open File...","core_file_openFile",null,"Ctrl-O");
 		this.addMenuItem("Save","core_file_save",null,"Ctrl-S");
-		this.addMenuItem("Save as...","core_file_saveAs",null,"Ctrl-Shift-S");
-		this.addMenuItem("Save all","core_file_saveAll",null);
 		this.addMenuItem("Close File","core_file_close",null,"Ctrl-W");
 		this.addSeparator();
-		this.addMenuItem("Exit","core_exit",null,"Alt-F4");
+		this.addMenuItem("Exit","core_exit",function() {
+			window.close();
+		},"Alt-F4");
 		this.addToDocument();
 	}
 	,__class__: menu.FileMenu
 });
-ui.FileDialog = function(event_name) {
-	new $("#temp").html("<input id='temp_fileDialog' type='file' />");
+ui.FileDialog = function(event_name,saveAs) {
+	if(saveAs == null) saveAs = false;
+	if(saveAs == false) new $("#temp").html("<input id='temp_fileDialog' type='file' />"); else new $("#temp").html("<input id='temp_fileDialog' type='file' nwsaveas />");
 	if(event_name != "init") {
 		var chooser = new $("#temp_fileDialog");
 		chooser.change(function(evt) {

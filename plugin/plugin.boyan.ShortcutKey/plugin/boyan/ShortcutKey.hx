@@ -15,7 +15,7 @@ import js.html.KeyboardEvent;
     	plugin = new Map();
     	plugin.set("name","Shortcut Key"); 
     	plugin.set("filename","plugin.boyan.ShortcutKey.js");
-    	plugin.set("feature",""); // 
+    	plugin.set("feature","Shortcut"); // 
     	plugin.set("listen_event",""); // events listened by this plugin
     	plugin.set("trigger_event",""); // events triggered by this plugin
     	plugin.set("version","0.1");
@@ -58,6 +58,9 @@ import js.html.KeyboardEvent;
                         //Ctrl-N
                         case 'N'.code:
                             new JQuery(js.Browser.document).triggerHandler("core_file_newFile");
+                        //Ctrl-W
+                        case 'W'.code:
+                            new JQuery(js.Browser.document).triggerHandler("core_file_close");
                         default:
                             
                     }           
@@ -125,6 +128,12 @@ import js.html.KeyboardEvent;
                     }
                     */
                 }
+
+                // F4 + ALT
+                else if (e.keyCode == 115 && e.altKey)
+                {
+                    untyped window.close();
+                }                
             }
         });
     }    

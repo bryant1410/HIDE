@@ -1,6 +1,24 @@
 (function () { "use strict";
+var HxOverrides = function() { }
+HxOverrides.__name__ = true;
+HxOverrides.substr = function(s,pos,len) {
+	if(pos != null && pos != 0 && len != null && len < 0) return "";
+	if(len == null) len = s.length;
+	if(pos < 0) {
+		pos = s.length + pos;
+		if(pos < 0) pos = 0;
+	} else if(len < 0) len = s.length + len - pos;
+	return s.substr(pos,len);
+}
 var IMap = function() { }
 IMap.__name__ = true;
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.endsWith = function(s,end) {
+	var elen = end.length;
+	var slen = s.length;
+	return slen >= elen && HxOverrides.substr(s,slen - elen,elen) == end;
+}
 var haxe = {}
 haxe.ds = {}
 haxe.ds.StringMap = function() {
@@ -71,9 +89,9 @@ $hxExpose(plugin.misterpah.FileAccess, "plugin.misterpah.FileAccess");
 plugin.misterpah.FileAccess.__name__ = true;
 plugin.misterpah.FileAccess.main = function() {
 	plugin.misterpah.FileAccess.plugin = new haxe.ds.StringMap();
-	plugin.misterpah.FileAccess.plugin.set("name","Misterpah FileAccess");
+	plugin.misterpah.FileAccess.plugin.set("name","File Access");
 	plugin.misterpah.FileAccess.plugin.set("filename","plugin.misterpah.FileAccess.js");
-	plugin.misterpah.FileAccess.plugin.set("feature","New File,Open File,Save File,Close File");
+	plugin.misterpah.FileAccess.plugin.set("feature","New File, Open File, Save File, Close File");
 	plugin.misterpah.FileAccess.plugin.set("listen_event","core_file_newFile,core_file_openFile,core_file_save,core_file_close");
 	plugin.misterpah.FileAccess.plugin.set("trigger_event","plugin_misterpah_fileAccess_openFile_complete,plugin_misterpah_fileAccess_closeFile_complete");
 	plugin.misterpah.FileAccess.plugin.set("version","0.1");
@@ -94,14 +112,22 @@ plugin.misterpah.FileAccess.register_hooks = function() {
 	new $(js.Browser.document).on("core_file_save",null,plugin.misterpah.FileAccess.save_file);
 	new $(js.Browser.document).on("core_file_close",null,plugin.misterpah.FileAccess.close_file);
 	new $(js.Browser.document).on("plugin_misterpah_fileAccess_open_file_handler",null,plugin.misterpah.FileAccess.openFileHandler);
+	new $(js.Browser.document).on("plugin_misterpah_fileAccess_new_file_handler",null,plugin.misterpah.FileAccess.newFileHandler);
 }
 plugin.misterpah.FileAccess.new_file = function() {
-	console.log("new_file bebeh");
+	new ui.FileDialog("plugin_misterpah_fileAccess_new_file_handler",true);
 }
 plugin.misterpah.FileAccess.open_file = function() {
 	var filedialog = new ui.FileDialog("plugin_misterpah_fileAccess_open_file_handler");
 }
-plugin.misterpah.FileAccess.openFileHandler = function(event,path) {
+plugin.misterpah.FileAccess.newFileHandler = function(event,path) {
+	console.log(path);
+	if(StringTools.endsWith(path,"hx") == false) path += ".hx";
+	Utils.system_createFile(path);
+	plugin.misterpah.FileAccess.openFileHandler("",path,true);
+}
+plugin.misterpah.FileAccess.openFileHandler = function(event,path,newFile) {
+	if(newFile == null) newFile = false;
 	console.log(path);
 	console.log(Main.file_stack.find(path));
 	var find = Main.file_stack.find(path);
@@ -109,6 +135,10 @@ plugin.misterpah.FileAccess.openFileHandler = function(event,path) {
 		var content = Utils.system_openFile(path);
 		var filename_split = path.split(Utils.path.sep);
 		var className = filename_split[filename_split.length - 1].split(".")[0];
+		if(newFile == true) {
+			var new_content = ["package;","","class " + className,"{","}"].join("\n");
+			content = new_content;
+		}
 		Main.file_stack.add(path,content,className);
 		Main.session.active_file = path;
 		new $(js.Browser.document).triggerHandler("core_file_openFile_complete");
@@ -120,6 +150,7 @@ plugin.misterpah.FileAccess.save_file = function() {
 	Utils.system_saveFile(path,file_obj[1]);
 }
 plugin.misterpah.FileAccess.close_file = function() {
+	console.log("close file");
 	var path = Main.session.active_file;
 	Main.file_stack.remove(path);
 	new $(js.Browser.document).triggerHandler("core_file_closeFile_complete");

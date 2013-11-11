@@ -8,7 +8,10 @@ import jQuery.*;
 	static public var session:Session;
 	static public var file_stack:FileObject;
 
+    static public var compilemenu:menu.CompileMenu;
+
     static public var plugin_index:Array<Dynamic>;
+    static public var plugin_loaded:Array<String>;
 
     static private var modal:ui.ModalDialog;
 
@@ -24,7 +27,8 @@ import jQuery.*;
             // needed because STATIC wont generate/call unused HX
             Utils.init_ui();                
 			plugin_load_all();
-            plugin_manager();
+            //plugin_manager();
+              plugin_load_default();
             //plugin_execute_init();
 			});
     }
@@ -35,6 +39,7 @@ import jQuery.*;
     	session = new Session();
     	file_stack = new FileObject();
         plugin_index = new Array();
+        plugin_loaded = new Array();
     }
 
     static function register_plugin(event,data:Map<String,Array<Dynamic>>)
@@ -48,19 +53,38 @@ import jQuery.*;
         
     }
 
+	static function plugin_load_default():Void
+  	{	
+      // load default plugin
 
+      var default_plugin = new Array();
+      default_plugin.push("plugin.boyan.ShortcutKey.js");
+      default_plugin.push("plugin.misterpah.BuildHxml.js");
+      default_plugin.push("plugin.misterpah.Editor.js");
+      default_plugin.push("plugin.misterpah.FileAccess.js");
+      default_plugin.push("plugin.misterpah.ProjectAccess.js");
+
+      trace("default plugin");
+      for (each in default_plugin)
+        {
+           plugin_loaded.push(each);
+           var plugin_init = each + ".init";
+           untyped $(document).triggerHandler(plugin_init);
+    	}          
+  	}
 	
 	// this function will manage all of the plugin. including everything regarding HIDE.
     static function plugin_load_all():Void
     {
     	new menu.FileMenu();
+        //new menu.EditMenu();
+        compilemenu = new menu.CompileMenu();
+
 
         var plugin_list = Utils.list_plugin();       
         for (each in plugin_list)
             {
-            //trace(each);
             Utils.loadJavascript("./plugin/"+each);
-            //trace(each+".init");
             }
     }
 
@@ -80,7 +104,7 @@ import jQuery.*;
                     '<tr>',
                     '<th>Activate</th>',
                     '<th>Plugin Name</th>',
-                    '<th>Feature</th>',
+                    /*'<th>Feature</th>',*/
                     '<th>Version</th>',
                     '</tr>',
                     '</thead>'].join("\n");
@@ -92,7 +116,7 @@ import jQuery.*;
         retStr += "<tr>";
         retStr += "<td><input type='checkbox' id='plugin_checkbox"+i+"' value='"+i+"'></td>";
         retStr += "<td>"+each.get("name")+"</td>";
-        retStr += "<td>"+each.get("feature")+"</td>";
+        //retStr += "<td>"+each.get("feature")+"</td>";
         retStr += "<td>"+each.get("version")+"</td>";
         retStr += "</tr>";
         i+= 1;
@@ -132,32 +156,15 @@ import jQuery.*;
             }
         }        
 
-        //trace(activated_plugin);
+        trace(activated_plugin);
 
-        if (activated_plugin.length > 0)
+        if (activated_plugin.length >= 1)
         {
         for (each in activated_plugin)
             {
                 var plugin_init = each + ".init";
                 untyped $(document).triggerHandler(plugin_init);
             }
-        }
-        else
-        {
-            // load default plugin
-
-            var default_plugin = new Array();
-            default_plugin.push("plugin.misterpah.Editor.js");
-            default_plugin.push("plugin.misterpah.FileAccess.js");
-            default_plugin.push("plugin.misterpah.ProjectAccess.js");
-            default_plugin.push("plugin.boyan.ShortcutKey.js");
-
-            trace("default plugin");
-            for (each in default_plugin)
-            {
-                var plugin_init = each + ".init";
-                untyped $(document).triggerHandler(plugin_init);
-            }            
         }
     }
 	

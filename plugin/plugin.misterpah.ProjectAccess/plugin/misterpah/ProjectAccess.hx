@@ -13,9 +13,9 @@ import Utils;
     public static function main()
     {
     	plugin = new Map();
-    	plugin.set("name","misterpah ProjectAccess"); 
+    	plugin.set("name","Project Access"); 
     	plugin.set("filename","plugin.misterpah.ProjectAccess.js");
-    	plugin.set("feature","Open Project"); // 
+    	plugin.set("feature","Open Project, Close Project"); // 
     	plugin.set("listen_event","core_project_openProject,core_project_closeProject"); // events listened by this plugin
     	plugin.set("trigger_event",""); // events triggered by this plugin
     	plugin.set("version","0.1");
@@ -57,16 +57,16 @@ import Utils;
         Main.session.project_xml = path;
         Utils.system_parse_project();
         trace(Main.session);
-        //new JQuery(js.Browser.document).triggerHandler("plugin_misterpah_projectAccess_openProject_complete");
+        new JQuery(js.Browser.document).triggerHandler("core_project_openProject_complete");
     }
 
 
     private static function close_project()
     {
-        //var path = Main.session.get("active_file");
-        //Main.opened_file_stack.remove(path);
-        //Main.session.set("active_file",""); // remove active in editor
-        //new JQuery(js.Browser.document).triggerHandler("plugin_misterpah_fileAccess_closeFile_complete");
+        Main.session.project_xml = '';
+        Main.session.project_folder = '';
+        Main.session.project_xml_parameter = '';
+        new JQuery(js.Browser.document).triggerHandler("core_project_closeProject_complete");
     }
   
 }

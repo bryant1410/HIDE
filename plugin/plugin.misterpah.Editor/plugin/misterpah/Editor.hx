@@ -18,18 +18,16 @@ import Utils;
     public static function main()
     {
     	plugin = new Map();
-    	plugin.set("name","Misterpah Editor"); 
+    	plugin.set("name","CM Editor"); 
     	plugin.set("filename","plugin.misterpah.Editor.js");
-    	plugin.set("feature","Editor,Completion"); // 
+    	plugin.set("feature","Editor, Completion, Tab"); // 
     	plugin.set("listen_event","core_file_openFile_complete,core_utils_getCompletion_complete"); // events listened by this plugin
     	plugin.set("trigger_event","core_file_save"); // events triggered by this plugin
     	plugin.set("version","0.1");
     	plugin.set("required",""); // other file required by this plugin
-
     	
         new JQuery(js.Browser.document).on(plugin.get('filename')+'.init',init);
     	Utils.register_plugin(plugin);
-        
     }
 
     public static function init()
@@ -93,7 +91,6 @@ import Utils;
                     cursor_type = "(";
                     Utils.system_get_completion(cursor_pos);
                     untyped sessionStorage.cursor_pos = cm.getCursor().ch;
-                    
                 }
 
             });
@@ -127,6 +124,7 @@ import Utils;
             });
 
         new JQuery(js.Browser.document).on("core_utils_getCompletion_complete",handle_getCompletion_complete);
+      	new JQuery(js.Browser.document).on("core_file_closeFile_complete",close_tab);
     }
 
     /*
@@ -245,6 +243,7 @@ import Utils;
             untyped $("#misterpah_editor_tabs_position li:eq("+tab_number+") a").tab("show");       
             }
         new JQuery("#misterpah_editor_cm_position").css("display","block"); 
+        cm.refresh();
     }
 
 }

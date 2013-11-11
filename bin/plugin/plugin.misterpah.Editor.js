@@ -183,9 +183,9 @@ $hxExpose(plugin.misterpah.Editor, "plugin.misterpah.Editor");
 plugin.misterpah.Editor.__name__ = true;
 plugin.misterpah.Editor.main = function() {
 	plugin.misterpah.Editor.plugin = new haxe.ds.StringMap();
-	plugin.misterpah.Editor.plugin.set("name","Misterpah Editor");
+	plugin.misterpah.Editor.plugin.set("name","CM Editor");
 	plugin.misterpah.Editor.plugin.set("filename","plugin.misterpah.Editor.js");
-	plugin.misterpah.Editor.plugin.set("feature","Editor,Completion");
+	plugin.misterpah.Editor.plugin.set("feature","Editor, Completion, Tab");
 	plugin.misterpah.Editor.plugin.set("listen_event","core_file_openFile_complete,core_utils_getCompletion_complete");
 	plugin.misterpah.Editor.plugin.set("trigger_event","core_file_save");
 	plugin.misterpah.Editor.plugin.set("version","0.1");
@@ -251,6 +251,7 @@ plugin.misterpah.Editor.register_hooks = function() {
 		plugin.misterpah.Editor.editor_resize();
 	});
 	new $(js.Browser.document).on("core_utils_getCompletion_complete",null,plugin.misterpah.Editor.handle_getCompletion_complete);
+	new $(js.Browser.document).on("core_file_closeFile_complete",null,plugin.misterpah.Editor.close_tab);
 }
 plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
 	var completion_array = $.xml2json(data);
@@ -313,6 +314,7 @@ plugin.misterpah.Editor.show_tab = function(path,tabShow) {
 	plugin.misterpah.Editor.cm.setOption("value",file_obj[1]);
 	if(tabShow == true) $("#misterpah_editor_tabs_position li:eq(" + tab_number + ") a").tab("show");
 	new $("#misterpah_editor_cm_position").css("display","block");
+	plugin.misterpah.Editor.cm.refresh();
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;

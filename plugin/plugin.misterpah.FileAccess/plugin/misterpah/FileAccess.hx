@@ -13,9 +13,9 @@ import ui.*;
     static public function main()
     {
     	plugin = new Map();
-    	plugin.set("name","Misterpah FileAccess"); 
+    	plugin.set("name","File Access"); 
     	plugin.set("filename","plugin.misterpah.FileAccess.js");
-    	plugin.set("feature","New File,Open File,Save File,Close File"); // 
+    	plugin.set("feature","New File, Open File, Save File, Close File"); // 
     	plugin.set("listen_event","core_file_newFile,core_file_openFile,core_file_save,core_file_close"); // events listened by this plugin
     	plugin.set("trigger_event","plugin_misterpah_fileAccess_openFile_complete,plugin_misterpah_fileAccess_closeFile_complete"); // events triggered by this plugin
     	plugin.set("version","0.1");
@@ -49,13 +49,15 @@ import ui.*;
 
         // special case. some bug makes FileDialog can't triggerHandler to document
         new JQuery(js.Browser.document).on("plugin_misterpah_fileAccess_open_file_handler",openFileHandler);        
+        new JQuery(js.Browser.document).on("plugin_misterpah_fileAccess_new_file_handler",newFileHandler);        
 	}
 
 
 
     static private function new_file()
     {
-        trace("new_file bebeh");
+        //trace("new_file bebeh");
+        new ui.FileDialog("plugin_misterpah_fileAccess_new_file_handler",true);
     }
 
 
@@ -64,8 +66,38 @@ import ui.*;
         var filedialog = new ui.FileDialog("plugin_misterpah_fileAccess_open_file_handler");
     }
 
+    static public function newFileHandler(event,path:String):Void
+    {
+        trace(path);
+        if (StringTools.endsWith(path,"hx") == false)
+        {
+            path += ".hx";
+        }
+        Utils.system_createFile(path);
+        openFileHandler('',path,true);
 
-    static public function openFileHandler(event,path:String):Void
+
+        /*
+        trace(Main.file_stack.find(path));
+        var find = Main.file_stack.find(path);
+        if (find[0] == "null" || find[0] == "not found")
+        {
+            var content = Utils.system_openFile(path);
+            var filename_split = path.split(Utils.path.sep);
+            var className = filename_split[filename_split.length-1].split('.')[0];
+
+            Main.file_stack.add(path,content,className);
+
+            Main.session.active_file = path;
+
+            new JQuery(js.Browser.document).triggerHandler("core_file_openFile_complete");
+        }
+        */
+    }
+
+
+
+    static public function openFileHandler(event,path:String,newFile:Bool=false):Void
     {
         trace(path);
         trace(Main.file_stack.find(path));
@@ -75,6 +107,17 @@ import ui.*;
             var content = Utils.system_openFile(path);
             var filename_split = path.split(Utils.path.sep);
             var className = filename_split[filename_split.length-1].split('.')[0];
+            if (newFile == true)
+                {
+                var new_content = ["package;",
+                                    "",
+                                    "class "+className,
+                                    "{",
+                                    "}"].join("\n");  
+                content = new_content;                  
+                }
+
+
 
             Main.file_stack.add(path,content,className);
 
@@ -93,6 +136,7 @@ import ui.*;
 
     static public function close_file()
     {
+      	trace("close file");
         var path = Main.session.active_file;
         Main.file_stack.remove(path);
         new JQuery(js.Browser.document).triggerHandler("core_file_closeFile_complete");

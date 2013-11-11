@@ -85,7 +85,7 @@ import ui.*;
     
 	public static function system_createFile(filename:String)
 	{
-		fs.openSync(filename,"wx");
+		fs.openSync(filename,"a+");
 	}
 
 	public static function system_saveFile(filename, content)
@@ -177,6 +177,14 @@ import ui.*;
 				trace(stderr);
 			});
 	}
+
+
+	public static function system_compile_flash()
+	{
+		
+	}
+
+
 
 	public static function system_parse_project()
     {

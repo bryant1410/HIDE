@@ -71,9 +71,9 @@ $hxExpose(plugin.misterpah.ProjectAccess, "plugin.misterpah.ProjectAccess");
 plugin.misterpah.ProjectAccess.__name__ = true;
 plugin.misterpah.ProjectAccess.main = function() {
 	plugin.misterpah.ProjectAccess.plugin = new haxe.ds.StringMap();
-	plugin.misterpah.ProjectAccess.plugin.set("name","misterpah ProjectAccess");
+	plugin.misterpah.ProjectAccess.plugin.set("name","Project Access");
 	plugin.misterpah.ProjectAccess.plugin.set("filename","plugin.misterpah.ProjectAccess.js");
-	plugin.misterpah.ProjectAccess.plugin.set("feature","Open Project");
+	plugin.misterpah.ProjectAccess.plugin.set("feature","Open Project, Close Project");
 	plugin.misterpah.ProjectAccess.plugin.set("listen_event","core_project_openProject,core_project_closeProject");
 	plugin.misterpah.ProjectAccess.plugin.set("trigger_event","");
 	plugin.misterpah.ProjectAccess.plugin.set("version","0.1");
@@ -100,8 +100,13 @@ plugin.misterpah.ProjectAccess.openFileHandler = function(event,path) {
 	Main.session.project_xml = path;
 	Utils.system_parse_project();
 	console.log(Main.session);
+	new $(js.Browser.document).triggerHandler("core_project_openProject_complete");
 }
 plugin.misterpah.ProjectAccess.close_project = function() {
+	Main.session.project_xml = "";
+	Main.session.project_folder = "";
+	Main.session.project_xml_parameter = "";
+	new $(js.Browser.document).triggerHandler("core_project_closeProject_complete");
 }
 String.prototype.__class__ = String;
 String.__name__ = true;
