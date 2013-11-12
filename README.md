@@ -51,7 +51,8 @@ https://github.com/rogerwang/node-webkit/wiki/How-to-run-apps
 The main thing you need to know is that you need to run nw with the path/to/hide/bin folder argument.
 
 ###How to contribute:
-1  Make sure you have a [GitHub Account](https://github.com/signup/free)
+
+1.  Make sure you have a [GitHub Account](https://github.com/signup/free)
 2. Fork [HIDE](https://github.com/misterpah/hide)
   ([how to fork a repo](https://help.github.com/articles/fork-a-repo))
 3. Make your changes
