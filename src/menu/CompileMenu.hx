@@ -18,7 +18,7 @@ class CompileMenu extends Menu
 	
 	function create_ui()
 	{
-		addMenuItem("Flash", "core_compileTo_flash", null, "F5");
+		addMenuItem("Flash", "core_compileTo_flash", Utils.system_compile_flash, "F5");
 		addToDocument();
 	}
 	

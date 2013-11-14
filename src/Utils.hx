@@ -167,21 +167,43 @@ import ui.*;
 			join_str = " & ";
 			join_str_cd = " /D ";
 			default_folder = "C:/HIDE";
-
 			}		
 
 		Utils.exec("cd "+ join_str_cd + default_folder + join_str + exec_str, function (error,stdout,stderr)
 			{
-				trace(error);
-				trace(stdout);
-				trace(stderr);
+				//trace(error);
+				//trace(stdout);
+				//trace(stderr);
 			});
 	}
 
 
 	public static function system_compile_flash()
 	{
-		
+		var join_str = "";
+		var join_str_cd = "";
+		var default_folder = "";
+
+		if (getOS() == LINUX)
+			{
+			join_str = " ; ";
+			join_str_cd = "";
+			default_folder = "~/HIDE";
+			}
+		if (getOS() == WINDOWS)
+			{
+			join_str = " & ";
+			join_str_cd = " /D ";
+			default_folder = "C:/HIDE";
+			}		
+
+		var exec_str = "openfl test flash";
+		Utils.exec("cd "+ join_str_cd + Main.session.project_folder + join_str + exec_str, function (error,stdout,stderr)
+			{
+				//trace(error);
+				//trace(stdout);
+				//trace(stderr);
+			});
 	}
 
 

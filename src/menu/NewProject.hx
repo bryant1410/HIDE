@@ -1,4 +1,4 @@
-package plugin;
+package menu;
 
 import ui.*;
 import jQuery.*;
@@ -10,6 +10,7 @@ class NewProject
 
 	public function new()
 	{
+		trace("register newproject");
 		registered_type = new Array();
 
 		//create_ui();
@@ -32,7 +33,7 @@ class NewProject
 
 	private function new_project_ui()
 	{
-
+		trace("haha");
 
 		var retStr = "";
 		retStr += '<div class="row">';

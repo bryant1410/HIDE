@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.misterpah.ProjectTypeFlixel.js
+-main plugin.misterpah.ProjectTypeFlixel
+-cp ../../externs/hide
+-dce full

@@ -1,3 +1,4 @@
+(function () { "use strict";
 function $extend(from, fields) {
 	function inherit() {}; inherit.prototype = from; var proto = new inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -7,6 +8,7 @@ function $extend(from, fields) {
 var FileObject = function() {
 	this.file_stack = new Array();
 };
+$hxExpose(FileObject, "FileObject");
 FileObject.__name__ = true;
 FileObject.prototype = {
 	remove: function(path) {
@@ -76,6 +78,7 @@ HxOverrides.iter = function(a) {
 	}};
 }
 var Main = function() { }
+$hxExpose(Main, "Main");
 Main.__name__ = true;
 Main.main = function() {
 	new $(function() {
@@ -104,6 +107,8 @@ Main.plugin_load_default = function() {
 	default_plugin.push("plugin.misterpah.Editor.js");
 	default_plugin.push("plugin.misterpah.FileAccess.js");
 	default_plugin.push("plugin.misterpah.ProjectAccess.js");
+	default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
+	default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
 	console.log("default plugin");
 	var _g = 0;
 	while(_g < default_plugin.length) {
@@ -187,6 +192,7 @@ var Session = function() {
 	this.project_folder = "";
 	this.active_file = "";
 };
+$hxExpose(Session, "Session");
 Session.__name__ = true;
 Session.prototype = {
 	__class__: Session
@@ -202,10 +208,11 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
-var js = js || {}
+var js = {}
 js.Node = function() { }
 js.Node.__name__ = true;
 var Utils = function() { }
+$hxExpose(Utils, "Utils");
 Utils.__name__ = true;
 Utils.getOS = function() {
 	var os_type = null;
@@ -298,12 +305,25 @@ Utils.system_create_project = function(exec_str) {
 		default_folder = "C:/HIDE";
 	}
 	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
-		console.log(error);
-		console.log(stdout);
-		console.log(stderr);
 	});
 }
 Utils.system_compile_flash = function() {
+	var join_str = "";
+	var join_str_cd = "";
+	var default_folder = "";
+	if(Utils.getOS() == Utils.LINUX) {
+		join_str = " ; ";
+		join_str_cd = "";
+		default_folder = "~/HIDE";
+	}
+	if(Utils.getOS() == Utils.WINDOWS) {
+		join_str = " & ";
+		join_str_cd = " /D ";
+		default_folder = "C:/HIDE";
+	}
+	var exec_str = "openfl test flash";
+	Utils.exec("cd " + join_str_cd + Main.session.project_folder + join_str + exec_str,function(error,stdout,stderr) {
+	});
 }
 Utils.system_parse_project = function() {
 	var exec_str = "";
@@ -348,8 +368,8 @@ Utils.system_parse_project = function() {
 		}
 	});
 }
-var haxe = haxe || {}
-if(!haxe.ds) haxe.ds = {}
+var haxe = {}
+haxe.ds = {}
 haxe.ds.StringMap = function() { }
 haxe.ds.StringMap.__name__ = true;
 haxe.ds.StringMap.__interfaces__ = [IMap];
@@ -474,7 +494,7 @@ js.Boot.__cast = function(o,t) {
 }
 js.Browser = function() { }
 js.Browser.__name__ = true;
-var ui = ui || {}
+var ui = {}
 ui.Menu = function(_text,_headerText) {
 	this.li = js.Browser.document.createElement("li");
 	this.li.className = "dropdown";
@@ -508,7 +528,7 @@ ui.Menu.prototype = {
 	}
 	,__class__: ui.Menu
 }
-var menu = menu || {}
+var menu = {}
 menu.CompileMenu = function() {
 	ui.Menu.call(this,"Compile");
 	this.create_ui();
@@ -517,7 +537,7 @@ menu.CompileMenu.__name__ = true;
 menu.CompileMenu.__super__ = ui.Menu;
 menu.CompileMenu.prototype = $extend(ui.Menu.prototype,{
 	create_ui: function() {
-		this.addMenuItem("Flash","core_compileTo_flash",null,"F5");
+		this.addMenuItem("Flash","core_compileTo_flash",Utils.system_compile_flash,"F5");
 		this.addToDocument();
 	}
 	,__class__: menu.CompileMenu
@@ -558,11 +578,13 @@ ui.FileDialog = function(event_name,saveAs) {
 		chooser.trigger("click");
 	}
 };
+$hxExpose(ui.FileDialog, "ui.FileDialog");
 ui.FileDialog.__name__ = true;
 ui.FileDialog.prototype = {
 	__class__: ui.FileDialog
 }
 ui.MenuItem = function() { }
+$hxExpose(ui.MenuItem, "ui.MenuItem");
 ui.MenuItem.__name__ = true;
 ui.MenuItem.prototype = {
 	__class__: ui.MenuItem
@@ -584,6 +606,7 @@ ui.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey
 	this.li.appendChild(a);
 	this.registerEvent(_onClickFunctionName,_onClickFunction);
 };
+$hxExpose(ui.MenuButtonItem, "ui.MenuButtonItem");
 ui.MenuButtonItem.__name__ = true;
 ui.MenuButtonItem.__interfaces__ = [ui.MenuItem];
 ui.MenuButtonItem.prototype = {
@@ -616,6 +639,7 @@ ui.ModalDialog = function() {
 	this.ok_text = "";
 	this.cancel_text = "";
 };
+$hxExpose(ui.ModalDialog, "ui.ModalDialog");
 ui.ModalDialog.__name__ = true;
 ui.ModalDialog.prototype = {
 	hide: function() {
@@ -644,6 +668,7 @@ ui.Notify = function() {
 	this.type = "";
 	this.content = "";
 };
+$hxExpose(ui.Notify, "ui.Notify");
 ui.Notify.__name__ = true;
 ui.Notify.prototype = {
 	show: function() {
@@ -707,5 +732,16 @@ Utils.LINUX = 1;
 Utils.OTHER = 2;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
+function $hxExpose(src, path) {
+	var o = typeof window != "undefined" ? window : exports;
+	var parts = path.split(".");
+	for(var ii = 0; ii < parts.length-1; ++ii) {
+		var p = parts[ii];
+		if(typeof o[p] == "undefined") o[p] = {};
+		o = o[p];
+	}
+	o[parts[parts.length-1]] = src;
+}
+})();
 
 //@ sourceMappingURL=ide.js.map

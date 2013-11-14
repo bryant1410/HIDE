@@ -10,10 +10,10 @@ public var cancel_text:String;
 public var footer:Bool;
 public var header:Bool;
 
-public function new(_onClick:Dynamic);
-public function updateModalDialog();
-public function show();
-public function hide();
+public function new():Void;
+public function updateModalDialog():Void;
+public function show():Void;
+public function hide():Void;
 }
 
 	

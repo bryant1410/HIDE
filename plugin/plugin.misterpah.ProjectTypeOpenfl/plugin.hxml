@@ -1,0 +1,7 @@
+-cp src
+-lib jQueryExtern
+-lib hxparse
+-js ../../bin/plugin/plugin.misterpah.ProjectTypeOpenfl.js
+-main plugin.misterpah.ProjectTypeOpenfl
+-cp ../../externs/hide
+-dce full

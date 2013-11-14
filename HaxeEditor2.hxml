@@ -6,5 +6,4 @@
 -cp ./externs/nodejs-std/src
 -cp ./externs/codemirror
 -dce full
--D js-classic
 -debug

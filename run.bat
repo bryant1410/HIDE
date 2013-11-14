@@ -1,1 +1,1 @@
-start C:\node-webkit\nw bin
+start C:\node-webkit\nw C:\Users\Administrator\Documents\GitHub\hide\bin

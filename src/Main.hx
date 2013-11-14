@@ -28,7 +28,7 @@ import jQuery.*;
             Utils.init_ui();                
 			plugin_load_all();
             //plugin_manager();
-              plugin_load_default();
+            plugin_load_default();
             //plugin_execute_init();
 			});
     }
@@ -63,6 +63,8 @@ import jQuery.*;
       default_plugin.push("plugin.misterpah.Editor.js");
       default_plugin.push("plugin.misterpah.FileAccess.js");
       default_plugin.push("plugin.misterpah.ProjectAccess.js");
+      default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
+      default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
 
       trace("default plugin");
       for (each in default_plugin)
@@ -78,7 +80,9 @@ import jQuery.*;
     {
     	new menu.FileMenu();
         //new menu.EditMenu();
+        //new menu.NewProject();
         compilemenu = new menu.CompileMenu();
+
 
 
         var plugin_list = Utils.list_plugin();       
