@@ -88,39 +88,41 @@ Main.main = function() {
 		Utils.init_ui();
 		Main.plugin_load_all();
 		Main.plugin_load_default();
+		new $(js.Browser.document).on("core_plugin_pluginManager",null,Main.plugin_manager);
 	});
 }
 Main.init = function() {
 	Main.session = new Session();
 	Main.file_stack = new FileObject();
 	Main.plugin_index = new Array();
-	Main.plugin_loaded = new Array();
+	Main.plugin_activated = new Array();
 }
 Main.register_plugin = function(event,data) {
 	var filename = js.Boot.__cast(data.get("filename") , String);
 	if(filename != "plugin.sample.Dummy.js") Main.plugin_index.push(data);
 }
 Main.plugin_load_default = function() {
-	var default_plugin = new Array();
-	default_plugin.push("plugin.boyan.ShortcutKey.js");
-	default_plugin.push("plugin.misterpah.BuildHxml.js");
-	default_plugin.push("plugin.misterpah.Editor.js");
-	default_plugin.push("plugin.misterpah.FileAccess.js");
-	default_plugin.push("plugin.misterpah.ProjectAccess.js");
-	default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
-	default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
+	Main.default_plugin = new Array();
+	Main.default_plugin.push("plugin.boyan.ShortcutKey.js");
+	Main.default_plugin.push("plugin.misterpah.BuildHxml.js");
+	Main.default_plugin.push("plugin.misterpah.Editor.js");
+	Main.default_plugin.push("plugin.misterpah.FileAccess.js");
+	Main.default_plugin.push("plugin.misterpah.ProjectAccess.js");
+	Main.default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
+	Main.default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
 	console.log("default plugin");
-	var _g = 0;
-	while(_g < default_plugin.length) {
-		var each = default_plugin[_g];
+	var _g = 0, _g1 = Main.default_plugin;
+	while(_g < _g1.length) {
+		var each = _g1[_g];
 		++_g;
-		Main.plugin_loaded.push(each);
+		Main.plugin_activated.push(each);
 		var plugin_init = each + ".init";
 		$(document).triggerHandler(plugin_init);
 	}
 }
 Main.plugin_load_all = function() {
 	new menu.FileMenu();
+	new menu.EditMenu();
 	Main.compilemenu = new menu.CompileMenu();
 	var plugin_list = Utils.list_plugin();
 	var _g = 0;
@@ -129,37 +131,6 @@ Main.plugin_load_all = function() {
 		++_g;
 		Utils.loadJavascript("./plugin/" + each);
 	}
-}
-Main.plugin_manager = function() {
-	Main.modal = new ui.ModalDialog();
-	Main.modal.title = "HIDE Plugin Manager";
-	Main.modal.id = "plugin_manager";
-	var retStr = "<div style='height:300px;overflow:scroll;width:100%;'>";
-	retStr += ["<div class=\"panel panel-default\">"].join("\n");
-	retStr += ["<table class=\"table\">","<thead>","<tr>","<th>Activate</th>","<th>Plugin Name</th>","<th>Version</th>","</tr>","</thead>"].join("\n");
-	retStr += "<tbody>";
-	var i = 0;
-	var _g = 0, _g1 = Main.plugin_index;
-	while(_g < _g1.length) {
-		var each = _g1[_g];
-		++_g;
-		retStr += "<tr>";
-		retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>";
-		retStr += "<td>" + Std.string(each.get("name")) + "</td>";
-		retStr += "<td>" + Std.string(each.get("version")) + "</td>";
-		retStr += "</tr>";
-		i += 1;
-	}
-	retStr += "</tbody>";
-	retStr += "</table>";
-	retStr += ["</div>"].join("\n");
-	retStr += "</div>";
-	Main.modal.ok_text = "Activate Plugin";
-	Main.modal.cancel_text = "Cancel";
-	Main.modal.content = retStr;
-	Main.modal.header = true;
-	Main.modal.show();
-	new $("#plugin_manager .button_ok").click(Main.plugin_execute_init);
 }
 Main.plugin_execute_init = function(event) {
 	Main.modal.hide();
@@ -183,6 +154,38 @@ Main.plugin_execute_init = function(event) {
 			$(document).triggerHandler(plugin_init);
 		}
 	}
+}
+Main.plugin_manager = function() {
+	Main.modal = new ui.ModalDialog();
+	Main.modal.title = "HIDE Plugin Manager";
+	Main.modal.id = "plugin_manager";
+	var retStr = "<div style='height:300px;overflow:scroll;width:100%;'>";
+	retStr += ["<div class=\"panel panel-default\">"].join("\n");
+	retStr += ["<table class=\"table\">","<thead>","<tr>","<th>Activate</th>","<th>Plugin Name</th>","<th>Version</th>","</tr>","</thead>"].join("\n");
+	retStr += "<tbody>";
+	var i = 0;
+	var _g = 0, _g1 = Main.plugin_index;
+	while(_g < _g1.length) {
+		var each = _g1[_g];
+		++_g;
+		var default_plugin_loaded = $.inArray(each.get("filename"),Main.default_plugin);
+		retStr += "<tr>";
+		if(default_plugin_loaded == -1) retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>"; else retStr += "<td>Default</td>";
+		retStr += "<td>" + Std.string(each.get("name")) + "</td>";
+		retStr += "<td>" + Std.string(each.get("version")) + "</td>";
+		retStr += "</tr>";
+		i += 1;
+	}
+	retStr += "</tbody>";
+	retStr += "</table>";
+	retStr += ["</div>"].join("\n");
+	retStr += "</div>";
+	Main.modal.ok_text = "Activate Plugin";
+	Main.modal.cancel_text = "Cancel";
+	Main.modal.content = retStr;
+	Main.modal.header = true;
+	Main.modal.show();
+	new $("#plugin_manager .button_ok").click(Main.plugin_execute_init);
 }
 var IMap = function() { }
 IMap.__name__ = true;
@@ -541,6 +544,19 @@ menu.CompileMenu.prototype = $extend(ui.Menu.prototype,{
 		this.addToDocument();
 	}
 	,__class__: menu.CompileMenu
+});
+menu.EditMenu = function() {
+	ui.Menu.call(this,"Edit");
+	this.create_ui();
+};
+menu.EditMenu.__name__ = true;
+menu.EditMenu.__super__ = ui.Menu;
+menu.EditMenu.prototype = $extend(ui.Menu.prototype,{
+	create_ui: function() {
+		this.addMenuItem("HIDE Plugin","core_plugin_pluginManager",null,null);
+		this.addToDocument();
+	}
+	,__class__: menu.EditMenu
 });
 menu.FileMenu = function() {
 	ui.Menu.call(this,"File");

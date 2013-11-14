@@ -10,8 +10,10 @@ import jQuery.*;
 
     static public var compilemenu:menu.CompileMenu;
 
+
     static public var plugin_index:Array<Dynamic>;
-    static public var plugin_loaded:Array<String>;
+    static public var default_plugin:Array<String>;
+    static public var plugin_activated:Array<String>;
 
     static private var modal:ui.ModalDialog;
 
@@ -24,12 +26,12 @@ import jQuery.*;
             init();
             Utils.gui.Window.get().showDevTools();
             new JQuery(js.Browser.document).on("core_register_plugin", register_plugin);
-            // needed because STATIC wont generate/call unused HX
+
             Utils.init_ui();                
 			plugin_load_all();
-            //plugin_manager();
             plugin_load_default();
-            //plugin_execute_init();
+
+            new JQuery(js.Browser.document).on("core_plugin_pluginManager", plugin_manager);
 			});
     }
 
@@ -39,12 +41,11 @@ import jQuery.*;
     	session = new Session();
     	file_stack = new FileObject();
         plugin_index = new Array();
-        plugin_loaded = new Array();
+        plugin_activated = new Array();
     }
 
     static function register_plugin(event,data:Map<String,Array<Dynamic>>)
     {
-        //trace(data.get('filename'));
         var filename:String = cast(data.get('filename'),String);
         if (filename != 'plugin.sample.Dummy.js')
         {
@@ -57,7 +58,7 @@ import jQuery.*;
   	{	
       // load default plugin
 
-      var default_plugin = new Array();
+      default_plugin = new Array();
       default_plugin.push("plugin.boyan.ShortcutKey.js");
       default_plugin.push("plugin.misterpah.BuildHxml.js");
       default_plugin.push("plugin.misterpah.Editor.js");
@@ -69,7 +70,7 @@ import jQuery.*;
       trace("default plugin");
       for (each in default_plugin)
         {
-           plugin_loaded.push(each);
+           plugin_activated.push(each);
            var plugin_init = each + ".init";
            untyped $(document).triggerHandler(plugin_init);
     	}          
@@ -79,8 +80,7 @@ import jQuery.*;
     static function plugin_load_all():Void
     {
     	new menu.FileMenu();
-        //new menu.EditMenu();
-        //new menu.NewProject();
+        new menu.EditMenu();
         compilemenu = new menu.CompileMenu();
 
 
@@ -93,56 +93,6 @@ import jQuery.*;
     }
 
 
-    static function plugin_manager():Void
-    {
-        modal = new ui.ModalDialog();
-        modal.title = "HIDE Plugin Manager";
-        modal.id = "plugin_manager";
-        var retStr ="<div style='height:300px;overflow:scroll;width:100%;'>";
-
-        retStr += ['<div class="panel panel-default">'
-            ].join("\n");
-
-        retStr += ['<table class="table">',
-                    '<thead>',
-                    '<tr>',
-                    '<th>Activate</th>',
-                    '<th>Plugin Name</th>',
-                    /*'<th>Feature</th>',*/
-                    '<th>Version</th>',
-                    '</tr>',
-                    '</thead>'].join("\n");
-
-        retStr += '<tbody>';
-        var i = 0;
-        for (each in plugin_index)
-        {
-        retStr += "<tr>";
-        retStr += "<td><input type='checkbox' id='plugin_checkbox"+i+"' value='"+i+"'></td>";
-        retStr += "<td>"+each.get("name")+"</td>";
-        //retStr += "<td>"+each.get("feature")+"</td>";
-        retStr += "<td>"+each.get("version")+"</td>";
-        retStr += "</tr>";
-        i+= 1;
-        }
-        retStr += '</tbody>';
-        retStr += '</table>';
-
-        retStr += [
-            '</div>'].join("\n");        
-
-
-        retStr += "</div>";
-        modal.ok_text = "Activate Plugin";
-        modal.cancel_text = "Cancel";
-        modal.content = retStr;
-        modal.header = true;
-        
-        modal.show();
-
-
-        new JQuery("#plugin_manager .button_ok").click(plugin_execute_init);
-    }
 
     static function plugin_execute_init(event):Void
     {
@@ -173,4 +123,76 @@ import jQuery.*;
     }
 	
     
+
+
+
+
+
+
+
+
+
+
+
+
+    static function plugin_manager():Void
+    {
+        modal = new ui.ModalDialog();
+        modal.title = "HIDE Plugin Manager";
+        modal.id = "plugin_manager";
+        var retStr ="<div style='height:300px;overflow:scroll;width:100%;'>";
+
+        retStr += ['<div class="panel panel-default">'
+            ].join("\n");
+
+        retStr += ['<table class="table">',
+                    '<thead>',
+                    '<tr>',
+                    '<th>Activate</th>',
+                    '<th>Plugin Name</th>',
+                    /*'<th>Feature</th>',*/
+                    '<th>Version</th>',
+                    '</tr>',
+                    '</thead>'].join("\n");
+
+        retStr += '<tbody>';
+        var i = 0;
+        for (each in plugin_index)
+        {
+        var default_plugin_loaded = untyped $.inArray(each.get("filename"),default_plugin);
+        //trace(default_plugin_loaded);
+        retStr += "<tr>";
+        if (default_plugin_loaded == -1)
+            {
+            retStr += "<td><input type='checkbox' id='plugin_checkbox"+i+"' value='"+i+"'></td>";        
+            }
+        else
+            {
+             retStr += "<td>Default</td>";
+            }
+        
+        retStr += "<td>"+each.get("name")+"</td>";
+        //retStr += "<td>"+each.get("feature")+"</td>";
+        retStr += "<td>"+each.get("version")+"</td>";
+        retStr += "</tr>";
+        i+= 1;
+        }
+        retStr += '</tbody>';
+        retStr += '</table>';
+
+        retStr += [
+            '</div>'].join("\n");        
+
+
+        retStr += "</div>";
+        modal.ok_text = "Activate Plugin";
+        modal.cancel_text = "Cancel";
+        modal.content = retStr;
+        modal.header = true;
+        
+        modal.show();
+
+
+        new JQuery("#plugin_manager .button_ok").click(plugin_execute_init);
+    }    
 }
