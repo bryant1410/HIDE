@@ -5,6 +5,6 @@ package ui;
 public  var type:String;
 public  var content:String;
 
-public function new(_onClick:Dynamic);
-public function show();
+public function new():Void;
+public function show():Void;
 }

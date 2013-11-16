@@ -80,7 +80,21 @@ import js.html.KeyboardEvent;
       }
       else
       {
-        trace("Project type "+ ext +" are not supported");
+        trace("BuildHxml plugin only build HXML Project.");
+        if (ext == "")
+          {
+            var notify = new ui.Notify();
+            notify.type = "error";
+            notify.content = "No project loaded !";
+            notify.show();
+          }
+        else
+          {
+            var notify = new ui.Notify();
+            notify.type = "error";
+            notify.content = "BuildHxml plugin only build HXML Project.";
+            notify.show();                    
+          }
       }
     }
 }

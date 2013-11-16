@@ -240,10 +240,9 @@ import ui.*;
 				var the_error = false;
 				if (stderr != "") {the_error = true;}
 				if (the_error == true){
-					//IDE.ide_alert("error","not a valid HaxeFlixel Project File (XML)");
 					var notify = new Notify();
 					notify.type = "error";
-					notify.content = "not a valid HaxeFlixel Project File (XML)";
+					notify.content = "not a valid Haxe Project File ( XML / HXML )";
 					notify.show();	
 					Main.session.project_xml = "";					
 					}

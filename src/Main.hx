@@ -58,17 +58,29 @@ import jQuery.*;
   	{	
       // load default plugin
 
-      default_plugin = new Array();
-      default_plugin.push("plugin.boyan.ShortcutKey.js");
-      default_plugin.push("plugin.misterpah.BuildHxml.js");
-      default_plugin.push("plugin.misterpah.Editor.js");
-      default_plugin.push("plugin.misterpah.FileAccess.js");
-      default_plugin.push("plugin.misterpah.ProjectAccess.js");
-      default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
-      default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
 
-      trace("default plugin");
-      for (each in default_plugin)
+
+
+      if (untyped localStorage.default_plugin == null || untyped localStorage.default_plugin == "")
+        {
+            default_plugin = new Array();
+            default_plugin.push("plugin.boyan.ShortcutKey.js");
+            default_plugin.push("plugin.misterpah.BuildHxml.js");
+            default_plugin.push("plugin.misterpah.Editor.js");
+            default_plugin.push("plugin.misterpah.FileAccess.js");
+            default_plugin.push("plugin.misterpah.ProjectAccess.js");
+            default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
+            default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");            
+
+            untyped localStorage.default_plugin = default_plugin.join(",");
+        }
+
+
+    default_plugin = untyped localStorage.default_plugin.split(",");
+
+
+    trace("default plugin");
+    for (each in default_plugin)
         {
            plugin_activated.push(each);
            var plugin_init = each + ".init";
@@ -97,6 +109,8 @@ import jQuery.*;
     static function plugin_execute_init(event):Void
     {
         // execute plugin which selected;
+
+
         modal.hide();
         var activated_plugin = new Array();
 
@@ -112,14 +126,11 @@ import jQuery.*;
 
         trace(activated_plugin);
 
-        if (activated_plugin.length >= 1)
-        {
-        for (each in activated_plugin)
-            {
-                var plugin_init = each + ".init";
-                untyped $(document).triggerHandler(plugin_init);
-            }
-        }
+        untyped localStorage.default_plugin = activated_plugin.join(",");
+
+        var notify = new ui.Notify();
+        notify.content = "Please restart HIDE to take effect.";
+        notify.show();
     }
 	
     
@@ -157,6 +168,7 @@ import jQuery.*;
 
         retStr += '<tbody>';
         var i = 0;
+
         for (each in plugin_index)
         {
         var default_plugin_loaded = untyped $.inArray(each.get("filename"),default_plugin);
@@ -168,7 +180,7 @@ import jQuery.*;
             }
         else
             {
-             retStr += "<td>Default</td>";
+             retStr += "<td><input type='checkbox' id='plugin_checkbox"+i+"' value='"+i+"' checked></td>";
             }
         
         retStr += "<td>"+each.get("name")+"</td>";

@@ -102,14 +102,18 @@ Main.register_plugin = function(event,data) {
 	if(filename != "plugin.sample.Dummy.js") Main.plugin_index.push(data);
 }
 Main.plugin_load_default = function() {
-	Main.default_plugin = new Array();
-	Main.default_plugin.push("plugin.boyan.ShortcutKey.js");
-	Main.default_plugin.push("plugin.misterpah.BuildHxml.js");
-	Main.default_plugin.push("plugin.misterpah.Editor.js");
-	Main.default_plugin.push("plugin.misterpah.FileAccess.js");
-	Main.default_plugin.push("plugin.misterpah.ProjectAccess.js");
-	Main.default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
-	Main.default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
+	if(localStorage.default_plugin == null || localStorage.default_plugin == "") {
+		Main.default_plugin = new Array();
+		Main.default_plugin.push("plugin.boyan.ShortcutKey.js");
+		Main.default_plugin.push("plugin.misterpah.BuildHxml.js");
+		Main.default_plugin.push("plugin.misterpah.Editor.js");
+		Main.default_plugin.push("plugin.misterpah.FileAccess.js");
+		Main.default_plugin.push("plugin.misterpah.ProjectAccess.js");
+		Main.default_plugin.push("plugin.misterpah.ProjectTypeFlixel.js");
+		Main.default_plugin.push("plugin.misterpah.ProjectTypeOpenfl.js");
+		localStorage.default_plugin = Main.default_plugin.join(",");
+	}
+	Main.default_plugin = localStorage.default_plugin.split(",");
 	console.log("default plugin");
 	var _g = 0, _g1 = Main.default_plugin;
 	while(_g < _g1.length) {
@@ -145,15 +149,10 @@ Main.plugin_execute_init = function(event) {
 		}
 	}
 	console.log(activated_plugin);
-	if(activated_plugin.length >= 1) {
-		var _g = 0;
-		while(_g < activated_plugin.length) {
-			var each = activated_plugin[_g];
-			++_g;
-			var plugin_init = each + ".init";
-			$(document).triggerHandler(plugin_init);
-		}
-	}
+	localStorage.default_plugin = activated_plugin.join(",");
+	var notify = new ui.Notify();
+	notify.content = "Please restart HIDE to take effect.";
+	notify.show();
 }
 Main.plugin_manager = function() {
 	Main.modal = new ui.ModalDialog();
@@ -170,7 +169,7 @@ Main.plugin_manager = function() {
 		++_g;
 		var default_plugin_loaded = $.inArray(each.get("filename"),Main.default_plugin);
 		retStr += "<tr>";
-		if(default_plugin_loaded == -1) retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>"; else retStr += "<td>Default</td>";
+		if(default_plugin_loaded == -1) retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "'></td>"; else retStr += "<td><input type='checkbox' id='plugin_checkbox" + i + "' value='" + i + "' checked></td>";
 		retStr += "<td>" + Std.string(each.get("name")) + "</td>";
 		retStr += "<td>" + Std.string(each.get("version")) + "</td>";
 		retStr += "</tr>";
@@ -351,7 +350,7 @@ Utils.system_parse_project = function() {
 		if(the_error == true) {
 			var notify = new ui.Notify();
 			notify.type = "error";
-			notify.content = "not a valid HaxeFlixel Project File (XML)";
+			notify.content = "not a valid Haxe Project File ( XML / HXML )";
 			notify.show();
 			Main.session.project_xml = "";
 		}
@@ -699,9 +698,13 @@ ui.Notify.prototype = {
 			type_error = "warning";
 			type_error_text = "Warning";
 			skip = false;
+		} else {
+			type_error = "warning";
+			type_error_text = "";
+			skip = false;
 		}
 		if(skip == false) {
-			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " :</strong><br/>" + this.content,"</div>"].join("\n");
+			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " </strong><br/>" + this.content,"</div>"].join("\n");
 			new $("#notify_position").html(retStr);
 		}
 	}

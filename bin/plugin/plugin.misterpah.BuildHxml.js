@@ -117,7 +117,20 @@ plugin.misterpah.BuildHxml.hook_BuildHxml = function(event,data) {
 			console.log(stdout);
 			console.log(stderr);
 		});
-	} else console.log("Project type " + ext + " are not supported");
+	} else {
+		console.log("BuildHxml plugin only build HXML Project.");
+		if(ext == "") {
+			var notify = new ui.Notify();
+			notify.type = "error";
+			notify.content = "No project loaded !";
+			notify.show();
+		} else {
+			var notify = new ui.Notify();
+			notify.type = "error";
+			notify.content = "BuildHxml plugin only build HXML Project.";
+			notify.show();
+		}
+	}
 }
 String.prototype.__class__ = String;
 String.__name__ = true;
