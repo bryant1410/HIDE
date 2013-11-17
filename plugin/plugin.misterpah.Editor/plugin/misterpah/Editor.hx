@@ -13,7 +13,7 @@ import Utils;
     private static var cm:CodeMirror;
     public static var completion_list:Array<String>;
     private static var cursor_type:String;
-
+	
 
     public static function main()
     {
@@ -64,6 +64,10 @@ import Utils;
             lineNumbers:true,
             matchBrackets: true,
             autoCloseBrackets: true,
+            indentUnit:4,
+            tabSize:4,
+            indentWithTabs:true,
+              cursorHeight:0.85,
             mode:'haxe',
           });
 

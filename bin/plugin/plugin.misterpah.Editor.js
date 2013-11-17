@@ -212,7 +212,7 @@ plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
 	new $("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
 	new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
-	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, matchBrackets : true, autoCloseBrackets : true, mode : "haxe"});
+	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, matchBrackets : true, autoCloseBrackets : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe"});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"change",function(cm) {
 		var path = Main.session.active_file;
 		if(path == "") {

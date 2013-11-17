@@ -108,6 +108,10 @@ import ui.*;
 		new JQuery("head").append("<link rel='stylesheet' type='text/css' href='"+css+"'/>");
 	}
     
+      
+    public static function system_get_hxparse()
+    {
+    }
 
 	public static function system_get_completion(position:Int)
 	{
