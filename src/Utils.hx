@@ -111,6 +111,42 @@ import ui.*;
       
     public static function system_get_hxparse()
     {
+		var exec_str = "";
+		var join_str = "";
+		var join_str_cd = "";
+
+		var path = Main.session.active_file;
+
+		if (getOS() == LINUX)
+			{
+			join_str = " ; ";
+			join_str_cd = "";
+			}
+		if (getOS() == WINDOWS)
+			{
+			join_str = " & ";
+			join_str_cd = " /D ";
+			}		
+
+		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
+
+		//trace(exec_str);
+
+		Utils.exec(exec_str,
+			function(error,stdout:String,stderr:String){
+				//trace (error);
+				//trace (stdout);
+				//trace (stderr);
+				//var the_error = false;
+				//if (stderr != ""){the_error = true;}
+				if (error == null)
+					{
+					new JQuery(Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
+					}
+				
+				});
+
+		
     }
 
 	public static function system_get_completion(position:Int)
