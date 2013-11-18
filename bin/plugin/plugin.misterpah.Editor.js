@@ -196,23 +196,41 @@ plugin.misterpah.Editor.main = function() {
 plugin.misterpah.Editor.init = function() {
 	console.log(plugin.misterpah.Editor.plugin.get("filename") + " started");
 	plugin.misterpah.Editor.tab_index = new Array();
+	plugin.misterpah.Editor.tab_cursor = new Array();
 	plugin.misterpah.Editor.completion_list = new Array();
+	plugin.misterpah.Editor.track_cursor = true;
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.js");
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/mode/haxe/haxe.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/edit/matchbrackets.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/edit/closebrackets.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/fold/foldcode.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/fold/foldgutter.js");
+	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/selection/active-line.js");
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/jquery.xml2json.js");
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.js");
 	Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror.hint.haxe.js");
 	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.css");
 	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.css");
+	Utils.loadCss("./plugin/support_files/plugin.misterpah/editor.css");
+	Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/theme/blackboard.css");
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
 }
 plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").css("display","none");
-	new $("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
+	new $("#editor_position").append("<div style='margin-top:10px;background:#222;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
 	new $("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
 	new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
-	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, matchBrackets : true, autoCloseBrackets : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe"});
+	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe", theme : "blackboard", matchBrackets : true, autoCloseBrackets : true, foldCode : true, foldGutter : true, styleActiveLine : true});
+	CodeMirror.on(plugin.misterpah.Editor.cm,"cursorActivity",function(cm) {
+		if(plugin.misterpah.Editor.track_cursor == true) {
+			var path = Main.session.active_file;
+			var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
+			var cursor = cm.getCursor();
+			plugin.misterpah.Editor.tab_cursor[tab_number] = [cursor.line,cursor.ch];
+			console.log(plugin.misterpah.Editor.tab_cursor);
+		}
+	});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"change",function(cm) {
 		var path = Main.session.active_file;
 		if(path == "") {
@@ -242,6 +260,10 @@ plugin.misterpah.Editor.register_hooks = function() {
 	new $(js.Browser.document).on("show.bs.tab",null,function(e) {
 		var target = new $(e.target);
 		plugin.misterpah.Editor.show_tab(target.attr("data-path"),false);
+		var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,Main.session.active_file);
+		var unshowed_tab = plugin.misterpah.Editor.tab_cursor[tab_number];
+		var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
+		plugin.misterpah.Editor.cm.setCursor(cursor_pos);
 	});
 	new $(js.Browser.document).on("core_file_openFile_complete",null,function() {
 		new $("#editor_position").css("display","block");
@@ -275,6 +297,7 @@ plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
 		var return_type = completion_array_exploded.pop();
 		completion_array = completion_array_exploded.join(",");
 		completion_array = StringTools.replace(completion_array,"Void","");
+		completion_array = " " + Std.string(completion_array);
 		plugin.misterpah.Editor.completion_list.push(completion_array);
 		CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 		plugin.misterpah.Editor.cm.setCursor(cur_pos);
@@ -301,6 +324,7 @@ plugin.misterpah.Editor.make_tab = function() {
 	var path = Main.session.active_file;
 	var file_obj = Main.file_stack.find(path);
 	plugin.misterpah.Editor.tab_index.push(path);
+	plugin.misterpah.Editor.tab_cursor.push([0,0]);
 	new $("#misterpah_editor_tabs_position ul").append("<li><a data-path='" + path + "' data-toggle='tab'>" + file_obj[2] + "</a></li>");
 	plugin.misterpah.Editor.show_tab(path);
 	plugin.misterpah.Editor.cm.setOption("value",file_obj[1]);
@@ -308,13 +332,15 @@ plugin.misterpah.Editor.make_tab = function() {
 }
 plugin.misterpah.Editor.show_tab = function(path,tabShow) {
 	if(tabShow == null) tabShow = true;
-	var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
+	plugin.misterpah.Editor.track_cursor = false;
 	var file_obj = Main.file_stack.find(path);
+	var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
 	Main.session.active_file = path;
 	plugin.misterpah.Editor.cm.setOption("value",file_obj[1]);
 	if(tabShow == true) $("#misterpah_editor_tabs_position li:eq(" + tab_number + ") a").tab("show");
 	new $("#misterpah_editor_cm_position").css("display","block");
 	plugin.misterpah.Editor.cm.refresh();
+	plugin.misterpah.Editor.track_cursor = true;
 }
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;

@@ -136,16 +136,6 @@ import jQuery.*;
     
 
 
-
-
-
-
-
-
-
-
-
-
     static function plugin_manager():Void
     {
         modal = new ui.ModalDialog();

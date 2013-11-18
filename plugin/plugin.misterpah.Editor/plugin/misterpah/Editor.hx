@@ -3,6 +3,7 @@ import jQuery.*;
 import js.Browser;
 import ui.*;
 import Utils;
+import CodeMirror;
 
 // This is the recommended minimum structure of a HIDE plugin
 
@@ -10,9 +11,12 @@ import Utils;
 {
 	private static var plugin:Map<String,String>;
     private static var tab_index:Array<String>;
+    private static var tab_cursor:Array<Array<Int>>;
+    
     private static var cm:CodeMirror;
     public static var completion_list:Array<String>;
     private static var cursor_type:String;
+    private static var track_cursor:Bool;
 	
 
     public static function main()
@@ -34,17 +38,31 @@ import Utils;
     {
         trace(plugin.get("filename")+" started");
         tab_index = new Array();
+        tab_cursor = new Array();
         completion_list = new Array();
+        track_cursor = true;
 
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.js");
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/mode/haxe/haxe.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/edit/matchbrackets.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/edit/closebrackets.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/fold/foldcode.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/fold/foldgutter.js");
+        Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/selection/active-line.js");
+        
+        
+        
+        
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/jquery.xml2json.js");
 
-        // somehow show-hint 3.18 were not working. we'll be use show-hint.js version 3.15;
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.js");
         Utils.loadJavascript("./plugin/support_files/plugin.misterpah/codemirror.hint.haxe.js");
         Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/lib/codemirror.css");
         Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/addon/hint/show-hint.css");
+        Utils.loadCss("./plugin/support_files/plugin.misterpah/editor.css");
+        Utils.loadCss("./plugin/support_files/plugin.misterpah/codemirror-3.15/theme/blackboard.css");
+
+
 
         create_ui();
         register_hooks(); 
@@ -56,21 +74,37 @@ import Utils;
     {
 
         new JQuery("#editor_position").css("display","none");
-        new JQuery("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
+        new JQuery("#editor_position").append("<div style='margin-top:10px;background:#222;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
         new JQuery("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
         new JQuery("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
         
         cm = CodeMirror.fromTextArea(Browser.document.getElementById("misterpah_editor_cm"), {
             lineNumbers:true,
-            matchBrackets: true,
-            autoCloseBrackets: true,
             indentUnit:4,
             tabSize:4,
             indentWithTabs:true,
               cursorHeight:0.85,
             mode:'haxe',
+            theme:'blackboard',
+            //addons starts here
+            matchBrackets:true,
+            autoCloseBrackets:true,
+            foldCode:true,
+            foldGutter:true,
+            styleActiveLine:true,
           });
 
+        
+        CodeMirror.on(cm,"cursorActivity",function(cm){
+            if (track_cursor == true)
+                {
+                var path = Main.session.active_file;
+                var tab_number = Lambda.indexOf(tab_index,path);
+                var cursor = cm.getCursor();
+                tab_cursor[tab_number] = [cursor.line, cursor.ch];  
+                trace(tab_cursor);                  
+                }
+            });
         
         CodeMirror.on(cm,"change",function(cm){
             var path = Main.session.active_file;
@@ -114,6 +148,12 @@ import Utils;
             {
                 var target = new JQuery(e.target);
                 show_tab(target.attr("data-path"),false);
+
+                //var file_obj = Main.file_stack.find(Main.session.active_file);
+                var tab_number = Lambda.indexOf(tab_index,Main.session.active_file);        
+                var unshowed_tab = tab_cursor[tab_number];
+                var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
+                cm.setCursor(cursor_pos);
             });
 
         new JQuery(js.Browser.document).on("core_file_openFile_complete",function():Void
@@ -131,19 +171,9 @@ import Utils;
       	new JQuery(js.Browser.document).on("core_file_closeFile_complete",close_tab);
     }
 
-    /*
-    private static function simpleCompletion(cm:CodeMirror)
-    {
-        var cur = cm.getCursor();
-        var start = cur.ch;
-        var end = start;
-        return {list: completion_list, from: cur, to: cur};
-    }
-    */
 
    static private function handle_getCompletion_complete(event,data)
     {
-        //trace("completion_handler");
         var completion_array:Dynamic = untyped $.xml2json(data);
         
         
@@ -179,7 +209,7 @@ import Utils;
 
                 completion_array = StringTools.replace(completion_array,"Void","");
 
-
+                completion_array = " " + completion_array;
 
                 completion_list.push(completion_array);
                 CodeMirror.showHint(cm,untyped haxeHint); 
@@ -226,8 +256,7 @@ import Utils;
         var path = Main.session.active_file;
         var file_obj = Main.file_stack.find(path);
         tab_index.push(path);
-        //var tab_number = Lambda.indexOf(tab_index,path);
-
+        tab_cursor.push([0,0]);
         new JQuery("#misterpah_editor_tabs_position ul").append("<li><a data-path='"+path+"' data-toggle='tab'>"+file_obj[2]+"</a></li>");
         show_tab(path);
         cm.setOption('value',file_obj[1]);
@@ -236,10 +265,18 @@ import Utils;
 
     private static function show_tab(path:String,tabShow:Bool=true)
     {
-        //editor_resize();
-        //trace(path);
-        var tab_number = Lambda.indexOf(tab_index,path);
+        /*
+        var tab_number = Lambda.indexOf(tab_index,Main.session.active_file);
+        var cursor = cm.getCursor();
+        tab_cursor[tab_number] = cursor.line + ',' + cursor.ch;
+        */
+        track_cursor = false;
+
         var file_obj = Main.file_stack.find(path);
+        var tab_number = Lambda.indexOf(tab_index,path);
+
+        
+
         Main.session.active_file = path;
         cm.setOption('value',file_obj[1]);
         if (tabShow == true)
@@ -247,7 +284,11 @@ import Utils;
             untyped $("#misterpah_editor_tabs_position li:eq("+tab_number+") a").tab("show");       
             }
         new JQuery("#misterpah_editor_cm_position").css("display","block"); 
+
+        //trace(unshowed_tab);
+        //var cursor = tab_cursor[tab_number].split(",");
         cm.refresh();
+        track_cursor = true;
     }
 
 }

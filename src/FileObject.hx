@@ -55,8 +55,6 @@ package ;
 				{
 				if (each[0] == path)
 					{
-					//return each;
-					//each[1] = new_content;
 					file_stack[position][1] = new_content;
 					}
 				else

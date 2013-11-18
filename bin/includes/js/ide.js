@@ -210,6 +210,11 @@ Std.parseInt = function(x) {
 	if(isNaN(v)) return null;
 	return v;
 }
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+}
 var js = {}
 js.Node = function() { }
 js.Node.__name__ = true;
@@ -273,6 +278,13 @@ Utils.loadJavascript = function(script) {
 }
 Utils.loadCss = function(css) {
 	new $("head").append("<link rel='stylesheet' type='text/css' href='" + css + "'/>");
+}
+Utils.system_get_HIDE_path = function() {
+	var location = js.Browser.window.location.pathname;
+	console.log(StringTools.startsWith(location,Utils.path.sep));
+	return location;
+}
+Utils.system_get_hxparse = function() {
 }
 Utils.system_get_completion = function(position) {
 	var exec_str = "";
@@ -749,6 +761,7 @@ Utils.window = Utils.gui.Window.get();
 Utils.WINDOWS = 0;
 Utils.LINUX = 1;
 Utils.OTHER = 2;
+js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 Main.main();
 function $hxExpose(src, path) {

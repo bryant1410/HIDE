@@ -1,0 +1,13 @@
+.CodeMirror-activeline-background{
+	background:#2E3103;
+}
+
+@font-face {
+  font-family: 'inconsolata';
+  src: url('../../../includes/fonts/Inconsolata.otf');
+}
+
+.CodeMirror{
+font-family:'inconsolata';
+font-size:16px;
+}

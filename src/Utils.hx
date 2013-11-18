@@ -108,9 +108,18 @@ import ui.*;
 		new JQuery("head").append("<link rel='stylesheet' type='text/css' href='"+css+"'/>");
 	}
     
-      
+    
+	public static function system_get_HIDE_path()
+		{
+			var location = untyped js.Browser.window.location.pathname;
+			trace(StringTools.startsWith(location,Utils.path.sep));
+			return location;
+			
+		}
+		
     public static function system_get_hxparse()
     {
+		/*
 		var exec_str = "";
 		var join_str = "";
 		var join_str_cd = "";
@@ -146,7 +155,7 @@ import ui.*;
 				
 				});
 
-		
+		*/
     }
 
 	public static function system_get_completion(position:Int)

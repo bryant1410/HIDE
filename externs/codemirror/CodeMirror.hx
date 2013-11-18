@@ -53,6 +53,8 @@ public static function registerHelper(param1:String, param2:String, onCompletion
 
 public static function on(object:Dynamic, event:String, callback_function:Dynamic):Void;
 
+
+public static function Pos(line:Int,ch:Int):Pos;
 public function setValue( v : String ) : Void;
 public function getValue() : String;
 public function refresh() : Void;
