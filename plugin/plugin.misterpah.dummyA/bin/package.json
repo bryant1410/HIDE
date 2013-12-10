@@ -1,0 +1,11 @@
+{
+"name":"dummyA",
+"actualName":"plugin.misterpah.dummyA",
+"author":"misterpah",
+"website":"http://www.misterpah.com",
+"dependency":[],
+"configuration":{
+	"conf1":"a",
+	"conf2":2
+	}
+}

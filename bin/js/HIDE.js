@@ -1,0 +1,841 @@
+(function () { "use strict";
+var $estr = function() { return js.Boot.__string_rec(this,''); };
+var _Either = {}
+_Either.Either_Impl_ = function() { }
+_Either.Either_Impl_.__name__ = true;
+var HxOverrides = function() { }
+HxOverrides.__name__ = true;
+HxOverrides.cca = function(s,index) {
+	var x = s.charCodeAt(index);
+	if(x != x) return undefined;
+	return x;
+}
+HxOverrides.substr = function(s,pos,len) {
+	if(pos != null && pos != 0 && len != null && len < 0) return "";
+	if(len == null) len = s.length;
+	if(pos < 0) {
+		pos = s.length + pos;
+		if(pos < 0) pos = 0;
+	} else if(len < 0) len = s.length + len - pos;
+	return s.substr(pos,len);
+}
+HxOverrides.iter = function(a) {
+	return { cur : 0, arr : a, hasNext : function() {
+		return this.cur < this.arr.length;
+	}, next : function() {
+		return this.arr[this.cur++];
+	}};
+}
+var Lambda = function() { }
+Lambda.__name__ = true;
+Lambda.indexOf = function(it,v) {
+	var i = 0;
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var v2 = $it0.next();
+		if(v == v2) return i;
+		i++;
+	}
+	return -1;
+}
+var Main = function() { }
+Main.__name__ = true;
+Main.main = function() {
+	Main.session = new core.Session();
+	Main.file_stack = new core.FileObject();
+	Main.plugin_index = new Array();
+	Main.plugin_package = new Array();
+	Main.plugin_activated = new Array();
+	core.Utils.gui.Window.get().showDevTools();
+	core.Utils.init_ui();
+	Main.plugin_index = core.Utils.list_plugin();
+	Main.checkPluginPackage();
+	Main.executePlugin();
+}
+Main.checkPluginPackage = function() {
+	var _g1 = 0, _g = Main.plugin_index.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var package_json_content = core.Utils.system_openFile("../plugin/" + Main.plugin_index[i] + "/bin/package.json");
+		var package_json = JSON.parse(package_json_content);
+		Main.plugin_package.push(package_json);
+	}
+}
+Main.executePlugin = function() {
+	var pending_plugin = new Array();
+	var _g = 0, _g1 = Main.plugin_package;
+	while(_g < _g1.length) {
+		var each = _g1[_g];
+		++_g;
+		if(each.dependency.length == 0) {
+			core.Utils.loadJavascript("../plugin/" + Std.string(each.actualName) + "/bin/plugin.js");
+			Main.plugin_activated.push(each.actualName);
+		} else pending_plugin.push(each);
+	}
+	while(pending_plugin.length > 0) {
+		var current_pending_plugin = pending_plugin.shift();
+		var loaded = new Array();
+		var depends = current_pending_plugin.dependency;
+		var _g = 0;
+		while(_g < depends.length) {
+			var each = depends[_g];
+			++_g;
+			var position = Lambda.indexOf(Main.plugin_activated,each);
+			loaded.push(position);
+		}
+		var all_dependency_loaded = Lambda.indexOf(loaded,-1);
+		if(all_dependency_loaded != -1) pending_plugin.push(current_pending_plugin); else {
+			core.Utils.loadJavascript("../plugin/" + current_pending_plugin.actualName + "/bin/plugin.js");
+			Main.plugin_activated.push(current_pending_plugin.actualName);
+		}
+	}
+}
+var Std = function() { }
+Std.__name__ = true;
+Std.string = function(s) {
+	return js.Boot.__string_rec(s,"");
+}
+Std.parseInt = function(x) {
+	var v = parseInt(x,10);
+	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
+	if(isNaN(v)) return null;
+	return v;
+}
+var StringBuf = function() {
+	this.b = "";
+};
+StringBuf.__name__ = true;
+StringBuf.prototype = {
+	__class__: StringBuf
+}
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
+}
+var core = {}
+core.FileObject = function() {
+	this.file_stack = new Array();
+};
+$hxExpose(core.FileObject, "core.FileObject");
+core.FileObject.__name__ = true;
+core.FileObject.prototype = {
+	remove: function(path) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) this.file_stack.splice(position,1); else position += 1;
+			}
+		}
+	}
+	,update_content: function(path,new_content) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) this.file_stack[position][1] = new_content; else position += 1;
+			}
+		}
+	}
+	,find: function(path) {
+		if(this.file_stack.length > 0) {
+			var position = 0;
+			var _g = 0, _g1 = this.file_stack;
+			while(_g < _g1.length) {
+				var each = _g1[_g];
+				++_g;
+				if(each[0] == path) return each; else position += 1;
+			}
+			return ["not found"];
+		} else return ["null"];
+	}
+	,add: function(path,content,className) {
+		var a = new Array();
+		a[0] = path;
+		a[1] = content;
+		a[2] = className;
+		return this.file_stack.push(a);
+	}
+	,__class__: core.FileObject
+}
+core.Session = function() {
+	this.project_xml = "";
+	this.project_xml_parameter = "";
+	this.project_folder = "";
+	this.active_file = "";
+};
+$hxExpose(core.Session, "core.Session");
+core.Session.__name__ = true;
+core.Session.prototype = {
+	__class__: core.Session
+}
+var js = {}
+js.Node = function() { }
+js.Node.__name__ = true;
+js.Node.get_assert = function() {
+	return js.Node.require("assert");
+}
+js.Node.get_childProcess = function() {
+	return js.Node.require("child_process");
+}
+js.Node.get_cluster = function() {
+	return js.Node.require("cluster");
+}
+js.Node.get_crypto = function() {
+	return js.Node.require("crypto");
+}
+js.Node.get_dgram = function() {
+	return js.Node.require("dgram");
+}
+js.Node.get_dns = function() {
+	return js.Node.require("dns");
+}
+js.Node.get_fs = function() {
+	return js.Node.require("fs");
+}
+js.Node.get_http = function() {
+	return js.Node.require("http");
+}
+js.Node.get_https = function() {
+	return js.Node.require("https");
+}
+js.Node.get_net = function() {
+	return js.Node.require("net");
+}
+js.Node.get_os = function() {
+	return js.Node.require("os");
+}
+js.Node.get_path = function() {
+	return js.Node.require("path");
+}
+js.Node.get_querystring = function() {
+	return js.Node.require("querystring");
+}
+js.Node.get_repl = function() {
+	return js.Node.require("repl");
+}
+js.Node.get_tls = function() {
+	return js.Node.require("tls");
+}
+js.Node.get_url = function() {
+	return js.Node.require("url");
+}
+js.Node.get_util = function() {
+	return js.Node.require("util");
+}
+js.Node.get_vm = function() {
+	return js.Node.require("vm");
+}
+js.Node.get___filename = function() {
+	return __filename;
+}
+js.Node.get___dirname = function() {
+	return __dirname;
+}
+js.Node.newSocket = function(options) {
+	return new js.Node.net.Socket(options);
+}
+core.Utils = function() { }
+$hxExpose(core.Utils, "core.Utils");
+core.Utils.__name__ = true;
+core.Utils.getOS = function() {
+	var os_type = null;
+	var _g = core.Utils.os.type();
+	switch(_g) {
+	case "Windows_NT":
+		os_type = core.Utils.WINDOWS;
+		break;
+	case "Linux":
+		os_type = core.Utils.LINUX;
+		break;
+	default:
+		os_type = core.Utils.OTHER;
+	}
+	return os_type;
+}
+core.Utils.system_dirContent = function(path) {
+	return core.Utils.fs.readdirSync(path);
+}
+core.Utils.register_plugin = function(plugin_credentials) {
+	new $(js.Browser.document).triggerHandler("core_register_plugin",[plugin_credentials]);
+}
+core.Utils.list_plugin = function() {
+	var returnList = new Array();
+	var list = core.Utils.system_dirContent("../plugin");
+	var _g = 0;
+	while(_g < list.length) {
+		var each = list[_g];
+		++_g;
+		if(each.indexOf("plugin") == 0) returnList.push(each);
+	}
+	return returnList;
+}
+core.Utils.init_ui = function() {
+	new core.ui.Notify();
+	new core.ui.FileDialog("init");
+	new core.ui.ModalDialog();
+}
+core.Utils.capitalize = function(myString) {
+	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
+}
+core.Utils.system_openFile = function(filename) {
+	return core.Utils.fs.readFileSync(filename,"utf-8");
+}
+core.Utils.system_createFile = function(filename) {
+	core.Utils.fs.openSync(filename,"a+");
+}
+core.Utils.system_saveFile = function(filename,content) {
+	core.Utils.fs.writeFileSync(filename,content);
+	console.log("SYSTEM: file saved " + filename);
+}
+core.Utils.loadJavascript = function(script) {
+	$.ajaxSetup({ async : false});
+	$.getScript(script);
+	$.ajaxSetup({ async : true});
+}
+core.Utils.loadCss = function(css) {
+	new $("head").append("<link rel='stylesheet' type='text/css' href='" + css + "'/>");
+}
+core.Utils.system_get_HIDE_path = function() {
+	var location = js.Browser.window.location.pathname;
+	console.log(StringTools.startsWith(location,core.Utils.path.sep));
+	return location;
+}
+core.Utils.system_get_hxparse = function() {
+}
+core.Utils.system_get_completion = function(position) {
+	var exec_str = "";
+	var join_str = "";
+	var join_str_cd = "";
+	var path = Main.session.active_file;
+	if(core.Utils.getOS() == core.Utils.LINUX) {
+		join_str = " ; ";
+		join_str_cd = "";
+	}
+	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+		join_str = " & ";
+		join_str_cd = " /D ";
+	}
+	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
+	core.Utils.exec(exec_str1,function(error,stdout,stderr) {
+		if(error == null) new $(js.Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
+	});
+}
+core.Utils.system_create_project = function(exec_str) {
+	var join_str = "";
+	var join_str_cd = "";
+	var default_folder = "";
+	if(core.Utils.getOS() == core.Utils.LINUX) {
+		join_str = " ; ";
+		join_str_cd = "";
+		default_folder = "~/HIDE";
+	}
+	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+		join_str = " & ";
+		join_str_cd = " /D ";
+		default_folder = "C:/HIDE";
+	}
+	core.Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
+	});
+}
+core.Utils.system_compile_flash = function() {
+	var join_str = "";
+	var join_str_cd = "";
+	var default_folder = "";
+	if(core.Utils.getOS() == core.Utils.LINUX) {
+		join_str = " ; ";
+		join_str_cd = "";
+		default_folder = "~/HIDE";
+	}
+	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+		join_str = " & ";
+		join_str_cd = " /D ";
+		default_folder = "C:/HIDE";
+	}
+	var exec_str = "openfl test flash";
+	core.Utils.exec("cd " + join_str_cd + Main.session.project_folder + join_str + exec_str,function(error,stdout,stderr) {
+	});
+}
+core.Utils.system_parse_project = function() {
+	var exec_str = "";
+	var filename = Main.session.project_xml;
+	var temp = filename.split(".");
+	var filename_ext = temp.pop();
+	var projectFolder = filename.split(core.Utils.path.sep);
+	projectFolder.pop();
+	Main.session.project_folder = projectFolder.join(core.Utils.path.sep);
+	if(filename_ext == "xml") {
+		if(core.Utils.getOS() == core.Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & openfl display -hxml flash";
+		if(core.Utils.getOS() == core.Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash";
+	}
+	if(filename_ext == "hxml") {
+		if(core.Utils.getOS() == core.Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
+		if(core.Utils.getOS() == core.Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
+	}
+	console.log(exec_str);
+	core.Utils.exec(exec_str,function(error,stdout,stderr) {
+		var the_error = false;
+		if(stderr != "") the_error = true;
+		if(the_error == true) {
+			var notify = new core.ui.Notify();
+			notify.type = "error";
+			notify.content = "not a valid Haxe Project File ( XML / HXML )";
+			notify.show();
+			Main.session.project_xml = "";
+		}
+		if(the_error == false) {
+			var content_push = new Array();
+			var content = stdout.split("\n");
+			var i = 0;
+			var _g1 = 0, _g = content.length;
+			while(_g1 < _g) {
+				var i1 = _g1++;
+				var cur = content[i1];
+				if(cur.indexOf("-lib") == 0) content_push.push(cur); else if(cur.indexOf("-cp") == 0) content_push.push(cur); else if(cur.indexOf("-main") == 0) content_push.push(cur); else if(cur.indexOf("-D") == 0) content_push.push(cur);
+			}
+			Main.session.project_xml_parameter = content_push.join(" ");
+			console.log(Main.session.project_xml_parameter);
+			new $(js.Browser.document).triggerHandler("core_utils_parseProject_complete");
+		}
+	});
+}
+core.ui = {}
+core.ui.FileDialog = function(event_name,saveAs) {
+	if(saveAs == null) saveAs = false;
+	if(saveAs == false) new $("#temp").html("<input id='temp_fileDialog' type='file' />"); else new $("#temp").html("<input id='temp_fileDialog' type='file' nwsaveas />");
+	if(event_name != "init") {
+		var chooser = new $("#temp_fileDialog");
+		chooser.change(function(evt) {
+			var filepath = chooser.val();
+			$(document).triggerHandler(event_name,filepath);
+		});
+		chooser.trigger("click");
+	}
+};
+$hxExpose(core.ui.FileDialog, "core.ui.FileDialog");
+core.ui.FileDialog.__name__ = true;
+core.ui.FileDialog.prototype = {
+	__class__: core.ui.FileDialog
+}
+core.ui.ModalDialog = function() {
+	this.title = "";
+	this.id = "";
+	this.content = "";
+	this.header = true;
+	this.footer = true;
+	this.ok_text = "";
+	this.cancel_text = "";
+};
+$hxExpose(core.ui.ModalDialog, "core.ui.ModalDialog");
+core.ui.ModalDialog.__name__ = true;
+core.ui.ModalDialog.prototype = {
+	hide: function() {
+		new $("#" + this.id).modal("hide");
+	}
+	,show: function() {
+		var _g = this;
+		this.updateModalDialog();
+		new $("#" + this.id).modal("show");
+		new $("#" + this.id).on("hidden.bs.modal",null,function() {
+			new $("#" + _g.id).remove();
+		});
+	}
+	,updateModalDialog: function() {
+		var retStr = ["<div class='modal fade' id='" + this.id + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>","<div class='modal-dialog'>","<div class='modal-content'>"].join("\n");
+		if(this.header == true) retStr += ["<div class='modal-header'>","<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>","<h4 class='modal-title'>" + this.title + "</h4>","</div>"].join("\n");
+		retStr += ["<div class='modal-body'>",this.content,"</div>"].join("\n");
+		if(this.footer == true) retStr += ["<div class='modal-footer'>","<button type='button' class='btn btn-default' data-dismiss='modal'>" + this.cancel_text + "</button>","<button type='button' class='btn btn-primary button_ok'>" + this.ok_text + "</button>","</div>"].join("\n");
+		retStr += ["</div>","</div>","</div>"].join("\n");
+		new $("#modal_position").html(retStr);
+		new $("#style_overide").append("<style>.modal{overflow:hidden}</style>");
+	}
+	,__class__: core.ui.ModalDialog
+}
+core.ui.Notify = function() {
+	this.type = "";
+	this.content = "";
+};
+$hxExpose(core.ui.Notify, "core.ui.Notify");
+core.ui.Notify.__name__ = true;
+core.ui.Notify.prototype = {
+	show: function() {
+		var type_error = "";
+		var type_error_text = "";
+		var skip = true;
+		if(this.type == "error") {
+			type_error = "danger";
+			type_error_text = "Error";
+			skip = false;
+		} else if(this.type == "warning") {
+			type_error = "warning";
+			type_error_text = "Warning";
+			skip = false;
+		} else {
+			type_error = "warning";
+			type_error_text = "";
+			skip = false;
+		}
+		if(skip == false) {
+			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " </strong><br/>" + this.content,"</div>"].join("\n");
+			new $("#notify_position").html(retStr);
+		}
+	}
+	,__class__: core.ui.Notify
+}
+var haxe = {}
+haxe.io = {}
+haxe.io.Bytes = function(length,b) {
+	this.length = length;
+	this.b = b;
+};
+haxe.io.Bytes.__name__ = true;
+haxe.io.Bytes.alloc = function(length) {
+	var a = new Array();
+	var _g = 0;
+	while(_g < length) {
+		var i = _g++;
+		a.push(0);
+	}
+	return new haxe.io.Bytes(length,a);
+}
+haxe.io.Bytes.ofString = function(s) {
+	var a = new Array();
+	var _g1 = 0, _g = s.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var c = s.cca(i);
+		if(c <= 127) a.push(c); else if(c <= 2047) {
+			a.push(192 | c >> 6);
+			a.push(128 | c & 63);
+		} else if(c <= 65535) {
+			a.push(224 | c >> 12);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		} else {
+			a.push(240 | c >> 18);
+			a.push(128 | c >> 12 & 63);
+			a.push(128 | c >> 6 & 63);
+			a.push(128 | c & 63);
+		}
+	}
+	return new haxe.io.Bytes(a.length,a);
+}
+haxe.io.Bytes.ofData = function(b) {
+	return new haxe.io.Bytes(b.length,b);
+}
+haxe.io.Bytes.prototype = {
+	getData: function() {
+		return this.b;
+	}
+	,toHex: function() {
+		var s = new StringBuf();
+		var chars = [];
+		var str = "0123456789abcdef";
+		var _g1 = 0, _g = str.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			chars.push(HxOverrides.cca(str,i));
+		}
+		var _g1 = 0, _g = this.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var c = this.b[i];
+			s.b += String.fromCharCode(chars[c >> 4]);
+			s.b += String.fromCharCode(chars[c & 15]);
+		}
+		return s.b;
+	}
+	,toString: function() {
+		return this.readString(0,this.length);
+	}
+	,readString: function(pos,len) {
+		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
+		var s = "";
+		var b = this.b;
+		var fcc = String.fromCharCode;
+		var i = pos;
+		var max = pos + len;
+		while(i < max) {
+			var c = b[i++];
+			if(c < 128) {
+				if(c == 0) break;
+				s += fcc(c);
+			} else if(c < 224) s += fcc((c & 63) << 6 | b[i++] & 127); else if(c < 240) {
+				var c2 = b[i++];
+				s += fcc((c & 31) << 12 | (c2 & 127) << 6 | b[i++] & 127);
+			} else {
+				var c2 = b[i++];
+				var c3 = b[i++];
+				s += fcc((c & 15) << 18 | (c2 & 127) << 12 | c3 << 6 & 127 | b[i++] & 127);
+			}
+		}
+		return s;
+	}
+	,compare: function(other) {
+		var b1 = this.b;
+		var b2 = other.b;
+		var len = this.length < other.length?this.length:other.length;
+		var _g = 0;
+		while(_g < len) {
+			var i = _g++;
+			if(b1[i] != b2[i]) return b1[i] - b2[i];
+		}
+		return this.length - other.length;
+	}
+	,sub: function(pos,len) {
+		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
+		return new haxe.io.Bytes(len,this.b.slice(pos,pos + len));
+	}
+	,blit: function(pos,src,srcpos,len) {
+		if(pos < 0 || srcpos < 0 || len < 0 || pos + len > this.length || srcpos + len > src.length) throw haxe.io.Error.OutsideBounds;
+		var b1 = this.b;
+		var b2 = src.b;
+		if(b1 == b2 && pos > srcpos) {
+			var i = len;
+			while(i > 0) {
+				i--;
+				b1[i + pos] = b2[i + srcpos];
+			}
+			return;
+		}
+		var _g = 0;
+		while(_g < len) {
+			var i = _g++;
+			b1[i + pos] = b2[i + srcpos];
+		}
+	}
+	,set: function(pos,v) {
+		this.b[pos] = v & 255;
+	}
+	,get: function(pos) {
+		return this.b[pos];
+	}
+	,__class__: haxe.io.Bytes
+}
+haxe.io.Error = { __ename__ : true, __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] }
+haxe.io.Error.Blocked = ["Blocked",0];
+haxe.io.Error.Blocked.toString = $estr;
+haxe.io.Error.Blocked.__enum__ = haxe.io.Error;
+haxe.io.Error.Overflow = ["Overflow",1];
+haxe.io.Error.Overflow.toString = $estr;
+haxe.io.Error.Overflow.__enum__ = haxe.io.Error;
+haxe.io.Error.OutsideBounds = ["OutsideBounds",2];
+haxe.io.Error.OutsideBounds.toString = $estr;
+haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
+haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; }
+js.Boot = function() { }
+js.Boot.__name__ = true;
+js.Boot.__string_rec = function(o,s) {
+	if(o == null) return "null";
+	if(s.length >= 5) return "<...>";
+	var t = typeof(o);
+	if(t == "function" && (o.__name__ || o.__ename__)) t = "object";
+	switch(t) {
+	case "object":
+		if(o instanceof Array) {
+			if(o.__enum__) {
+				if(o.length == 2) return o[0];
+				var str = o[0] + "(";
+				s += "\t";
+				var _g1 = 2, _g = o.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					if(i != 2) str += "," + js.Boot.__string_rec(o[i],s); else str += js.Boot.__string_rec(o[i],s);
+				}
+				return str + ")";
+			}
+			var l = o.length;
+			var i;
+			var str = "[";
+			s += "\t";
+			var _g = 0;
+			while(_g < l) {
+				var i1 = _g++;
+				str += (i1 > 0?",":"") + js.Boot.__string_rec(o[i1],s);
+			}
+			str += "]";
+			return str;
+		}
+		var tostr;
+		try {
+			tostr = o.toString;
+		} catch( e ) {
+			return "???";
+		}
+		if(tostr != null && tostr != Object.toString) {
+			var s2 = o.toString();
+			if(s2 != "[object Object]") return s2;
+		}
+		var k = null;
+		var str = "{\n";
+		s += "\t";
+		var hasp = o.hasOwnProperty != null;
+		for( var k in o ) { ;
+		if(hasp && !o.hasOwnProperty(k)) {
+			continue;
+		}
+		if(k == "prototype" || k == "__class__" || k == "__super__" || k == "__interfaces__" || k == "__properties__") {
+			continue;
+		}
+		if(str.length != 2) str += ", \n";
+		str += s + k + " : " + js.Boot.__string_rec(o[k],s);
+		}
+		s = s.substring(1);
+		str += "\n" + s + "}";
+		return str;
+	case "function":
+		return "<function>";
+	case "string":
+		return o;
+	default:
+		return String(o);
+	}
+}
+js.Boot.__interfLoop = function(cc,cl) {
+	if(cc == null) return false;
+	if(cc == cl) return true;
+	var intf = cc.__interfaces__;
+	if(intf != null) {
+		var _g1 = 0, _g = intf.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var i1 = intf[i];
+			if(i1 == cl || js.Boot.__interfLoop(i1,cl)) return true;
+		}
+	}
+	return js.Boot.__interfLoop(cc.__super__,cl);
+}
+js.Boot.__instanceof = function(o,cl) {
+	if(cl == null) return false;
+	switch(cl) {
+	case Int:
+		return (o|0) === o;
+	case Float:
+		return typeof(o) == "number";
+	case Bool:
+		return typeof(o) == "boolean";
+	case String:
+		return typeof(o) == "string";
+	case Dynamic:
+		return true;
+	default:
+		if(o != null) {
+			if(typeof(cl) == "function") {
+				if(o instanceof cl) {
+					if(cl == Array) return o.__enum__ == null;
+					return true;
+				}
+				if(js.Boot.__interfLoop(o.__class__,cl)) return true;
+			}
+		} else return false;
+		if(cl == Class && o.__name__ != null) return true;
+		if(cl == Enum && o.__ename__ != null) return true;
+		return o.__enum__ == cl;
+	}
+}
+js.Browser = function() { }
+js.Browser.__name__ = true;
+js.NodeC = function() { }
+js.NodeC.__name__ = true;
+function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
+var $_, $fid = 0;
+function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
+String.prototype.__class__ = String;
+String.__name__ = true;
+Array.prototype.__class__ = Array;
+Array.__name__ = true;
+var Int = { __name__ : ["Int"]};
+var Dynamic = { __name__ : ["Dynamic"]};
+var Float = Number;
+Float.__name__ = ["Float"];
+var Bool = Boolean;
+Bool.__ename__ = ["Bool"];
+var Class = { __name__ : ["Class"]};
+var Enum = { };
+var module, setImmediate, clearImmediate;
+js.Node.setTimeout = setTimeout;
+js.Node.clearTimeout = clearTimeout;
+js.Node.setInterval = setInterval;
+js.Node.clearInterval = clearInterval;
+js.Node.global = global;
+js.Node.process = process;
+js.Node.require = require;
+js.Node.console = console;
+js.Node.module = module;
+js.Node.stringify = JSON.stringify;
+js.Node.parse = JSON.parse;
+var version = HxOverrides.substr(js.Node.process.version,1,null).split(".").map(Std.parseInt);
+if(version[0] > 0 || version[1] >= 9) {
+	js.Node.setImmediate = setImmediate;
+	js.Node.clearImmediate = clearImmediate;
+}
+core.Utils.os = js.Node.require("os");
+core.Utils.fs = js.Node.require("fs");
+core.Utils.path = js.Node.require("path");
+core.Utils.exec = js.Node.require("child_process").exec;
+core.Utils.sys = js.Node.require("sys");
+core.Utils.gui = js.Node.require("nw.gui");
+core.Utils.window = core.Utils.gui.Window.get();
+core.Utils.WINDOWS = 0;
+core.Utils.LINUX = 1;
+core.Utils.OTHER = 2;
+js.Browser.window = typeof window != "undefined" ? window : null;
+js.Browser.document = typeof window != "undefined" ? window.document : null;
+js.NodeC.UTF8 = "utf8";
+js.NodeC.ASCII = "ascii";
+js.NodeC.BINARY = "binary";
+js.NodeC.BASE64 = "base64";
+js.NodeC.HEX = "hex";
+js.NodeC.EVENT_EVENTEMITTER_NEWLISTENER = "newListener";
+js.NodeC.EVENT_EVENTEMITTER_ERROR = "error";
+js.NodeC.EVENT_STREAM_DATA = "data";
+js.NodeC.EVENT_STREAM_END = "end";
+js.NodeC.EVENT_STREAM_ERROR = "error";
+js.NodeC.EVENT_STREAM_CLOSE = "close";
+js.NodeC.EVENT_STREAM_DRAIN = "drain";
+js.NodeC.EVENT_STREAM_CONNECT = "connect";
+js.NodeC.EVENT_STREAM_SECURE = "secure";
+js.NodeC.EVENT_STREAM_TIMEOUT = "timeout";
+js.NodeC.EVENT_STREAM_PIPE = "pipe";
+js.NodeC.EVENT_PROCESS_EXIT = "exit";
+js.NodeC.EVENT_PROCESS_UNCAUGHTEXCEPTION = "uncaughtException";
+js.NodeC.EVENT_PROCESS_SIGINT = "SIGINT";
+js.NodeC.EVENT_PROCESS_SIGUSR1 = "SIGUSR1";
+js.NodeC.EVENT_CHILDPROCESS_EXIT = "exit";
+js.NodeC.EVENT_HTTPSERVER_REQUEST = "request";
+js.NodeC.EVENT_HTTPSERVER_CONNECTION = "connection";
+js.NodeC.EVENT_HTTPSERVER_CLOSE = "close";
+js.NodeC.EVENT_HTTPSERVER_UPGRADE = "upgrade";
+js.NodeC.EVENT_HTTPSERVER_CLIENTERROR = "clientError";
+js.NodeC.EVENT_HTTPSERVERREQUEST_DATA = "data";
+js.NodeC.EVENT_HTTPSERVERREQUEST_END = "end";
+js.NodeC.EVENT_CLIENTREQUEST_RESPONSE = "response";
+js.NodeC.EVENT_CLIENTRESPONSE_DATA = "data";
+js.NodeC.EVENT_CLIENTRESPONSE_END = "end";
+js.NodeC.EVENT_NETSERVER_CONNECTION = "connection";
+js.NodeC.EVENT_NETSERVER_CLOSE = "close";
+js.NodeC.FILE_READ = "r";
+js.NodeC.FILE_READ_APPEND = "r+";
+js.NodeC.FILE_WRITE = "w";
+js.NodeC.FILE_WRITE_APPEND = "a+";
+js.NodeC.FILE_READWRITE = "a";
+js.NodeC.FILE_READWRITE_APPEND = "a+";
+Main.main();
+function $hxExpose(src, path) {
+	var o = typeof window != "undefined" ? window : exports;
+	var parts = path.split(".");
+	for(var ii = 0; ii < parts.length-1; ++ii) {
+		var p = parts[ii];
+		if(typeof o[p] == "undefined") o[p] = {};
+		o = o[p];
+	}
+	o[parts[parts.length-1]] = src;
+}
+})();
+
+//@ sourceMappingURL=HIDE.js.map
