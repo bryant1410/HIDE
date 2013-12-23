@@ -1,125 +1,20 @@
 (function () { "use strict";
 var $estr = function() { return js.Boot.__string_rec(this,''); };
+function $extend(from, fields) {
+	function inherit() {}; inherit.prototype = from; var proto = new inherit();
+	for (var name in fields) proto[name] = fields[name];
+	if( fields.toString !== Object.prototype.toString ) proto.toString = fields.toString;
+	return proto;
+}
 var _Either = {}
 _Either.Either_Impl_ = function() { }
 _Either.Either_Impl_.__name__ = true;
-var HxOverrides = function() { }
-HxOverrides.__name__ = true;
-HxOverrides.cca = function(s,index) {
-	var x = s.charCodeAt(index);
-	if(x != x) return undefined;
-	return x;
-}
-HxOverrides.substr = function(s,pos,len) {
-	if(pos != null && pos != 0 && len != null && len < 0) return "";
-	if(len == null) len = s.length;
-	if(pos < 0) {
-		pos = s.length + pos;
-		if(pos < 0) pos = 0;
-	} else if(len < 0) len = s.length + len - pos;
-	return s.substr(pos,len);
-}
-HxOverrides.iter = function(a) {
-	return { cur : 0, arr : a, hasNext : function() {
-		return this.cur < this.arr.length;
-	}, next : function() {
-		return this.arr[this.cur++];
-	}};
-}
-var Lambda = function() { }
-Lambda.__name__ = true;
-Lambda.indexOf = function(it,v) {
-	var i = 0;
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var v2 = $it0.next();
-		if(v == v2) return i;
-		i++;
-	}
-	return -1;
-}
-var Main = function() { }
-Main.__name__ = true;
-Main.main = function() {
-	Main.session = new core.Session();
-	Main.file_stack = new core.FileObject();
-	Main.plugin_index = new Array();
-	Main.plugin_package = new Array();
-	Main.plugin_activated = new Array();
-	core.Utils.gui.Window.get().showDevTools();
-	core.Utils.init_ui();
-	Main.plugin_index = core.Utils.list_plugin();
-	Main.checkPluginPackage();
-	Main.executePlugin();
-}
-Main.checkPluginPackage = function() {
-	var _g1 = 0, _g = Main.plugin_index.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var package_json_content = core.Utils.system_openFile("../plugin/" + Main.plugin_index[i] + "/bin/package.json");
-		var package_json = JSON.parse(package_json_content);
-		Main.plugin_package.push(package_json);
-	}
-}
-Main.executePlugin = function() {
-	var pending_plugin = new Array();
-	var _g = 0, _g1 = Main.plugin_package;
-	while(_g < _g1.length) {
-		var each = _g1[_g];
-		++_g;
-		if(each.dependency.length == 0) {
-			core.Utils.loadJavascript("../plugin/" + Std.string(each.actualName) + "/bin/plugin.js");
-			Main.plugin_activated.push(each.actualName);
-		} else pending_plugin.push(each);
-	}
-	while(pending_plugin.length > 0) {
-		var current_pending_plugin = pending_plugin.shift();
-		var loaded = new Array();
-		var depends = current_pending_plugin.dependency;
-		var _g = 0;
-		while(_g < depends.length) {
-			var each = depends[_g];
-			++_g;
-			var position = Lambda.indexOf(Main.plugin_activated,each);
-			loaded.push(position);
-		}
-		var all_dependency_loaded = Lambda.indexOf(loaded,-1);
-		if(all_dependency_loaded != -1) pending_plugin.push(current_pending_plugin); else {
-			core.Utils.loadJavascript("../plugin/" + current_pending_plugin.actualName + "/bin/plugin.js");
-			Main.plugin_activated.push(current_pending_plugin.actualName);
-		}
-	}
-}
-var Std = function() { }
-Std.__name__ = true;
-Std.string = function(s) {
-	return js.Boot.__string_rec(s,"");
-}
-Std.parseInt = function(x) {
-	var v = parseInt(x,10);
-	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
-	if(isNaN(v)) return null;
-	return v;
-}
-var StringBuf = function() {
-	this.b = "";
-};
-StringBuf.__name__ = true;
-StringBuf.prototype = {
-	__class__: StringBuf
-}
-var StringTools = function() { }
-StringTools.__name__ = true;
-StringTools.startsWith = function(s,start) {
-	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
-}
-var core = {}
-core.FileObject = function() {
+var FileObject = function() {
 	this.file_stack = new Array();
 };
-$hxExpose(core.FileObject, "core.FileObject");
-core.FileObject.__name__ = true;
-core.FileObject.prototype = {
+$hxExpose(FileObject, "FileObject");
+FileObject.__name__ = true;
+FileObject.prototype = {
 	remove: function(path) {
 		if(this.file_stack.length > 0) {
 			var position = 0;
@@ -161,18 +56,161 @@ core.FileObject.prototype = {
 		a[2] = className;
 		return this.file_stack.push(a);
 	}
-	,__class__: core.FileObject
+	,__class__: FileObject
 }
-core.Session = function() {
+var HxOverrides = function() { }
+HxOverrides.__name__ = true;
+HxOverrides.cca = function(s,index) {
+	var x = s.charCodeAt(index);
+	if(x != x) return undefined;
+	return x;
+}
+HxOverrides.substr = function(s,pos,len) {
+	if(pos != null && pos != 0 && len != null && len < 0) return "";
+	if(len == null) len = s.length;
+	if(pos < 0) {
+		pos = s.length + pos;
+		if(pos < 0) pos = 0;
+	} else if(len < 0) len = s.length + len - pos;
+	return s.substr(pos,len);
+}
+HxOverrides.iter = function(a) {
+	return { cur : 0, arr : a, hasNext : function() {
+		return this.cur < this.arr.length;
+	}, next : function() {
+		return this.arr[this.cur++];
+	}};
+}
+var Lambda = function() { }
+Lambda.__name__ = true;
+Lambda.indexOf = function(it,v) {
+	var i = 0;
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var v2 = $it0.next();
+		if(v == v2) return i;
+		i++;
+	}
+	return -1;
+}
+var Main = function() { }
+$hxExpose(Main, "Main");
+Main.__name__ = true;
+Main.main = function() {
+	Main.session = new Session();
+	Main.file_stack = new FileObject();
+	Main.message = new Message();
+	Main.plugin_index = new Array();
+	Main.plugin_package = new Array();
+	Main.plugin_activated = new Array();
+	Utils.gui.Window.get().showDevTools();
+	Utils.init_ui();
+	new menu.FileMenu();
+	Main.plugin_index = Utils.list_plugin();
+	Main.checkPluginPackage();
+	Main.executePlugin();
+}
+Main.checkPluginPackage = function() {
+	var _g1 = 0, _g = Main.plugin_index.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var package_json_content = Utils.system_openFile("../plugin/" + Main.plugin_index[i] + "/bin/package.json");
+		var package_json = JSON.parse(package_json_content);
+		Main.plugin_package.push(package_json);
+	}
+}
+Main.executePlugin = function() {
+	var pending_plugin = new Array();
+	var _g = 0, _g1 = Main.plugin_package;
+	while(_g < _g1.length) {
+		var each = _g1[_g];
+		++_g;
+		if(each.dependency.length == 0) {
+			Utils.loadJavascript("../plugin/" + Std.string(each.actualName) + "/bin/plugin.js");
+			Main.plugin_activated.push(each.actualName);
+			console.log("execute " + Std.string(each.actualName));
+		} else pending_plugin.push(each);
+	}
+	while(pending_plugin.length > 0) {
+		var current_pending_plugin = pending_plugin.shift();
+		var loaded = new Array();
+		var depends = current_pending_plugin.dependency;
+		var _g = 0;
+		while(_g < depends.length) {
+			var each = depends[_g];
+			++_g;
+			var position = Lambda.indexOf(Main.plugin_activated,each);
+			loaded.push(position);
+		}
+		var all_dependency_loaded = Lambda.indexOf(loaded,-1);
+		if(all_dependency_loaded != -1) pending_plugin.push(current_pending_plugin); else {
+			Utils.loadJavascript("../plugin/" + current_pending_plugin.actualName + "/bin/plugin.js");
+			Main.plugin_activated.push(current_pending_plugin.actualName);
+			console.log("execute " + current_pending_plugin.actualName);
+		}
+	}
+}
+var Message = function() {
+	this.broadcast_message = new Array();
+	this.listen_message = new Array();
+};
+Message.__name__ = true;
+Message.prototype = {
+	list_listen: function() {
+		return this.listen_message;
+	}
+	,list_broadcast: function() {
+		return this.broadcast_message;
+	}
+	,listen: function(message,caller_name,action,parameter) {
+		var temp = new Array();
+		temp.push(message);
+		temp.push(caller_name);
+		this.listen_message.push(temp);
+		new $(js.Browser.document).on(message,action,parameter);
+	}
+	,broadcast: function(message,caller_name) {
+		var temp = new Array();
+		temp.push(message);
+		temp.push(caller_name);
+		this.broadcast_message.push(temp);
+		new $(js.Browser.document).triggerHandler(message);
+	}
+	,__class__: Message
+}
+var Session = function() {
 	this.project_xml = "";
 	this.project_xml_parameter = "";
 	this.project_folder = "";
 	this.active_file = "";
 };
-$hxExpose(core.Session, "core.Session");
-core.Session.__name__ = true;
-core.Session.prototype = {
-	__class__: core.Session
+$hxExpose(Session, "Session");
+Session.__name__ = true;
+Session.prototype = {
+	__class__: Session
+}
+var Std = function() { }
+Std.__name__ = true;
+Std.string = function(s) {
+	return js.Boot.__string_rec(s,"");
+}
+Std.parseInt = function(x) {
+	var v = parseInt(x,10);
+	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
+	if(isNaN(v)) return null;
+	return v;
+}
+var StringBuf = function() {
+	this.b = "";
+};
+StringBuf.__name__ = true;
+StringBuf.prototype = {
+	__class__: StringBuf
+}
+var StringTools = function() { }
+StringTools.__name__ = true;
+StringTools.startsWith = function(s,start) {
+	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
 }
 var js = {}
 js.Node = function() { }
@@ -240,33 +278,33 @@ js.Node.get___dirname = function() {
 js.Node.newSocket = function(options) {
 	return new js.Node.net.Socket(options);
 }
-core.Utils = function() { }
-$hxExpose(core.Utils, "core.Utils");
-core.Utils.__name__ = true;
-core.Utils.getOS = function() {
+var Utils = function() { }
+$hxExpose(Utils, "Utils");
+Utils.__name__ = true;
+Utils.getOS = function() {
 	var os_type = null;
-	var _g = core.Utils.os.type();
+	var _g = Utils.os.type();
 	switch(_g) {
 	case "Windows_NT":
-		os_type = core.Utils.WINDOWS;
+		os_type = Utils.WINDOWS;
 		break;
 	case "Linux":
-		os_type = core.Utils.LINUX;
+		os_type = Utils.LINUX;
 		break;
 	default:
-		os_type = core.Utils.OTHER;
+		os_type = Utils.OTHER;
 	}
 	return os_type;
 }
-core.Utils.system_dirContent = function(path) {
-	return core.Utils.fs.readdirSync(path);
+Utils.system_dirContent = function(path) {
+	return Utils.fs.readdirSync(path);
 }
-core.Utils.register_plugin = function(plugin_credentials) {
-	new $(js.Browser.document).triggerHandler("core_register_plugin",[plugin_credentials]);
+Utils.register_plugin = function(plugin_credentials) {
+	Main.message.broadcast("utils","register_plugin().complete");
 }
-core.Utils.list_plugin = function() {
+Utils.list_plugin = function() {
 	var returnList = new Array();
-	var list = core.Utils.system_dirContent("../plugin");
+	var list = Utils.system_dirContent("../plugin");
 	var _g = 0;
 	while(_g < list.length) {
 		var each = list[_g];
@@ -275,114 +313,114 @@ core.Utils.list_plugin = function() {
 	}
 	return returnList;
 }
-core.Utils.init_ui = function() {
-	new core.ui.Notify();
-	new core.ui.FileDialog("init");
-	new core.ui.ModalDialog();
+Utils.init_ui = function() {
+	new ui.Notify();
+	new ui.FileDialog();
+	new ui.ModalDialog();
 }
-core.Utils.capitalize = function(myString) {
+Utils.capitalize = function(myString) {
 	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
 }
-core.Utils.system_openFile = function(filename) {
-	return core.Utils.fs.readFileSync(filename,"utf-8");
+Utils.system_openFile = function(filename) {
+	return Utils.fs.readFileSync(filename,"utf-8");
 }
-core.Utils.system_createFile = function(filename) {
-	core.Utils.fs.openSync(filename,"a+");
+Utils.system_createFile = function(filename) {
+	Utils.fs.openSync(filename,"a+");
 }
-core.Utils.system_saveFile = function(filename,content) {
-	core.Utils.fs.writeFileSync(filename,content);
+Utils.system_saveFile = function(filename,content) {
+	Utils.fs.writeFileSync(filename,content);
 	console.log("SYSTEM: file saved " + filename);
 }
-core.Utils.loadJavascript = function(script) {
+Utils.loadJavascript = function(script) {
 	$.ajaxSetup({ async : false});
 	$.getScript(script);
 	$.ajaxSetup({ async : true});
 }
-core.Utils.loadCss = function(css) {
+Utils.loadCss = function(css) {
 	new $("head").append("<link rel='stylesheet' type='text/css' href='" + css + "'/>");
 }
-core.Utils.system_get_HIDE_path = function() {
+Utils.system_get_HIDE_path = function() {
 	var location = js.Browser.window.location.pathname;
-	console.log(StringTools.startsWith(location,core.Utils.path.sep));
+	console.log(StringTools.startsWith(location,Utils.path.sep));
 	return location;
 }
-core.Utils.system_get_hxparse = function() {
+Utils.system_get_hxparse = function() {
 }
-core.Utils.system_get_completion = function(position) {
+Utils.system_get_completion = function(position) {
 	var exec_str = "";
 	var join_str = "";
 	var join_str_cd = "";
 	var path = Main.session.active_file;
-	if(core.Utils.getOS() == core.Utils.LINUX) {
+	if(Utils.getOS() == Utils.LINUX) {
 		join_str = " ; ";
 		join_str_cd = "";
 	}
-	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+	if(Utils.getOS() == Utils.WINDOWS) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
 	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
-	core.Utils.exec(exec_str1,function(error,stdout,stderr) {
-		if(error == null) new $(js.Browser.document).triggerHandler("core_utils_getCompletion_complete",[stderr]);
+	Utils.exec(exec_str1,function(error,stdout,stderr) {
+		if(error == null) new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 	});
 }
-core.Utils.system_create_project = function(exec_str) {
+Utils.system_create_project = function(exec_str) {
 	var join_str = "";
 	var join_str_cd = "";
 	var default_folder = "";
-	if(core.Utils.getOS() == core.Utils.LINUX) {
+	if(Utils.getOS() == Utils.LINUX) {
 		join_str = " ; ";
 		join_str_cd = "";
 		default_folder = "~/HIDE";
 	}
-	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+	if(Utils.getOS() == Utils.WINDOWS) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 		default_folder = "C:/HIDE";
 	}
-	core.Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
+	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
 	});
 }
-core.Utils.system_compile_flash = function() {
+Utils.system_compile_flash = function() {
 	var join_str = "";
 	var join_str_cd = "";
 	var default_folder = "";
-	if(core.Utils.getOS() == core.Utils.LINUX) {
+	if(Utils.getOS() == Utils.LINUX) {
 		join_str = " ; ";
 		join_str_cd = "";
 		default_folder = "~/HIDE";
 	}
-	if(core.Utils.getOS() == core.Utils.WINDOWS) {
+	if(Utils.getOS() == Utils.WINDOWS) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 		default_folder = "C:/HIDE";
 	}
 	var exec_str = "openfl test flash";
-	core.Utils.exec("cd " + join_str_cd + Main.session.project_folder + join_str + exec_str,function(error,stdout,stderr) {
+	Utils.exec("cd " + join_str_cd + Main.session.project_folder + join_str + exec_str,function(error,stdout,stderr) {
 	});
 }
-core.Utils.system_parse_project = function() {
+Utils.system_parse_project = function() {
 	var exec_str = "";
 	var filename = Main.session.project_xml;
 	var temp = filename.split(".");
 	var filename_ext = temp.pop();
-	var projectFolder = filename.split(core.Utils.path.sep);
+	var projectFolder = filename.split(Utils.path.sep);
 	projectFolder.pop();
-	Main.session.project_folder = projectFolder.join(core.Utils.path.sep);
+	Main.session.project_folder = projectFolder.join(Utils.path.sep);
 	if(filename_ext == "xml") {
-		if(core.Utils.getOS() == core.Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & openfl display -hxml flash";
-		if(core.Utils.getOS() == core.Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash";
+		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & openfl display -hxml flash";
+		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash";
 	}
 	if(filename_ext == "hxml") {
-		if(core.Utils.getOS() == core.Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
-		if(core.Utils.getOS() == core.Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
+		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
+		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
 	}
 	console.log(exec_str);
-	core.Utils.exec(exec_str,function(error,stdout,stderr) {
+	Utils.exec(exec_str,function(error,stdout,stderr) {
 		var the_error = false;
 		if(stderr != "") the_error = true;
 		if(the_error == true) {
-			var notify = new core.ui.Notify();
+			var notify = new ui.Notify();
 			notify.type = "error";
 			notify.content = "not a valid Haxe Project File ( XML / HXML )";
 			notify.show();
@@ -400,92 +438,9 @@ core.Utils.system_parse_project = function() {
 			}
 			Main.session.project_xml_parameter = content_push.join(" ");
 			console.log(Main.session.project_xml_parameter);
-			new $(js.Browser.document).triggerHandler("core_utils_parseProject_complete");
+			Main.message.broadcast("utils","system_parse_project().complete");
 		}
 	});
-}
-core.ui = {}
-core.ui.FileDialog = function(event_name,saveAs) {
-	if(saveAs == null) saveAs = false;
-	if(saveAs == false) new $("#temp").html("<input id='temp_fileDialog' type='file' />"); else new $("#temp").html("<input id='temp_fileDialog' type='file' nwsaveas />");
-	if(event_name != "init") {
-		var chooser = new $("#temp_fileDialog");
-		chooser.change(function(evt) {
-			var filepath = chooser.val();
-			$(document).triggerHandler(event_name,filepath);
-		});
-		chooser.trigger("click");
-	}
-};
-$hxExpose(core.ui.FileDialog, "core.ui.FileDialog");
-core.ui.FileDialog.__name__ = true;
-core.ui.FileDialog.prototype = {
-	__class__: core.ui.FileDialog
-}
-core.ui.ModalDialog = function() {
-	this.title = "";
-	this.id = "";
-	this.content = "";
-	this.header = true;
-	this.footer = true;
-	this.ok_text = "";
-	this.cancel_text = "";
-};
-$hxExpose(core.ui.ModalDialog, "core.ui.ModalDialog");
-core.ui.ModalDialog.__name__ = true;
-core.ui.ModalDialog.prototype = {
-	hide: function() {
-		new $("#" + this.id).modal("hide");
-	}
-	,show: function() {
-		var _g = this;
-		this.updateModalDialog();
-		new $("#" + this.id).modal("show");
-		new $("#" + this.id).on("hidden.bs.modal",null,function() {
-			new $("#" + _g.id).remove();
-		});
-	}
-	,updateModalDialog: function() {
-		var retStr = ["<div class='modal fade' id='" + this.id + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>","<div class='modal-dialog'>","<div class='modal-content'>"].join("\n");
-		if(this.header == true) retStr += ["<div class='modal-header'>","<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>","<h4 class='modal-title'>" + this.title + "</h4>","</div>"].join("\n");
-		retStr += ["<div class='modal-body'>",this.content,"</div>"].join("\n");
-		if(this.footer == true) retStr += ["<div class='modal-footer'>","<button type='button' class='btn btn-default' data-dismiss='modal'>" + this.cancel_text + "</button>","<button type='button' class='btn btn-primary button_ok'>" + this.ok_text + "</button>","</div>"].join("\n");
-		retStr += ["</div>","</div>","</div>"].join("\n");
-		new $("#modal_position").html(retStr);
-		new $("#style_overide").append("<style>.modal{overflow:hidden}</style>");
-	}
-	,__class__: core.ui.ModalDialog
-}
-core.ui.Notify = function() {
-	this.type = "";
-	this.content = "";
-};
-$hxExpose(core.ui.Notify, "core.ui.Notify");
-core.ui.Notify.__name__ = true;
-core.ui.Notify.prototype = {
-	show: function() {
-		var type_error = "";
-		var type_error_text = "";
-		var skip = true;
-		if(this.type == "error") {
-			type_error = "danger";
-			type_error_text = "Error";
-			skip = false;
-		} else if(this.type == "warning") {
-			type_error = "warning";
-			type_error_text = "Warning";
-			skip = false;
-		} else {
-			type_error = "warning";
-			type_error_text = "";
-			skip = false;
-		}
-		if(skip == false) {
-			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " </strong><br/>" + this.content,"</div>"].join("\n");
-			new $("#notify_position").html(retStr);
-		}
-	}
-	,__class__: core.ui.Notify
 }
 var haxe = {}
 haxe.io = {}
@@ -738,10 +693,211 @@ js.Boot.__instanceof = function(o,cl) {
 		return o.__enum__ == cl;
 	}
 }
+js.Boot.__cast = function(o,t) {
+	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+}
 js.Browser = function() { }
 js.Browser.__name__ = true;
 js.NodeC = function() { }
 js.NodeC.__name__ = true;
+var ui = {}
+ui.Menu = function(_text,_headerText) {
+	this.li = js.Browser.document.createElement("li");
+	this.li.className = "dropdown";
+	var a = js.Browser.document.createElement("a");
+	a.href = "#";
+	a.className = "dropdown-toggle";
+	a.setAttribute("data-toggle","dropdown");
+	a.innerText = _text;
+	this.li.appendChild(a);
+	this.ul = js.Browser.document.createElement("ul");
+	this.ul.className = "dropdown-menu";
+	if(_headerText != null) {
+		var li_header = js.Browser.document.createElement("li");
+		li_header.className = "dropdown-header";
+		li_header.innerText = _headerText;
+		this.ul.appendChild(li_header);
+	}
+	this.li.appendChild(this.ul);
+};
+ui.Menu.__name__ = true;
+ui.Menu.prototype = {
+	setDisabled: function(indexes) {
+		var childNodes = this.ul.childNodes;
+		var _g1 = 0, _g = childNodes.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var child = js.Boot.__cast(childNodes[i] , Element);
+			if(child.className != "divider") {
+				if(Lambda.indexOf(indexes,i) == -1) child.className = ""; else child.className = "disabled";
+			}
+		}
+	}
+	,addToDocument: function() {
+		var div = js.Boot.__cast(js.Browser.document.getElementById("position-navbar") , Element);
+		div.appendChild(this.li);
+	}
+	,addSeparator: function() {
+		this.ul.appendChild(new ui.Separator().getElement());
+	}
+	,addMenuItem: function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
+		this.ul.appendChild(new ui.MenuButtonItem(_text,_onClickFunctionName,_onClickFunction,_hotkey).getElement());
+	}
+	,__class__: ui.Menu
+}
+var menu = {}
+menu.FileMenu = function() {
+	ui.Menu.call(this,"File");
+	this.create_ui();
+};
+menu.FileMenu.__name__ = true;
+menu.FileMenu.__super__ = ui.Menu;
+menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
+	create_ui: function() {
+		this.addMenuItem("Open Project...","core:FileMenu.openProject",null,"Ctrl-Shift-O");
+		this.addMenuItem("Close Project...","core:FileMenu.closeProject",null);
+		this.addSeparator();
+		this.addMenuItem("New File...","core:FileMenu.newFile",null,"Ctrl-N");
+		this.addMenuItem("Open File...","core:FileMenu.openFile",null,"Ctrl-O");
+		this.addMenuItem("Save","core:FileMenu.saveFile",null,"Ctrl-S");
+		this.addMenuItem("Close File","core:FileMenu.closeFile",null,"Ctrl-W");
+		this.addSeparator();
+		this.addMenuItem("Exit","core:FileMenu.exit",function() {
+			window.close();
+		},"Alt-F4");
+		this.addToDocument();
+	}
+	,__class__: menu.FileMenu
+});
+ui.FileDialog = function() {
+};
+$hxExpose(ui.FileDialog, "ui.FileDialog");
+ui.FileDialog.__name__ = true;
+ui.FileDialog.prototype = {
+	show: function(function_name,saveAs) {
+		if(saveAs == null) saveAs = false;
+		if(saveAs == false) new $("#temp").html("<input id='temp_fileDialog' type='file' />"); else new $("#temp").html("<input id='temp_fileDialog' type='file' nwsaveas />");
+		var chooser = new $("#temp_fileDialog");
+		chooser.change(function(evt) {
+			var filepath = chooser.val();
+			function_name(filepath);
+		});
+		chooser.trigger("click");
+	}
+	,__class__: ui.FileDialog
+}
+ui.MenuItem = function() { }
+$hxExpose(ui.MenuItem, "ui.MenuItem");
+ui.MenuItem.__name__ = true;
+ui.MenuItem.prototype = {
+	__class__: ui.MenuItem
+}
+ui.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey) {
+	var span = null;
+	if(_hotkey != null) {
+		span = js.Browser.document.createElement("span");
+		span.style.color = "silver";
+		span.style["float"] = "right";
+		span.innerText = _hotkey;
+	}
+	this.li = js.Browser.document.createElement("li");
+	var a = js.Browser.document.createElement("a");
+	a.style.left = "0";
+	a.setAttribute("onclick","$(document).triggerHandler(\"" + _onClickFunctionName + "\");");
+	a.innerText = _text;
+	if(span != null) a.appendChild(span);
+	this.li.appendChild(a);
+	this.registerEvent(_onClickFunctionName,_onClickFunction);
+};
+$hxExpose(ui.MenuButtonItem, "ui.MenuButtonItem");
+ui.MenuButtonItem.__name__ = true;
+ui.MenuButtonItem.__interfaces__ = [ui.MenuItem];
+ui.MenuButtonItem.prototype = {
+	registerEvent: function(_onClickFunctionName,_onClickFunction) {
+		if(_onClickFunction != null) new $(js.Browser.document).on(_onClickFunctionName,_onClickFunction);
+	}
+	,getElement: function() {
+		return this.li;
+	}
+	,__class__: ui.MenuButtonItem
+}
+ui.Separator = function() {
+	this.li = js.Browser.document.createElement("li");
+	this.li.className = "divider";
+};
+ui.Separator.__name__ = true;
+ui.Separator.__interfaces__ = [ui.MenuItem];
+ui.Separator.prototype = {
+	getElement: function() {
+		return this.li;
+	}
+	,__class__: ui.Separator
+}
+ui.ModalDialog = function() {
+	this.title = "";
+	this.id = "";
+	this.content = "";
+	this.header = true;
+	this.footer = true;
+	this.ok_text = "";
+	this.cancel_text = "";
+};
+$hxExpose(ui.ModalDialog, "ui.ModalDialog");
+ui.ModalDialog.__name__ = true;
+ui.ModalDialog.prototype = {
+	hide: function() {
+		new $("#" + this.id).modal("hide");
+	}
+	,show: function() {
+		var _g = this;
+		this.updateModalDialog();
+		new $("#" + this.id).modal("show");
+		new $("#" + this.id).on("hidden.bs.modal",null,function() {
+			new $("#" + _g.id).remove();
+		});
+	}
+	,updateModalDialog: function() {
+		var retStr = ["<div class='modal fade' id='" + this.id + "' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>","<div class='modal-dialog'>","<div class='modal-content'>"].join("\n");
+		if(this.header == true) retStr += ["<div class='modal-header'>","<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>","<h4 class='modal-title'>" + this.title + "</h4>","</div>"].join("\n");
+		retStr += ["<div class='modal-body'>",this.content,"</div>"].join("\n");
+		if(this.footer == true) retStr += ["<div class='modal-footer'>","<button type='button' class='btn btn-default' data-dismiss='modal'>" + this.cancel_text + "</button>","<button type='button' class='btn btn-primary button_ok'>" + this.ok_text + "</button>","</div>"].join("\n");
+		retStr += ["</div>","</div>","</div>"].join("\n");
+		new $("#modal_position").html(retStr);
+		new $("#style_overide").append("<style>.modal{overflow:hidden}</style>");
+	}
+	,__class__: ui.ModalDialog
+}
+ui.Notify = function() {
+	this.type = "";
+	this.content = "";
+};
+$hxExpose(ui.Notify, "ui.Notify");
+ui.Notify.__name__ = true;
+ui.Notify.prototype = {
+	show: function() {
+		var type_error = "";
+		var type_error_text = "";
+		var skip = true;
+		if(this.type == "error") {
+			type_error = "danger";
+			type_error_text = "Error";
+			skip = false;
+		} else if(this.type == "warning") {
+			type_error = "warning";
+			type_error_text = "Warning";
+			skip = false;
+		} else {
+			type_error = "warning";
+			type_error_text = "";
+			skip = false;
+		}
+		if(skip == false) {
+			var retStr = ["<div style=\"margin-left:10px;margin-top:12px;margin-right:10px;\" class=\"alert alert-" + type_error + " fade in\">","<a class=\"close\" data-dismiss=\"alert\" href=\"#\" aria-hidden=\"true\">&times;</a>","<strong>" + type_error_text + " </strong><br/>" + this.content,"</div>"].join("\n");
+			new $("#notify_position").html(retStr);
+		}
+	}
+	,__class__: ui.Notify
+}
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; };
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
@@ -774,16 +930,16 @@ if(version[0] > 0 || version[1] >= 9) {
 	js.Node.setImmediate = setImmediate;
 	js.Node.clearImmediate = clearImmediate;
 }
-core.Utils.os = js.Node.require("os");
-core.Utils.fs = js.Node.require("fs");
-core.Utils.path = js.Node.require("path");
-core.Utils.exec = js.Node.require("child_process").exec;
-core.Utils.sys = js.Node.require("sys");
-core.Utils.gui = js.Node.require("nw.gui");
-core.Utils.window = core.Utils.gui.Window.get();
-core.Utils.WINDOWS = 0;
-core.Utils.LINUX = 1;
-core.Utils.OTHER = 2;
+Utils.os = js.Node.require("os");
+Utils.fs = js.Node.require("fs");
+Utils.path = js.Node.require("path");
+Utils.exec = js.Node.require("child_process").exec;
+Utils.sys = js.Node.require("sys");
+Utils.gui = js.Node.require("nw.gui");
+Utils.window = Utils.gui.Window.get();
+Utils.WINDOWS = 0;
+Utils.LINUX = 1;
+Utils.OTHER = 2;
 js.Browser.window = typeof window != "undefined" ? window : null;
 js.Browser.document = typeof window != "undefined" ? window.document : null;
 js.NodeC.UTF8 = "utf8";

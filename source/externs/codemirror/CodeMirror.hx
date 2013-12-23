@@ -32,6 +32,9 @@ text : Array<String>,
 ?next : ChangeEvent
 }
 
+
+
+
 @:native('CodeMirror.Doc')extern class Doc 
 {
 	public function new(body: Dynamic, mode: String);
@@ -42,17 +45,24 @@ text : Array<String>,
 public static var commands (default,null) : Dynamic<CodeMirror->Void>;
 public static function simpleHint( cm : CodeMirror , getCompletions : CodeMirror -> Completions ) : Void;
 
+public static function showHint( cm : CodeMirror , getCompletions : CodeMirror -> Completions ) : Void;
+
 public static function fromTextArea( textarea : Dynamic , ?config : Dynamic ) : CodeMirror;
 
 public static function registerHelper(param1:String, param2:String, onCompletion:Dynamic):Void;
 
 public static function on(object:Dynamic, event:String, callback_function:Dynamic):Void;
 
+
+public static function Pos(line:Int,ch:Int):Pos;
 public function setValue( v : String ) : Void;
 public function getValue() : String;
 public function refresh() : Void;
 
+public function indexFromPos(position:Pos):Int;
+
 public function getCursor( ?start : Bool ) : Pos;
+public function setCursor( pos:Pos ) : Void;
 
 public function getLine(param1:Dynamic):Dynamic;
 	
@@ -73,5 +83,4 @@ public function getWrapperElement() : js.html.DOMSelection;
 
 public function somethingSelected() : Bool;
 public function focus() : Void;
-
 }

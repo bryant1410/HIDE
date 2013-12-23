@@ -1,0 +1,4 @@
+-lib jQueryExtern
+-js ../bin/plugin.js
+-main plugin.misterpah.A
+-dce full

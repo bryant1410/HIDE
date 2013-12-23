@@ -1,9 +1,10 @@
 package;
 import haxe.Timer;
 import core.*;
-class Main 
+@:keep @:expose class Main 
 	{
 	static public var session:Session;
+	static public var message:Message;
 	static public var file_stack:FileObject;
 	
     static public var plugin_index:Array<Dynamic>;
@@ -16,17 +17,28 @@ class Main
 		{
 		session = new Session();
 		file_stack = new FileObject();
+		message = new Message();
 		plugin_index = new Array();
 		plugin_package = new Array();
 		plugin_activated = new Array();	
 		Utils.gui.Window.get().showDevTools();
-
 		Utils.init_ui();
+		Main.message.list_broadcast.
+		//var a = new ui.Menu("Test");
+		//a.addItem("menu item","utils,haha():complete");
+		//a.addSeperator();
+		//a.show();
+		
+    	new menu.FileMenu();
+        //new menu.EditMenu();
+        //new menu.CompileMenu();
 		
 		plugin_index = Utils.list_plugin();
 		checkPluginPackage();
 		executePlugin();
 		}
+	
+	
 	
 	// package.json in each plugin folder will describe the plugin to HIDE.
 	static private function checkPluginPackage():Void
@@ -51,6 +63,7 @@ class Main
 				{
 				Utils.loadJavascript("../plugin/"+each.actualName+"/bin/plugin.js");
 				plugin_activated.push(each.actualName);
+				trace ("execute "+each.actualName);
 				}
 			else
 				{
@@ -84,6 +97,7 @@ class Main
 				{
 				Utils.loadJavascript("../plugin/"+current_pending_plugin.actualName+"/bin/plugin.js");
 				plugin_activated.push(current_pending_plugin.actualName);
+				trace ("execute "+current_pending_plugin.actualName);
 				}
 			}
 			// end while

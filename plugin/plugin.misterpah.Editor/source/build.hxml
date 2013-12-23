@@ -1,0 +1,6 @@
+-cp ../../../source/externs/HIDE
+-cp ../../../source/externs/codeMirror
+-lib jQueryExtern
+-js ../bin/plugin.js
+-main plugin.misterpah.Editor
+-dce full
