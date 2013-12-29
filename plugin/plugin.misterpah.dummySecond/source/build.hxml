@@ -1,5 +1,0 @@
--lib jQueryExtern
--js ../bin/plugin.js
--cp ../../plugin.misterpah.dummy/extern
--main plugin.misterpah.DummySecond
--dce full

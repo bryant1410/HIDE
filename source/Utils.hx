@@ -35,6 +35,11 @@ import core.ui.*;
         }
 		return os_type;
     }	
+	
+	public static function plugin_path(className:Dynamic):String
+	{
+	return "../plugin/" + Type.getClassName(className) +"/bin";
+	}	
 
     private static function system_dirContent(path:String)
     {
@@ -270,7 +275,6 @@ import core.ui.*;
 
 	    var projectFolder = filename.split(path.sep);
 	    projectFolder.pop();
-	    //trace(projectFolder);
 	    Main.session.project_folder = projectFolder.join(path.sep);		
 		if (filename_ext == "xml")
 			{
@@ -322,9 +326,10 @@ import core.ui.*;
 						}
 			        Main.session.project_xml_parameter = content_push.join(' ');					
 			        trace(Main.session.project_xml_parameter);
-					//new JQuery('#projectContent').html(content_push.join(' '));   
-					//new JQuery(Browser.document).triggerHandler("core_utils_parseProject_complete");
-					Main.message.broadcast("utils","system_parse_project().complete");
+					if (Main.session.project_xml_parameter != "")
+						{
+						Main.message.broadcast("core:utils.system_parse_project.complete","core:utils");
+						}
 				} // stdout != ""
 			});
 	

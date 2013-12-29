@@ -16,6 +16,7 @@ package;
 	public static var OTHER:Int;
     
     public static function getOS():Int;
+	public static function plugin_path(className:Dynamic):String;
     public static function capitalize(myString:String):String;
     public static function system_openFile(filename:String):Dynamic;
     public static function system_createFile(filename:String):Dynamic;

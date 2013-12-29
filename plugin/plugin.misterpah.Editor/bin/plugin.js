@@ -199,14 +199,13 @@ plugin.misterpah.Editor.init = function() {
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/lib/codemirror.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/hint/show-hint.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/theme/xq-light.css");
-	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/editor.css");
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
 }
 plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").css("display","none");
-	new $("#editor_position").append("<div style='margin-top:10px;' id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
-	new $("#editor_position").append("<div id='misterpah_editor_cm_position'></div>");
+	new $("#editor_position").append("<div  id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
+	new $("#editor_position").append("<div class='ui-layout-center' id='misterpah_editor_cm_position'></div>");
 	new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
 	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe", theme : "xq-light", matchBrackets : true, autoCloseBrackets : true, foldCode : true, foldGutter : true, styleActiveLine : true});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"cursorActivity",function(cm) {

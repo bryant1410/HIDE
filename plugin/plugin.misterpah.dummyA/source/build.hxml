@@ -1,4 +1,0 @@
--lib jQueryExtern
--js ../bin/plugin.js
--main plugin.misterpah.DummyA
--dce full

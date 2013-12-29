@@ -9,8 +9,17 @@ import js.Browser;
     static public function main():Void
     {
 	register_listener();
+	register_shortcutkey();
     }
 
+	static private function register_shortcutkey():Void
+	{
+	untyped $.keyStroke( 78, { modKeys: ['ctrlKey'] }, function(){  Main.message.broadcast("core:FileMenu.newFile","plugin.misterpah.FileAccess"); }); // CTRL + N
+	untyped $.keyStroke( 79, { modKeys: ['ctrlKey'] }, function(){  Main.message.broadcast("core:FileMenu.openFile","plugin.misterpah.FileAccess"); }); // CTRL + O
+	untyped $.keyStroke( 83, { modKeys: ['ctrlKey'] }, function(){  Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.FileAccess"); }); // CTRL + S
+	untyped $.keyStroke( 87, { modKeys: ['ctrlKey'] }, function(){  Main.message.broadcast("core:FileMenu.closeFile","plugin.misterpah.FileAccess"); }); // CTRL + W
+	}
+	
 	static public function register_listener():Void
 	{
 	Main.message.listen("core:FileMenu.newFile","plugin.misterpah.FileAccess",new_file,null);

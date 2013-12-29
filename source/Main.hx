@@ -23,13 +23,13 @@ import core.*;
 		plugin_activated = new Array();	
 		Utils.gui.Window.get().showDevTools();
 		Utils.init_ui();
-		Main.message.list_broadcast.
 		//var a = new ui.Menu("Test");
 		//a.addItem("menu item","utils,haha():complete");
 		//a.addSeperator();
 		//a.show();
 		
     	new menu.FileMenu();
+		new menu.HelpMenu();
         //new menu.EditMenu();
         //new menu.CompileMenu();
 		

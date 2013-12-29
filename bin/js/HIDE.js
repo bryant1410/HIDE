@@ -8,12 +8,12 @@ function $extend(from, fields) {
 }
 var _Either = {}
 _Either.Either_Impl_ = function() { }
-_Either.Either_Impl_.__name__ = true;
+_Either.Either_Impl_.__name__ = ["_Either","Either_Impl_"];
 var FileObject = function() {
 	this.file_stack = new Array();
 };
 $hxExpose(FileObject, "FileObject");
-FileObject.__name__ = true;
+FileObject.__name__ = ["FileObject"];
 FileObject.prototype = {
 	remove: function(path) {
 		if(this.file_stack.length > 0) {
@@ -59,7 +59,7 @@ FileObject.prototype = {
 	,__class__: FileObject
 }
 var HxOverrides = function() { }
-HxOverrides.__name__ = true;
+HxOverrides.__name__ = ["HxOverrides"];
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) return undefined;
@@ -82,7 +82,7 @@ HxOverrides.iter = function(a) {
 	}};
 }
 var Lambda = function() { }
-Lambda.__name__ = true;
+Lambda.__name__ = ["Lambda"];
 Lambda.indexOf = function(it,v) {
 	var i = 0;
 	var $it0 = $iterator(it)();
@@ -95,7 +95,7 @@ Lambda.indexOf = function(it,v) {
 }
 var Main = function() { }
 $hxExpose(Main, "Main");
-Main.__name__ = true;
+Main.__name__ = ["Main"];
 Main.main = function() {
 	Main.session = new Session();
 	Main.file_stack = new FileObject();
@@ -106,6 +106,7 @@ Main.main = function() {
 	Utils.gui.Window.get().showDevTools();
 	Utils.init_ui();
 	new menu.FileMenu();
+	new menu.HelpMenu();
 	Main.plugin_index = Utils.list_plugin();
 	Main.checkPluginPackage();
 	Main.executePlugin();
@@ -154,7 +155,7 @@ var Message = function() {
 	this.broadcast_message = new Array();
 	this.listen_message = new Array();
 };
-Message.__name__ = true;
+Message.__name__ = ["Message"];
 Message.prototype = {
 	list_listen: function() {
 		return this.listen_message;
@@ -185,12 +186,12 @@ var Session = function() {
 	this.active_file = "";
 };
 $hxExpose(Session, "Session");
-Session.__name__ = true;
+Session.__name__ = ["Session"];
 Session.prototype = {
 	__class__: Session
 }
 var Std = function() { }
-Std.__name__ = true;
+Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
@@ -203,18 +204,24 @@ Std.parseInt = function(x) {
 var StringBuf = function() {
 	this.b = "";
 };
-StringBuf.__name__ = true;
+StringBuf.__name__ = ["StringBuf"];
 StringBuf.prototype = {
 	__class__: StringBuf
 }
 var StringTools = function() { }
-StringTools.__name__ = true;
+StringTools.__name__ = ["StringTools"];
 StringTools.startsWith = function(s,start) {
 	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
 }
+var Type = function() { }
+Type.__name__ = ["Type"];
+Type.getClassName = function(c) {
+	var a = c.__name__;
+	return a.join(".");
+}
 var js = {}
 js.Node = function() { }
-js.Node.__name__ = true;
+js.Node.__name__ = ["js","Node"];
 js.Node.get_assert = function() {
 	return js.Node.require("assert");
 }
@@ -280,7 +287,7 @@ js.Node.newSocket = function(options) {
 }
 var Utils = function() { }
 $hxExpose(Utils, "Utils");
-Utils.__name__ = true;
+Utils.__name__ = ["Utils"];
 Utils.getOS = function() {
 	var os_type = null;
 	var _g = Utils.os.type();
@@ -295,6 +302,9 @@ Utils.getOS = function() {
 		os_type = Utils.OTHER;
 	}
 	return os_type;
+}
+Utils.plugin_path = function(className) {
+	return "../plugin/" + Type.getClassName(className) + "/bin";
 }
 Utils.system_dirContent = function(path) {
 	return Utils.fs.readdirSync(path);
@@ -438,7 +448,7 @@ Utils.system_parse_project = function() {
 			}
 			Main.session.project_xml_parameter = content_push.join(" ");
 			console.log(Main.session.project_xml_parameter);
-			Main.message.broadcast("utils","system_parse_project().complete");
+			if(Main.session.project_xml_parameter != "") Main.message.broadcast("core:utils.system_parse_project.complete","core:utils");
 		}
 	});
 }
@@ -448,7 +458,7 @@ haxe.io.Bytes = function(length,b) {
 	this.length = length;
 	this.b = b;
 };
-haxe.io.Bytes.__name__ = true;
+haxe.io.Bytes.__name__ = ["haxe","io","Bytes"];
 haxe.io.Bytes.alloc = function(length) {
 	var a = new Array();
 	var _g = 0;
@@ -584,7 +594,7 @@ haxe.io.Error.OutsideBounds.toString = $estr;
 haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
 haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; }
 js.Boot = function() { }
-js.Boot.__name__ = true;
+js.Boot.__name__ = ["js","Boot"];
 js.Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
@@ -697,9 +707,9 @@ js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
 }
 js.Browser = function() { }
-js.Browser.__name__ = true;
+js.Browser.__name__ = ["js","Browser"];
 js.NodeC = function() { }
-js.NodeC.__name__ = true;
+js.NodeC.__name__ = ["js","NodeC"];
 var ui = {}
 ui.Menu = function(_text,_headerText) {
 	this.li = js.Browser.document.createElement("li");
@@ -720,7 +730,7 @@ ui.Menu = function(_text,_headerText) {
 	}
 	this.li.appendChild(this.ul);
 };
-ui.Menu.__name__ = true;
+ui.Menu.__name__ = ["ui","Menu"];
 ui.Menu.prototype = {
 	setDisabled: function(indexes) {
 		var childNodes = this.ul.childNodes;
@@ -750,7 +760,7 @@ menu.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();
 };
-menu.FileMenu.__name__ = true;
+menu.FileMenu.__name__ = ["menu","FileMenu"];
 menu.FileMenu.__super__ = ui.Menu;
 menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	create_ui: function() {
@@ -769,10 +779,28 @@ menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	}
 	,__class__: menu.FileMenu
 });
+menu.HelpMenu = function() {
+	ui.Menu.call(this,"Help");
+	this.create_ui();
+	Main.message.listen("core:HelpMenu.contribution","core:helpMenu",$bind(this,this.contribution_page),null);
+};
+menu.HelpMenu.__name__ = ["menu","HelpMenu"];
+menu.HelpMenu.__super__ = ui.Menu;
+menu.HelpMenu.prototype = $extend(ui.Menu.prototype,{
+	contribution_page: function() {
+		Utils.gui.Window.open("./contributors/contributors.html",{ title : "HIDE contributors"});
+	}
+	,create_ui: function() {
+		var gui = require("nw.gui");
+		this.addMenuItem("Contributors","core:HelpMenu.contribution",null,"");
+		this.addToDocument();
+	}
+	,__class__: menu.HelpMenu
+});
 ui.FileDialog = function() {
 };
 $hxExpose(ui.FileDialog, "ui.FileDialog");
-ui.FileDialog.__name__ = true;
+ui.FileDialog.__name__ = ["ui","FileDialog"];
 ui.FileDialog.prototype = {
 	show: function(function_name,saveAs) {
 		if(saveAs == null) saveAs = false;
@@ -788,7 +816,7 @@ ui.FileDialog.prototype = {
 }
 ui.MenuItem = function() { }
 $hxExpose(ui.MenuItem, "ui.MenuItem");
-ui.MenuItem.__name__ = true;
+ui.MenuItem.__name__ = ["ui","MenuItem"];
 ui.MenuItem.prototype = {
 	__class__: ui.MenuItem
 }
@@ -810,7 +838,7 @@ ui.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey
 	this.registerEvent(_onClickFunctionName,_onClickFunction);
 };
 $hxExpose(ui.MenuButtonItem, "ui.MenuButtonItem");
-ui.MenuButtonItem.__name__ = true;
+ui.MenuButtonItem.__name__ = ["ui","MenuButtonItem"];
 ui.MenuButtonItem.__interfaces__ = [ui.MenuItem];
 ui.MenuButtonItem.prototype = {
 	registerEvent: function(_onClickFunctionName,_onClickFunction) {
@@ -825,7 +853,7 @@ ui.Separator = function() {
 	this.li = js.Browser.document.createElement("li");
 	this.li.className = "divider";
 };
-ui.Separator.__name__ = true;
+ui.Separator.__name__ = ["ui","Separator"];
 ui.Separator.__interfaces__ = [ui.MenuItem];
 ui.Separator.prototype = {
 	getElement: function() {
@@ -843,7 +871,7 @@ ui.ModalDialog = function() {
 	this.cancel_text = "";
 };
 $hxExpose(ui.ModalDialog, "ui.ModalDialog");
-ui.ModalDialog.__name__ = true;
+ui.ModalDialog.__name__ = ["ui","ModalDialog"];
 ui.ModalDialog.prototype = {
 	hide: function() {
 		new $("#" + this.id).modal("hide");
@@ -872,7 +900,7 @@ ui.Notify = function() {
 	this.content = "";
 };
 $hxExpose(ui.Notify, "ui.Notify");
-ui.Notify.__name__ = true;
+ui.Notify.__name__ = ["ui","Notify"];
 ui.Notify.prototype = {
 	show: function() {
 		var type_error = "";
@@ -902,9 +930,9 @@ function $iterator(o) { if( o instanceof Array ) return function() { return HxOv
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
 String.prototype.__class__ = String;
-String.__name__ = true;
+String.__name__ = ["String"];
 Array.prototype.__class__ = Array;
-Array.__name__ = true;
+Array.__name__ = ["Array"];
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;

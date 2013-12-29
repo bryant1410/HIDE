@@ -57,10 +57,17 @@ $hxExpose(plugin.misterpah.ProjectAccess, "plugin.misterpah.ProjectAccess");
 plugin.misterpah.ProjectAccess.__name__ = true;
 plugin.misterpah.ProjectAccess.main = function() {
 	plugin.misterpah.ProjectAccess.register_listener();
+	plugin.misterpah.ProjectAccess.register_shortcutkey();
+}
+plugin.misterpah.ProjectAccess.register_shortcutkey = function() {
+	$.keyStroke(79,{ modKeys : ["ctrlKey","shiftKey"]},function() {
+		Main.message.broadcast("core:FileMenu.openProject","plugin.misterpah.FileAccess");
+	});
 }
 plugin.misterpah.ProjectAccess.register_listener = function() {
 	Main.message.listen("core:FileMenu.openProject","plugin.misterpah.ProjectAccess",plugin.misterpah.ProjectAccess.open_project,null);
 	Main.message.listen("core:FileMenu.closeProject","plugin.misterpah.ProjectAccess",plugin.misterpah.ProjectAccess.close_project,null);
+	Main.message.listen("core:utils.system_parse_project.complete","plugin.misterpah.ProjectAccess",plugin.misterpah.ProjectAccess.parse_project_complete,null);
 }
 plugin.misterpah.ProjectAccess.open_project = function() {
 	var filedialog = new ui.FileDialog();
@@ -70,13 +77,15 @@ plugin.misterpah.ProjectAccess.openProjectHandler = function(path,newFile) {
 	if(newFile == null) newFile = false;
 	Main.session.project_xml = path;
 	Utils.system_parse_project();
-	Main.message.broadcast("plugin.misterpah.ProjectAccess:open_project().complete","plugin.misterpah.ProjectAccess");
+}
+plugin.misterpah.ProjectAccess.parse_project_complete = function() {
+	Main.message.broadcast("plugin.misterpah.ProjectAccess:open_project.complete","plugin.misterpah.ProjectAccess");
 }
 plugin.misterpah.ProjectAccess.close_project = function() {
 	Main.session.project_xml = "";
 	Main.session.project_folder = "";
 	Main.session.project_xml_parameter = "";
-	Main.message.broadcast("plugin.misterpah.ProjectAccess:close_project().complete","plugin.misterpah.ProjectAccess");
+	Main.message.broadcast("plugin.misterpah.ProjectAccess:close_project.complete","plugin.misterpah.ProjectAccess");
 }
 String.prototype.__class__ = String;
 String.__name__ = true;

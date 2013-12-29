@@ -3,8 +3,10 @@
 	<title>HIDE - Haxe Integrated Development Environment</title>
 	<meta charset="utf-8">
 	<script type="text/javascript" src="./js/jquery-2.0.3.min.js"></script>
+	<script src="./js/jquery.keystroke.min.js"></script>	
 	
 	<script src="./js/bootstrap/bootstrap.min.js"></script>	
+	<script src="./js/node.dir.walker.js"></script>	
 	<link href="./css/bootstrap.min.css" rel="stylesheet" media="screen">
 	<link href="./css/bootstrap-glyphicons.css" rel="stylesheet" media="screen">
 	
@@ -13,35 +15,47 @@
 		.dropdown-menu{
 		min-width:300px;
 		}	
+		.no-gutter {
+		padding-left:0px !important;
+		padding-right:0px !important;
+		margin-left:0px !important;
+		margin-right:0px !important;
+		}
 	</style>
 </head>
 
-<body>
+<body style="overflow:hidden">
+	<div id="haxe:trace"></div>
+	<div style="position:absolute;top:50px;left:0px;width:100%;z-index:999;" id='notify_position'></div>
+	
+	<div class="container" style="padding-left:0px;padding-right:0px;">
+		<div class="row no-gutter" style="padding-left:0px;padding-right:0px;">
+			<div class="col-xs-12">
+				<div class="navbar navbar-default navbar-fixed-top">
+					<div class="navbar-header">
+						<a class="navbar-brand" >HIDE</a>
+					</div>
+					<div class="navbar-collapse collapse">
+						<ul id="position-navbar" class="nav navbar-nav"></ul>			
+					</div><!--/.nav-collapse -->
+				</div> <!-- /nav -->			
+			</div>
+		</div>
+	</div>
 
-        <div id="haxe:trace"></div>
+	<div style="height:50px;clear:both;"></div>
+	
+	
+	
+	<div id='content' class="no-gutter">
+		<!-- <div id='left-panel' class="col-xs-2 no-gutter"> Project Tree</div> -->
+		<div id='center-panel' class="col-xs-12 no-gutter"><div id='editor_position' style="z-index:10;position:relative;width:100%;min-height:50px;"></div></div>
+	</div>
 
-        <div style="position:absolute;top:50px;left:0px;width:100%;z-index:999;" id='notify_position'></div>
+	
+	
 
-        <div class="navbar navbar-default navbar-fixed-top">
-            <div class="navbar-header">
-                <a class="navbar-brand" >HIDE</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul id="position-navbar" class="nav navbar-nav"></ul>			
-            </div><!--/.nav-collapse -->
-        </div> <!-- /nav -->
-        
-        <div id='editor_position' style="margin-top:50px;z-index:10;position:relative;width:100%;min-height:50px;">
-        </div>
-
-        <div id='style_overide'>
-        </div>
-
-        <div id='modal_position' style='overflow:auto;'>
-        </div>
-        
-        <div id='temp' style='display:none'>
-        </div>
-
-        
+	<div id='style_overide'></div>
+	<div id='modal_position' style='overflow:auto;'></div>
+	<div id='temp' style='display:none'></div>	   
 </body>
