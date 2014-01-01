@@ -103,7 +103,7 @@ Main.main = function() {
 	Main.plugin_index = new Array();
 	Main.plugin_package = new Array();
 	Main.plugin_activated = new Array();
-	Utils.gui.Window.get().showDevTools();
+	Utils.gui.Window.get();
 	Utils.init_ui();
 	new menu.FileMenu();
 	new menu.HelpMenu();
@@ -369,7 +369,7 @@ Utils.system_get_completion = function(position) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
-	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
+	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
 	Utils.exec(exec_str1,function(error,stdout,stderr) {
 		if(error == null) new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 	});

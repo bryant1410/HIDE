@@ -1,0 +1,6 @@
+-cp ../../../source/externs/HIDE
+-cp ../../../source/externs/nodejs-std/src
+-lib jQueryExtern
+-js ../bin/plugin.js
+-main plugin.misterpah.HaxeServer
+-dce full

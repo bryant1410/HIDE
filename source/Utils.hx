@@ -182,7 +182,7 @@ import core.ui.*;
 			join_str_cd = " /D ";
 			}		
 
-		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
+		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
 
 		//trace(exec_str);
 
