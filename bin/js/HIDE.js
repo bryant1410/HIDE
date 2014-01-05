@@ -103,6 +103,7 @@ Main.main = function() {
 	Main.plugin_index = new Array();
 	Main.plugin_package = new Array();
 	Main.plugin_activated = new Array();
+	Utils.gui.Window.get().showDevTools();
 	Utils.gui.Window.get();
 	Utils.init_ui();
 	new menu.FileMenu();

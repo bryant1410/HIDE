@@ -21,7 +21,7 @@ import core.*;
 		plugin_index = new Array();
 		plugin_package = new Array();
 		plugin_activated = new Array();	
-		//Utils.gui.Window.get().showDevTools();
+		Utils.gui.Window.get().showDevTools();
 		Utils.gui.Window.get();
 		Utils.init_ui();
 		//var a = new ui.Menu("Test");
