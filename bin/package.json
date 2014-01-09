@@ -2,7 +2,7 @@
   "name": "hide",
   "main": "index.html",
   "window": {
-    "title": "codename: Haxe IDE",
+    "title": "Haxe IDE",
     "toolbar": false,
     "frame": true,
     "width": 800,

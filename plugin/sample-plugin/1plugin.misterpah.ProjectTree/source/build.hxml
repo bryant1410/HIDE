@@ -1,5 +1,0 @@
--cp ../../../source/externs/HIDE
--lib jQueryExtern
--js ../bin/plugin.js
--main plugin.misterpah.ProjectTree
--dce full
