@@ -26,7 +26,7 @@ class FileMenu extends Menu
 		addMenuItem("Save", "core:FileMenu.saveFile", null, "Ctrl-S");
 		addMenuItem("Close File", "core:FileMenu.closeFile", null, "Ctrl-W");
 		addSeparator();
-		addMenuItem("Exit", "core:FileMenu.exit", function(){untyped window.close();}, "Alt-F4");
+		addMenuItem("Exit", "core:FileMenu.exit", function(){var application_window = js.Node.require('nw.gui').Window.get();application_window.close();}, "Alt-F4");
 		addToDocument();
 	}
 }

@@ -238,19 +238,22 @@ import CodeMirror;
     private static function close_tab()
     {
         var path = Main.session.active_file; 
-        var tab_number = Lambda.indexOf(tab_index,path);
-        new JQuery("#misterpah_editor_tabs_position li:eq("+tab_number+")").remove();
-        Main.session.active_file = '';
-        cm.setOption('value','');
-        tab_index.remove(path);
-        if (tab_index.length < 1)
-        {
-            new JQuery("#editor_position").css("display","none");
-        }
-        else
-        {
-            new JQuery("#misterpah_editor_cm_position").css("display","none");  
-        }
+        if (path != "")
+        	{
+		    var tab_number = Lambda.indexOf(tab_index,path);
+		    new JQuery("#misterpah_editor_tabs_position li:eq("+tab_number+")").remove();
+		    Main.session.active_file = '';
+		    cm.setOption('value','');
+		    tab_index.remove(path);
+		    if (tab_index.length < 1)
+				{
+				    new JQuery("#editor_position").css("display","none");
+				}
+			else
+				{
+				    new JQuery("#misterpah_editor_cm_position").css("display","none");  
+				}
+		    }
     }
 
 

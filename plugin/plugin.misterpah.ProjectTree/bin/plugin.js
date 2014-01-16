@@ -5,11 +5,6 @@ Session.__name__ = ["Session"];
 Session.prototype = {
 	__class__: Session
 }
-var StringTools = function() { }
-StringTools.__name__ = ["StringTools"];
-StringTools.replace = function(s,sub,by) {
-	return s.split(sub).join(by);
-}
 var Type = function() { }
 Type.__name__ = ["Type"];
 Type.getClassName = function(c) {
@@ -79,20 +74,59 @@ plugin.misterpah.ProjectTree.register_listener = function() {
 	Main.message.listen("plugin.misterpah.ProjectAccess:open_project.complete","plugin.misterpah.ProjectTree",plugin.misterpah.ProjectTree.open_tree,null);
 	Main.message.listen("plugin.misterpah.ProjectAccess:close_project.complete","plugin.misterpah.ProjectTree",plugin.misterpah.ProjectTree.close_tree,null);
 }
+plugin.misterpah.ProjectTree.projectTree_openFolder = function(folder_to_open,relativeToCurrentFolder) {
+	if(relativeToCurrentFolder == null) relativeToCurrentFolder = true;
+	if(relativeToCurrentFolder == false) {
+		var path_content = plugin.misterpah.ProjectTree.scan_folder(folder_to_open);
+		new $("#sidr-projectTree").append("<div style='background:#2154ac;margin:10px;border:none;' class='well'></div>");
+		var _g = 0;
+		while(_g < path_content.length) {
+			var each = path_content[_g];
+			++_g;
+			var filename = each[0];
+			var isFile = each[1];
+			if(isFile == true) {
+				var currentFile = sessionStorage.projectTreeCurrentFolder + Utils.path.sep + each[0];
+				currentFile = Utils.repair_path(currentFile);
+				new $("#sidr-projectTree .well").append("<a href='#' style='color:#eaf1fe;font-weight:bold;' onclick='plugin.misterpah.FileAccess.openFileHandler(\"" + currentFile + "\")'>" + filename + "</a><br/>");
+			} else new $("#sidr-projectTree .well").append("<a href='#' onclick='plugin.misterpah.ProjectTree.projectTree_openFolder(\"" + filename + "\")'>[" + filename + "]</a><br/>");
+		}
+	} else {
+	}
+}
+plugin.misterpah.ProjectTree.compile_message = function() {
+	var target = $("#ProjectTree_compileTarget").val();
+	Main.message.broadcast("plugin.misterpah.ProjectTree:compile_" + target,"plugin.misterpah.ProjectTree");
+}
 plugin.misterpah.ProjectTree.open_tree = function() {
 	console.log("open tree");
-	var path_content = plugin.misterpah.ProjectTree.scan_folder(Main.session.project_folder);
-	console.log(path_content);
 	$("body").prepend("<div id=\"sidr\"></div>");
+	$("#sidr").append("<div id=\"sidr-projectControl\"></div>");
+	$("#sidr").append("<div id=\"sidr-projectTree\"></div>");
+	sessionStorage.projectTreeCurrentFolder = Main.session.project_folder;
+	plugin.misterpah.ProjectTree.projectTree_openFolder(Main.session.project_folder,false);
+	var compileTo = ["<style>#sidr-projectControl select {background: #2154ac;color:#ffffff;border:1px solid #ffffff;}</style>","<div style=\"margin:10px;color:#ffffff;background:#2154ac;border:0px;\" class=\"well\">","<div style=\"padding-left:0px;padding-right:0px;padding-top:4px;\" class=\"col-xs-4\">","Target :","</div>","<div style=\"padding-left:0px;padding-right:0px\" class=\"col-xs-8\">","<select id=\"ProjectTree_compileTarget\">","<option>Hxml</option>","<option>Flash</option>","</select>","</div>","<button type=\"button\" onclick=\"plugin.misterpah.ProjectTree.compile_message();\" class=\"btn btn-default btn-block\">Compile</button>","<div style=\"clear:both\"></div>","</div>"].join("\n");
+	$("#sidr-projectControl").append(compileTo);
 	$("body").append("<a id=\"simple-menu\" class=\"tiny button secondary radius\" style=\"display:none;\" href=\"#sidr\">Simple menu</a>");
 	$("body").append("<style>.active-navbar-header{background:#abc}</style>");
 	$(".navbar-brand").attr("href","#sidr");
 	$(".navbar-brand").attr("id","simple-menu");
 	$(".navbar-brand").html("<span id=\"project-tree-icon\" class=\"glyphicon glyphicon-th-list\"></span> HIDE");
 	$("#simple-menu").sidr({ onOpen : function() {
-		$("#project-tree-icon").css("color","#5B0400");
+		console.log("open");
+		$(".navbar-default").css("border-left","1px solid #397ff6");
+		$(".sidr").css("border-top","1px solid #e7e7e7");
+		$(".sidr").css("background","#397ff6");
+		$(".sidr").css("box-shadow","none");
+		$("#project-tree-icon").css("color","#ffffff");
+		$(".navbar-header").css("background","#397ff6");
+		$(".navbar-header a").css("color","#ffffff");
 	}, onClose : function() {
-		$("#project-tree-icon").css("color","#777");
+		console.log("close");
+		$(".navbar-default").css("border-left","1px solid #e7e7e7");
+		$("#project-tree-icon").css("color","rgb(119,119,119)");
+		$(".navbar-header").css("background","none");
+		$(".navbar-header a").css("color","rgb(119,119,119)");
 	}});
 	$.sidr("open","sidr",function() {
 	});
@@ -104,7 +138,7 @@ plugin.misterpah.ProjectTree.close_tree = function() {
 	console.log("close tree");
 }
 plugin.misterpah.ProjectTree.scan_folder = function(scan_path) {
-	var path = StringTools.replace(scan_path,"\\","\\\\");
+	var path = Utils.repair_path(scan_path);
 	var path_content = Utils.fs.readdirSync(path);
 	var path_content_folder = new Array();
 	var _g = 0;

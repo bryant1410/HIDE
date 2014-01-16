@@ -8,12 +8,12 @@ function $extend(from, fields) {
 }
 var _Either = {}
 _Either.Either_Impl_ = function() { }
-_Either.Either_Impl_.__name__ = ["_Either","Either_Impl_"];
+_Either.Either_Impl_.__name__ = true;
 var FileObject = function() {
 	this.file_stack = new Array();
 };
 $hxExpose(FileObject, "FileObject");
-FileObject.__name__ = ["FileObject"];
+FileObject.__name__ = true;
 FileObject.prototype = {
 	remove: function(path) {
 		if(this.file_stack.length > 0) {
@@ -59,7 +59,7 @@ FileObject.prototype = {
 	,__class__: FileObject
 }
 var HxOverrides = function() { }
-HxOverrides.__name__ = ["HxOverrides"];
+HxOverrides.__name__ = true;
 HxOverrides.cca = function(s,index) {
 	var x = s.charCodeAt(index);
 	if(x != x) return undefined;
@@ -82,7 +82,7 @@ HxOverrides.iter = function(a) {
 	}};
 }
 var Lambda = function() { }
-Lambda.__name__ = ["Lambda"];
+Lambda.__name__ = true;
 Lambda.indexOf = function(it,v) {
 	var i = 0;
 	var $it0 = $iterator(it)();
@@ -95,7 +95,7 @@ Lambda.indexOf = function(it,v) {
 }
 var Main = function() { }
 $hxExpose(Main, "Main");
-Main.__name__ = ["Main"];
+Main.__name__ = true;
 Main.main = function() {
 	Main.session = new Session();
 	Main.file_stack = new FileObject();
@@ -103,7 +103,6 @@ Main.main = function() {
 	Main.plugin_index = new Array();
 	Main.plugin_package = new Array();
 	Main.plugin_activated = new Array();
-	Utils.gui.Window.get().showDevTools();
 	Utils.gui.Window.get();
 	Utils.init_ui();
 	new menu.FileMenu();
@@ -156,7 +155,7 @@ var Message = function() {
 	this.broadcast_message = new Array();
 	this.listen_message = new Array();
 };
-Message.__name__ = ["Message"];
+Message.__name__ = true;
 Message.prototype = {
 	list_listen: function() {
 		return this.listen_message;
@@ -187,12 +186,12 @@ var Session = function() {
 	this.active_file = "";
 };
 $hxExpose(Session, "Session");
-Session.__name__ = ["Session"];
+Session.__name__ = true;
 Session.prototype = {
 	__class__: Session
 }
 var Std = function() { }
-Std.__name__ = ["Std"];
+Std.__name__ = true;
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
@@ -205,24 +204,21 @@ Std.parseInt = function(x) {
 var StringBuf = function() {
 	this.b = "";
 };
-StringBuf.__name__ = ["StringBuf"];
+StringBuf.__name__ = true;
 StringBuf.prototype = {
 	__class__: StringBuf
 }
 var StringTools = function() { }
-StringTools.__name__ = ["StringTools"];
+StringTools.__name__ = true;
 StringTools.startsWith = function(s,start) {
 	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
 }
-var Type = function() { }
-Type.__name__ = ["Type"];
-Type.getClassName = function(c) {
-	var a = c.__name__;
-	return a.join(".");
+StringTools.replace = function(s,sub,by) {
+	return s.split(sub).join(by);
 }
 var js = {}
 js.Node = function() { }
-js.Node.__name__ = ["js","Node"];
+js.Node.__name__ = true;
 js.Node.get_assert = function() {
 	return js.Node.require("assert");
 }
@@ -288,7 +284,7 @@ js.Node.newSocket = function(options) {
 }
 var Utils = function() { }
 $hxExpose(Utils, "Utils");
-Utils.__name__ = ["Utils"];
+Utils.__name__ = true;
 Utils.getOS = function() {
 	var os_type = null;
 	var _g = Utils.os.type();
@@ -304,14 +300,14 @@ Utils.getOS = function() {
 	}
 	return os_type;
 }
-Utils.plugin_path = function(className) {
-	return "../plugin/" + Type.getClassName(className) + "/bin";
+Utils.repair_path = function(path) {
+	if(Utils.getOS() == Utils.WINDOWS) path = StringTools.replace(path,"\\","\\\\"); else {
+	}
+	console.log(path);
+	return path;
 }
 Utils.system_dirContent = function(path) {
 	return Utils.fs.readdirSync(path);
-}
-Utils.register_plugin = function(plugin_credentials) {
-	Main.message.broadcast("utils","register_plugin().complete");
 }
 Utils.list_plugin = function() {
 	var returnList = new Array();
@@ -355,8 +351,6 @@ Utils.system_get_HIDE_path = function() {
 	console.log(StringTools.startsWith(location,Utils.path.sep));
 	return location;
 }
-Utils.system_get_hxparse = function() {
-}
 Utils.system_get_completion = function(position) {
 	var exec_str = "";
 	var join_str = "";
@@ -392,24 +386,6 @@ Utils.system_create_project = function(exec_str) {
 	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
 	});
 }
-Utils.system_compile_flash = function() {
-	var join_str = "";
-	var join_str_cd = "";
-	var default_folder = "";
-	if(Utils.getOS() == Utils.LINUX) {
-		join_str = " ; ";
-		join_str_cd = "";
-		default_folder = "~/HIDE";
-	}
-	if(Utils.getOS() == Utils.WINDOWS) {
-		join_str = " & ";
-		join_str_cd = " /D ";
-		default_folder = "C:/HIDE";
-	}
-	var exec_str = "openfl test flash";
-	Utils.exec("cd " + join_str_cd + Main.session.project_folder + join_str + exec_str,function(error,stdout,stderr) {
-	});
-}
 Utils.system_parse_project = function() {
 	var exec_str = "";
 	var filename = Main.session.project_xml;
@@ -419,8 +395,8 @@ Utils.system_parse_project = function() {
 	projectFolder.pop();
 	Main.session.project_folder = projectFolder.join(Utils.path.sep);
 	if(filename_ext == "xml") {
-		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & openfl display -hxml flash";
-		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash";
+		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & lime display -hxml flash";
+		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash";
 	}
 	if(filename_ext == "hxml") {
 		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
@@ -459,7 +435,7 @@ haxe.io.Bytes = function(length,b) {
 	this.length = length;
 	this.b = b;
 };
-haxe.io.Bytes.__name__ = ["haxe","io","Bytes"];
+haxe.io.Bytes.__name__ = true;
 haxe.io.Bytes.alloc = function(length) {
 	var a = new Array();
 	var _g = 0;
@@ -595,7 +571,7 @@ haxe.io.Error.OutsideBounds.toString = $estr;
 haxe.io.Error.OutsideBounds.__enum__ = haxe.io.Error;
 haxe.io.Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe.io.Error; $x.toString = $estr; return $x; }
 js.Boot = function() { }
-js.Boot.__name__ = ["js","Boot"];
+js.Boot.__name__ = true;
 js.Boot.__string_rec = function(o,s) {
 	if(o == null) return "null";
 	if(s.length >= 5) return "<...>";
@@ -708,9 +684,9 @@ js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
 }
 js.Browser = function() { }
-js.Browser.__name__ = ["js","Browser"];
+js.Browser.__name__ = true;
 js.NodeC = function() { }
-js.NodeC.__name__ = ["js","NodeC"];
+js.NodeC.__name__ = true;
 var ui = {}
 ui.Menu = function(_text,_headerText) {
 	this.li = js.Browser.document.createElement("li");
@@ -731,7 +707,7 @@ ui.Menu = function(_text,_headerText) {
 	}
 	this.li.appendChild(this.ul);
 };
-ui.Menu.__name__ = ["ui","Menu"];
+ui.Menu.__name__ = true;
 ui.Menu.prototype = {
 	setDisabled: function(indexes) {
 		var childNodes = this.ul.childNodes;
@@ -761,7 +737,7 @@ menu.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();
 };
-menu.FileMenu.__name__ = ["menu","FileMenu"];
+menu.FileMenu.__name__ = true;
 menu.FileMenu.__super__ = ui.Menu;
 menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 	create_ui: function() {
@@ -774,7 +750,8 @@ menu.FileMenu.prototype = $extend(ui.Menu.prototype,{
 		this.addMenuItem("Close File","core:FileMenu.closeFile",null,"Ctrl-W");
 		this.addSeparator();
 		this.addMenuItem("Exit","core:FileMenu.exit",function() {
-			window.close();
+			var application_window = js.Node.require("nw.gui").Window.get();
+			application_window.close();
 		},"Alt-F4");
 		this.addToDocument();
 	}
@@ -785,15 +762,18 @@ menu.HelpMenu = function() {
 	this.create_ui();
 	Main.message.listen("core:HelpMenu.contribution","core:helpMenu",$bind(this,this.contribution_page),null);
 };
-menu.HelpMenu.__name__ = ["menu","HelpMenu"];
+menu.HelpMenu.__name__ = true;
 menu.HelpMenu.__super__ = ui.Menu;
 menu.HelpMenu.prototype = $extend(ui.Menu.prototype,{
 	contribution_page: function() {
-		Utils.gui.Window.open("./contributors/contributors.html",{ title : "HIDE contributors"});
+		Utils.gui.Window.open("./contributors/contributors.html",{ title : "HIDE contributors", position : "center", toolbar : false, focus : true});
 	}
 	,create_ui: function() {
 		var gui = require("nw.gui");
 		this.addMenuItem("Contributors","core:HelpMenu.contribution",null,"");
+		this.addMenuItem("Developer Tools","core:HelpMenu.developerTools",function() {
+			Utils.gui.Window.get().showDevTools();
+		},"");
 		this.addToDocument();
 	}
 	,__class__: menu.HelpMenu
@@ -801,7 +781,7 @@ menu.HelpMenu.prototype = $extend(ui.Menu.prototype,{
 ui.FileDialog = function() {
 };
 $hxExpose(ui.FileDialog, "ui.FileDialog");
-ui.FileDialog.__name__ = ["ui","FileDialog"];
+ui.FileDialog.__name__ = true;
 ui.FileDialog.prototype = {
 	show: function(function_name,saveAs) {
 		if(saveAs == null) saveAs = false;
@@ -817,7 +797,7 @@ ui.FileDialog.prototype = {
 }
 ui.MenuItem = function() { }
 $hxExpose(ui.MenuItem, "ui.MenuItem");
-ui.MenuItem.__name__ = ["ui","MenuItem"];
+ui.MenuItem.__name__ = true;
 ui.MenuItem.prototype = {
 	__class__: ui.MenuItem
 }
@@ -839,7 +819,7 @@ ui.MenuButtonItem = function(_text,_onClickFunctionName,_onClickFunction,_hotkey
 	this.registerEvent(_onClickFunctionName,_onClickFunction);
 };
 $hxExpose(ui.MenuButtonItem, "ui.MenuButtonItem");
-ui.MenuButtonItem.__name__ = ["ui","MenuButtonItem"];
+ui.MenuButtonItem.__name__ = true;
 ui.MenuButtonItem.__interfaces__ = [ui.MenuItem];
 ui.MenuButtonItem.prototype = {
 	registerEvent: function(_onClickFunctionName,_onClickFunction) {
@@ -854,7 +834,7 @@ ui.Separator = function() {
 	this.li = js.Browser.document.createElement("li");
 	this.li.className = "divider";
 };
-ui.Separator.__name__ = ["ui","Separator"];
+ui.Separator.__name__ = true;
 ui.Separator.__interfaces__ = [ui.MenuItem];
 ui.Separator.prototype = {
 	getElement: function() {
@@ -872,7 +852,7 @@ ui.ModalDialog = function() {
 	this.cancel_text = "";
 };
 $hxExpose(ui.ModalDialog, "ui.ModalDialog");
-ui.ModalDialog.__name__ = ["ui","ModalDialog"];
+ui.ModalDialog.__name__ = true;
 ui.ModalDialog.prototype = {
 	hide: function() {
 		new $("#" + this.id).modal("hide");
@@ -901,7 +881,7 @@ ui.Notify = function() {
 	this.content = "";
 };
 $hxExpose(ui.Notify, "ui.Notify");
-ui.Notify.__name__ = ["ui","Notify"];
+ui.Notify.__name__ = true;
 ui.Notify.prototype = {
 	show: function() {
 		var type_error = "";
@@ -931,9 +911,9 @@ function $iterator(o) { if( o instanceof Array ) return function() { return HxOv
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; };
 String.prototype.__class__ = String;
-String.__name__ = ["String"];
+String.__name__ = true;
 Array.prototype.__class__ = Array;
-Array.__name__ = ["Array"];
+Array.__name__ = true;
 var Int = { __name__ : ["Int"]};
 var Dynamic = { __name__ : ["Dynamic"]};
 var Float = Number;

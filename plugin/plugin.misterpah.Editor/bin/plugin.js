@@ -204,7 +204,7 @@ plugin.misterpah.Editor.init = function() {
 }
 plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").css("display","none");
-	new $("#editor_position").append("<div  id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
+	new $("#editor_position").append("<div id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
 	new $("#editor_position").append("<div class='ui-layout-center' id='misterpah_editor_cm_position'></div>");
 	new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
 	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe", theme : "xq-light", matchBrackets : true, autoCloseBrackets : true, foldCode : true, foldGutter : true, styleActiveLine : true});
@@ -300,12 +300,14 @@ plugin.misterpah.Editor.editor_resize = function() {
 }
 plugin.misterpah.Editor.close_tab = function() {
 	var path = Main.session.active_file;
-	var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
-	new $("#misterpah_editor_tabs_position li:eq(" + tab_number + ")").remove();
-	Main.session.active_file = "";
-	plugin.misterpah.Editor.cm.setOption("value","");
-	HxOverrides.remove(plugin.misterpah.Editor.tab_index,path);
-	if(plugin.misterpah.Editor.tab_index.length < 1) new $("#editor_position").css("display","none"); else new $("#misterpah_editor_cm_position").css("display","none");
+	if(path != "") {
+		var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
+		new $("#misterpah_editor_tabs_position li:eq(" + tab_number + ")").remove();
+		Main.session.active_file = "";
+		plugin.misterpah.Editor.cm.setOption("value","");
+		HxOverrides.remove(plugin.misterpah.Editor.tab_index,path);
+		if(plugin.misterpah.Editor.tab_index.length < 1) new $("#editor_position").css("display","none"); else new $("#misterpah_editor_cm_position").css("display","none");
+	}
 }
 plugin.misterpah.Editor.make_tab = function() {
 	var path = Main.session.active_file;

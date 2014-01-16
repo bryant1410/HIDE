@@ -114,7 +114,7 @@ plugin.misterpah.FileAccess.open_file = function() {
 }
 plugin.misterpah.FileAccess.openFileHandler = function(path,newFile) {
 	if(newFile == null) newFile = false;
-	console.log(path);
+	path = Utils.repair_path(path);
 	var find = Main.file_stack.find(path);
 	if(find[0] == "null" || find[0] == "not found") {
 		var content = Utils.system_openFile(path);

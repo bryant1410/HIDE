@@ -54,10 +54,14 @@ import js.Browser;
 
     static private function openFileHandler(path:String,newFile:Bool=false):Void
     {
-		trace(path);
+		path = untyped Utils.repair_path(path);
+
+		//trace(path);
         var find = Main.file_stack.find(path);
         if (find[0] == "null" || find[0] == "not found")
         {
+		
+		
             var content = Utils.system_openFile(path);
             var filename_split = path.split(Utils.path.sep);
             var className = filename_split[filename_split.length-1].split('.')[0];

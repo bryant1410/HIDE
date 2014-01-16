@@ -1,5 +1,5 @@
 -cp ../../../source/externs/HIDE
--cp ../../../source/externs/codeMirror
+-cp ../../../source/externs/codemirror
 -lib jQueryExtern
 -js ../bin/plugin.js
 -main plugin.misterpah.Editor

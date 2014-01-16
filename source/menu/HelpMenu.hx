@@ -19,12 +19,13 @@ class HelpMenu extends Menu
 	function create_ui()
 	{
 		var gui = untyped require('nw.gui');	
-		addMenuItem("Contributors", "core:HelpMenu.contribution" ,null, "");		
+		addMenuItem("Contributors", "core:HelpMenu.contribution" ,null, "");
+		addMenuItem("Developer Tools", "core:HelpMenu.developerTools" ,function(){Utils.gui.Window.get().showDevTools();}, "");				
 		addToDocument();
 	}
 	
 	function contribution_page()
 	{
-	 Utils.gui.Window.open("./contributors/contributors.html",{title:"HIDE contributors"});
+	 Utils.gui.Window.open("./contributors/contributors.html",{title:"HIDE contributors",position: 'center',toolbar:false,focus:true});
 	}
 }

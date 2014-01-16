@@ -36,21 +36,41 @@ import core.ui.*;
 		return os_type;
     }	
 	
+	/*
 	public static function plugin_path(className:Dynamic):String
 	{
 	return "../plugin/" + Type.getClassName(className) +"/bin";
-	}	
+	}
+	*/	
 
+	public static function repair_path(path:String)
+	{
+		//trace(os.type());
+		if (getOS() == WINDOWS)
+			{
+			
+			path = StringTools.replace(path,"\\", "\\\\");		
+			}
+		else
+			{
+			//path = path;		
+			}
+		trace(path);
+		return path;
+	}
+	
     private static function system_dirContent(path:String)
     {
     	return fs.readdirSync(path);
     }
 
+	/*
     public static function register_plugin(plugin_credentials:Map<String,String>)
     {
  		//new JQuery(js.Browser.document).triggerHandler("core_register_plugin",[plugin_credentials]);
 		Main.message.broadcast("utils","register_plugin().complete");
     }
+    */
 
 
     public static function list_plugin()
@@ -81,6 +101,7 @@ import core.ui.*;
 	{
 		return myString.substr(0, 1) + myString.substr(1);
 	}
+	
 	
 	public static function system_openFile(filename:String)
     {
@@ -120,47 +141,6 @@ import core.ui.*;
 			
 		}
 		
-    public static function system_get_hxparse()
-    {
-		/*
-		var exec_str = "";
-		var join_str = "";
-		var join_str_cd = "";
-
-		var path = Main.session.active_file;
-
-		if (getOS() == LINUX)
-			{
-			join_str = " ; ";
-			join_str_cd = "";
-			}
-		if (getOS() == WINDOWS)
-			{
-			join_str = " & ";
-			join_str_cd = " /D ";
-			}		
-
-		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
-
-		//trace(exec_str);
-
-		Utils.exec(exec_str,
-			function(error,stdout:String,stderr:String){
-				//trace (error);
-				//trace (stdout);
-				//trace (stderr);
-				//var the_error = false;
-				//if (stderr != ""){the_error = true;}
-				if (error == null)
-					{
-					//new JQuery(Browser.document).triggerHandler("core:utils.getCompletion_complete",[stderr]);
-					Main.message.broadcast("utils","system_get_hxparse().complete");
-					}
-				
-				});
-
-		*/
-    }
 
 	public static function system_get_completion(position:Int)
 	{
@@ -169,7 +149,6 @@ import core.ui.*;
 		var join_str_cd = "";
 
 		var path = Main.session.active_file;
-		//var file_obj = Main.file_stack.find(path);
 
 		if (getOS() == LINUX)
 			{
@@ -184,18 +163,10 @@ import core.ui.*;
 
 		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
 
-		//trace(exec_str);
-
 		Utils.exec(exec_str,
 			function(error,stdout:String,stderr:String){
-				//trace (error);
-				//trace (stdout);
-				//trace (stderr);
-				//var the_error = false;
-				//if (stderr != ""){the_error = true;}
 				if (error == null)
 					{
-					//Main.message.broadcast("core:utils.system_get_completion.complete","core");
 					new JQuery(Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 					}
 				
@@ -232,34 +203,6 @@ import core.ui.*;
 	}
 
 
-	public static function system_compile_flash()
-	{
-		var join_str = "";
-		var join_str_cd = "";
-		var default_folder = "";
-
-		if (getOS() == LINUX)
-			{
-			join_str = " ; ";
-			join_str_cd = "";
-			default_folder = "~/HIDE";
-			}
-		if (getOS() == WINDOWS)
-			{
-			join_str = " & ";
-			join_str_cd = " /D ";
-			default_folder = "C:/HIDE";
-			}		
-
-		var exec_str = "openfl test flash";
-		Utils.exec("cd "+ join_str_cd + Main.session.project_folder + join_str + exec_str, function (error,stdout,stderr)
-			{
-				//trace(error);
-				//trace(stdout);
-				//trace(stderr);
-			});
-	}
-
 
 
 	public static function system_parse_project()
@@ -278,8 +221,8 @@ import core.ui.*;
 	    Main.session.project_folder = projectFolder.join(path.sep);		
 		if (filename_ext == "xml")
 			{
-			if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & openfl display -hxml flash";}
-			if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; openfl display -hxml flash"; }			
+			if (Utils.getOS() == Utils.WINDOWS) {exec_str = "cd /D "+ Main.session.project_folder +" & lime display -hxml flash";}
+			if (Utils.getOS() == Utils.LINUX) { exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash"; }			
 			}
 		if (filename_ext == "hxml")
 			{
