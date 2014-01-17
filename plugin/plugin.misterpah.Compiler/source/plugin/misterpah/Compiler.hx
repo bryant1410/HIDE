@@ -25,6 +25,17 @@ import js.Browser;
 	
 	Utils.exec(exec_str, function (error,stdout,stderr)
 		{
+			if (stderr != "")
+				{
+				untyped localStorage.showError = "true";
+				untyped localStorage.compile_error_status = stdout;
+				untyped localStorage.compile_error_error = stderr;
+				Utils.gui.Window.open("./console/console.html",{title:"HIDE console",position: 'center',toolbar:false,focus:true});
+				}
+			if (stderr == "")
+				{
+				untyped localStorage.showError = "false";
+				}				
 			trace(error);
 			trace(stdout);
 			trace(stderr);
@@ -44,6 +55,17 @@ import js.Browser;
 	
 	Utils.exec(exec_str, function (error,stdout,stderr)
 		{
+			if (stderr != "")
+				{
+				untyped localStorage.showError = "true";
+				untyped localStorage.compile_error_status = stdout;
+				untyped localStorage.compile_error_error = stderr;
+				Utils.gui.Window.open("./console/console.html",{title:"HIDE console",position: 'center',toolbar:false,focus:true});
+				}
+			if (stderr == "")
+				{
+				untyped localStorage.showError = "false";
+				}
 			trace(error);
 			trace(stdout);
 			trace(stderr);
