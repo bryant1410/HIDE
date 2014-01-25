@@ -67,8 +67,6 @@ plugin.misterpah.ProjectTree.main = function() {
 }
 plugin.misterpah.ProjectTree.init = function() {
 	var path = "../plugin/" + Type.getClassName(plugin.misterpah.ProjectTree) + "/bin";
-	Utils.loadJavascript(path + "/sidr/jquery.sidr.min.js");
-	Utils.loadCss(path + "/sidr/stylesheets/jquery.sidr.dark.css");
 }
 plugin.misterpah.ProjectTree.register_listener = function() {
 	Main.message.listen("plugin.misterpah.ProjectAccess:open_project.complete","plugin.misterpah.ProjectTree",plugin.misterpah.ProjectTree.open_tree,null);
@@ -88,8 +86,8 @@ plugin.misterpah.ProjectTree.projectTree_openFolder = function(folder_to_open,re
 			if(isFile == true) {
 				var currentFile = sessionStorage.projectTreeCurrentFolder + Utils.path.sep + each[0];
 				currentFile = Utils.repair_path(currentFile);
-				new $("#sidr-projectTree .well").append("<a href='#' style='color:#eaf1fe;font-weight:bold;' onclick='plugin.misterpah.FileAccess.openFileHandler(\"" + currentFile + "\")'>" + filename + "</a><br/>");
-			} else new $("#sidr-projectTree .well").append("<a href='#' onclick='plugin.misterpah.ProjectTree.projectTree_openFolder(\"" + filename + "\")'>[" + filename + "]</a><br/>");
+				new $("#projectTree").append("<a href='#' class='file' onclick='plugin.misterpah.FileAccess.openFileHandler(\"" + currentFile + "\")'>" + filename + "</a><br/>");
+			} else new $("#projectTree").append("<a href='#' class='folder' onclick='plugin.misterpah.ProjectTree.projectTree_openFolder(\"" + filename + "\")'>[" + filename + "]</a><br/>");
 		}
 	} else {
 	}
@@ -100,42 +98,15 @@ plugin.misterpah.ProjectTree.compile_message = function() {
 }
 plugin.misterpah.ProjectTree.open_tree = function() {
 	console.log("open tree");
-	$("body").prepend("<div id=\"sidr\"></div>");
-	$("#sidr").append("<div id=\"sidr-projectControl\"></div>");
-	$("#sidr").append("<div id=\"sidr-projectTree\"></div>");
 	sessionStorage.projectTreeCurrentFolder = Main.session.project_folder;
 	plugin.misterpah.ProjectTree.projectTree_openFolder(Main.session.project_folder,false);
-	var compileTo = ["<style>#sidr-projectControl select {background: #2154ac;color:#ffffff;border:1px solid #ffffff;}</style>","<div style=\"margin:10px;color:#ffffff;background:#2154ac;border:0px;\" class=\"well\">","<div style=\"padding-left:0px;padding-right:0px;padding-top:4px;\" class=\"col-xs-4\">","Target :","</div>","<div style=\"padding-left:0px;padding-right:0px\" class=\"col-xs-8\">","<select id=\"ProjectTree_compileTarget\">","<option>Hxml</option>","<option>Flash</option>","</select>","</div>","<button type=\"button\" onclick=\"plugin.misterpah.ProjectTree.compile_message();\" class=\"btn btn-default btn-block\">Compile</button>","<div style=\"clear:both\"></div>","</div>"].join("\n");
-	$("#sidr-projectControl").append(compileTo);
-	$("body").append("<a id=\"simple-menu\" class=\"tiny button secondary radius\" style=\"display:none;\" href=\"#sidr\">Simple menu</a>");
-	$("body").append("<style>.active-navbar-header{background:#abc}</style>");
-	$(".navbar-brand").attr("href","#sidr");
-	$(".navbar-brand").attr("id","simple-menu");
-	$(".navbar-brand").html("<span id=\"project-tree-icon\" class=\"glyphicon glyphicon-th-list\"></span> HIDE");
-	$("#simple-menu").sidr({ onOpen : function() {
-		console.log("open");
-		$(".navbar-default").css("border-left","1px solid #397ff6");
-		$(".sidr").css("border-top","1px solid #e7e7e7");
-		$(".sidr").css("background","#397ff6");
-		$(".sidr").css("box-shadow","none");
-		$("#project-tree-icon").css("color","#ffffff");
-		$(".navbar-header").css("background","#397ff6");
-		$(".navbar-header a").css("color","#ffffff");
-	}, onClose : function() {
-		console.log("close");
-		$(".navbar-default").css("border-left","1px solid #e7e7e7");
-		$("#project-tree-icon").css("color","rgb(119,119,119)");
-		$(".navbar-header").css("background","none");
-		$(".navbar-header a").css("color","rgb(119,119,119)");
-	}});
-	$.sidr("open","sidr",function() {
-	});
+	var compileTo = ["<div style=\"padding-left:0px;padding-right:0px;padding-top:4px;\" class=\"col-xs-4\">","Target :","</div>","<div style=\"padding-left:0px;padding-right:0px\" class=\"col-xs-8\">","<select class=\"form-control\" id=\"ProjectTree_compileTarget\">","<option>Hxml</option>","<option>Flash</option>","</select>","</div><br/>","<button type=\"button\" onclick=\"plugin.misterpah.ProjectTree.compile_message();\" class=\"btn btn-default btn-block\">Compile</button>","</div>"].join("\n");
+	$("#projectControl").append(compileTo);
 }
 plugin.misterpah.ProjectTree.close_tree = function() {
-	$.sidr("close","sidr",function() {
-	});
-	$(".navbar-header").html("<a class=\"navbar-brand\">HIDE</a>");
 	console.log("close tree");
+	$("#projectControl").html("");
+	$("#projectTree").html("");
 }
 plugin.misterpah.ProjectTree.scan_folder = function(scan_path) {
 	var path = Utils.repair_path(scan_path);

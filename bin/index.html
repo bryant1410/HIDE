@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-	<title>HIDE - Haxe Integrated Development Environment</title>
+	<title>Haxe Studio</title>
 	<meta charset="utf-8">
 	<script type="text/javascript" src="./js/jquery-2.0.3.min.js"></script>
 	<script src="./js/jquery.keystroke.min.js"></script>	
@@ -13,42 +13,8 @@
 	<link href="./css/bootstrap.min.css" rel="stylesheet" media="screen">
 	<link href="./css/bootstrap-glyphicons.css" rel="stylesheet" media="screen">
 	
-	<script data-main="js/HIDE" src="js/require.js"></script>
 	<style>
-		.dropdown-menu{
-		min-width:300px;
-		}	
-		.no-gutter {
-		padding-left:0px !important;
-		padding-right:0px !important;
-		margin-left:0px !important;
-		margin-right:0px !important;
-		}
-		body{
-		overflow:hidden !important;
-		}
-	
-		.nodrag {
-		-webkit-app-region: no-drag !important;
-		}
 
-		#border_wrap
-		{
-		position:absolute;
-		left:0px;
-		top:0px;
-		border:1px solid #e7e7e7;
-		z-index:-1;
-		}
-		
-		#nav-button
-		{
-		position:absolute;
-		top:10px;
-		right:10px;
-		z-index:10001;
-		-webkit-app-region: no-drag !important;
-		}
 		
 		
 	</style>
@@ -56,42 +22,41 @@
 </head>
 
 <body>
+	<div class="wrap">
+		<div class=" navbar navbar-default" style="-webkit-border-radius: 0 0 0 0;margin:0px;">
+			<div class="navbar-collapse collapse">
+				<ul id="position-navbar" class="nodrag nav navbar-nav"></ul>
+			</div><!--/.nav-collapse -->
+		</div> <!-- /nav -->		
 
-	<div id="haxe:trace"></div>
-	<div style="position:absolute;top:50px;left:0px;width:100%;z-index:999;" id='notify_position'></div>
+
 	
-	<div class="" style="padding-left:0px;padding-right:0px;margin:0px;">
-		<div class="row no-gutter" style="padding-left:0px;padding-right:0px; ">
-			<div class="col-xs-12 no-gutter">
-				<div class=" navbar navbar-default" style="-webkit-border-radius: 0 0 0 0;margin:0px;">
-					<div class="navbar-header">
-						<a class="navbar-brand" >HIDE</a>
+		<div id='content' class="no-gutter">
+			<div id='left-panel' class="col-xs-3 col-lg-2 no-gutter">
+				<div class="padding">
+					<div id="projectControl_wrap" class="well">
+						<b>Project Control</b>
+						<hr/>
+						<div id="projectControl"></div>
 					</div>
-
-					<div class="navbar-collapse collapse">
-						<ul id="position-navbar" class="nodrag nav navbar-nav"></ul>			
-					</div><!--/.nav-collapse -->
-					
-				</div> <!-- /nav -->		
-
-
+					<div id="projectTree_wrap" class="well">
+						<b>Project Tree</b>
+						<hr/>
+						<div id="projectTree"></div>
+					</div>
+				</div>
 			</div>
+			<div id='right-panel' class="col-xs-9 col-lg-10 no-gutter"><div id='editor_position' ></div></div>
 		</div>
+
+		<div style="position:absolute;top:50px;left:0px;width:100%;z-index:999;" id='notify_position'></div>
+		<div id="haxe:trace"></div>
+		<div id='style_overide'></div>
+		<div id='modal_position' style='overflow:auto;'></div>
+		<div id='temp' style='display:none'></div>	   
+		<link href="./index.css" rel="stylesheet" media="screen">
+		<link href="./theme.css" rel="stylesheet" media="screen">
+		<script src="./js/HIDE.js"></script>	
 	</div>
-
-	<div style="clear:both;"></div>
-	
-	
-	
-	<div id='content' class="no-gutter">
-		<!-- <div id='left-panel' class="col-xs-2 no-gutter"> Project Tree</div> -->
-		<div id='center-panel' class="col-xs-12 no-gutter"><div id='editor_position' style="z-index:10;position:relative;width:100%;min-height:50px;"></div></div>
-	</div>
-
-	
-	
-
-	<div id='style_overide'></div>
-	<div id='modal_position' style='overflow:auto;'></div>
-	<div id='temp' style='display:none'></div>	   
 </body>
+</html>

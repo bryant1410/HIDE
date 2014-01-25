@@ -14,8 +14,6 @@ import js.Browser;
 	static private function init()
 	{
 	var path = "../plugin/" + Type.getClassName(ProjectTree) +"/bin";
-	Utils.loadJavascript(path +"/sidr/jquery.sidr.min.js");
-	Utils.loadCss(path +"/sidr/stylesheets/jquery.sidr.dark.css");
 	}
 	
 	
@@ -39,11 +37,11 @@ import js.Browser;
 					{
 					var currentFile = untyped sessionStorage.projectTreeCurrentFolder + Utils.path.sep + each[0];
 					currentFile = untyped Utils.repair_path(currentFile);
-					new JQuery("#sidr-projectTree .well").append("<a href='#' style='color:#eaf1fe;font-weight:bold;' onclick='plugin.misterpah.FileAccess.openFileHandler(\""+currentFile+"\")'>"+filename+"</a><br/>");
+					new JQuery("#projectTree").append("<a href='#' class='file' onclick='plugin.misterpah.FileAccess.openFileHandler(\""+currentFile+"\")'>"+filename+"</a><br/>");
 					}
 				else
 					{
-					new JQuery("#sidr-projectTree .well").append("<a href='#' onclick='plugin.misterpah.ProjectTree.projectTree_openFolder(\""+filename+"\")'>["+filename+"]</a><br/>");
+					new JQuery("#projectTree").append("<a href='#' class='folder' onclick='plugin.misterpah.ProjectTree.projectTree_openFolder(\""+filename+"\")'>["+filename+"]</a><br/>");
 					}
 				}
 			}
@@ -62,65 +60,31 @@ import js.Browser;
     static public function open_tree():Void
     {
 		trace("open tree");
-		
-		untyped $("body").prepend('<div id="sidr"></div>');
-		
-		untyped $("#sidr").append('<div id="sidr-projectControl"></div>');
-		untyped $("#sidr").append('<div id="sidr-projectTree"></div>');
+
 		untyped sessionStorage.projectTreeCurrentFolder = Main.session.project_folder;
 		projectTree_openFolder( Main.session.project_folder,false);
 
 		
 var compileTo:String = [
-'<style>#sidr-projectControl select {background: #2154ac;color:#ffffff;border:1px solid #ffffff;}</style>',
-'<div style="margin:10px;color:#ffffff;background:#2154ac;border:0px;" class="well">',
 '<div style="padding-left:0px;padding-right:0px;padding-top:4px;" class="col-xs-4">',
 'Target :',
 '</div>',
 '<div style="padding-left:0px;padding-right:0px" class="col-xs-8">',
-'<select id="ProjectTree_compileTarget">',
+'<select class="form-control" id="ProjectTree_compileTarget">',
 '<option>Hxml</option>',
 '<option>Flash</option>',
 '</select>',
-'</div>',
+'</div><br/>',
 '<button type="button" onclick="plugin.misterpah.ProjectTree.compile_message();" class="btn btn-default btn-block">Compile</button>',
-'<div style="clear:both"></div>',
 '</div>'].join('\n');
-		
-		untyped $("#sidr-projectControl").append(compileTo);
-		untyped $("body").append('<a id="simple-menu" class="tiny button secondary radius" style="display:none;" href="#sidr">Simple menu</a>');
-		untyped $("body").append("<style>.active-navbar-header{background:#abc}</style>");
-		untyped $(".navbar-brand").attr("href","#sidr");
-		untyped $(".navbar-brand").attr("id","simple-menu");
-		untyped $(".navbar-brand").html('<span id="project-tree-icon" class="glyphicon glyphicon-th-list"></span> HIDE');
-		untyped $("#simple-menu").sidr(
-			{ 
-			onOpen:function(){
-				trace("open");
-				untyped $(".navbar-default").css("border-left","1px solid #397ff6");
-				untyped $(".sidr").css("border-top","1px solid #e7e7e7");			
-				untyped $(".sidr").css("background","#397ff6");			
-				untyped $(".sidr").css("box-shadow","none");
-				untyped $("#project-tree-icon").css("color","#ffffff");
-				untyped $(".navbar-header").css("background","#397ff6");
-				untyped $(".navbar-header a").css("color","#ffffff");
-				},
-			onClose:function(){
-				trace("close");
-				untyped $(".navbar-default").css("border-left","1px solid #e7e7e7");
-				untyped $("#project-tree-icon").css("color","rgb(119,119,119)");
-				untyped $(".navbar-header").css("background","none");
-				untyped $(".navbar-header a").css("color","rgb(119,119,119)");
-				}
-			});
-		untyped $.sidr("open","sidr",function(){} );
+	untyped $("#projectControl").append(compileTo);
 	}
 	
 	static public function close_tree():Void
 	{
-		untyped $.sidr("close","sidr",function(){} );
-		untyped $(".navbar-header").html('<a class="navbar-brand">HIDE</a>');
 		trace("close tree");
+		untyped $("#projectControl").html("");
+		untyped $("#projectTree").html("");
 	}
 	
 
