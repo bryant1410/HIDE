@@ -24,7 +24,7 @@ margin:0px;
 }
 #left-panel .well
 {
-background:#2980B9;
+background:#34495e;
 color:#ffffff;
 }
 
@@ -33,7 +33,6 @@ color:#ffffff;
 font-family:"Lato";
 font-size:15px;
 height:20vh;
-background:#C0392B;
 }
 
 #left-panel #projectTree_wrap
