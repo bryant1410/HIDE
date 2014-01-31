@@ -201,6 +201,7 @@ plugin.misterpah.Editor.init = function() {
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/theme/xq-light.css");
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
+	sessionStorage.static_completion = "";
 }
 plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").css("display","none");
@@ -214,7 +215,6 @@ plugin.misterpah.Editor.create_ui = function() {
 			var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,path);
 			var cursor = cm.getCursor();
 			plugin.misterpah.Editor.tab_cursor[tab_number] = [cursor.line,cursor.ch];
-			console.log(plugin.misterpah.Editor.tab_cursor);
 		}
 	});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"change",function(cm) {
@@ -226,11 +226,34 @@ plugin.misterpah.Editor.create_ui = function() {
 		var file_obj = Main.file_stack.find(path);
 		Main.file_stack.update_content(path,cm.getValue());
 		var cursor_pos = cm.indexFromPos(cm.getCursor());
+		sessionStorage.cursor_index = cursor_pos;
+		sessionStorage.keypress = cm.getValue().charAt(cursor_pos - 1);
 		if(cm.getValue().charAt(cursor_pos - 1) == ".") {
-			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
 			plugin.misterpah.Editor.cursor_type = ".";
-			Utils.system_get_completion(cursor_pos);
 			sessionStorage.cursor_pos = cm.getCursor().ch;
+			sessionStorage.cursor_pos_line = cm.getCursor().line;
+			var cursor_temp = cm.getCursor();
+			cursor_temp.ch = cursor_temp.ch - 1;
+			var seekToken = true;
+			var token_array = new Array();
+			while(seekToken) {
+				var before_token = cm.getTokenAt(cursor_temp);
+				token_array.push(before_token);
+				var cursor_check_before_token = CodeMirror.Pos(cursor_temp.line,before_token.start - 1);
+				var before_before_token = cm.getTokenAt(cursor_check_before_token);
+				if(before_before_token.type == null) seekToken = false; else cursor_temp = cursor_check_before_token;
+			}
+			token_array.reverse();
+			var completion_str_array = new Array();
+			var _g = 0;
+			while(_g < token_array.length) {
+				var each = token_array[_g];
+				++_g;
+				completion_str_array.push(each.string);
+			}
+			sessionStorage.find_completion = completion_str_array.join(".");
+			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+			Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
 		}
 		if(cm.getValue().charAt(cursor_pos - 1) == "(") {
 			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
@@ -260,22 +283,40 @@ plugin.misterpah.Editor.register_hooks = function() {
 	});
 	new $(js.Browser.document).on("core:utils.system_get_completion.complete",null,plugin.misterpah.Editor.handle_getCompletion_complete);
 	new $(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",null,plugin.misterpah.Editor.close_tab);
+	new $(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",null,plugin.misterpah.Editor.handle_static_completion);
+}
+plugin.misterpah.Editor.handle_static_completion = function() {
+	var completion_array = JSON.parse(sessionStorage.static_completion);
+	console.log(completion_array);
+	plugin.misterpah.Editor.completion_list = new Array();
+	var temp = completion_array;
+	var _g = 0;
+	while(_g < temp.length) {
+		var each = temp[_g];
+		++_g;
+		var fname = each[0];
+		plugin.misterpah.Editor.completion_list.push(fname);
+	}
+	CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
+	sessionStorage.static_completion = "";
 }
 plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
 	var completion_array = $.xml2json(data);
-	console.log(completion_array);
 	plugin.misterpah.Editor.completion_list = new Array();
+	var compile_completion = new Array();
 	if(plugin.misterpah.Editor.cursor_type == ".") {
 		console.log(completion_array);
-		if(js.Boot.__instanceof(completion_array,String)) {
-		} else {
+		if(js.Boot.__instanceof(completion_array,String)) compile_completion.push(completion_array); else {
 			var _g1 = 0, _g = completion_array.i.length;
 			while(_g1 < _g) {
 				var each = _g1++;
-				plugin.misterpah.Editor.completion_list.push(completion_array.i[each].n);
+				var cur_item = new Array();
+				cur_item.push(completion_array.i[each].n);
+				compile_completion.push(cur_item);
 			}
+			sessionStorage.build_completion = JSON.stringify(compile_completion);
+			Main.message.broadcast("plugin.misterpah.Editor:handle_getCompletion_complete.build_complete","plugin.misterpah.Editor");
 		}
-		CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 	} else if(plugin.misterpah.Editor.cursor_type == "(") {
 		console.log(completion_array);
 		var cur_pos = plugin.misterpah.Editor.cm.getCursor();

@@ -149,3 +149,13 @@ color:#ffffff;
   font-weight: normal;
   font-style: normal;
 }
+
+.CodeMirror-hints
+{
+height:100px !important;
+}
+
+.nav>li>a
+{
+padding: 5px 10px;
+}

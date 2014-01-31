@@ -303,7 +303,6 @@ Utils.getOS = function() {
 Utils.repair_path = function(path) {
 	if(Utils.getOS() == Utils.WINDOWS) path = StringTools.replace(path,"\\","\\\\"); else {
 	}
-	console.log(path);
 	return path;
 }
 Utils.system_dirContent = function(path) {
@@ -329,7 +328,8 @@ Utils.capitalize = function(myString) {
 	return HxOverrides.substr(myString,0,1) + HxOverrides.substr(myString,1,null);
 }
 Utils.system_openFile = function(filename) {
-	return Utils.fs.readFileSync(filename,"utf-8");
+	var ret = Utils.fs.readFileSync(filename,"utf-8");
+	return ret;
 }
 Utils.system_createFile = function(filename) {
 	Utils.fs.openSync(filename,"a+");
@@ -365,8 +365,12 @@ Utils.system_get_completion = function(position) {
 		join_str_cd = " /D ";
 	}
 	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
+	console.log(cpuTime());
 	Utils.exec(exec_str1,function(error,stdout,stderr) {
-		if(error == null) new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
+		if(error == null) {
+			console.log(cpuTime());
+			new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
+		}
 	});
 }
 Utils.system_create_project = function(exec_str) {

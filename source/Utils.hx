@@ -55,7 +55,7 @@ import core.ui.*;
 			{
 			//path = path;		
 			}
-		trace(path);
+		//trace(path);
 		return path;
 	}
 	
@@ -105,7 +105,8 @@ import core.ui.*;
 	
 	public static function system_openFile(filename:String)
     {
-		return fs.readFileSync(filename,"utf-8");
+		var ret = fs.readFileSync(filename,"utf-8");
+		return ret;
     }
     
 	public static function system_createFile(filename:String)
@@ -163,10 +164,12 @@ import core.ui.*;
 
 		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
 
+		trace(untyped cpuTime());
 		Utils.exec(exec_str,
 			function(error,stdout:String,stderr:String){
 				if (error == null)
 					{
+					trace(untyped cpuTime());
 					new JQuery(Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 					}
 				

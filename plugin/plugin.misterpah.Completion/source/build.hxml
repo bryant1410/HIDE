@@ -1,0 +1,7 @@
+-cp ../../../source/externs/HIDE
+-cp ../../../source/externs/nodejs-std/src
+-cp ../../../source/externs/codemirror
+-lib jQueryExtern
+-js ../bin/plugin.js
+-main plugin.misterpah.Completion
+-dce full

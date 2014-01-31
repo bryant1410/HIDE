@@ -15,6 +15,12 @@ HxOverrides.substr = function(s,pos,len) {
 	} else if(len < 0) len = s.length + len - pos;
 	return s.substr(pos,len);
 }
+var Session = function() { }
+$hxExpose(Session, "Session");
+Session.__name__ = true;
+Session.prototype = {
+	__class__: Session
+}
 var Std = function() { }
 Std.__name__ = true;
 Std.parseInt = function(x) {
@@ -76,11 +82,14 @@ plugin.misterpah.HaxeServer = function() { }
 $hxExpose(plugin.misterpah.HaxeServer, "plugin.misterpah.HaxeServer");
 plugin.misterpah.HaxeServer.__name__ = true;
 plugin.misterpah.HaxeServer.main = function() {
-	plugin.misterpah.HaxeServer.haxeCompletionServer = js.Node.require("child_process").spawn("haxe",["--wait","30003"]);
-	console.log("Haxe completion server started");
 	plugin.misterpah.HaxeServer.register_listener();
 }
 plugin.misterpah.HaxeServer.register_listener = function() {
+	Main.message.listen("plugin.misterpah.HaxeCheck:versionCheck.complete","plugin.misterpah.HaxeServer",plugin.misterpah.HaxeServer.spawn_server,null);
+}
+plugin.misterpah.HaxeServer.spawn_server = function() {
+	plugin.misterpah.HaxeServer.haxeCompletionServer = js.Node.require("child_process").spawn("haxe",["--wait","30003"]);
+	console.log("Haxe completion server started");
 	var application_window = js.Node.require("nw.gui").Window.get();
 	application_window.on("close",function() {
 		plugin.misterpah.HaxeServer.haxeCompletionServer.kill();

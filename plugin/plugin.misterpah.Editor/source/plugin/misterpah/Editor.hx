@@ -14,7 +14,7 @@ import CodeMirror;
     private static var tab_cursor:Array<Array<Int>>;
     
     private static var cm:CodeMirror;
-    public static var completion_list:Array<String>;
+   	public static var completion_list:Array<Array<String>>;
     private static var cursor_type:String;
     private static var track_cursor:Bool;
 	
@@ -57,11 +57,10 @@ import CodeMirror;
         Utils.loadCss(plugin_path() +"/codemirror-3.15/lib/codemirror.css");
         Utils.loadCss(plugin_path() +"/codemirror-3.15/addon/hint/show-hint.css");
 		Utils.loadCss(plugin_path() +"/codemirror-3.15/theme/xq-light.css");
-		//Utils.loadCss(plugin_path() +"/editor.css");
         
         create_ui();
         register_hooks(); 
-
+        untyped sessionStorage.static_completion = "";
     }
 
 
@@ -86,7 +85,7 @@ import CodeMirror;
             autoCloseBrackets:true,
             foldCode:true,
             foldGutter:true,
-            styleActiveLine:true,
+            styleActiveLine:true
           });
 
         
@@ -97,27 +96,51 @@ import CodeMirror;
                 var tab_number = Lambda.indexOf(tab_index,path);
                 var cursor = cm.getCursor();
                 tab_cursor[tab_number] = [cursor.line, cursor.ch];  
-                trace(tab_cursor);                  
                 }
             });
         
         CodeMirror.on(cm,"change",function(cm){
             var path = Main.session.active_file;
-
             if (path == "") {trace("ignore");return;}
-            
             var file_obj = Main.file_stack.find(path);
             Main.file_stack.update_content(path,cm.getValue());
-
             var cursor_pos = cm.indexFromPos(cm.getCursor());
+            untyped sessionStorage.cursor_index = cursor_pos;
+            untyped sessionStorage.keypress = cm.getValue().charAt(cursor_pos - 1);
             if (cm.getValue().charAt(cursor_pos - 1) == '.')
                 {
-					Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
-                    //new JQuery(js.Browser.document).triggerHandler("core:FileMenu.saveFile");
                     cursor_type = ".";
-                    Utils.system_get_completion(cursor_pos);
                     untyped sessionStorage.cursor_pos = cm.getCursor().ch;
-                    
+                    untyped sessionStorage.cursor_pos_line = cm.getCursor().line;
+                    var cursor_temp = cm.getCursor();
+                    cursor_temp.ch = cursor_temp.ch -1;
+                    var seekToken = true;
+                    var token_array:Array<Dynamic> = new Array();
+                    while (seekToken)
+	                    {
+	                    var before_token = cm.getTokenAt(cursor_temp);
+	                    token_array.push(before_token);
+		                var cursor_check_before_token =  CodeMirror.Pos(cursor_temp.line, before_token.start -1);
+		                var before_before_token = (cm.getTokenAt(cursor_check_before_token));
+		                if (before_before_token.type == null)
+		                	{
+		                	seekToken = false;
+		                	}
+		                else
+		                	{
+		                	cursor_temp = cursor_check_before_token;
+		                	}
+    	                }
+					token_array.reverse();
+					var completion_str_array = new Array();
+					for (each in token_array)
+						{
+						completion_str_array.push(each.string);
+						}
+					untyped sessionStorage.find_completion = completion_str_array.join(".");
+					Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+					//Utils.system_get_completion(cursor_pos);
+					Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
                 }
             if (cm.getValue().charAt(cursor_pos - 1) == '(')
                 {
@@ -168,22 +191,58 @@ import CodeMirror;
 
         new JQuery(js.Browser.document).on("core:utils.system_get_completion.complete",handle_getCompletion_complete);
       	new JQuery(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",close_tab);
+      	new JQuery(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",handle_static_completion);
     }
+
+
+
+   static private function handle_static_completion()
+    {
+        var completion_array:Dynamic = untyped JSON.parse(sessionStorage.static_completion);
+        trace(completion_array);
+		completion_list = new Array();
+        var temp:Array<String> = completion_array;
+		for (each in temp)
+			{
+			var fname = untyped each[0];
+			completion_list.push(fname);
+			}
+		
+		CodeMirror.showHint(cm,untyped haxeHint);
+		untyped sessionStorage.static_completion = "";
+    }    
+
+
 
 
    static private function handle_getCompletion_complete(event,data)
     {
         var completion_array:Dynamic = untyped $.xml2json(data);
-        trace(completion_array);
-		
+        //trace(completion_array);
 		
 
         completion_list = new Array();
-        
+        var compile_completion = new Array();
         if (cursor_type == ".") // properties/method available
             {
                 trace(completion_array);
-
+                if (Std.is(completion_array,String))
+                {
+                    compile_completion.push(completion_array);
+                }
+                else
+                {
+                for (each in 0...completion_array.i.length)
+                	{
+                	var cur_item = new Array();
+                	cur_item.push(completion_array.i[each].n);
+                	compile_completion.push(cur_item);
+                	}
+                untyped sessionStorage.build_completion = untyped JSON.stringify(compile_completion);
+                Main.message.broadcast("plugin.misterpah.Editor:handle_getCompletion_complete.build_complete","plugin.misterpah.Editor");
+                }
+                
+                /*
                 if (Std.is(completion_array,String))
                 {
                     //completion_list.push(completion_array);
@@ -194,11 +253,14 @@ import CodeMirror;
 					
                     for (each in 0...completion_array.i.length)
                     {
+                    	
                         completion_list.push(completion_array.i[each].n);
                     }
+                    
 					
                 }
                 CodeMirror.showHint(cm,untyped haxeHint);                    
+                */
             }
         else if (cursor_type == "(") // function properties
             {
