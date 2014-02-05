@@ -4,7 +4,7 @@
   <output>
     <movie outputType="Application" />
     <movie input="" />
-    <movie path="../bin/js/HIDE.js" />
+    <movie path="..\bin\js\HIDE.js" />
     <movie fps="0" />
     <movie width="0" />
     <movie height="0" />
@@ -15,7 +15,7 @@
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>
-    <class path="src" />
+    <class path=".." />
   </classpaths>
   <!-- Build options -->
   <build>
@@ -24,7 +24,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />
-    <option additional="-cp ./externs/nodejs-std/src&#xA;-cp ./externs/json" />
+    <option additional="-cp ./externs/nodejs-std/src&#xA;-cp ./externs/json&#xA;--macro &quot;macros.PluginsListGenerator.generate()&quot;" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>

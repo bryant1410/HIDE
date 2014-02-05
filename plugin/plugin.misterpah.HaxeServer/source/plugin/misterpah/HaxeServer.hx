@@ -9,22 +9,22 @@ import js.Browser;
 	static private var haxeCompletionServer:js.Node.NodeChildProcess;
     static public function main():Void
     {
-	register_listener();
+		register_listener();
     }
 
 	static public function register_listener():Void
 	{
-	Main.message.listen("plugin.misterpah.HaxeCheck:versionCheck.complete","plugin.misterpah.HaxeServer",spawn_server,null);
+		Main.message.listen("plugin.misterpah.HaxeCheck:versionCheck.complete","plugin.misterpah.HaxeServer",spawn_server,null);
 	}
 
 	
 	static private function spawn_server():Void
 	{
-	haxeCompletionServer = js.Node.require('child_process').spawn("haxe", ["--wait", "30003"]);	
-	trace("Haxe completion server started");
+		haxeCompletionServer = js.Node.childProcess.spawn("haxe", ["--wait", "30003"]);	
+		trace("Haxe completion server started");
 
-	var application_window = js.Node.require('nw.gui').Window.get();
-	application_window.on("close",function(){haxeCompletionServer.kill(); application_window.close(true);});
+		var application_window = js.Node.require('nw.gui').Window.get();
+		application_window.on("close",function(){haxeCompletionServer.kill(); application_window.close(true);});
 	}
 	
 

@@ -137,3 +137,5 @@ function $hxExpose(src, path) {
 	o[parts[parts.length-1]] = src;
 }
 })();
+
+//@ sourceMappingURL=plugin.js.map

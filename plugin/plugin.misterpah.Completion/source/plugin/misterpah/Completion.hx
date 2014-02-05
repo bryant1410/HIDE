@@ -5,19 +5,18 @@ import js.Browser;
 @:keep @:expose class Completion
 {
     static public function main():Void
-		{
+	{
 		var plugin_path = ".."+Utils.path.sep+"plugin"+Utils.path.sep+ Type.getClassName(Completion) +Utils.path.sep+"bin";
 		Utils.loadJavascript(plugin_path +"/regex.execAll.js");
 		Utils.loadJavascript(plugin_path +"/mkdir.js");
 		register_listener();
-		}
+	}
 
 	static public function register_listener():Void
-		{
-		
+	{
 		Main.message.listen("plugin.misterpah.Editor:handle_getCompletion_complete.build_complete","plugin.misterpah.Completion",build_completion,null);
 		Main.message.listen("plugin.misterpah.Completion:static_completion","plugin.misterpah.Completion",static_completion,null);
-		}
+	}
 		
 	static public function static_completion():Void
 		{

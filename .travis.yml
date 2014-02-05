@@ -1,5 +1,8 @@
-language: php
- 
+language: node_js
+
+node_js:
+  - "0.10"
+
 # Based on Andy Li Travis CI example 
 # http://blog.onthewings.net/2013/03/19/automated-unit-testing-for-haxe-project-using-travis-ci/
  
@@ -18,3 +21,28 @@ before_script:
 script:
   - cd source
   - haxe build.hxml
+  - cd ../plugin/
+  - cd plugin.misterpah.Compiler/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.Completion/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.Editor/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.FileAccess/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.HaxeCheck/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.HaxeServer/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.ProjectAccess/source
+  - haxe build.hxml
+  - cd ../..
+  - cd plugin.misterpah.ProjectTree/source
+  - haxe build.hxml
+  - cd ../..

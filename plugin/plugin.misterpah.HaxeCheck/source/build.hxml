@@ -3,3 +3,4 @@
 -js ../bin/plugin.js
 -main plugin.misterpah.HaxeCheck
 -dce full
+-debug

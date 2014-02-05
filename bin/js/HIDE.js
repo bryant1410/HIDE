@@ -93,6 +93,11 @@ Lambda.indexOf = function(it,v) {
 	}
 	return -1;
 }
+var PluginData = function() { }
+PluginData.__name__ = true;
+PluginData.prototype = {
+	__class__: PluginData
+}
 var Main = function() { }
 $hxExpose(Main, "Main");
 Main.__name__ = true;
@@ -117,6 +122,7 @@ Main.checkPluginPackage = function() {
 		var i = _g1++;
 		var package_json_content = Utils.system_openFile("../plugin/" + Main.plugin_index[i] + "/bin/package.json");
 		var package_json = JSON.parse(package_json_content);
+		console.log(package_json);
 		Main.plugin_package.push(package_json);
 	}
 }
@@ -127,9 +133,9 @@ Main.executePlugin = function() {
 		var each = _g1[_g];
 		++_g;
 		if(each.dependency.length == 0) {
-			Utils.loadJavascript("../plugin/" + Std.string(each.actualName) + "/bin/plugin.js");
+			Utils.loadJavascript("../plugin/" + each.actualName + "/bin/plugin.js");
 			Main.plugin_activated.push(each.actualName);
-			console.log("execute " + Std.string(each.actualName));
+			console.log("execute " + each.actualName);
 		} else pending_plugin.push(each);
 	}
 	while(pending_plugin.length > 0) {
@@ -1032,3 +1038,5 @@ function $hxExpose(src, path) {
 	o[parts[parts.length-1]] = src;
 }
 })();
+
+//@ sourceMappingURL=HIDE.js.map
