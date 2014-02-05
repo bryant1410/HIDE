@@ -1,0 +1,1 @@
+[![Build Status](https://travis-ci.org/misterpah/HIDE.png?branch=hide-future)](https://travis-ci.org/misterpah/HIDE)

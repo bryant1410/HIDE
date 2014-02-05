@@ -290,18 +290,18 @@ Utils.getOS = function() {
 	var _g = Utils.os.type();
 	switch(_g) {
 	case "Windows_NT":
-		os_type = Utils.WINDOWS;
+		os_type = 0;
 		break;
 	case "Linux":
-		os_type = Utils.LINUX;
+		os_type = 1;
 		break;
 	default:
-		os_type = Utils.OTHER;
+		os_type = 2;
 	}
 	return os_type;
 }
 Utils.repair_path = function(path) {
-	if(Utils.getOS() == Utils.WINDOWS) path = StringTools.replace(path,"\\","\\\\"); else {
+	if(Utils.getOS() == 0) path = StringTools.replace(path,"\\","\\\\"); else {
 	}
 	return path;
 }
@@ -356,17 +356,17 @@ Utils.system_get_completion = function(position) {
 	var join_str = "";
 	var join_str_cd = "";
 	var path = Main.session.active_file;
-	if(Utils.getOS() == Utils.LINUX) {
+	if(Utils.getOS() == 1) {
 		join_str = " ; ";
 		join_str_cd = "";
 	}
-	if(Utils.getOS() == Utils.WINDOWS) {
+	if(Utils.getOS() == 0) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
 	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
 	console.log(cpuTime());
-	Utils.exec(exec_str1,function(error,stdout,stderr) {
+	Utils.exec(exec_str1,{ },function(error,stdout,stderr) {
 		if(error == null) {
 			console.log(cpuTime());
 			new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
@@ -377,17 +377,21 @@ Utils.system_create_project = function(exec_str) {
 	var join_str = "";
 	var join_str_cd = "";
 	var default_folder = "";
-	if(Utils.getOS() == Utils.LINUX) {
+	var _g = Utils.getOS();
+	switch(_g) {
+	case 1:
 		join_str = " ; ";
 		join_str_cd = "";
 		default_folder = "~/HIDE";
-	}
-	if(Utils.getOS() == Utils.WINDOWS) {
+		break;
+	case 0:
 		join_str = " & ";
 		join_str_cd = " /D ";
 		default_folder = "C:/HIDE";
+		break;
+	default:
 	}
-	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,function(error,stdout,stderr) {
+	Utils.exec("cd " + join_str_cd + default_folder + join_str + exec_str,{ },function(error,stdout,stderr) {
 	});
 }
 Utils.system_parse_project = function() {
@@ -399,15 +403,30 @@ Utils.system_parse_project = function() {
 	projectFolder.pop();
 	Main.session.project_folder = projectFolder.join(Utils.path.sep);
 	if(filename_ext == "xml") {
-		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & lime display -hxml flash";
-		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash";
-	}
-	if(filename_ext == "hxml") {
-		if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
-		if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
+		var _g = Utils.getOS();
+		switch(_g) {
+		case 0:
+			exec_str = "cd /D " + Main.session.project_folder + " & lime display -hxml flash";
+			break;
+		case 1:
+			exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash";
+			break;
+		default:
+		}
+	} else if(filename_ext == "hxml") {
+		var _g = Utils.getOS();
+		switch(_g) {
+		case 0:
+			exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
+			break;
+		case 1:
+			exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
+			break;
+		default:
+		}
 	}
 	console.log(exec_str);
-	Utils.exec(exec_str,function(error,stdout,stderr) {
+	Utils.exec(exec_str,{ },function(error,stdout,stderr) {
 		var the_error = false;
 		if(stderr != "") the_error = true;
 		if(the_error == true) {
@@ -416,8 +435,7 @@ Utils.system_parse_project = function() {
 			notify.content = "not a valid Haxe Project File ( XML / HXML )";
 			notify.show();
 			Main.session.project_xml = "";
-		}
-		if(the_error == false) {
+		} else {
 			var content_push = new Array();
 			var content = stdout.split("\n");
 			var i = 0;
@@ -425,7 +443,15 @@ Utils.system_parse_project = function() {
 			while(_g1 < _g) {
 				var i1 = _g1++;
 				var cur = content[i1];
-				if(cur.indexOf("-lib") == 0) content_push.push(cur); else if(cur.indexOf("-cp") == 0) content_push.push(cur); else if(cur.indexOf("-main") == 0) content_push.push(cur); else if(cur.indexOf("-D") == 0) content_push.push(cur);
+				var _g2 = 0, _g3 = ["-lib","-cp","-main","-D"];
+				while(_g2 < _g3.length) {
+					var arg = _g3[_g2];
+					++_g2;
+					if(cur.indexOf(arg) == 0) {
+						content_push.push(cur);
+						break;
+					}
+				}
 			}
 			Main.session.project_xml_parameter = content_push.join(" ");
 			console.log(Main.session.project_xml_parameter);
@@ -946,7 +972,7 @@ if(version[0] > 0 || version[1] >= 9) {
 Utils.os = js.Node.require("os");
 Utils.fs = js.Node.require("fs");
 Utils.path = js.Node.require("path");
-Utils.exec = js.Node.require("child_process").exec;
+Utils.exec = ($_=js.Node.require("child_process"),$bind($_,$_.exec));
 Utils.sys = js.Node.require("sys");
 Utils.gui = js.Node.require("nw.gui");
 Utils.window = Utils.gui.Window.get();
@@ -1006,5 +1032,3 @@ function $hxExpose(src, path) {
 	o[parts[parts.length-1]] = src;
 }
 })();
-
-//@ sourceMappingURL=HIDE.js.map
