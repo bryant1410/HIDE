@@ -39,27 +39,26 @@ import core.ui.*;
 	/*
 	public static function plugin_path(className:Dynamic):String
 	{
-	return "../plugin/" + Type.getClassName(className) +"/bin";
+		return "../plugin/" + Type.getClassName(className) +"/bin";
 	}
 	*/	
 
-	public static function repair_path(path:String)
+	public static function repair_path(path:String):String
 	{
 		//trace(os.type());
 		if (getOS() == WINDOWS)
-			{
-			
+		{
 			path = StringTools.replace(path,"\\", "\\\\");		
-			}
+		}
 		else
-			{
+		{
 			//path = path;		
-			}
+		}
 		//trace(path);
 		return path;
 	}
 	
-    private static function system_dirContent(path:String)
+    private static function system_dirContent(path:String):Array<String>
     {
     	return fs.readdirSync(path);
     }
@@ -73,17 +72,17 @@ import core.ui.*;
     */
 
 
-    public static function list_plugin()
+    public static function list_plugin():Array<String>
     {
     	var returnList = new Array<String>();
     	var list = Utils.system_dirContent("../plugin");
     	for (each in list)
-    		{
+		{
 			if (each.indexOf("plugin") == 0)
-				{
-					returnList.push(each);
-				}
-    		}
+			{
+				returnList.push(each);
+			}
+		}
     	return returnList;
     }
 
@@ -97,38 +96,38 @@ import core.ui.*;
     }
 
 	
-	public static function capitalize(myString:String)
+	public static function capitalize(myString:String):String
 	{
 		return myString.substr(0, 1) + myString.substr(1);
 	}
 	
 	
-	public static function system_openFile(filename:String)
+	public static function system_openFile(filename:String):String
     {
 		var ret = fs.readFileSync(filename,"utf-8");
 		return ret;
     }
     
-	public static function system_createFile(filename:String)
+	public static function system_createFile(filename:String):Void
 	{
 		fs.openSync(filename,"a+");
 	}
 
-	public static function system_saveFile(filename, content)
+	public static function system_saveFile(filename:String, content:String):Void
     {
 		fs.writeFileSync(filename, content);
 		trace("SYSTEM: file saved "+filename);
     }
     
 
-	public static function loadJavascript(script:String)
+	public static function loadJavascript(script:String):Void
 	{
 		JQueryStatic.ajaxSetup({async:false});
 		JQueryStatic.getScript(script);
 		JQueryStatic.ajaxSetup({async:true});
 	}
 
-	public static function loadCss(css)
+	public static function loadCss(css:String):Void
 	{
 		new JQuery("head").append("<link rel='stylesheet' type='text/css' href='"+css+"'/>");
 	}
@@ -150,29 +149,30 @@ import core.ui.*;
 		var path = Main.session.active_file;
 
 		if (getOS() == LINUX)
-			{
+		{
 			join_str = " ; ";
 			join_str_cd = "";
-			}
+		}
 		if (getOS() == WINDOWS)
-			{
+		{
 			join_str = " & ";
 			join_str_cd = " /D ";
-			}		
+		}		
 
 		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
 
 		trace(untyped cpuTime());
 		Utils.exec(exec_str,
 			{},
-			function(error,stdout:String,stderr:String){
+			function(error, stdout:String, stderr:String)
+			{
 				if (error == null)
-					{
+				{
 					trace(untyped cpuTime());
 					new JQuery(Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
-					}
+				}
 				
-				});
+			});
 
 	}
 

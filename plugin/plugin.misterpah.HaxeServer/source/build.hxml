@@ -4,3 +4,4 @@
 -js ../bin/plugin.js
 -main plugin.misterpah.HaxeServer
 -dce full
+-debug
