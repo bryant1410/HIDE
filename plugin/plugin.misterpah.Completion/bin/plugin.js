@@ -109,8 +109,7 @@ plugin.misterpah.Completion.static_completion = function() {
 		sessionStorage.static_completion = file;
 		Main.message.broadcast("plugin.misterpah.Completion:static_completion.complete","plugin.misterpah.Completion");
 	} else {
-		console.log(find_completion);
-		console.log("no static completion");
+		console.log("no static completion found");
 		Utils.system_get_completion(sessionStorage.cursor_index);
 	}
 }

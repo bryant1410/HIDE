@@ -136,9 +136,10 @@ import core.ui.*;
 	public static function system_get_HIDE_path()
 	{
 		var location = untyped js.Browser.window.location.pathname;
-		trace(StringTools.startsWith(location,Utils.path.sep));
+		//trace(StringTools.startsWith(location,Utils.path.sep));
 		return location;
 	}
+
 
 	public static function system_get_completion(position:Int)
 	{
@@ -159,22 +160,24 @@ import core.ui.*;
 			join_str_cd = " /D ";
 		}		
 
-		var exec_str = "cd " + join_str_cd + Main.session.project_folder+join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " + path + "@"+ position;
-
-		trace(untyped cpuTime());
+		var exec_str = "cd " + join_str_cd +"'" + Main.session.project_folder+"'" + join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " +"'"+ path +"'"+ "@"+ position;
+		//trace(exec_str);
+		//trace(untyped cpuTime());
 		Utils.exec(exec_str,
 			{},
 			function(error, stdout:String, stderr:String)
 			{
+				//trace(error);trace(stdout);trace(stderr);
 				if (error == null)
 				{
-					trace(untyped cpuTime());
+
+					//trace(untyped cpuTime());
 					new JQuery(Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 				}
 				
 			});
 
-	}
+	}	
 
 
 	public static function system_create_project(exec_str:String)
@@ -227,9 +230,9 @@ import core.ui.*;
 			switch (Utils.getOS()) 
 			{
 				case Utils.WINDOWS:
-					exec_str = "cd /D " + Main.session.project_folder +" & lime display -hxml flash";
+					exec_str = "cd /D " + "'"+ Main.session.project_folder +"'"+" & lime display -hxml flash";
 				case Utils.LINUX:
-					exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash";
+					exec_str = "cd " +"'"+ Main.session.project_folder +"'"+ " ; lime display -hxml flash";
 				default:
 					
 			}
@@ -239,14 +242,14 @@ import core.ui.*;
 			switch (Utils.getOS()) 
 			{
 				case Utils.WINDOWS:
-					exec_str = "cd /D "+ Main.session.project_folder +" & type "+ filename;
+					exec_str = "cd /D "+"'"+ Main.session.project_folder +"'"+" & type "+"'"+ filename+"'";
 				case Utils.LINUX:
-					exec_str = "cd " + Main.session.project_folder + " ; cat "+filename;
+					exec_str = "cd " +"'"+ Main.session.project_folder +"'"+ " ; cat "+"'"+filename+"'";
 				default:
 					
 			}							
 		}
-		trace(exec_str);
+		//trace(exec_str);
 
 		Utils.exec(exec_str,
 			{},
@@ -281,7 +284,7 @@ import core.ui.*;
 						}                       
 					}
 			        Main.session.project_xml_parameter = content_push.join(' ');					
-			        trace(Main.session.project_xml_parameter);
+			        //trace(Main.session.project_xml_parameter);
 					if (Main.session.project_xml_parameter != "")
 					{
 						Main.message.broadcast("core:utils.system_parse_project.complete","core:utils");
@@ -289,6 +292,6 @@ import core.ui.*;
 				} // stdout != ""
 			});
 	
-	}    
+	}       
 
 }

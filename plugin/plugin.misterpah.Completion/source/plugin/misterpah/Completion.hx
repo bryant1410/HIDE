@@ -39,8 +39,8 @@ import js.Browser;
 			}
 		else
 			{
-			trace(find_completion);
-			trace("no static completion");
+			//trace(find_completion);
+			trace("no static completion found");
 			Utils.system_get_completion(untyped sessionStorage.cursor_index);
 			}
 		}

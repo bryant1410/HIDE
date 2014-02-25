@@ -111,6 +111,7 @@ Main.main = function() {
 	Utils.gui.Window.get();
 	Utils.init_ui();
 	new menu.FileMenu();
+	new menu.CompileMenu();
 	new menu.HelpMenu();
 	Main.plugin_index = Utils.list_plugin();
 	Main.checkPluginPackage();
@@ -122,7 +123,6 @@ Main.checkPluginPackage = function() {
 		var i = _g1++;
 		var package_json_content = Utils.system_openFile("../plugin/" + Main.plugin_index[i] + "/bin/package.json");
 		var package_json = JSON.parse(package_json_content);
-		console.log(package_json);
 		Main.plugin_package.push(package_json);
 	}
 }
@@ -135,7 +135,7 @@ Main.executePlugin = function() {
 		if(each.dependency.length == 0) {
 			Utils.loadJavascript("../plugin/" + each.actualName + "/bin/plugin.js");
 			Main.plugin_activated.push(each.actualName);
-			console.log("execute " + each.actualName);
+			console.log("loaded : " + each.actualName);
 		} else pending_plugin.push(each);
 	}
 	while(pending_plugin.length > 0) {
@@ -153,7 +153,7 @@ Main.executePlugin = function() {
 		if(all_dependency_loaded != -1) pending_plugin.push(current_pending_plugin); else {
 			Utils.loadJavascript("../plugin/" + current_pending_plugin.actualName + "/bin/plugin.js");
 			Main.plugin_activated.push(current_pending_plugin.actualName);
-			console.log("execute " + current_pending_plugin.actualName);
+			console.log("loaded : " + current_pending_plugin.actualName);
 		}
 	}
 }
@@ -216,9 +216,6 @@ StringBuf.prototype = {
 }
 var StringTools = function() { }
 StringTools.__name__ = true;
-StringTools.startsWith = function(s,start) {
-	return s.length >= start.length && HxOverrides.substr(s,0,start.length) == start;
-}
 StringTools.replace = function(s,sub,by) {
 	return s.split(sub).join(by);
 }
@@ -354,7 +351,6 @@ Utils.loadCss = function(css) {
 }
 Utils.system_get_HIDE_path = function() {
 	var location = js.Browser.window.location.pathname;
-	console.log(StringTools.startsWith(location,Utils.path.sep));
 	return location;
 }
 Utils.system_get_completion = function(position) {
@@ -370,13 +366,9 @@ Utils.system_get_completion = function(position) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
-	var exec_str1 = "cd " + join_str_cd + Main.session.project_folder + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + path + "@" + position;
-	console.log(cpuTime());
+	var exec_str1 = "cd " + join_str_cd + "'" + Main.session.project_folder + "'" + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + "'" + path + "'" + "@" + position;
 	Utils.exec(exec_str1,{ },function(error,stdout,stderr) {
-		if(error == null) {
-			console.log(cpuTime());
-			new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
-		}
+		if(error == null) new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
 	});
 }
 Utils.system_create_project = function(exec_str) {
@@ -412,10 +404,10 @@ Utils.system_parse_project = function() {
 		var _g = Utils.getOS();
 		switch(_g) {
 		case 0:
-			exec_str = "cd /D " + Main.session.project_folder + " & lime display -hxml flash";
+			exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime display -hxml flash";
 			break;
 		case 1:
-			exec_str = "cd " + Main.session.project_folder + " ; lime display -hxml flash";
+			exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime display -hxml flash";
 			break;
 		default:
 		}
@@ -423,15 +415,14 @@ Utils.system_parse_project = function() {
 		var _g = Utils.getOS();
 		switch(_g) {
 		case 0:
-			exec_str = "cd /D " + Main.session.project_folder + " & type " + filename;
+			exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & type " + "'" + filename + "'";
 			break;
 		case 1:
-			exec_str = "cd " + Main.session.project_folder + " ; cat " + filename;
+			exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; cat " + "'" + filename + "'";
 			break;
 		default:
 		}
 	}
-	console.log(exec_str);
 	Utils.exec(exec_str,{ },function(error,stdout,stderr) {
 		var the_error = false;
 		if(stderr != "") the_error = true;
@@ -460,7 +451,6 @@ Utils.system_parse_project = function() {
 				}
 			}
 			Main.session.project_xml_parameter = content_push.join(" ");
-			console.log(Main.session.project_xml_parameter);
 			if(Main.session.project_xml_parameter != "") Main.message.broadcast("core:utils.system_parse_project.complete","core:utils");
 		}
 	});
@@ -769,6 +759,22 @@ ui.Menu.prototype = {
 	,__class__: ui.Menu
 }
 var menu = {}
+menu.CompileMenu = function() {
+	ui.Menu.call(this,"Compile");
+	this.create_ui();
+};
+menu.CompileMenu.__name__ = true;
+menu.CompileMenu.__super__ = ui.Menu;
+menu.CompileMenu.prototype = $extend(ui.Menu.prototype,{
+	create_ui: function() {
+		this.addMenuItem("Flash","plugin.misterpah.ProjectTree:compile_Flash",null,null);
+		this.addMenuItem("HTML5","plugin.misterpah.ProjectTree:compile_Html5",null,null);
+		this.addMenuItem("Neko","plugin.misterpah.ProjectTree:compile_Neko",null,null);
+		this.addMenuItem("Hxml","plugin.misterpah.ProjectTree:compile_Hxml",null,null);
+		this.addToDocument();
+	}
+	,__class__: menu.CompileMenu
+});
 menu.FileMenu = function() {
 	ui.Menu.call(this,"File");
 	this.create_ui();

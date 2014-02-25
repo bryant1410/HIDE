@@ -40,9 +40,11 @@ class PluginData
 		//a.addSeperator();
 		//a.show();
 		new menu.FileMenu();
+		new menu.CompileMenu();
 		new menu.HelpMenu();
+		
 		//new menu.EditMenu();
-		//new menu.CompileMenu();
+		
 		
 		plugin_index = Utils.list_plugin();
 		checkPluginPackage();
@@ -58,7 +60,7 @@ class PluginData
 		{
 			var package_json_content = Utils.system_openFile("../plugin/" + plugin_index[i] + "/bin/package.json");
 			var package_json = JSON.parse(package_json_content);
-			trace(package_json);
+			//trace(package_json);
 			plugin_package.push(package_json);
 		}
 	}
@@ -75,7 +77,7 @@ class PluginData
 			{
 				Utils.loadJavascript("../plugin/"+each.actualName+"/bin/plugin.js");
 				plugin_activated.push(each.actualName);
-				trace ("execute "+each.actualName);
+				trace ("loaded : "+each.actualName);
 			}
 			else
 			{
@@ -109,7 +111,7 @@ class PluginData
 			{
 				Utils.loadJavascript("../plugin/"+current_pending_plugin.actualName+"/bin/plugin.js");
 				plugin_activated.push(current_pending_plugin.actualName);
-				trace ("execute "+current_pending_plugin.actualName);
+				trace ("loaded : "+current_pending_plugin.actualName);
 			}
 		}
 			// end while

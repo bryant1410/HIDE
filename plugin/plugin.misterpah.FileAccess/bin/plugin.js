@@ -101,7 +101,7 @@ plugin.misterpah.FileAccess.new_file = function() {
 	var file_dialog = new ui.FileDialog();
 	file_dialog.show(plugin.misterpah.FileAccess.newFileHandler,true);
 }
-plugin.misterpah.FileAccess.newFileHandler = function(event,path) {
+plugin.misterpah.FileAccess.newFileHandler = function(path) {
 	console.log(path);
 	if(StringTools.endsWith(path,"hx") == false) path += ".hx";
 	Utils.system_createFile(path);
@@ -127,6 +127,7 @@ plugin.misterpah.FileAccess.openFileHandler = function(path,newFile) {
 		Main.file_stack.add(path,content,className);
 		Main.session.active_file = path;
 		Main.message.broadcast("plugin.misterpah.FileAccess:open_file.complete","plugin.misterpah.FileAccess");
+		if(newFile == true) Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.FileAccess");
 	}
 }
 plugin.misterpah.FileAccess.save_file = function() {

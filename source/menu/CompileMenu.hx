@@ -18,7 +18,10 @@ class CompileMenu extends Menu
 	
 	function create_ui()
 	{
-		addMenuItem("Flash", "core_compileTo_flash", Utils.system_compile_flash, "F5");
+		addMenuItem("Flash", "plugin.misterpah.ProjectTree:compile_Flash", null, null);
+		addMenuItem("HTML5", "plugin.misterpah.ProjectTree:compile_Html5", null, null);
+		addMenuItem("Neko", "plugin.misterpah.ProjectTree:compile_Neko", null, null);
+		addMenuItem("Hxml", "plugin.misterpah.ProjectTree:compile_Hxml", null, null);
 		addToDocument();
 	}
 	

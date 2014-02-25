@@ -43,11 +43,6 @@ Std.__name__ = ["Std"];
 Std.string = function(s) {
 	return js.Boot.__string_rec(s,"");
 }
-var StringTools = function() { }
-StringTools.__name__ = ["StringTools"];
-StringTools.replace = function(s,sub,by) {
-	return s.split(sub).join(by);
-}
 var Type = function() { }
 Type.__name__ = ["Type"];
 Type.getClassName = function(c) {
@@ -182,6 +177,7 @@ plugin.misterpah.Editor.plugin_path = function() {
 	return "../plugin/" + Type.getClassName(plugin.misterpah.Editor) + "/bin";
 }
 plugin.misterpah.Editor.init = function() {
+	plugin.misterpah.Editor.widgetStack = new Array();
 	plugin.misterpah.Editor.tab_index = new Array();
 	plugin.misterpah.Editor.tab_cursor = new Array();
 	plugin.misterpah.Editor.completion_list = new Array();
@@ -195,10 +191,12 @@ plugin.misterpah.Editor.init = function() {
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/selection/active-line.js");
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/hint/show-hint.js");
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/js/codemirror.hint.haxe.js");
+	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/editor_hint.js");
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/js/jquery.xml2json.js");
+	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/editor.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/lib/codemirror.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/hint/show-hint.css");
-	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/theme/xq-light.css");
+	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/theme/base16-dark.css");
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
 	sessionStorage.static_completion = "";
@@ -208,7 +206,7 @@ plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").append("<div id='misterpah_editor_tabs_position'><ul class='nav nav-tabs'></ul></div>");
 	new $("#editor_position").append("<div class='ui-layout-center' id='misterpah_editor_cm_position'></div>");
 	new $("#misterpah_editor_cm_position").append("<textarea style='display:none;' name='misterpah_editor_cm_name' id='misterpah_editor_cm'></textarea>");
-	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe", theme : "xq-light", matchBrackets : true, autoCloseBrackets : true, foldCode : true, foldGutter : true, styleActiveLine : true});
+	plugin.misterpah.Editor.cm = CodeMirror.fromTextArea(js.Browser.document.getElementById("misterpah_editor_cm"),{ lineNumbers : true, indentUnit : 4, tabSize : 4, indentWithTabs : true, cursorHeight : 0.85, mode : "haxe", theme : "base16-dark", matchBrackets : true, autoCloseBrackets : true, foldCode : true, foldGutter : true, styleActiveLine : true});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"cursorActivity",function(cm) {
 		if(plugin.misterpah.Editor.track_cursor == true) {
 			var path = Main.session.active_file;
@@ -216,13 +214,20 @@ plugin.misterpah.Editor.create_ui = function() {
 			var cursor = cm.getCursor();
 			plugin.misterpah.Editor.tab_cursor[tab_number] = [cursor.line,cursor.ch];
 		}
+		if(cm.getCursor().line != sessionStorage.hint_pos) {
+			if(plugin.misterpah.Editor.widgetStack.length > 0) {
+				var _g = 0, _g1 = plugin.misterpah.Editor.widgetStack;
+				while(_g < _g1.length) {
+					var each = _g1[_g];
+					++_g;
+					cm.removeLineWidget(each);
+				}
+			}
+		}
 	});
 	CodeMirror.on(plugin.misterpah.Editor.cm,"change",function(cm) {
 		var path = Main.session.active_file;
-		if(path == "") {
-			console.log("ignore");
-			return;
-		}
+		if(path == "") return;
 		var file_obj = Main.file_stack.find(path);
 		Main.file_stack.update_content(path,cm.getValue());
 		var cursor_pos = cm.indexFromPos(cm.getCursor());
@@ -258,8 +263,8 @@ plugin.misterpah.Editor.create_ui = function() {
 		if(cm.getValue().charAt(cursor_pos - 1) == "(") {
 			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
 			plugin.misterpah.Editor.cursor_type = "(";
-			Utils.system_get_completion(cursor_pos);
 			sessionStorage.cursor_pos = cm.getCursor().ch;
+			Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
 		}
 	});
 	plugin.misterpah.Editor.editor_resize();
@@ -281,13 +286,11 @@ plugin.misterpah.Editor.register_hooks = function() {
 	new $(js.Browser.window).on("resize",null,function() {
 		plugin.misterpah.Editor.editor_resize();
 	});
-	new $(js.Browser.document).on("core:utils.system_get_completion.complete",null,plugin.misterpah.Editor.handle_getCompletion_complete);
 	new $(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",null,plugin.misterpah.Editor.close_tab);
 	new $(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",null,plugin.misterpah.Editor.handle_static_completion);
 }
 plugin.misterpah.Editor.handle_static_completion = function() {
 	var completion_array = JSON.parse(sessionStorage.static_completion);
-	console.log(completion_array);
 	plugin.misterpah.Editor.completion_list = new Array();
 	var temp = completion_array;
 	var _g = 0;
@@ -299,37 +302,6 @@ plugin.misterpah.Editor.handle_static_completion = function() {
 	}
 	CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 	sessionStorage.static_completion = "";
-}
-plugin.misterpah.Editor.handle_getCompletion_complete = function(event,data) {
-	var completion_array = $.xml2json(data);
-	plugin.misterpah.Editor.completion_list = new Array();
-	var compile_completion = new Array();
-	if(plugin.misterpah.Editor.cursor_type == ".") {
-		console.log(completion_array);
-		if(js.Boot.__instanceof(completion_array,String)) compile_completion.push(completion_array); else {
-			var _g1 = 0, _g = completion_array.i.length;
-			while(_g1 < _g) {
-				var each = _g1++;
-				var cur_item = new Array();
-				cur_item.push(completion_array.i[each].n);
-				compile_completion.push(cur_item);
-			}
-			sessionStorage.build_completion = JSON.stringify(compile_completion);
-			Main.message.broadcast("plugin.misterpah.Editor:handle_getCompletion_complete.build_complete","plugin.misterpah.Editor");
-		}
-	} else if(plugin.misterpah.Editor.cursor_type == "(") {
-		console.log(completion_array);
-		var cur_pos = plugin.misterpah.Editor.cm.getCursor();
-		completion_array = StringTools.replace(completion_array,"->",",");
-		var completion_array_exploded = completion_array.split(",");
-		var return_type = completion_array_exploded.pop();
-		completion_array = completion_array_exploded.join(",");
-		completion_array = StringTools.replace(completion_array,"Void","");
-		completion_array = " " + Std.string(completion_array);
-		plugin.misterpah.Editor.completion_list.push(completion_array);
-		CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
-		plugin.misterpah.Editor.cm.setCursor(cur_pos);
-	}
 }
 plugin.misterpah.Editor.editor_resize = function() {
 	var win = Utils.gui.Window.get();

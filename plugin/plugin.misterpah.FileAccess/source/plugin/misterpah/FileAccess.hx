@@ -34,7 +34,7 @@ import js.Browser;
 		file_dialog.show(newFileHandler,true);
     }
 
-    static private function newFileHandler(event,path:String):Void
+    static private function newFileHandler(path:String):Void
     {
         trace(path);
         if (StringTools.endsWith(path,"hx") == false)
@@ -77,6 +77,10 @@ import js.Browser;
             Main.file_stack.add(path,content,className);
             Main.session.active_file = path;
 			Main.message.broadcast("plugin.misterpah.FileAccess:open_file.complete","plugin.misterpah.FileAccess");
+	        if (newFile == true)
+                {
+                Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.FileAccess");
+                }
         }
     }
 
