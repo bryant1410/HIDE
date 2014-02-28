@@ -23,7 +23,7 @@ package;
     public static function system_saveFile(filename:String, content:String):Dynamic;
     public static function loadJavascript(script:String):Dynamic;
     public static function loadCss(css:String):Dynamic;
-    public static function system_get_completion(position:Int):Dynamic;
+    public static function system_get_completion(position:Int,callback:Dynamic):Dynamic;
     public static function system_create_project(exec_str:String):Dynamic;
     public static function system_parse_project():Dynamic;
     public static function register_plugin(plugin_credentials:Map<String,String>):Void;

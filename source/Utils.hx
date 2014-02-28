@@ -141,7 +141,7 @@ import core.ui.*;
 	}
 
 
-	public static function system_get_completion(position:Int)
+	public static function system_get_completion(position:Int,callback:Dynamic)
 	{
 		var exec_str = "";
 		var join_str = "";
@@ -161,22 +161,20 @@ import core.ui.*;
 		}		
 
 		var exec_str = "cd " + join_str_cd +"'" + Main.session.project_folder+"'" + join_str + "haxe --connect 30003 "+ Main.session.project_xml_parameter + " --display " +"'"+ path +"'"+ "@"+ position;
-		//trace(exec_str);
-		//trace(untyped cpuTime());
-		Utils.exec(exec_str,
+		trace("fetching completion.");
+		return Utils.exec(exec_str,
 			{},
 			function(error, stdout:String, stderr:String)
 			{
 				//trace(error);trace(stdout);trace(stderr);
 				if (error == null)
 				{
-
-					//trace(untyped cpuTime());
-					new JQuery(Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
+					trace("completion found.");
+					callback(stderr);
 				}
 				
 			});
-
+		
 	}	
 
 

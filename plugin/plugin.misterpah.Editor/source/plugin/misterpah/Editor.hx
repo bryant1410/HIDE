@@ -30,6 +30,9 @@ import CodeMirror;
 	return "../plugin/" + Type.getClassName(Editor) +"/bin";
 	}
 	
+	
+	
+	
     public static function init()
     {
     	widgetStack = new Array();
@@ -54,7 +57,7 @@ import CodeMirror;
 		
 		
 		Utils.loadJavascript(plugin_path() +"/editor_hint.js");		
-		Utils.loadJavascript(plugin_path() +"/js/jquery.xml2json.js");
+		//Utils.loadJavascript(plugin_path() +"/js/jquery.xml2json.js");
 
 		Utils.loadCss(plugin_path() +"/editor.css");
         Utils.loadCss(plugin_path() +"/codemirror-3.15/lib/codemirror.css");
@@ -64,6 +67,48 @@ import CodeMirror;
         register_hooks(); 
         untyped sessionStorage.static_completion = "";
     }
+
+
+
+    public static function register_hooks()
+    {
+        cursor_type = "";
+        new JQuery(js.Browser.document).on("show.bs.tab",function(e):Void
+            {
+                var target = new JQuery(e.target);
+                show_tab(target.attr("data-path"),false);
+
+                //var file_obj = Main.file_stack.find(Main.session.active_file);
+                var tab_number = Lambda.indexOf(tab_index,Main.session.active_file);        
+                var unshowed_tab = tab_cursor[tab_number];
+                var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
+                cm.setCursor(cursor_pos);
+            });
+
+			
+			
+        new JQuery(js.Browser.document).on("plugin.misterpah.FileAccess:open_file.complete",function():Void
+            {
+            new JQuery("#editor_position").css("display","block");
+            make_tab();
+            });
+
+        new JQuery(js.Browser.window).on("resize",function()
+            {
+            editor_resize();
+            });
+
+
+        //new JQuery(js.Browser.document).on("core:utils.system_get_completion.complete",handle_getCompletion_complete);
+        //new JQuery(js.Browser.document).on("core:utils.system_get_completion.complete_dynamic_completion",handle_getCompletion_complete);
+      	new JQuery(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",close_tab);
+    	new JQuery(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",handle_static_completion);
+    	new JQuery(js.Browser.document).on("plugin.misterpah.Editor:build_completion.complete.dynamic",handle_dynamic_completion);
+    	
+    }
+
+
+
 
 
     public static function create_ui()
@@ -114,8 +159,6 @@ import CodeMirror;
             });
         
         CodeMirror.on(cm,"change",function(cm){
-
-        
             var path = Main.session.active_file;
             if (path == "") {return;}
             var file_obj = Main.file_stack.find(path);
@@ -124,98 +167,206 @@ import CodeMirror;
             untyped sessionStorage.cursor_index = cursor_pos;
             untyped sessionStorage.keypress = cm.getValue().charAt(cursor_pos - 1);
             if (cm.getValue().charAt(cursor_pos - 1) == '.')
-                {
-                    cursor_type = ".";
-                    untyped sessionStorage.cursor_pos = cm.getCursor().ch;
-                    untyped sessionStorage.cursor_pos_line = cm.getCursor().line;
-                    var cursor_temp = cm.getCursor();
-                    cursor_temp.ch = cursor_temp.ch -1;
-                    var seekToken = true;
-                    var token_array:Array<Dynamic> = new Array();
-                    while (seekToken)
-	                    {
-	                    var before_token = cm.getTokenAt(cursor_temp);
-	                    token_array.push(before_token);
-		                var cursor_check_before_token =  CodeMirror.Pos(cursor_temp.line, before_token.start -1);
-		                var before_before_token = (cm.getTokenAt(cursor_check_before_token));
-		                if (before_before_token.type == null)
-		                	{
-		                	seekToken = false;
-		                	}
-		                else
-		                	{
-		                	cursor_temp = cursor_check_before_token;
-		                	}
-    	                }
-					token_array.reverse();
-					var completion_str_array = new Array();
-					for (each in token_array)
-						{
-						completion_str_array.push(each.string);
-						}
-					untyped sessionStorage.find_completion = completion_str_array.join(".");
-					Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
-					//Utils.system_get_completion(cursor_pos);
-					Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
-                }
-            if (cm.getValue().charAt(cursor_pos - 1) == '(')
-                {
-                    //new JQuery(js.Browser.document).triggerHandler("core:FileMenu.saveFile");
-					Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
-                    cursor_type = "(";
-                    untyped sessionStorage.cursor_pos = cm.getCursor().ch;
-                    Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
-                }
-
+            	{
+            	request_static_completion(cm);
+            	}
+            else if (cm.getValue().charAt(cursor_pos - 1) == '(')
+            	{
+            	untyped sessionStorage.hint_pos = cm.getCursor().line;
+            	request_dynamic_completion(cm);
+            	}
             });
-
         editor_resize();
     }
 
- 
+	 
+	public static function request_static_completion(cm)
+		{
+		trace("request_static_completion");
+		trace("tokenizing terms");
+        cursor_type = ".";
+        untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+        untyped sessionStorage.cursor_pos_line = cm.getCursor().line;
+        var cursor_temp = cm.getCursor();
+        cursor_temp.ch = cursor_temp.ch -1;
+        var seekToken = true;
+        var token_array:Array<Dynamic> = new Array();
+        while (seekToken)
+            {
+            var before_token = cm.getTokenAt(cursor_temp);
+            token_array.push(before_token);
+            var cursor_check_before_token =  CodeMirror.Pos(cursor_temp.line, before_token.start -1);
+            var before_before_token = (cm.getTokenAt(cursor_check_before_token));
+            if (before_before_token.type == null)
+            	{
+            	seekToken = false;
+            	}
+            else
+            	{
+            	cursor_temp = cursor_check_before_token;
+            	}
+            }
+		token_array.reverse();
+		var completion_str_array = new Array();
+		for (each in token_array)
+			{
+			completion_str_array.push(each.string);
+			}
+		untyped sessionStorage.find_completion = completion_str_array.join(".");
+		trace("token is : "+untyped sessionStorage.find_completion);
+		trace("tokenizing terms completed.");
+		trace('invoke static completion');
+		Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+		Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
+		}
+	
+	public static function request_dynamic_completion(cm)
+	{
+	trace("request_dynamic_completion");
+	Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+	cursor_type = "(";
+	untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+	trace('invoke dynamic completion');
+	Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
+	}
+	 
+	/*
+	public static function request_completion()
+		{
+        if (cm.getValue().charAt(cursor_pos - 1) == '.')
+            {
+                cursor_type = ".";
+                untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+                untyped sessionStorage.cursor_pos_line = cm.getCursor().line;
+                var cursor_temp = cm.getCursor();
+                cursor_temp.ch = cursor_temp.ch -1;
+                var seekToken = true;
+                var token_array:Array<Dynamic> = new Array();
+                while (seekToken)
+                    {
+                    var before_token = cm.getTokenAt(cursor_temp);
+                    token_array.push(before_token);
+	                var cursor_check_before_token =  CodeMirror.Pos(cursor_temp.line, before_token.start -1);
+	                var before_before_token = (cm.getTokenAt(cursor_check_before_token));
+	                if (before_before_token.type == null)
+	                	{
+	                	seekToken = false;
+	                	}
+	                else
+	                	{
+	                	cursor_temp = cursor_check_before_token;
+	                	}
+	                }
+				token_array.reverse();
+				var completion_str_array = new Array();
+				for (each in token_array)
+					{
+					completion_str_array.push(each.string);
+					}
+				untyped sessionStorage.find_completion = completion_str_array.join(".");
+				trace('invoke static completion');
+				Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+				Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
+            }
+        else if (cm.getValue().charAt(cursor_pos - 1) == '(')
+            {
+                trace('invoke dynamic completion');
+				Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+                cursor_type = "(";
+                untyped sessionStorage.cursor_pos = cm.getCursor().ch;
+                Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
+            }		
+		}
+	*/
 
 
 
 
-    public static function register_hooks()
+	/*
+   static private function handle_getCompletion_complete(event,data)
     {
-        cursor_type = "";
-        new JQuery(js.Browser.document).on("show.bs.tab",function(e):Void
+        var completion_array:Dynamic = untyped $.xml2json(data);
+        trace(completion_array);
+		trace(cursor_type);
+        completion_list = new Array();
+        var compile_completion = new Array();
+        if (cursor_type == ".") // properties/method available
             {
-                var target = new JQuery(e.target);
-                show_tab(target.attr("data-path"),false);
-
-                //var file_obj = Main.file_stack.find(Main.session.active_file);
-                var tab_number = Lambda.indexOf(tab_index,Main.session.active_file);        
-                var unshowed_tab = tab_cursor[tab_number];
-                var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
-                cm.setCursor(cursor_pos);
-            });
-
-			
-			
-        new JQuery(js.Browser.document).on("plugin.misterpah.FileAccess:open_file.complete",function():Void
+                trace(completion_array);
+                if (Std.is(completion_array,String))
+                {
+                    compile_completion.push(completion_array);
+                }
+                else
+                {
+                for (each in 0...completion_array.i.length)
+                	{
+                	var cur_item = new Array();
+                	cur_item.push(completion_array.i[each].n);
+                	compile_completion.push(cur_item);
+                	}
+                untyped sessionStorage.build_completion = untyped JSON.stringify(compile_completion);
+                Main.message.broadcast("plugin.misterpah.Editor:handle_getCompletion_complete.build_complete","plugin.misterpah.Editor");
+                }
+            }
+        else if (cursor_type == "(") // function properties
             {
-            new JQuery("#editor_position").css("display","block");
-            make_tab();
-            });
+                trace(completion_array);
+                var cur_pos = cm.getCursor();
 
-        new JQuery(js.Browser.window).on("resize",function()
-            {
-            editor_resize();
-            });
+                completion_array = StringTools.replace(completion_array,"->",",");
+                var completion_array_exploded = completion_array.split(",");
+                var return_type = completion_array_exploded.pop();
+                completion_array = completion_array_exploded.join(",");
 
-        
-      	new JQuery(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",close_tab);
-      	new JQuery(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",handle_static_completion);
-    }
+                completion_array = StringTools.replace(completion_array,"Void","");
 
+                completion_array = " " + completion_array;
+
+                completion_list.push(completion_array);
+                CodeMirror.showHint(cm,untyped haxeHint); 
+                cm.setCursor(cur_pos);
+            }
+
+        //new JQuery(js.Browser.document).triggerHandler("codemirror_haxe_hint");
+
+    }    
+    	*/
 
 
    static private function handle_static_completion()
     {
+    	trace("preparing completion");
         var completion_array:Dynamic = untyped JSON.parse(sessionStorage.static_completion);
-        //trace(completion_array);
+        trace(completion_array);
+        /*
+		trace(Type.typeof(completion_array[0]));
+        
+        completion_list = completion_array;
+        CodeMirror.showHint(cm,untyped haxeHint);
+        untyped sessionStorage.static_completion = "";
+        */
+		completion_list = new Array();
+        var temp:Array<String> = completion_array;
+        
+		for (each in temp)
+			{
+			var fname = untyped each[0];
+			completion_list.push(fname);
+			}
+		trace("preparing complete");
+		trace("invoke show completion");
+		CodeMirror.showHint(cm,untyped haxeHint);
+		untyped sessionStorage.static_completion = "";
+    }    
+
+   static private function handle_dynamic_completion()
+    {
+    	trace("preparing completion");
+        var completion_array:Dynamic = untyped JSON.parse(sessionStorage.static_completion);
+        trace(completion_array);
+        widgetStack.push(untyped inline_hint(cm.getCursor().line,completion_array));
+		/*
 		completion_list = new Array();
         var temp:Array<String> = completion_array;
 		for (each in temp)
@@ -223,12 +374,12 @@ import CodeMirror;
 			var fname = untyped each[0];
 			completion_list.push(fname);
 			}
-		//trace(completion_list);
-		CodeMirror.showHint(cm,untyped haxeHint);
-		untyped sessionStorage.static_completion = "";
-    }    
-
-
+		trace("preparing complete");
+		trace("invoke show completion");
+		//CodeMirror.showHint(cm,untyped haxeHint);
+		//untyped sessionStorage.static_completion = "";
+		*/
+    }
 
 
 

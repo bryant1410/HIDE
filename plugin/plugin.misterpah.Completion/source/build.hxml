@@ -1,3 +1,4 @@
+#!/usr/bin/haxe
 -cp ../../../source/externs/HIDE
 -cp ../../../source/externs/nodejs-std/src
 -cp ../../../source/externs/codemirror

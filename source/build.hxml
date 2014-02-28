@@ -1,3 +1,4 @@
+#!/usr/bin/haxe
 -cp ./externs/nodejs-std/src
 -cp ./externs/json
 -lib jQueryExtern

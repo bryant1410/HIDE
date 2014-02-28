@@ -353,7 +353,7 @@ Utils.system_get_HIDE_path = function() {
 	var location = js.Browser.window.location.pathname;
 	return location;
 }
-Utils.system_get_completion = function(position) {
+Utils.system_get_completion = function(position,callback) {
 	var exec_str = "";
 	var join_str = "";
 	var join_str_cd = "";
@@ -367,8 +367,12 @@ Utils.system_get_completion = function(position) {
 		join_str_cd = " /D ";
 	}
 	var exec_str1 = "cd " + join_str_cd + "'" + Main.session.project_folder + "'" + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + "'" + path + "'" + "@" + position;
-	Utils.exec(exec_str1,{ },function(error,stdout,stderr) {
-		if(error == null) new $(js.Browser.document).triggerHandler("core:utils.system_get_completion.complete",[stderr]);
+	console.log("fetching completion.");
+	return Utils.exec(exec_str1,{ },function(error,stdout,stderr) {
+		if(error == null) {
+			console.log("completion found.");
+			callback(stderr);
+		}
 	});
 }
 Utils.system_create_project = function(exec_str) {

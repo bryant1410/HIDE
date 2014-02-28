@@ -192,7 +192,6 @@ plugin.misterpah.Editor.init = function() {
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/hint/show-hint.js");
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/js/codemirror.hint.haxe.js");
 	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/editor_hint.js");
-	Utils.loadJavascript(plugin.misterpah.Editor.plugin_path() + "/js/jquery.xml2json.js");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/editor.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/lib/codemirror.css");
 	Utils.loadCss(plugin.misterpah.Editor.plugin_path() + "/codemirror-3.15/addon/hint/show-hint.css");
@@ -200,6 +199,27 @@ plugin.misterpah.Editor.init = function() {
 	plugin.misterpah.Editor.create_ui();
 	plugin.misterpah.Editor.register_hooks();
 	sessionStorage.static_completion = "";
+}
+plugin.misterpah.Editor.register_hooks = function() {
+	plugin.misterpah.Editor.cursor_type = "";
+	new $(js.Browser.document).on("show.bs.tab",null,function(e) {
+		var target = new $(e.target);
+		plugin.misterpah.Editor.show_tab(target.attr("data-path"),false);
+		var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,Main.session.active_file);
+		var unshowed_tab = plugin.misterpah.Editor.tab_cursor[tab_number];
+		var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
+		plugin.misterpah.Editor.cm.setCursor(cursor_pos);
+	});
+	new $(js.Browser.document).on("plugin.misterpah.FileAccess:open_file.complete",null,function() {
+		new $("#editor_position").css("display","block");
+		plugin.misterpah.Editor.make_tab();
+	});
+	new $(js.Browser.window).on("resize",null,function() {
+		plugin.misterpah.Editor.editor_resize();
+	});
+	new $(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",null,plugin.misterpah.Editor.close_tab);
+	new $(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",null,plugin.misterpah.Editor.handle_static_completion);
+	new $(js.Browser.document).on("plugin.misterpah.Editor:build_completion.complete.dynamic",null,plugin.misterpah.Editor.handle_dynamic_completion);
 }
 plugin.misterpah.Editor.create_ui = function() {
 	new $("#editor_position").css("display","none");
@@ -233,64 +253,57 @@ plugin.misterpah.Editor.create_ui = function() {
 		var cursor_pos = cm.indexFromPos(cm.getCursor());
 		sessionStorage.cursor_index = cursor_pos;
 		sessionStorage.keypress = cm.getValue().charAt(cursor_pos - 1);
-		if(cm.getValue().charAt(cursor_pos - 1) == ".") {
-			plugin.misterpah.Editor.cursor_type = ".";
-			sessionStorage.cursor_pos = cm.getCursor().ch;
-			sessionStorage.cursor_pos_line = cm.getCursor().line;
-			var cursor_temp = cm.getCursor();
-			cursor_temp.ch = cursor_temp.ch - 1;
-			var seekToken = true;
-			var token_array = new Array();
-			while(seekToken) {
-				var before_token = cm.getTokenAt(cursor_temp);
-				token_array.push(before_token);
-				var cursor_check_before_token = CodeMirror.Pos(cursor_temp.line,before_token.start - 1);
-				var before_before_token = cm.getTokenAt(cursor_check_before_token);
-				if(before_before_token.type == null) seekToken = false; else cursor_temp = cursor_check_before_token;
-			}
-			token_array.reverse();
-			var completion_str_array = new Array();
-			var _g = 0;
-			while(_g < token_array.length) {
-				var each = token_array[_g];
-				++_g;
-				completion_str_array.push(each.string);
-			}
-			sessionStorage.find_completion = completion_str_array.join(".");
-			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
-			Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
-		}
-		if(cm.getValue().charAt(cursor_pos - 1) == "(") {
-			Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
-			plugin.misterpah.Editor.cursor_type = "(";
-			sessionStorage.cursor_pos = cm.getCursor().ch;
-			Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
+		if(cm.getValue().charAt(cursor_pos - 1) == ".") plugin.misterpah.Editor.request_static_completion(cm); else if(cm.getValue().charAt(cursor_pos - 1) == "(") {
+			sessionStorage.hint_pos = cm.getCursor().line;
+			plugin.misterpah.Editor.request_dynamic_completion(cm);
 		}
 	});
 	plugin.misterpah.Editor.editor_resize();
 }
-plugin.misterpah.Editor.register_hooks = function() {
-	plugin.misterpah.Editor.cursor_type = "";
-	new $(js.Browser.document).on("show.bs.tab",null,function(e) {
-		var target = new $(e.target);
-		plugin.misterpah.Editor.show_tab(target.attr("data-path"),false);
-		var tab_number = Lambda.indexOf(plugin.misterpah.Editor.tab_index,Main.session.active_file);
-		var unshowed_tab = plugin.misterpah.Editor.tab_cursor[tab_number];
-		var cursor_pos = CodeMirror.Pos(unshowed_tab[0],unshowed_tab[1]);
-		plugin.misterpah.Editor.cm.setCursor(cursor_pos);
-	});
-	new $(js.Browser.document).on("plugin.misterpah.FileAccess:open_file.complete",null,function() {
-		new $("#editor_position").css("display","block");
-		plugin.misterpah.Editor.make_tab();
-	});
-	new $(js.Browser.window).on("resize",null,function() {
-		plugin.misterpah.Editor.editor_resize();
-	});
-	new $(js.Browser.document).on("plugin.misterpah.FileAccess:close_file.complete",null,plugin.misterpah.Editor.close_tab);
-	new $(js.Browser.document).on("plugin.misterpah.Completion:static_completion.complete",null,plugin.misterpah.Editor.handle_static_completion);
+plugin.misterpah.Editor.request_static_completion = function(cm) {
+	console.log("request_static_completion");
+	console.log("tokenizing terms");
+	plugin.misterpah.Editor.cursor_type = ".";
+	sessionStorage.cursor_pos = cm.getCursor().ch;
+	sessionStorage.cursor_pos_line = cm.getCursor().line;
+	var cursor_temp = cm.getCursor();
+	cursor_temp.ch = cursor_temp.ch - 1;
+	var seekToken = true;
+	var token_array = new Array();
+	while(seekToken) {
+		var before_token = cm.getTokenAt(cursor_temp);
+		token_array.push(before_token);
+		var cursor_check_before_token = CodeMirror.Pos(cursor_temp.line,before_token.start - 1);
+		var before_before_token = cm.getTokenAt(cursor_check_before_token);
+		if(before_before_token.type == null) seekToken = false; else cursor_temp = cursor_check_before_token;
+	}
+	token_array.reverse();
+	var completion_str_array = new Array();
+	var _g = 0;
+	while(_g < token_array.length) {
+		var each = token_array[_g];
+		++_g;
+		completion_str_array.push(each.string);
+	}
+	sessionStorage.find_completion = completion_str_array.join(".");
+	console.log("token is : " + sessionStorage.find_completion);
+	console.log("tokenizing terms completed.");
+	console.log("invoke static completion");
+	Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+	Main.message.broadcast("plugin.misterpah.Completion:static_completion","plugin.misterpah.Editor");
+}
+plugin.misterpah.Editor.request_dynamic_completion = function(cm) {
+	console.log("request_dynamic_completion");
+	Main.message.broadcast("core:FileMenu.saveFile","plugin.misterpah.Editor");
+	plugin.misterpah.Editor.cursor_type = "(";
+	sessionStorage.cursor_pos = cm.getCursor().ch;
+	console.log("invoke dynamic completion");
+	Main.message.broadcast("plugin.misterpah.Completion:dynamic_completion","plugin.misterpah.Editor");
 }
 plugin.misterpah.Editor.handle_static_completion = function() {
+	console.log("preparing completion");
 	var completion_array = JSON.parse(sessionStorage.static_completion);
+	console.log(completion_array);
 	plugin.misterpah.Editor.completion_list = new Array();
 	var temp = completion_array;
 	var _g = 0;
@@ -300,8 +313,16 @@ plugin.misterpah.Editor.handle_static_completion = function() {
 		var fname = each[0];
 		plugin.misterpah.Editor.completion_list.push(fname);
 	}
+	console.log("preparing complete");
+	console.log("invoke show completion");
 	CodeMirror.showHint(plugin.misterpah.Editor.cm,haxeHint);
 	sessionStorage.static_completion = "";
+}
+plugin.misterpah.Editor.handle_dynamic_completion = function() {
+	console.log("preparing completion");
+	var completion_array = JSON.parse(sessionStorage.static_completion);
+	console.log(completion_array);
+	plugin.misterpah.Editor.widgetStack.push(inline_hint(plugin.misterpah.Editor.cm.getCursor().line,completion_array));
 }
 plugin.misterpah.Editor.editor_resize = function() {
 	var win = Utils.gui.Window.get();
