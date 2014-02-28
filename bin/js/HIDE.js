@@ -366,7 +366,7 @@ Utils.system_get_completion = function(position,callback) {
 		join_str = " & ";
 		join_str_cd = " /D ";
 	}
-	var exec_str1 = "cd " + join_str_cd + "'" + Main.session.project_folder + "'" + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + "'" + path + "'" + "@" + position;
+	var exec_str1 = "cd " + join_str_cd + "\"" + Main.session.project_folder + "\"" + join_str + "haxe --connect 30003 " + Main.session.project_xml_parameter + " --display " + "\"" + path + "\"" + "@" + position;
 	console.log("fetching completion.");
 	return Utils.exec(exec_str1,{ },function(error,stdout,stderr) {
 		if(error == null) {
@@ -408,10 +408,10 @@ Utils.system_parse_project = function() {
 		var _g = Utils.getOS();
 		switch(_g) {
 		case 0:
-			exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime display -hxml flash";
+			exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & lime display -hxml flash";
 			break;
 		case 1:
-			exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime display -hxml flash";
+			exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; lime display -hxml flash";
 			break;
 		default:
 		}
@@ -419,18 +419,22 @@ Utils.system_parse_project = function() {
 		var _g = Utils.getOS();
 		switch(_g) {
 		case 0:
-			exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & type " + "'" + filename + "'";
+			exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & type " + "\"" + filename + "\"";
 			break;
 		case 1:
-			exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; cat " + "'" + filename + "'";
+			exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; cat " + "\"" + filename + "\"";
 			break;
 		default:
 		}
 	}
+	console.log(exec_str);
 	Utils.exec(exec_str,{ },function(error,stdout,stderr) {
 		var the_error = false;
 		if(stderr != "") the_error = true;
 		if(the_error == true) {
+			console.log(error);
+			console.log(stdout);
+			console.log(stderr);
 			var notify = new ui.Notify();
 			notify.type = "error";
 			notify.content = "not a valid Haxe Project File ( XML / HXML )";
