@@ -68,8 +68,8 @@ plugin.misterpah.Compiler.register_listener = function() {
 plugin.misterpah.Compiler.compile_native_hxml = function() {
 	console.log("compiling to Native (Hxml)");
 	var exec_str = "";
-	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & haxe " + "'" + Main.session.project_xml + "'";
-	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; haxe " + "'" + Main.session.project_xml + "'";
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & haxe " + "\"" + Main.session.project_xml + "\"";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; haxe " + "\"" + Main.session.project_xml + "\"";
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		if(stderr != "") {
 			localStorage.showError = "true";
@@ -86,8 +86,8 @@ plugin.misterpah.Compiler.compile_native_hxml = function() {
 plugin.misterpah.Compiler.compile_flash_lime = function() {
 	console.log("compiling to Flash (Lime)");
 	var exec_str = "";
-	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime test flash";
-	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime test flash";
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & lime test flash";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; lime test flash";
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		if(stderr != "") {
 			localStorage.showError = "true";
@@ -104,8 +104,8 @@ plugin.misterpah.Compiler.compile_flash_lime = function() {
 plugin.misterpah.Compiler.compile_neko_lime = function() {
 	console.log("compiling to Neko (Lime)");
 	var exec_str = "";
-	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime test neko";
-	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime test neko";
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & lime test neko";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; lime test neko";
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		if(stderr != "") {
 			localStorage.showError = "true";
@@ -122,8 +122,8 @@ plugin.misterpah.Compiler.compile_neko_lime = function() {
 plugin.misterpah.Compiler.compile_html5_lime = function() {
 	console.log("compiling to HTML5 (Lime)");
 	var exec_str = "";
-	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime test html5";
-	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime test html5";
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & lime test html5";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; lime test html5";
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		if(stderr != "") {
 			localStorage.showError = "true";
@@ -140,8 +140,8 @@ plugin.misterpah.Compiler.compile_html5_lime = function() {
 plugin.misterpah.Compiler.compile_android_lime = function() {
 	console.log("compiling to Android (Lime)");
 	var exec_str = "";
-	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "'" + Main.session.project_folder + "'" + " & lime test android";
-	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "'" + Main.session.project_folder + "'" + " ; lime test android";
+	if(Utils.getOS() == Utils.WINDOWS) exec_str = "cd /D " + "\"" + Main.session.project_folder + "\"" + " & lime test android";
+	if(Utils.getOS() == Utils.LINUX) exec_str = "cd " + "\"" + Main.session.project_folder + "\"" + " ; lime test android";
 	Utils.exec(exec_str,function(error,stdout,stderr) {
 		if(stderr != "") {
 			localStorage.showError = "true";
