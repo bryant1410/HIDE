@@ -1,27 +1,25 @@
 package ;
 
+import core.Splitter;
+import core.WelcomeScreen;
+import dialogs.DialogManager;
+import jQuery.JQuery;
 import about.About;
 import autoformat.HaxePrinterLoader;
 import cm.CodeMirrorEditor;
 import cm.CodeMirrorZoom;
-import core.Changelog;
 import core.CompilationOutput;
 import core.Completion;
-import core.DeveloperTools;
 import core.DragAndDrop;
-import core.EditingTheme;
-import core.EditorConfiguration;
 import core.FileDialog;
 import core.HaxeLint;
 import core.HaxeParserProvider;
 import core.HaxeServer;
 import core.Hotkeys;
+import core.MenuCommands;
 import core.PreserveWindowState;
 import core.RunProject;
-import core.Splitpane;
-import core.ToggleFullscreen;
 import core.Utils;
-import core.Zoom;
 import filetree.FileTree;
 import haxe.Timer;
 import haxe.Unserializer;
@@ -30,14 +28,17 @@ import js.Browser;
 import js.html.Element;
 import js.html.TextAreaElement;
 import js.Node;
+import js.node.Walkdir;
 import menu.BootstrapMenu;
-import newprojectdialog.NewProjectDialogLoader;
+import newprojectdialog.NewProjectDialog;
 import nodejs.webkit.Window;
 import openflproject.OpenFLProject;
-import openproject.OpenProjectLoader;
+import openproject.OpenProject;
+import parser.ClasspathWalker;
 import projectaccess.ProjectAccess;
 import projectaccess.ProjectOptions;
-import tabmanager.TabManagerMain;
+import tabmanager.TabManager;
+import watchers.SettingsWatcher;
 
 /**
  * ...
@@ -53,44 +54,44 @@ class Main
 	static function main() 
 	{        
 		window = Window.get();
-		
-		//window.showDevTools();
+		window.showDevTools();
 		
 		js.Node.process.on('uncaughtException', function (err)
 		{
-			window.show();
 			trace(err);
+			
+			//if (!window.isDevToolsOpen()) 
+			//{
+				
+			//}
 		}
 		);
-		
+        
 		Hotkeys.prepare();
+		PreserveWindowState.init();
 		
 		Browser.window.addEventListener("load", function (e):Void
 		{
+			Splitter.load();
+			
+			SettingsWatcher.load();
+			DialogManager.load();
+			
 			Utils.prepare();
 			BootstrapMenu.createMenuBar();
-			NewProjectDialogLoader.load();
-			DeveloperTools.addToMenu();
+			NewProjectDialog.load();
+			MenuCommands.add();
 			CodeMirrorZoom.load();
-			ToggleFullscreen.addToMenu();
-			Zoom.addToMenu();
-			Changelog.addToMenu();
 			About.addToMenu();
-			EditorConfiguration.addToMenu();
-			EditingTheme.addToMenu();
-			Splitpane.createSplitPane();
-			Splitpane.activateSplitpane();
-			PreserveWindowState.init();
 			FileTree.init();
 			ProjectOptions.create();
 			FileDialog.create();
-			TabManagerMain.load();
-			Completion.registerHelper();
-			HaxeLint.prepare();
+			TabManager.load();
+			HaxeLint.load();
 			CodeMirrorEditor.load();
+			Completion.registerHelper();
 			
 			HaxePrinterLoader.load();
-			HaxeServer.check();
 			
 			RunProject.load();
 			
@@ -101,20 +102,22 @@ class Main
 			
 			CompilationOutput.load();
 			
-			OpenProjectLoader.load();
+			OpenProject.searchForLastProject();
 			DragAndDrop.prepare();
+			ClasspathWalker.load();
+			WelcomeScreen.load();
 			
-			//HaxeParserProvider.test();
-            
 			currentTime = Date.now().getTime();
 			
 			checkHaxeInstalled(function ()
 			{
+				HaxeServer.check();
 				loadPlugins();
 			}
 			,
 			function ()
 			{
+				Alertify.error("Haxe compiler is not found");
 				loadPlugins(false);
 			}
 			);
@@ -128,16 +131,21 @@ class Main
 				w.close(true);
 			}
 			
-			window.close(true);
+			window.close();
 		}
 		);
 	}
 	
 	public static function loadPlugins(?compile:Bool = true):Void
 	{
-		var pathToPlugins:String = js.Node.path.join("..", "plugins");
-			
-		var pathToPluginsMTime:String = js.Node.path.join("..", "pluginsMTime.dat");
+		var pathToPlugins:String = "plugins";
+		
+		if (!Node.fs.existsSync(pathToPlugins)) 
+		{
+			Node.fs.mkdirSync(pathToPlugins);
+		}
+		
+		var pathToPluginsMTime:String = "pluginsMTime.dat";
 		
 		var args:Array<String>;
 		

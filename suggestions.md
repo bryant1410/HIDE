@@ -45,7 +45,6 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Debounce function
 * Add CodeMirror.Pos to definitions
 * haxeparser: check mode before parsing
-* Watch open files
 * Use node js lib to walk througth folder
 * Make parser walk througth source code
 	* Haxe compiler std folder
@@ -60,28 +59,63 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 
 * Generate imports
 * Code generation
-* Use Mustache for templates
 * Replace create file functions with code from templates(create new templates)
 * Code snippets
 * settings.json for HIDE settings
 
 * Parse code if error - exclude line and try again
 
-* Fix splitpanes on Linux
-* Fix first launch - open HIDE project as first project
+* Fix first launch - open HIDE project as first project(source code will not be included in haxelib)
+* Add link to GitHub repository and website
+* Move run.n to bin
+* Close Project/Welcome screen
+* Fix last project reopening for user of previous versions of HIDE
+* Change title according to current project
+* Show create new project or open project
+* File tree context menu: Open file in New Tab
+* File tree context menu: Delete
+* Reconsider source code packages
+* Check if file exists before creating new - change name
+* Project templates
+* Add dividers to menus
+* Restructure menus
+* Multiple commands support for run command action
+* Search for Haxe std folder
+* Escape paths
+* Get libs and classes for OpenFL projects
+* CM hint: add completions to open dialog
+* CM hint: add round bracket to function completion
+* Suggestions by deepnight
+* Javascript breakpoints
+* Completion: show results based on return type
+* Completion: most used move up
+* Jqxsplitter preserve layout
+* Small tutorial for configuration files editing
+* Autocomplete meta tags and show types on ":"
+* Trace function run count
+* Test ereg
+* Return local variable in function
+* cache completion from Haxe(add it to type completion)
+* Watch file tree
+* Hotkeys to hide/show panels
+* Find in files
+* FD theme
+* Hxml mode
+* Lower case first char of path on Windows
+* Fix removing dist file with --no-output
+* Calculate indents based on brackets
+* HaxeParserProvider: check if pos is null
+* Adjust ":" completion for typedefs
 
 ###Important
 * Fix for building *.hxml with -cmd arguments(test https://github.com/Justinfront/Jigsawx)
-* Parse code with hxparse(classes on path)
-* Fix window state preserving(Windows)
 * Fix OpenFL projects(check webserver)
-* Fix node-webkit haxelib(search for binary, handle no Internet connection exception)
-* Fix tab saving issue
-* Test file saving
+* Parse code with hxparse(classes on path)
 * Unit tests
 * Annotation ruler
-* Trace function run count
-* Watch theme.css for changes and apply to UI
-* Split docs and rewrite
 * Go to definition
 * Show prompt to install missing haxelibs
+* Outline panel
+* move out plugins loading function to new classes
+* Check if import is missing
+* Add completion to menu(and Go to Line command to menu)

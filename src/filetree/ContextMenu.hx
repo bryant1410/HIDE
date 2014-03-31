@@ -1,5 +1,4 @@
 package filetree;
-import core.Bootbox;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
 import js.html.AnchorElement;
@@ -10,6 +9,8 @@ import js.html.MouseEvent;
 import js.html.UListElement;
 import js.Lib;
 import nodejs.webkit.Shell;
+import tabmanager.TabManager;
+import watchers.LocaleWatcher;
 
 /**
  * ...
@@ -17,15 +18,9 @@ import nodejs.webkit.Shell;
  */
 class ContextMenu
 {
-	
-	private static var itemType:String;
-	private static var path:String;
-	private static var menuItems:StringMap<LIElement>;
-	
-	public function new() 
-	{
-		
-	}
+	static var itemType:String;
+	static var path:String;
+	static var menuItems:StringMap<LIElement>;
 	
 	public static function createContextMenu():Void
 	{
@@ -48,65 +43,38 @@ class ContextMenu
 		
 		addContextMenuItemToStringMap("New File...", function ()
 		{
-			Bootbox.prompt("Filename:", "New.hx", function (result:String)
+			Alertify.prompt(LocaleWatcher.getStringSync("Filename:"), function (e:Bool, str:String)
 			{
-				var filename:String = result;
-			
-				var template:String = "";
-			
-				if (filename != null) 
+				if (e) 
 				{
-					var extname = js.Node.path.extname(filename);
-					var pathToFile:String;
-					
-					if (extname == ".hx")
-					{
-						var name:String = js.Node.path.basename(filename, extname);
-						name = name.substr(0, 1).toUpperCase() + name.substr(1).toLowerCase();
-						name = StringTools.replace(name, " ", "");
-						
-						template = "package ;\n\nclass " + name + "\n{\n    public function new()\n    {\n\n    }\n}";
-						
-						pathToFile = js.Node.path.join(path, name + ".hx");
-					}
-					else 
-					{
-						pathToFile = js.Node.path.join(path, filename);
-					}
-					
-					js.Node.fs.writeFile(pathToFile, template, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr):Void
-					{
-						FileTree.onFileClick(pathToFile);
-						FileTree.load();
-					}
-					);
+					var pathToFile:String = js.Node.path.join(path, str);
+					TabManager.createFileInNewTab(pathToFile);
 				}
-			});
-			
-			
+			}, "New.hx");
 		});
 		
 		addContextMenuItemToStringMap("New Folder...", function ()
 		{
-			Bootbox.prompt("Folder name:", "New Folder", function (result:String)
+			Alertify.prompt("Folder name:", function (e, str:String)
 			{
-				var dirname:String = result;
-			
-				if (dirname != null)
+				if (e) 
 				{
-					js.Node.fs.mkdir(js.Node.path.join(path, dirname), function (error):Void
-					{
-						FileTree.load();
-					});
-				}
-			}
-			);
+					var dirname:String = str;
 			
+					if (dirname != null)
+					{
+						js.Node.fs.mkdir(js.Node.path.join(path, dirname), function (error):Void
+						{
+							FileTree.load();
+						});
+					}
+				}
+			}, "New Folder");
 		});
 		
 		addContextMenuItemToStringMap("Open File", function ()
 		{
-			FileTree.onFileClick(path);
+			TabManager.openFileInNewTab(path);
 		});
 		
 		addContextMenuItemToStringMap("Open using OS", function ()

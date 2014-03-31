@@ -1,16 +1,23 @@
 {
-     "args" : [
+     "type" : 2
+    ,"target" : null
+    ,"name" : "\\HIDE"
+    ,"main" : "HIDE.hxml"
+    ,"projectPackage" : null
+    ,"company" : null
+    ,"license" : null
+    ,"url" : null
+    ,"args" : [
 
     ]
     ,"files" : [
-         "src\\Main.hx"
-        ,"src\\core\\HaxeParserProvider.hx"
+         "HIDE.hxml"
+        ,"src\\Main.hx"
     ]
-    ,"name" : "\\HIDE"
-    ,"type" : 2
-    ,"path" : "/home/as3boyan/HIDE"
-    ,"main" : "HIDE.hxml"
-    ,"runActionType" : 2
-    ,"activeFile" : "HIDE.hxml"
-    ,"runActionText" : "haxelib run node-webkit"
+    ,"activeFile" : "src\\Main.hx"
+    ,"path" : "c:\\GitHub\\HIDE"
+    ,"openFLTarget" : null
+    ,"runActionType" : 0
+    ,"runActionText" : null
+    ,"buildActionCommand" : null
 }

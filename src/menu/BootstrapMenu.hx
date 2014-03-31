@@ -7,6 +7,7 @@ import js.html.UListElement;
 import js.Node;
 import js.Node.NodeFsFileOptions;
 import js.html.Element;
+import watchers.LocaleWatcher;
 
 /**
  * ...
@@ -19,8 +20,8 @@ import js.html.Element;
 //http://haxe.org/manual/tips_and_tricks
 @:keepSub @:expose("BootstrapMenu") class BootstrapMenu
 {
-	private static var menus:StringMap<Menu> = new StringMap();
-	private static var menuArray:Array<Menu> = new Array();
+	static var menus:StringMap<Menu> = new StringMap();
+	static var menuArray:Array<Menu> = new Array();
 		
 	public static function createMenuBar():Void
 	{
@@ -37,8 +38,9 @@ import js.html.Element;
 		var a:AnchorElement = Browser.document.createAnchorElement();
 		a.className = "navbar-brand";
 		a.href = "#";
-		a.innerText = "HIDE";
-			
+		a.innerText = LocaleWatcher.getStringSync("HIDE");
+		a.setAttribute("localeString", "HIDE");
+		
 		navbarHeader.appendChild(a);
 			
 		var div:DivElement = Browser.document.createDivElement();

@@ -1,12 +1,15 @@
 package openproject;
 import core.FileDialog;
+import core.Splitter;
 import filetree.FileTree;
 import haxe.Serializer;
 import haxe.Unserializer;
+import jQuery.JQuery;
 import js.Browser;
 import js.html.TextAreaElement;
 import js.Node;
 import openflproject.OpenFLTools;
+import parser.ClasspathWalker;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
 import projectaccess.ProjectOptions;
@@ -18,13 +21,7 @@ import tjson.TJSON;
  * @author AS3Boyan
  */
 class OpenProject
-{
-
-	public function new() 
-	{
-		
-	}
-	
+{	
 	public static function openProject(?pathToProject:String):Void
 	{
 		if (pathToProject == null)
@@ -69,6 +66,7 @@ class OpenProject
 				{
 					var pathToProject:String = js.Node.path.dirname(path);
 					
+					//ProjectAccess.currentProject = Node.parse(data);
 					ProjectAccess.currentProject = TJSON.parse(data);
 					ProjectAccess.currentProject.path = pathToProject;
 					
@@ -76,6 +74,8 @@ class OpenProject
 					{
 						TabManager.openFileInNewTab(Node.path.join(ProjectAccess.currentProject.path, ProjectAccess.currentProject.main));
 					}
+					
+					ClasspathWalker.parseProjectArguments();
 					
 					if (ProjectAccess.currentProject.files == null) 
 					{
@@ -105,7 +105,7 @@ class OpenProject
 							{
 								if (exists) 
 								{
-									TabManager.selectDocByPath(Node.path.join(pathToProject, activeFile));
+									TabManager.selectDoc(Node.path.join(pathToProject, activeFile));
 								}
 							}
 							);
@@ -114,6 +114,8 @@ class OpenProject
 					
 					ProjectOptions.updateProjectOptions();
 					FileTree.load(ProjectAccess.currentProject.name, pathToProject);
+					
+					Splitter.show();
 					
 					Browser.getLocalStorage().setItem("pathToLastProject", path);
 				}
@@ -157,6 +159,8 @@ class OpenProject
 					}
 					);
 					
+					Splitter.show();
+					
 					Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
 				}
 				);
@@ -188,6 +192,8 @@ class OpenProject
 							}
 							);
 							
+							Splitter.show();
+							
 							Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
 						//}
 						//);
@@ -204,12 +210,19 @@ class OpenProject
 	}
 	
 	public static function searchForLastProject():Void
-	{		
+	{
 		var pathToLastProject:String = Browser.getLocalStorage().getItem("pathToLastProject");
 		if (pathToLastProject != null)
 		{
 			openProject(pathToLastProject);
 		}
+	}
+	
+	public static function closeProject():Void
+	{
+		ProjectAccess.currentProject.path = null;
+		Splitter.hide();
+		Browser.getLocalStorage().removeItem("pathToLastProject");
 	}
 	
 }

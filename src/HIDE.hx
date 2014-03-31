@@ -5,17 +5,18 @@ import js.Browser;
 import js.html.LinkElement;
 import js.html.ScriptElement;
 import js.Node;
+import mustache.Mustache;
 import nodejs.webkit.Window;
 
 /**
  * ...
  * @author AS3Boyan
  */
- 
+
  //This class is a global HIDE API for plugins
  //Using this API plugins can load JS and CSS scripts in specified order 
  //To use it in plugins you may need to add path to externs for this class, they are located at externs/plugins/hide
- 
+
 typedef PluginDependenciesData =
 {
 	var name:String;
@@ -23,7 +24,7 @@ typedef PluginDependenciesData =
 	var onLoaded:Void->Void;
 	var callOnLoadWhenAtLeastOnePluginLoaded:Bool;
 }
- 
+
 @:keepSub @:expose class HIDE
 {	
 	public static var plugins:Array<String> = new Array();
@@ -35,7 +36,6 @@ typedef PluginDependenciesData =
 	public static var pluginsMTime:StringMap<Int> = new StringMap();
 	
 	public static var windows:Array<Dynamic> = [];
-	
 	public static var firstRun:Bool = false;
 	
 	//Loads JS scripts in specified order and calls onLoad function when last item of urls array was loaded
@@ -66,7 +66,7 @@ typedef PluginDependenciesData =
 		loadCSSAsync(name, urls, onLoad);
 	}
 	
-	private static function loadCSSAsync(name:String, urls:Array<String>, ?onLoad:Dynamic):Void
+	static function loadCSSAsync(name:String, urls:Array<String>, ?onLoad:Dynamic):Void
 	{
 		var link:LinkElement = Browser.document.createLinkElement();
 		link.href = urls.splice(0, 1)[0];
@@ -89,7 +89,7 @@ typedef PluginDependenciesData =
 		Browser.document.head.appendChild(link);
 	}	
 	
-	private static function traceScriptLoadingInfo(name:String, url:String):Void
+	static function traceScriptLoadingInfo(name:String, url:String):Void
 	{
 		var str:String;
 				
@@ -122,6 +122,7 @@ typedef PluginDependenciesData =
 		var data:PluginDependenciesData = { name:name, plugins:plugins, onLoaded:onLoaded, callOnLoadWhenAtLeastOnePluginLoaded:callOnLoadWhenAtLeastOnePluginLoaded };
 		requestedPluginsData.push(data);
 		checkRequiredPluginsData();
+        
 	}
 	
 	public static function notifyLoadingComplete(name:String):Void
@@ -161,21 +162,28 @@ typedef PluginDependenciesData =
 		var relativePathToPlugin:String;
 		var absolutePathToPlugin:String;
 
-		for (name in HIDE.pathToPlugins.keys())
+		if (pluginCount > 0) 
 		{
-			relativePathToPlugin = HIDE.pathToPlugins.get(name);
-			absolutePathToPlugin = js.Node.require("path").resolve(relativePathToPlugin);
-
-			Main.compilePlugin(name, absolutePathToPlugin, function ():Void
+			for (name in HIDE.pathToPlugins.keys())
 			{
-				compiledPluginCount++;
+				relativePathToPlugin = HIDE.pathToPlugins.get(name);
+				absolutePathToPlugin = js.Node.require("path").resolve(relativePathToPlugin);
 
-				if (compiledPluginCount == pluginCount)
+				Main.compilePlugin(name, absolutePathToPlugin, function ():Void
 				{
-					onComplete();
+					compiledPluginCount++;
+
+					if (compiledPluginCount == pluginCount)
+					{
+						onComplete();
+					}
 				}
+				, onFailed);
 			}
-			, onFailed);
+		}
+		else 
+		{
+			onComplete();
 		}
 	}
 	
@@ -222,7 +230,7 @@ typedef PluginDependenciesData =
 		return '"' + path + '"';
 	}
 	
-	private static function checkRequiredPluginsData():Void
+	static function checkRequiredPluginsData():Void
 	{		
 		if (requestedPluginsData.length > 0)
 		{
@@ -279,7 +287,7 @@ typedef PluginDependenciesData =
 			{
 				if (data != null)
 				{
-					var updatedData:String = StringTools.replace(data,"::plugins::", Main.pluginsTestingData);
+					var updatedData:String = Mustache.render(data, {plugins: Main.pluginsTestingData});
 
 					js.Node.fs.writeFile("../.travis.yml", updatedData,js.Node.NodeC.UTF8, function(error):Void
 					{
@@ -297,7 +305,7 @@ typedef PluginDependenciesData =
 			
 			savePluginsMTime();
 			
-			Main.window.show();
+			//Main.window.show();
 		}
 	}
 	
@@ -315,7 +323,7 @@ typedef PluginDependenciesData =
 	}
 	
 	//Private function which loads JS scripts in strict order
-	private static function loadJSAsync(name:String, urls:Array<String>, ?onLoad:Dynamic):Void
+	static function loadJSAsync(name:String, urls:Array<String>, ?onLoad:Dynamic):Void
 	{
 		var script:ScriptElement = Browser.document.createScriptElement();
 		script.src = urls.splice(0, 1)[0];

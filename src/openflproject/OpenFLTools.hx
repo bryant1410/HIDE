@@ -8,10 +8,10 @@ import js.html.TextAreaElement;
  */
 @:keepSub @:expose class OpenFLTools
 {	
-	private static var processStdout:String;
-	private static var processStderr:String;
+	static var processStdout:String;
+	static var processStderr:String;
 	
-	public static function getParams(path:String, target:String, onLoaded:Dynamic):Void
+	public static function getParams(path:String, target:String, onLoaded:String->Void):Void
 	{
 		processStdout = "";
 		processStderr = "";
@@ -27,7 +27,7 @@ import js.html.TextAreaElement;
 		{
 			trace('OpenFL tools process exit code ' + code);
 			
-			var textarea = cast(Browser.document.getElementById("output"), TextAreaElement);
+			var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
 			textarea.value += "OUTPUT: " + processStdout;
 			
 			if (processStderr != "")
@@ -41,6 +41,10 @@ import js.html.TextAreaElement;
 				{
 					onLoaded(processStdout);
 				}
+			}
+			else 
+			{
+				Alertify.error("OpenFL tools cannot parse project.xml. Update OpenFL.");
 			}
 		}
 		);

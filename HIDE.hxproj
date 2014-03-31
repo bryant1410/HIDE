@@ -17,6 +17,10 @@
   <classpaths>
     <class path="src" />
     <class path="externs\codemirror" />
+    <class path="libs\haxeparser-master\src" />
+    <class path="libs\haxeprinter\src" />
+    <class path="libs\nodejs-std" />
+    <class path="externs\alertify" />
   </classpaths>
   <!-- Build options -->
   <build>
@@ -25,7 +29,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />
-    <option additional="-lib nodejs&#xA;-lib jQueryExtern&#xA;-lib hxparse&#xA;-lib haxeparser&#xA;-lib tjson&#xA;-cp libs/haxeprinter/src&#xA;-resource libs/haxeprinter/res/config.json@config&#xA;-D noStyle&#xA;-D source-map-content&#xA;-dce full&#xA;core.Bootbox&#xA;core.HaxeClient&#xA;openflproject.OpenFLTools&#xA;--next&#xA;-cp src&#xA;-main Run&#xA;-neko run.n&#xA;-debug&#xA;-dce full&#xA;--next&#xA;-lib nodejs&#xA;-cp src&#xA;-main about.Presentation&#xA;-js bin/Presentation.js&#xA;-dce full&#xA;--times&#xA;--next&#xA;-cp src&#xA;-lib hxparse&#xA;-lib haxeparser&#xA;-main FileSystemWalker&#xA;-neko bin/FileSystemWalker.n&#xA;-debug&#xA;-dce full" />
+    <option additional="-lib jQueryExtern&#xA;-lib hxparse&#xA;-lib tjson&#xA;-lib mustache&#xA;-resource libs/haxeprinter/res/config.json@config&#xA;-D noStyle&#xA;-D nodejs&#xA;-D source-map-content&#xA;-dce full&#xA;core.ProcessHelper&#xA;openflproject.OpenFLTools" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -47,7 +51,7 @@
   <options>
     <option showHiddenPaths="False" />
     <option testMovie="Custom" />
-    <option testMovieCommand="run2.bat" />
+    <option testMovieCommand="bat\run2.bat" />
   </options>
   <!-- Plugin storage -->
   <storage />

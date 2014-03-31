@@ -1,16 +1,20 @@
 package cm;
 import core.Completion;
 import core.FunctionParametersHelper;
+import core.HaxeLint;
 import core.HaxeParserProvider;
-import core.Splitpane;
+import core.Helper;
 import haxe.Json;
 import haxe.Timer;
+import jQuery.JQuery;
 import js.Browser;
+import js.html.DivElement;
 import js.html.svg.TextElement;
 import js.html.TextAreaElement;
 import js.Lib;
 import js.Node;
 import menu.BootstrapMenu;
+import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import tjson.TJSON;
 
@@ -21,13 +25,11 @@ import tjson.TJSON;
 class CodeMirrorEditor
 {	
 	public static var editor:CodeMirror;
+	public static var regenerateCompletionOnDot:Bool;
 	
 	public static function load():Void
 	{		
-		var textarea:TextAreaElement = Browser.document.createTextAreaElement();
-		textarea.id = "code";
-		
-		Splitpane.components[1].appendChild(textarea);
+		regenerateCompletionOnDot = true;
 		
 		var readFileOptions:NodeFsFileOptions = {};
 		readFileOptions.encoding = NodeC.UTF8;
@@ -52,14 +54,14 @@ class CodeMirrorEditor
 			"." : 
 				function passAndHint(cm) 
 				{
-					untyped setTimeout(function() { triggerCompletion(cm); }, 100);
+					untyped setTimeout(function() { triggerCompletion(cm, true); }, 100);
 					untyped __js__("return CodeMirror.Pass");
 				}
 		}
 		
-		editor = CodeMirror.fromTextArea(textarea, options);
-		 
-		editor.getWrapperElement().style.display = "none";
+		editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), options);
+		
+		new JQuery("#editor").hide();
 		
 		loadThemes([
 		"3024-day",
@@ -111,99 +113,47 @@ class CodeMirrorEditor
 			  
 		  }
 		
+		trace(CodeMirrorEditor.editor);
+		  
 		Node.fs.writeFileSync("bindings.txt", value, NodeC.UTF8);
-		
-		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 2, TabManager.openFileInNewTab.bind("bindings.txt"));
-		
-		var timer:Timer = null;
 		
 		Browser.window.addEventListener("resize", function (e)
 		{
-			if (timer != null) 
-			{
-				timer.stop();
-			}
-			
-			timer = new Timer(500);
-			timer.run = function ()
+			Helper.debounce("resize", function ():Void 
 			{
 				editor.refresh();
-				timer.stop();
-			};
+			}, 100);
+			
+			resize();
 		}
 		);
+		
+		new JQuery('#thirdNested').on('resize', 
+		function (event) {       
+			var panels = event.args.panels;
+			
+			resize();
+		});
+		
+		ColorPreview.create();
 		
 		editor.on("cursorActivity", function (cm:CodeMirror)
 		{
-			var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
+			Helper.debounce("cursorActivity", FunctionParametersHelper.update.bind(cm), 100);
 			
-			if (extname == ".hx") 
-			{
-				var cursor = cm.getCursor();
-				var data = cm.getLine(cursor.line);
-				
-				if (data.charAt(cursor.ch - 1) == "(") 
-				{
-					var pos = cursor.ch -1;
-					var p = untyped __js__("CodeMirror.Pos");
-					
-					Completion.getCompletion(function ()
-					{
-						var found:Bool = false;
-						
-						for (completion in Completion.completions) 
-						{
-							if (Completion.curWord == completion.n) 
-							{							
-								var info:String = "(";
-								
-								var args:Array<String> = completion.t.split("->");
-								
-								if (args.length > 2) 
-								{
-									for (i in 0...args.length - 1) 
-									{
-										info += args[i];
-										
-										if (i != args.length - 2) 
-										{
-											info += ", ";
-										}
-									}
-									
-									info += "):" + args[args.length - 1];
-								}
-								else 
-								{
-									info += "):" + args[args.length - 1];
-								}
-								
-								FunctionParametersHelper.clear();
-								FunctionParametersHelper.addWidget("function " + completion.n + info, editor.getCursor().line);
-								FunctionParametersHelper.updateScroll();
-								found = true;
-								break;
-							}
-						}
-						
-						if (!found) 
-						{
-							FunctionParametersHelper.clear();
-						}
-					}
-					, untyped p(cursor.line, pos));
-				}
-				else 
-				{
-					FunctionParametersHelper.clear();
-				}
-			}
+			ColorPreview.update();
 		}
 		);
 		
-		trace(editor);
+		editor.on("scroll", function (cm:CodeMirror):Void 
+		{
+			ColorPreview.scroll();
+		}
+		);
 		
 		var timer:Timer = null;
+		
+		var basicTypes = ["Array", "Map", "StringMap"];
 		
 		editor.on("change", function (cm:CodeMirror):Void 
 		{			
@@ -211,42 +161,82 @@ class CodeMirrorEditor
 			
 			if (extname == ".hx") 
 			{
-				if (timer != null) 
+				Helper.debounce("change", function ():Void 
 				{
-					timer.stop();
-					timer = null;
-				}
-				
-				timer = new Timer(100);
-				timer.run = function ():Void 
-				{
-					timer.stop();
 					HaxeParserProvider.getClassName();
-				};
+					HaxeLint.updateLinting();
+				}, 100);
+				
+				var cursor = cm.getCursor();
+				var data = cm.getLine(cursor.line);
+				
+				if (data.charAt(cursor.ch - 1) == ":") 
+				{
+					if (data.charAt(cursor.ch - 2) == "@")
+					{
+						Completion.showMetaTagsCompletion();
+					}
+					else 
+					{
+						Completion.showClassList();
+					}
+				}
+				else if (data.charAt(cursor.ch - 1) == "<")
+				{
+					for (type in basicTypes) 
+					{
+						if (StringTools.endsWith(data.substr(0, cursor.ch - 1), type)) 
+						{
+							Completion.showClassList();
+							break;
+						}
+					}
+				}
 			}
+			else if (extname == ".hxml") 
+			{
+				var cursor = cm.getCursor();
+				var data = cm.getLine(cursor.line);
+				
+				if (data.charAt(cursor.ch - 1) == "-")
+				{
+					Completion.showHxmlCompletion();
+				}
+			}
+			
+			TabManager.tabMap.get(TabManager.selectedPath).setChanged(true);
 		}
 		);
+		
+		//var timer = new Timer(100);
+		//timer.run = CodeMirrorEditor.editor.setOption.bind("lint", true);
+		
+		CodeMirror.prototype.centerOnLine = function(line) 
+		{
+			untyped __js__(" var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ");
+		};
 	}
 	
-	private static function triggerCompletion(cm:Dynamic) 
+	private static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
 	{
 		var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
 		
 		switch (extname) 
 		{
 			case ".hx":
-				HaxeParserProvider.getClassName();
-		
-				//TabManager.saveActiveFile(function ():Void 
-				//{
-					//Completion.getCompletion(function ()
-					//{
-						//cm.execCommand("autocomplete");
-					//}
-					//);
-				//});
+				//HaxeParserProvider.getClassName();
+				
+				if (!dot || regenerateCompletionOnDot || (dot && !cm.state.completionActive)) 
+				{
+					TabManager.saveActiveFile(function ():Void 
+					{
+						Completion.getCompletion(Completion.showRegularCompletion);
+					});
+				}
+			case ".hxml":
+				Completion.showHxmlCompletion();
 			default:
-				trace(extname);
+				//trace(extname);
 		}
 	}
 	
@@ -292,13 +282,19 @@ class CodeMirrorEditor
 		}
 	}
 	
+	public static function resize():Void 
+	{
+		var height = Browser.window.innerHeight - 50 - new JQuery("ul.tabs").height() - new JQuery("#tabs1").height() - 5;
+		new JQuery(".CodeMirror").css("height", Std.string(Std.int(height)) + "px");
+	}
+	
 	private static function loadTheme() 
 	{
-		var localStorage = Browser.getLocalStorage();
+		var localStorage2 = Browser.getLocalStorage();
 		
-		if (localStorage != null)
+		if (localStorage2 != null)
 		{
-			var theme:String = localStorage.getItem("theme");
+			var theme:String = localStorage2.getItem("theme");
 			
 			if (theme != null) 
 			{
@@ -331,5 +327,4 @@ class CodeMirrorEditor
 		editor.setOption("theme", theme);
 		Browser.getLocalStorage().setItem("theme", theme);
 	}
-	
 }

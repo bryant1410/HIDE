@@ -1,8 +1,10 @@
 package haxeproject;
 import core.FileTools;
+import core.Splitter;
 import filetree.FileTree;
 import js.Browser;
 import js.html.TextAreaElement;
+import mustache.Mustache;
 import newprojectdialog.NewProjectDialog;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
@@ -15,8 +17,8 @@ import tabmanager.TabManager;
  */
 class HaxeProject
 {
-	private static var code:String;
-	private static var indexPageCode:String;
+	static var code:String;
+	static var indexPageCode:String;
 	
 	//If this plugin is selected as active in HIDE, then HIDE will call this function once on load	
 	public static function load():Void
@@ -28,8 +30,6 @@ class HaxeProject
 			NewProjectDialog.getCategory("Haxe").addItem("C++ Project", createCppProject);
 			NewProjectDialog.getCategory("Haxe").addItem("Java Project", createJavaProject);
 			NewProjectDialog.getCategory("Haxe").addItem("C# Project", createCSharpProject);
-			
-			//NewProjectDialog.getCategory("Haxe").select();
 			
 			HIDE.readFile(null, "templates/Main.hx", function (data:String):Void
 			{				
@@ -147,8 +147,7 @@ class HaxeProject
 						
 						args += "-js " + pathToFile + "\n";
 						
-						var updatedPageCode:String = StringTools.replace(indexPageCode, "::title::", project.name);
-						updatedPageCode = StringTools.replace(updatedPageCode, "::script::", project.name + ".js");
+						var updatedPageCode:String = Mustache.render(indexPageCode, { title: project.name, script: project.name + ".js" } );
 						
 						var pathToWebPage:String = js.Node.path.join(pathToBin, "index.html");
 						
@@ -200,6 +199,8 @@ class HaxeProject
 				);
 				
 				ProjectOptions.updateProjectOptions();
+				
+				Splitter.show();
 			});
 		}
 		);

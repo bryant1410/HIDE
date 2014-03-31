@@ -1,5 +1,4 @@
 package filetree;
-import core.Splitpane;
 import jQuery.JQuery;
 import js.Browser;
 import js.html.AnchorElement;
@@ -7,16 +6,16 @@ import js.html.DivElement;
 import js.html.LIElement;
 import js.html.MouseEvent;
 import js.html.UListElement;
+import tabmanager.TabManager;
 
 /**
  * ...
  * @author AS3Boyan
  */
 @:keepSub @:expose class FileTree
-{	
-	public static var onFileClick:Dynamic;
-	private static var lastProjectName:String;
-	private static var lastProjectPath:String;
+{
+	static var lastProjectName:String;
+	static var lastProjectPath:String;
 	public static var treeWell:DivElement;
 	
 	public static function init():Void
@@ -25,8 +24,6 @@ import js.html.UListElement;
 			//<ul id="tree" class="nav nav-list" style="padding: 5px 0px;">
 			//</ul>
 		//</div>
-		
-		var splitPaneComponent:DivElement = cast(Splitpane.components[0], DivElement);
 		
 		treeWell = Browser.document.createDivElement();
 		treeWell.id = "tree-well";
@@ -37,7 +34,7 @@ import js.html.UListElement;
 		tree.id = "tree";
 		treeWell.appendChild(tree);
 		
-		splitPaneComponent.appendChild(treeWell);
+		new jQuery.JQuery("#filetree").append(treeWell);
 		
 		load("HIDE", "../");
 		
@@ -142,10 +139,7 @@ import js.html.UListElement;
 							a.setAttribute("itemType", "file");
 							a.onclick = function (e):Void
 							{
-								if (onFileClick != null)
-								{
-									onFileClick(filePath);
-								}
+								TabManager.openFileInNewTab(filePath);
 							};
 							
 							if (StringTools.endsWith(file, ".hx"))

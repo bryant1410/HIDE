@@ -15,11 +15,11 @@ import nodejs.webkit.Window;
 
 class PreserveWindowState
 {
-	private static var winState:Dynamic;
-	private static var currWinMode:String;
-	private static var resizeTimeout:Timer;
-	private static var isMaximizationEvent:Bool = false;
-	private static var window:Window = Window.get();
+	static var winState:Dynamic;
+	static var currWinMode:String;
+	static var resizeTimeout:Timer;
+	static var isMaximizationEvent:Bool = false;
+	static var window:Window = Window.get();
 	
 	public static function init():Void
 	{                
@@ -77,7 +77,7 @@ class PreserveWindowState
 				
 				resizeTimeout.stop();
 				
-				dumpWindowState();        
+				dumpWindowState();   
 			};
 				
 		}, false);
@@ -85,6 +85,7 @@ class PreserveWindowState
 		window.on("close", function (e)
 		{
 			saveWindowState();
+			window.close(true);
 		}
 		);
 	}

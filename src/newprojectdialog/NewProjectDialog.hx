@@ -1,5 +1,7 @@
 package newprojectdialog;
+import bootstrap.ButtonManager;
 import core.FileDialog;
+import dialogs.ModalDialog;
 import haxe.ds.StringMap;
 import haxe.Timer;
 import jQuery.JQuery;
@@ -18,6 +20,7 @@ import js.html.ParagraphElement;
 import js.html.SelectElement;
 import js.html.SpanElement;
 import js.html.UListElement;
+import watchers.LocaleWatcher;
 
 /**
  * ...
@@ -25,43 +28,31 @@ import js.html.UListElement;
  */
 @:keepSub @:expose class NewProjectDialog
 {
-	private static var modal:DivElement;
-	private static var list:SelectElement;
-	private static var selectedCategory:Category;
-	private static var description:ParagraphElement;
-	private static var helpBlock:ParagraphElement;
-	private static var projectName:InputElement;
-	private static var projectLocation:InputElement;
-	private static var createDirectoryForProject:InputElement;
-	private static var page1:DivElement;
-	private static var page2:DivElement;
-	private static var backButton:ButtonElement;
-	private static var textfieldsWithCheckboxes:StringMap<InputElement>;
-	private static var checkboxes:StringMap<InputElement>;
-	private static var nextButton:ButtonElement;
+	static var modalDialog:ModalDialog;
 	
-	private static var categories:StringMap<Category> = new StringMap();
-	private static var tree:UListElement;
+	static var list:SelectElement;
+	static var selectedCategory:Category;
+	static var description:ParagraphElement;
+	static var helpBlock:ParagraphElement;
+	static var projectName:InputElement;
+	static var projectLocation:InputElement;
+	static var createDirectoryForProject:InputElement;
+	static var page1:DivElement;
+	static var page2:DivElement;
+	static var backButton:ButtonElement;
+	static var textfieldsWithCheckboxes:StringMap<InputElement>;
+	static var checkboxes:StringMap<InputElement>;
+	static var nextButton:ButtonElement;
 	
-	private static var categoriesArray:Array<Category> = new Array();
-	static private var lastProjectCategoryPath:String;
+	static var categories:StringMap<Category> = new StringMap();
+	static var tree:UListElement;
 	
-	public static function create():Void
+	static var categoriesArray:Array<Category> = new Array();
+	static var lastProjectCategoryPath:String;
+	
+	public static function load():Void
 	{
-		modal = Browser.document.createDivElement();
-		modal.className = "modal fade";
-		
-		var dialog:DivElement = Browser.document.createDivElement();
-		dialog.className = "modal-dialog";
-		modal.appendChild(dialog);
-		
-		var content:DivElement = Browser.document.createDivElement();
-		content.className = "modal-content";
-		dialog.appendChild(content);
-		
-		var header:DivElement = Browser.document.createDivElement();
-		header.className = "modal-header";
-		content.appendChild(header);
+		modalDialog = new ModalDialog("New Project");
 		
 		var button:ButtonElement = Browser.document.createButtonElement();
 		button.type = "button";
@@ -69,43 +60,23 @@ import js.html.UListElement;
 		button.setAttribute("data-dismiss", "modal");
 		button.setAttribute("aria-hidden", "true");
 		button.innerHTML = "&times;";
-		header.appendChild(button);
-		
-		var h4:HeadingElement = cast(Browser.document.createElement("h4"), HeadingElement);
-		h4.className = "modal-title";
-		h4.textContent = "New Project";
-		header.appendChild(h4);
-		
-		var body:DivElement = Browser.document.createDivElement();
-		body.className = "modal-body";
-		body.style.overflow = "hidden";
-		content.appendChild(body);
+		modalDialog.getHeader().appendChild(button);
 		
 		textfieldsWithCheckboxes = new StringMap();
 		checkboxes = new StringMap();
 		
 		createPage1();
-		body.appendChild(page1);
+		modalDialog.getBody().appendChild(page1);
 		
 		createPage2();
 		page2.style.display = "none";
-		body.appendChild(page2);
+		modalDialog.getBody().appendChild(page2);
 		
-		var footer:DivElement = Browser.document.createDivElement();
-		footer.className = "modal-footer";
-		content.appendChild(footer);
+		backButton = ButtonManager.createButton("Back", true);
 		
-		backButton = Browser.document.createButtonElement();
-		backButton.type = "button";
-		backButton.className = "btn btn-default disabled";
-		backButton.textContent = "Back";
+		modalDialog.getFooter().appendChild(backButton);
 		
-		footer.appendChild(backButton);
-		
-		nextButton = Browser.document.createButtonElement();
-		nextButton.type = "button";
-		nextButton.className = "btn btn-default";
-		nextButton.textContent = "Next";
+		nextButton = ButtonManager.createButton("Next");
 		
 		backButton.onclick = function (e:MouseEvent)
 		{
@@ -125,46 +96,34 @@ import js.html.UListElement;
 		}
 		;
 		
-		footer.appendChild(nextButton);
+		modalDialog.getFooter().appendChild(nextButton);
 		
-		var finishButton:ButtonElement = Browser.document.createButtonElement();
-		finishButton.type = "button";
-		finishButton.className = "btn btn-default";
-		finishButton.textContent = "Finish";
+		var finishButton:ButtonElement = ButtonManager.createButton("Finish", false, false, true);
 		
 		finishButton.onclick = function (e:MouseEvent)
 		{
-			if (page1.style.display != "none" || projectName.value == "" )
+			if (projectLocation.value == "") 
+			{
+				showPage2();
+				projectLocation.focus();
+				Alertify.log("Please specify location for your projects");
+			}
+			else if (page1.style.display != "none" || projectName.value == "" )
 			{
 				generateProjectName(createProject);
 			}
-			else 
+			else
 			{
 				createProject();
 			}
 		}
 		;
 		
-		footer.appendChild(finishButton);
+		modalDialog.getFooter().appendChild(finishButton);
 		
-		var cancelButton:ButtonElement = Browser.document.createButtonElement();
-		cancelButton.type = "button";
-		cancelButton.className = "btn btn-default";
-		cancelButton.setAttribute("data-dismiss", "modal");
-		cancelButton.textContent = "Cancel";
+		var cancelButton:ButtonElement = ButtonManager.createButton("Cancel", false, true);
 		
-		footer.appendChild(cancelButton);
-		
-		Browser.document.body.appendChild(modal);
-		
-		Browser.window.addEventListener("keyup", function (e)
-		{
-			if (e.keyCode == 27)
-			{
-				untyped new JQuery(modal).modal("hide");
-			}
-		}
-		);
+		modalDialog.getFooter().appendChild(cancelButton);
 		
 		var location:String = Browser.getLocalStorage().getItem("Location");
 		
@@ -225,8 +184,6 @@ import js.html.UListElement;
 			{
 				if (exists)
 				{
-					//js.Node.process.chdir(projectLocation.value);
-					
 					var item:Item = selectedCategory.getItem(list.value);
 					
 					saveProjectCategory();
@@ -409,12 +366,12 @@ import js.html.UListElement;
 			selectedCategory.select(list.value);
 		}
 		
-		untyped new JQuery(modal).modal("show");
+		modalDialog.show();
 	}
 	
 	public static function hide():Void
 	{
-		untyped new JQuery(modal).modal("hide");
+		modalDialog.hide();
 	}
 	
 	public static function getCategory(name:String, ?position:Int):Category
@@ -645,7 +602,8 @@ import js.html.UListElement;
 		description.style.width = "100%";
 		description.style.height = "50px";
 		description.style.overflow = "auto";
-		description.textContent = "Description";
+		description.textContent = LocaleWatcher.getStringSync("Description");
+		description.setAttribute("localeString", "Description");
 		
 		page1.appendChild(description);
 		
@@ -663,7 +621,7 @@ import js.html.UListElement;
 		projectName = Browser.document.createInputElement();
 		projectName.type = "text";
 		projectName.className = "form-control";
-		projectName.placeholder = "Name";
+		projectName.placeholder = LocaleWatcher.getStringSync("Name");
 		projectName.style.width = "100%";
 		row.appendChild(projectName);
 		
@@ -680,14 +638,14 @@ import js.html.UListElement;
 		projectLocation = Browser.document.createInputElement();
 		projectLocation.type = "text";
 		projectLocation.className = "form-control";
-		projectLocation.placeholder = "Location";
+		projectLocation.placeholder = LocaleWatcher.getStringSync("Location");
 		projectLocation.style.width = "80%";
 		inputGroup.appendChild(projectLocation);
 		
 		var browseButton:ButtonElement = Browser.document.createButtonElement();
 		browseButton.type = "button";
 		browseButton.className = "btn btn-default";
-		browseButton.textContent = "Browse...";
+		browseButton.textContent = LocaleWatcher.getStringSync("Browse...");
 		browseButton.style.width = "20%";
 		
 		browseButton.onclick = function (e:MouseEvent)
@@ -772,7 +730,7 @@ import js.html.UListElement;
 				str = projectName.value;
 			}
 			
-			helpBlock.innerText = "Project will be created in: " + js.Node.path.join(projectLocation.value, str);
+			helpBlock.innerText = LocaleWatcher.getStringSync("Project will be created in: ") + js.Node.path.join(projectLocation.value, str);
 		}
 		else
 		{
@@ -803,7 +761,7 @@ import js.html.UListElement;
 		var text:InputElement = Browser.document.createInputElement();
 		text.type = "text";
 		text.className = "form-control";
-		text.placeholder = _text;
+		text.placeholder = LocaleWatcher.getStringSync(_text);
 		
 		textfieldsWithCheckboxes.set(_text, text);
 		
@@ -844,7 +802,8 @@ import js.html.UListElement;
 		a.appendChild(span);
 		
 		span = Browser.document.createSpanElement();
-		span.textContent = text;
+		span.textContent = LocaleWatcher.getStringSync(text);
+		span.setAttribute("localeString", text);
 		span.style.marginLeft = "5px";
 		a.appendChild(span);
 		
@@ -1005,7 +964,8 @@ import js.html.UListElement;
 	private static function createListItem(text:String):OptionElement
 	{		
 		var option:OptionElement = Browser.document.createOptionElement();
-		option.textContent = text;
+		option.textContent = LocaleWatcher.getStringSync(text);
+		option.setAttribute("localeString", text);
 		option.value = text;
 		return option;
 	}

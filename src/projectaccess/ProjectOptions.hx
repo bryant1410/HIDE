@@ -1,11 +1,11 @@
 package projectaccess;
-import core.Splitpane;
 import js.Browser;
 import js.html.DivElement;
 import js.html.OptionElement;
 import js.html.ParagraphElement;
 import js.html.SelectElement;
 import js.html.TextAreaElement;
+import watchers.LocaleWatcher;
 
 /**
  * ...
@@ -13,17 +13,17 @@ import js.html.TextAreaElement;
  */
 @:keepSub @:expose class ProjectOptions
 {	
-	private static var textarea:TextAreaElement;
-	private static var projectTargetList:SelectElement;
-	private static var projectTargetText:ParagraphElement;
-	private static var projectOptionsText:ParagraphElement;
-	private static var openFLTargetList:SelectElement;
-	private static var openFLTargetText:ParagraphElement;
-	private static var openFLTargets:Array<String>;
-	private static var buildActionTextArea:TextAreaElement;
-	private static var actionTextArea:TextAreaElement;
-	private static var runActionList:SelectElement;
-	private static var runActionTextAreaDescription:ParagraphElement;
+	static var textarea:TextAreaElement;
+	static var projectTargetList:SelectElement;
+	static var projectTargetText:ParagraphElement;
+	static var projectOptionsText:ParagraphElement;
+	static var openFLTargetList:SelectElement;
+	static var openFLTargetText:ParagraphElement;
+	static var openFLTargets:Array<String>;
+	static var buildActionTextArea:TextAreaElement;
+	static var actionTextArea:TextAreaElement;
+	static var runActionList:SelectElement;
+	static var runActionTextAreaDescription:ParagraphElement;
 	static private var buildActionDescription:ParagraphElement;
 	static private var runActionDescription:ParagraphElement;
 	
@@ -34,7 +34,8 @@ import js.html.TextAreaElement;
 		projectOptionsText = Browser.document.createParagraphElement();
 		projectOptionsText.id = "project-options-text";
 		projectOptionsText.className = "custom-font-size";
-		projectOptionsText.innerText = "Project arguments:";
+		projectOptionsText.textContent = LocaleWatcher.getStringSync("Project arguments:");
+		projectOptionsText.setAttribute("localeString", "Project arguments:");
 		
 		textarea = Browser.document.createTextAreaElement();
 		textarea.id = "project-options-textarea";
@@ -46,7 +47,8 @@ import js.html.TextAreaElement;
 		};
 		
 		projectTargetText = Browser.document.createParagraphElement();
-		projectTargetText.innerText = "Project target:";
+		projectTargetText.textContent = LocaleWatcher.getStringSync("Project target:");
+		projectTargetText.setAttribute("localeString", "Project target:");
 		projectTargetText.className = "custom-font-size";
 		page.appendChild(projectTargetText);
 		
@@ -61,7 +63,8 @@ import js.html.TextAreaElement;
 		openFLTargetList.style.width = "100%";
 		
 		openFLTargetText = Browser.document.createParagraphElement();
-		openFLTargetText.innerText = "OpenFL target:";
+		openFLTargetText.innerText = LocaleWatcher.getStringSync("OpenFL target:");
+		openFLTargetText.setAttribute("localeString", "OpenFL target:");
 		openFLTargetText.className = "custom-font-size";
 		
 		for (target in ["Flash", "JavaScript", "Neko", "OpenFL", "PHP", "C++", "Java", "C#"])
@@ -85,17 +88,19 @@ import js.html.TextAreaElement;
 			
 			ProjectAccess.currentProject.buildActionCommand = ["haxelib", "run", "openfl", "build", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.currentProject.path, "project.xml")), ProjectAccess.currentProject.openFLTarget].join(" ");
 			ProjectAccess.currentProject.runActionType = Project.COMMAND;
-			ProjectAccess.currentProject.runActionText = ["haxelib", "run", "openfl", "test", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.currentProject.path, "project.xml")), ProjectAccess.currentProject.openFLTarget].join(" ");
+			ProjectAccess.currentProject.runActionText = ["haxelib", "run", "openfl", "run", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.currentProject.path, "project.xml")), ProjectAccess.currentProject.openFLTarget].join(" ");
 			
 			updateProjectOptions();
 		};
 		
 		runActionDescription = Browser.document.createParagraphElement();
 		runActionDescription.className = "custom-font-size";
-		runActionDescription.innerText = "Run action:";
+		runActionDescription.textContent = LocaleWatcher.getStringSync("Run action:");
+		runActionDescription.setAttribute("localeString", "Run action:");
 		
 		runActionTextAreaDescription = Browser.document.createParagraphElement();
-		runActionTextAreaDescription.innerText = "URL:";
+		runActionTextAreaDescription.textContent = LocaleWatcher.getStringSync("URL:");
+		runActionTextAreaDescription.setAttribute("localeString", "URL:");
 		runActionTextAreaDescription.className = "custom-font-size";
 		
 		var actions:Array<String> = ["Open URL", "Open File", "Run command"];
@@ -121,7 +126,8 @@ import js.html.TextAreaElement;
 		
 		buildActionDescription = Browser.document.createParagraphElement();
 		buildActionDescription.className = "custom-font-size";
-		buildActionDescription.innerText = "Build command:";
+		buildActionDescription.textContent = LocaleWatcher.getStringSync("Build command:");
+		buildActionDescription.setAttribute("localeString", "Build command:");
 		
 		buildActionTextArea = Browser.document.createTextAreaElement();
 		buildActionTextArea.id = "project-options-build-action-textarea";
@@ -133,27 +139,18 @@ import js.html.TextAreaElement;
 		};
 		
 		page.appendChild(projectTargetList);
-		page.appendChild(Browser.document.createBRElement());
-		page.appendChild(Browser.document.createBRElement());
 		page.appendChild(buildActionDescription);
 		page.appendChild(buildActionTextArea);
-		page.appendChild(Browser.document.createBRElement());
-		page.appendChild(Browser.document.createBRElement());
 		page.appendChild(projectOptionsText);
 		page.appendChild(textarea);
-		page.appendChild(Browser.document.createBRElement());
 		page.appendChild(openFLTargetText);
 		page.appendChild(openFLTargetList);
-		page.appendChild(Browser.document.createBRElement());
-		page.appendChild(Browser.document.createBRElement());
 		page.appendChild(runActionDescription);
 		page.appendChild(runActionList);
-		page.appendChild(Browser.document.createBRElement());
-		page.appendChild(Browser.document.createBRElement());
 		page.appendChild(runActionTextAreaDescription);
 		page.appendChild(actionTextArea);
 		
-		Splitpane.components[3].appendChild(page);
+		new jQuery.JQuery("#options").append(page);
 	}
 	
 	public static function getProjectArguments():String
@@ -209,13 +206,13 @@ import js.html.TextAreaElement;
 		switch (runActionList.selectedIndex) 
 		{
 			case 0:
-				runActionTextAreaDescription.innerText = "URL: ";
+				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("URL: ");
 				ProjectAccess.currentProject.runActionType = Project.URL;
 			case 1:
-				runActionTextAreaDescription.innerText = "Path: ";
+				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("Path: ");
 				ProjectAccess.currentProject.runActionType = Project.FILE;
 			case 2:
-				runActionTextAreaDescription.innerText = "Command: ";
+				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("Command: ");
 				ProjectAccess.currentProject.runActionType = Project.COMMAND;
 				
 			default:
@@ -293,7 +290,7 @@ import js.html.TextAreaElement;
 	private static function createListItem(text:String):OptionElement
 	{		
 		var option:OptionElement = Browser.document.createOptionElement();
-		option.textContent = text;
+		option.textContent = LocaleWatcher.getStringSync(text);
 		option.value = text;
 		return option;
 	}
