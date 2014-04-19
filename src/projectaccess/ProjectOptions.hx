@@ -36,7 +36,7 @@ class ProjectOptions
 	static var runActionTextAreaDescription:ParagraphElement;
 	static var buildActionDescription:ParagraphElement;
 	static var runActionDescription:ParagraphElement;
-	static var pathToHxmlDescription;
+	static var pathToHxmlDescription:ParagraphElement;
 	static var inputGroupButton:bootstrap.InputGroupButton;
 	static var pathToHxmlInput:InputElement;
 	
@@ -68,6 +68,16 @@ class ProjectOptions
 		
 		pathToHxmlInput = inputGroupButton.getInput();
 		
+		pathToHxmlInput.onchange = function (e):Void 
+		{
+			if (Node.fs.existsSync(pathToHxmlInput.value)) 
+			{
+				var project = ProjectAccess.currentProject;
+				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
+				ProjectAccess.save();
+			}
+		};
+		
 		var browseButton = inputGroupButton.getButton();
 		
 		browseButton.onclick = function (e):Void 
@@ -78,6 +88,7 @@ class ProjectOptions
 				
 				var project = ProjectAccess.currentProject;
 				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
+				ProjectAccess.save();
 			}
 			, ".hxml");
 		};
@@ -143,20 +154,6 @@ class ProjectOptions
 					throw "Unknown target";
 			}
 			
-			switch (project.type) 
-			{
-				case Project.HAXE:
-					var targetData:TargetData = project.targetData[project.target];
-					
-					pathToHxmlInput.value = targetData.pathToHxml;
-					
-					//runActionType = targetData.runActionType;
-					//runActionText = targetData.runActionText;
-				default:
-					//runActionType = project.runActionType;
-					//runActionText = project.runActionText;
-			} 
-			
 			updateProjectOptions();
 		};
 		
@@ -217,8 +214,19 @@ class ProjectOptions
 		actionTextArea.id = "project-options-action-textarea";
 		actionTextArea.className = "custom-font-size";
 		actionTextArea.onchange = function (e)
-		{			
-			ProjectAccess.currentProject.runActionText = actionTextArea.value;
+		{	
+			var project = ProjectAccess.currentProject;
+			
+			if (project.type == Project.HAXE) 
+			{
+				var targetData:TargetData = project.targetData[project.target];
+				targetData.runActionText = actionTextArea.value;
+			}
+			else 
+			{
+				project.runActionText = actionTextArea.value;
+			}
+			
 			update(null);
 		};
 		
@@ -303,22 +311,33 @@ class ProjectOptions
 			actionTextArea.style.display = "";
 		}
 		
-		var project = ProjectAccess.currentProject;
+		var runActionType;
 		
 		switch (runActionList.selectedIndex) 
 		{
 			case 0:
 				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("URL: ");
-				project.runActionType = Project.URL;
+				runActionType = Project.URL;
 			case 1:
 				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("Path: ");
-				project.runActionType = Project.FILE;
+				runActionType = Project.FILE;
 			case 2:
 				runActionTextAreaDescription.innerText = LocaleWatcher.getStringSync("Command: ");
-				project.runActionType = Project.COMMAND;
+				runActionType = Project.COMMAND;
 				
 			default:
-				
+				runActionType = 0;
+		}
+		
+		var project = ProjectAccess.currentProject;
+		
+		switch (project.type) 
+		{
+			case Project.HAXE:
+				var targetData:TargetData = project.targetData[project.target];
+				targetData.runActionType = runActionType;
+			default:
+				project.runActionType = runActionType;
 		}
 		
 		ProjectAccess.save();
@@ -338,6 +357,8 @@ class ProjectOptions
 				
 				runActionType = targetData.runActionType;
 				runActionText = targetData.runActionText;
+				
+				pathToHxmlInput.value = targetData.pathToHxml;
 			default:
 				runActionType = project.runActionType;
 				runActionText = project.runActionText;

@@ -1,4 +1,5 @@
 package projectaccess;
+import core.Helper;
 import haxe.Json;
 import js.Browser;
 import js.Node;
@@ -29,32 +30,35 @@ class ProjectAccess
 	
 	public static function save(?onComplete:Dynamic, ?sync:Bool = false):Void
 	{		
-		if (ProjectAccess.path != null)
+		Helper.debounce("saveProject", function ():Void 
 		{
-			var pathToProjectHide:String = js.Node.path.join(ProjectAccess.path, "project.hide");
-			
-			var data:String = TJSON.encode(ProjectAccess.currentProject, 'fancy');
-			
-			if (sync) 
+			if (ProjectAccess.path != null)
 			{
-				Node.fs.writeFileSync(pathToProjectHide, data, js.Node.NodeC.UTF8);
+				var pathToProjectHide:String = js.Node.path.join(ProjectAccess.path, "project.hide");
+				
+				var data:String = TJSON.encode(ProjectAccess.currentProject, 'fancy');
+				
+				if (sync) 
+				{
+					Node.fs.writeFileSync(pathToProjectHide, data, js.Node.NodeC.UTF8);
+				}
+				else 
+				{
+					js.Node.fs.writeFile(pathToProjectHide, data, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr)
+					{
+						if (onComplete != null)
+						{
+							onComplete();
+						}
+					}
+					);
+				}
 			}
 			else 
 			{
-				js.Node.fs.writeFile(pathToProjectHide, data, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr)
-				{
-					if (onComplete != null)
-					{
-						onComplete();
-					}
-				}
-				);
+				trace("project path is null");
 			}
-		}
-		else 
-		{
-			trace("project path is null");
-		}
+		}, 250);
 	}
 	
 	public static function load(path:String, ?onComplete:Dynamic):Void

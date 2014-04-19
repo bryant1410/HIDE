@@ -2550,10 +2550,10 @@ core.MenuCommands.add = function() {
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","bindings.txt")));
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub",2,function() {
-		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE-2");
+		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
 	});
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker",3,function() {
-		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE-2/issues/new");
+		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE/issues/new");
 	});
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...",4,function() {
 		return HIDE.openPageInNewWindow(null,"about.html",{ toolbar : false});
@@ -2919,6 +2919,16 @@ core.RecentProjectsList.updateWelcomeScreen = function() {
 				openproject.OpenProject.openProject(core.RecentProjectsList.projectList[i[0]]);
 			};
 		})(i);
+		var buildButton = bootstrap.ButtonManager.createButton("Build");
+		buildButton.classList.add("buildButton");
+		buildButton.onclick = (function(i) {
+			return function(e1) {
+				e1.stopPropagation();
+				e1.preventDefault();
+				core.RunProject.buildProject(core.RecentProjectsList.projectList[i[0]]);
+			};
+		})(i);
+		a.appendChild(buildButton);
 		listGroup.appendChild(a);
 	}
 };
@@ -11670,10 +11680,6 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 				break;
 			case 1:
 				pathToFile = "bin/" + project.name + ".js";
-				var updatedPageCode = mustache.Mustache.render(haxeproject.HaxeProject.indexPageCode,{ title : project.name, script : project.name + ".js"});
-				var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
-				js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error1) {
-				});
 				targetData.runActionType = 1;
 				targetData.runActionText = js.Node.require("path").join("bin","index.html");
 				break;
@@ -11703,7 +11709,15 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 			js.Node.require("fs").writeFileSync(js.Node.require("path").join(pathToProject,targetData.pathToHxml),templateCode,"utf8");
 			project.targetData.push(targetData);
 		}
-		js.Node.require("fs").mkdir(js.Node.require("path").join(pathToProject,"bin"));
+		js.Node.require("fs").mkdir(js.Node.require("path").join(pathToProject,"bin"),null,function(error1) {
+			if(error1 == null) {
+				var updatedPageCode = mustache.Mustache.render(haxeproject.HaxeProject.indexPageCode,{ title : project.name, script : project.name + ".js"});
+				var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
+				js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
+					if(error2 != null) console.log(error2); else Alertify.error(error2);
+				});
+			} else Alertify.error(error1);
+		});
 		var path = js.Node.require("path").join(pathToProject,"project.hide");
 		projectaccess.ProjectAccess.currentProject = project;
 		projectaccess.ProjectAccess.save((function(f,a1) {
@@ -13526,13 +13540,15 @@ projectaccess.ProjectAccess.registerSaveOnCloseListener = function() {
 };
 projectaccess.ProjectAccess.save = function(onComplete,sync) {
 	if(sync == null) sync = false;
-	if(projectaccess.ProjectAccess.path != null) {
-		var pathToProjectHide = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
-		var data = tjson.TJSON.encode(projectaccess.ProjectAccess.currentProject,"fancy");
-		if(sync) js.Node.require("fs").writeFileSync(pathToProjectHide,data,"utf8"); else js.Node.require("fs").writeFile(pathToProjectHide,data,"utf8",function(error) {
-			if(onComplete != null) onComplete();
-		});
-	} else console.log("project path is null");
+	core.Helper.debounce("saveProject",function() {
+		if(projectaccess.ProjectAccess.path != null) {
+			var pathToProjectHide = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
+			var data = tjson.TJSON.encode(projectaccess.ProjectAccess.currentProject,"fancy");
+			if(sync) js.Node.require("fs").writeFileSync(pathToProjectHide,data,"utf8"); else js.Node.require("fs").writeFile(pathToProjectHide,data,"utf8",function(error) {
+				if(onComplete != null) onComplete();
+			});
+		} else console.log("project path is null");
+	},250);
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
@@ -13556,16 +13572,24 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.pathToHxmlDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
 	projectaccess.ProjectOptions.pathToHxmlInput = projectaccess.ProjectOptions.inputGroupButton.getInput();
-	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
-	browseButton.onclick = function(e) {
-		core.FileDialog.openFile(function(path) {
-			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
+	projectaccess.ProjectOptions.pathToHxmlInput.onchange = function(e) {
+		if(js.Node.require("fs").existsSync(projectaccess.ProjectOptions.pathToHxmlInput.value)) {
 			var project = projectaccess.ProjectAccess.currentProject;
 			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
+			projectaccess.ProjectAccess.save();
+		}
+	};
+	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
+	browseButton.onclick = function(e1) {
+		core.FileDialog.openFile(function(path) {
+			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
+			var project1 = projectaccess.ProjectAccess.currentProject;
+			project1.targetData[project1.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
+			projectaccess.ProjectAccess.save();
 		},".hxml");
 	};
 	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
-	editButton.onclick = function(e1) {
+	editButton.onclick = function(e2) {
 		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.pathToHxmlInput.value));
 	};
 	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
@@ -13597,60 +13621,52 @@ projectaccess.ProjectOptions.create = function() {
 		++_g;
 		projectaccess.ProjectOptions.projectTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target));
 	}
-	projectaccess.ProjectOptions.projectTargetList.onchange = function(e2) {
-		var project1 = projectaccess.ProjectAccess.currentProject;
+	projectaccess.ProjectOptions.projectTargetList.onchange = function(e3) {
+		var project2 = projectaccess.ProjectAccess.currentProject;
 		var _g2 = projectaccess.ProjectOptions.projectTargetList.value;
 		switch(_g2) {
 		case "Flash":
-			project1.target = 0;
+			project2.target = 0;
 			break;
 		case "JavaScript":
-			project1.target = 1;
+			project2.target = 1;
 			break;
 		case "Neko":
-			project1.target = 2;
+			project2.target = 2;
 			break;
 		case "OpenFL":
-			project1.target = 1;
+			project2.target = 1;
 			break;
 		case "PHP":
-			project1.target = 3;
+			project2.target = 3;
 			break;
 		case "C++":
-			project1.target = 4;
+			project2.target = 4;
 			break;
 		case "Java":
-			project1.target = 5;
+			project2.target = 5;
 			break;
 		case "C#":
-			project1.target = 6;
+			project2.target = 6;
 			break;
 		default:
 			throw "Unknown target";
 		}
-		var _g3 = project1.type;
-		switch(_g3) {
-		case 0:
-			var targetData = project1.targetData[project1.target];
-			projectaccess.ProjectOptions.pathToHxmlInput.value = targetData.pathToHxml;
-			break;
-		default:
-		}
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
 	projectaccess.ProjectOptions.openFLTargets = ["flash","html5","neko","android","blackberry","emscripten","webos","tizen","ios","windows","mac","linux"];
-	var _g4 = 0;
+	var _g3 = 0;
 	var _g11 = projectaccess.ProjectOptions.openFLTargets;
-	while(_g4 < _g11.length) {
-		var target1 = _g11[_g4];
-		++_g4;
+	while(_g3 < _g11.length) {
+		var target1 = _g11[_g3];
+		++_g3;
 		projectaccess.ProjectOptions.openFLTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target1));
 	}
 	projectaccess.ProjectOptions.openFLTargetList.onchange = function(_) {
 		projectaccess.ProjectAccess.currentProject.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
 		var buildParams = ["haxelib","run","openfl","build",HIDE.surroundWithQuotes(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.xml")),projectaccess.ProjectAccess.currentProject.openFLTarget];
-		var _g5 = projectaccess.ProjectAccess.currentProject.openFLTarget;
-		switch(_g5) {
+		var _g4 = projectaccess.ProjectAccess.currentProject.openFLTarget;
+		switch(_g4) {
 		case "flash":case "html5":case "neko":
 			buildParams = buildParams.concat(["--connect","5000"]);
 			break;
@@ -13677,18 +13693,22 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.runActionList = _this8.createElement("select");
 	projectaccess.ProjectOptions.runActionList.style.width = "100%";
 	projectaccess.ProjectOptions.runActionList.onchange = projectaccess.ProjectOptions.update;
-	var _g6 = 0;
-	while(_g6 < actions.length) {
-		var action = actions[_g6];
-		++_g6;
+	var _g5 = 0;
+	while(_g5 < actions.length) {
+		var action = actions[_g5];
+		++_g5;
 		projectaccess.ProjectOptions.runActionList.appendChild(projectaccess.ProjectOptions.createListItem(action));
 	}
 	var _this9 = window.document;
 	projectaccess.ProjectOptions.actionTextArea = _this9.createElement("textarea");
 	projectaccess.ProjectOptions.actionTextArea.id = "project-options-action-textarea";
 	projectaccess.ProjectOptions.actionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.actionTextArea.onchange = function(e3) {
-		projectaccess.ProjectAccess.currentProject.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
+	projectaccess.ProjectOptions.actionTextArea.onchange = function(e4) {
+		var project3 = projectaccess.ProjectAccess.currentProject;
+		if(project3.type == 0) {
+			var targetData = project3.targetData[project3.target];
+			targetData.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
+		} else project3.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
 		projectaccess.ProjectOptions.update(null);
 	};
 	var _this10 = window.document;
@@ -13700,7 +13720,7 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.buildActionTextArea = _this11.createElement("textarea");
 	projectaccess.ProjectOptions.buildActionTextArea.id = "project-options-build-action-textarea";
 	projectaccess.ProjectOptions.buildActionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e4) {
+	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e5) {
 		projectaccess.ProjectAccess.currentProject.buildActionCommand = projectaccess.ProjectOptions.buildActionTextArea.value;
 		projectaccess.ProjectAccess.save();
 	};
@@ -13741,22 +13761,33 @@ projectaccess.ProjectOptions.update = function(_) {
 		projectaccess.ProjectOptions.projectTargetText.style.display = "";
 		projectaccess.ProjectOptions.actionTextArea.style.display = "";
 	}
-	var project = projectaccess.ProjectAccess.currentProject;
+	var runActionType;
 	var _g = projectaccess.ProjectOptions.runActionList.selectedIndex;
 	switch(_g) {
 	case 0:
 		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("URL: ");
-		project.runActionType = 0;
+		runActionType = 0;
 		break;
 	case 1:
 		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Path: ");
-		project.runActionType = 1;
+		runActionType = 1;
 		break;
 	case 2:
 		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Command: ");
-		project.runActionType = 2;
+		runActionType = 2;
 		break;
 	default:
+		runActionType = 0;
+	}
+	var project = projectaccess.ProjectAccess.currentProject;
+	var _g1 = project.type;
+	switch(_g1) {
+	case 0:
+		var targetData = project.targetData[project.target];
+		targetData.runActionType = runActionType;
+		break;
+	default:
+		project.runActionType = runActionType;
 	}
 	projectaccess.ProjectAccess.save();
 };
@@ -13770,6 +13801,7 @@ projectaccess.ProjectOptions.updateProjectOptions = function() {
 		var targetData = project.targetData[project.target];
 		runActionType = targetData.runActionType;
 		runActionText = targetData.runActionText;
+		projectaccess.ProjectOptions.pathToHxmlInput.value = targetData.pathToHxml;
 		break;
 	default:
 		runActionType = project.runActionType;
@@ -15180,3 +15212,5 @@ watchers.LocaleWatcher.listenerAdded = false;
 watchers.ThemeWatcher.listenerAdded = false;
 Main.main();
 })();
+
+//# sourceMappingURL=HIDE.js.map

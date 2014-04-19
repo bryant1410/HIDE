@@ -1,7 +1,9 @@
 package core;
+import bootstrap.ButtonManager;
 import js.Browser;
 import js.html.AnchorElement;
 import js.html.DivElement;
+import js.html.MouseEvent;
 import menu.BootstrapMenu;
 import nodejs.webkit.Window;
 import openproject.OpenProject;
@@ -133,6 +135,19 @@ class RecentProjectsList
 			{
 				OpenProject.openProject(projectList[i]);
 			};
+			
+			var buildButton = ButtonManager.createButton("Build");
+			buildButton.classList.add("buildButton");
+			
+			buildButton.onclick	= function (e:MouseEvent):Void 
+			{
+				e.stopPropagation();
+				e.preventDefault();
+				
+				RunProject.buildProject(projectList[i]);
+			};
+			
+			a.appendChild(buildButton);
 			
 			listGroup.appendChild(a);
 		}

@@ -70,8 +70,8 @@ class MenuCommands
 		BootstrapMenu.getMenu("Developer Tools").addMenuItem("Console", 3, window.showDevTools);
 		
 		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "bindings.txt")));
-		BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub", 2, Shell.openExternal.bind("https://github.com/as3boyan/HIDE-2"));
-		BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker", 3, Shell.openExternal.bind("https://github.com/as3boyan/HIDE-2/issues/new"));
+		BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub", 2, Shell.openExternal.bind("https://github.com/as3boyan/HIDE"));
+		BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker", 3, Shell.openExternal.bind("https://github.com/as3boyan/HIDE/issues/new"));
 		BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...", 4, HIDE.openPageInNewWindow.bind(null, "about.html", {toolbar:false}));
 		
 		//Ctrl-Tab

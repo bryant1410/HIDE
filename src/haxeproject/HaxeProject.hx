@@ -176,16 +176,6 @@ class HaxeProject
 					case Project.JAVASCRIPT:
 						pathToFile = "bin/" +  project.name + ".js";
 						
-						var updatedPageCode:String = Mustache.render(indexPageCode, { title: project.name, script: project.name + ".js" } );
-						
-						var pathToWebPage:String = Node.path.join(pathToProject, "bin", "index.html");
-						
-						Node.fs.writeFile(pathToWebPage, updatedPageCode, NodeC.UTF8, function (error:js.Node.NodeErr):Void
-						{
-							
-						}
-						);
-						
 						targetData.runActionType = Project.FILE;
 						targetData.runActionText = Node.path.join("bin", "index.html");
 					case Project.NEKO:
@@ -215,7 +205,32 @@ class HaxeProject
 				project.targetData.push(targetData);
 			}
 			
-			Node.fs.mkdir(Node.path.join(pathToProject, "bin"));
+			Node.fs.mkdir(Node.path.join(pathToProject, "bin"), null, function (error:NodeErr):Void 
+			{
+				if (error == null) 
+				{
+					//JavaScript template from "templates/index.html"
+					var updatedPageCode:String = Mustache.render(indexPageCode, { title: project.name, script: project.name + ".js" } );
+					var pathToWebPage:String = Node.path.join(pathToProject, "bin", "index.html");
+					
+					Node.fs.writeFile(pathToWebPage, updatedPageCode, NodeC.UTF8, function (error:js.Node.NodeErr):Void
+					{
+						if (error != null) 
+						{
+							trace(error);
+						}
+						else 
+						{
+							Alertify.error(error);
+						}
+					}
+					);
+				}
+				else 
+				{
+					Alertify.error(error);
+				}
+			});
 			
 			var path:String = js.Node.path.join(pathToProject, "project.hide");
 			ProjectAccess.currentProject = project;

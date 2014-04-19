@@ -7,3 +7,10 @@
 {
 	overflow-y: hidden;
 }
+
+.buildButton
+{
+	padding: 3px;
+	line-height: 1;
+	float: right;
+}
