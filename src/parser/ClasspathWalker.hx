@@ -1,5 +1,6 @@
 package parser;
 import core.ProcessHelper;
+import core.Utils;
 import dialogs.BrowseFolderDialog;
 import dialogs.DialogManager;
 import dialogs.ModalDialog;
@@ -18,83 +19,128 @@ import watchers.LocaleWatcher;
  */
 class ClasspathWalker
 {
-	public static var pathToHaxe:String;
+	public static var pathToHaxeStd:String;
+	public static var haxeStdFileList:Array<String>;
+	public static var haxeStdClassList:Array<String>;
 	
 	public static function load():Void 
 	{
+		haxeStdFileList = [];
+		haxeStdClassList = [];
+		
 		var localStorage2 = Browser.getLocalStorage();
+		
+		var paths:Array<String> = [Node.process.env.HAXEPATH, Node.process.env.HAXE_STD_PATH, Node.process.env.HAXE_HOME];
 		
 		if (localStorage2 != null) 
 		{
-			pathToHaxe = localStorage2.getItem("pathToHaxe");
+			paths.insert(0, localStorage2.getItem("pathToHaxe"));
 		}
 		
-		if (pathToHaxe == null) 
+		switch (Utils.os) 
 		{
-			pathToHaxe = Node.process.env.HAXEPATH;
-			
-			if (pathToHaxe == null) 
+			case Utils.WINDOWS:
+				paths.push("C:/HaxeToolkit/haxe");
+			case Utils.LINUX, Utils.MAC:
+				paths.push("/usr/lib/haxe");
+			default:
+				
+		}
+		
+		for (envVar in paths)
+		{
+			if (envVar != null) 
 			{
-				pathToHaxe = Node.process.env.HAXE_STD_PATH;
+				pathToHaxeStd = getHaxeStdFolder(envVar);
 				
-				if (pathToHaxe != null) 
+				if (pathToHaxeStd != null) 
 				{
-					pathToHaxe = Node.path.dirname(pathToHaxe);
+					localStorage2.setItem("pathToHaxe", pathToHaxeStd);
+					break;
 				}
-				
-				//pathToHaxe = Node.process.env.HAXE_HOME;
 			}
-			
+		}
+		
+		if (pathToHaxeStd == null) 
+		{
 			DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ", function (path:String):Void 
 			{
-				var pathToHaxeStd = Node.path.join(path, "std");
+				pathToHaxeStd = getHaxeStdFolder(path);
 				
-				Node.fs.exists(pathToHaxeStd, function (exists:Bool):Void 
+				if (pathToHaxeStd != null) 
 				{
-					if (exists) 
-					{
-						parseClasspath(pathToHaxe, true);
-						localStorage2.setItem("pathToHaxe", pathToHaxe);
-					}
-					else 
-					{
-						Alertify.error(LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
-					}
+					parseClasspath(pathToHaxeStd, true);
+					localStorage2.setItem("pathToHaxe", pathToHaxeStd);
+					DialogManager.hide();
 				}
-				);
-			}, pathToHaxe);
+				else 
+				{
+					Alertify.error(LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
+				}
+			});
 		}
 		else 
 		{
-			pathToHaxe = Node.path.join(pathToHaxe, "std");
-			parseClasspath(pathToHaxe, true);
+			parseClasspath(pathToHaxeStd, true);
 		}
+	}
+	
+	static function getHaxeStdFolder(path:String):String
+	{
+		var pathToStd:String = null;
+		
+		if (Node.fs.existsSync(path)) 
+		{
+			if (Node.fs.existsSync(Node.path.join(path, "Std.hx"))) 
+			{
+				pathToStd = path;
+			}
+			else 
+			{
+				path = Node.path.join(path, "std");
+				
+				if (Node.fs.existsSync(path))
+				{
+					pathToStd = getHaxeStdFolder(path);
+				}
+			}
+		}
+		
+		return pathToStd;
 	}
 	
 	public static function parseProjectArguments():Void 
 	{
 		ClassParser.classCompletions = new StringMap();
 		ClassParser.filesList = [];
-		ClassParser.classList = [];
 		
-		load();
+		var relativePath:String;
 		
-		if (ProjectAccess.currentProject.path != null) 
+		for (item in haxeStdFileList) 
+		{
+			relativePath = Node.path.relative(ProjectAccess.path, item);
+			
+			ClassParser.filesList.push(relativePath);
+		}
+		
+		ClassParser.classList = haxeStdClassList.copy();
+		
+		if (ProjectAccess.path != null) 
 		{
 			switch (ProjectAccess.currentProject.type) 
 			{
 				case Project.HAXE:
 					getClasspaths(ProjectAccess.currentProject.args);
 				case Project.HXML:
-					var path:String = Node.path.join(ProjectAccess.currentProject.path, ProjectAccess.currentProject.main);
+					var path:String = Node.path.join(ProjectAccess.path, ProjectAccess.currentProject.main);
 					
 					var options:js.Node.NodeFsFileOptions = { };
-					options.encoding = js.Node.NodeC.UTF8;
+					options.encoding = NodeC.UTF8;
 					
 					var data:String = Node.fs.readFileSync(path, options);
 					getClasspaths(data.split("\n"));
 				case Project.OPENFL:
-					OpenFLTools.getParams(ProjectAccess.currentProject.path, ProjectAccess.currentProject.openFLTarget, function (stdout:String):Void 
+					OpenFLTools.getParams(ProjectAccess.path, ProjectAccess.currentProject.openFLTarget, function (stdout:String):Void 
 					{
 						getClasspaths(stdout.split("\n"));
 					});
@@ -103,16 +149,16 @@ class ClasspathWalker
 			}
 		}
 		
-		walkProjectFolder(ProjectAccess.currentProject.path);
+		walkProjectFolder(ProjectAccess.path);
 	}
 	
-	private static function getClasspaths(data:Array<String>)
+	static function getClasspaths(data:Array<String>)
 	{
 		var classpaths:Array<String> = [];
 		
 		for (arg in parseArg(data, "-cp")) 
 		{
-			var classpath:String = Node.path.resolve(ProjectAccess.currentProject.path, arg);
+			var classpath:String = Node.path.resolve(ProjectAccess.path, arg);
 			classpaths.push(classpath);
 		}
 		
@@ -123,17 +169,14 @@ class ClasspathWalker
 		
 		var libs:Array<String> = parseArg(data, "-lib");
 		
-		processHaxelibs(libs, function (path:String):Void 
-		{
-			parseClasspath(path);
-		});
+		processHaxelibs(libs, parseClasspath);
 	}
 	
-	static function processHaxelibs(libs:Array<String>, onPath:String->Void):Void 
+	static function processHaxelibs(libs:Array<String>, onPath:String->Bool->Void):Void 
 	{		
 		for (arg in libs) 
 		{
-			ProcessHelper.runProcess("haxelib", ["path", arg], function (stdout:String, stderr:String):Void 
+			ProcessHelper.runProcess("haxelib", ["path", arg], null, function (stdout:String, stderr:String):Void 
 			{
 				for (path in stdout.split("\n")) 
 				{
@@ -146,7 +189,7 @@ class ClasspathWalker
 						{
 							if (exists) 
 							{
-								onPath(path);
+								onPath(path, false);
 							}
 						}
 						);
@@ -176,7 +219,7 @@ class ClasspathWalker
 	
 	static function parseClasspath(path:String, ?std:Bool = false):Void
 	{
-		var emitter = Walkdir.walk(path);
+		var emitter = Walkdir.walk(path, {});
 		
 		var options:NodeFsFileOptions = { };
 		options.encoding = NodeC.UTF8;
@@ -185,9 +228,14 @@ class ClasspathWalker
 		{
 			var pathToFile;
 			
-			if (ProjectAccess.currentProject.path != null) 
+			if (std) 
 			{
-				pathToFile = Node.path.relative(ProjectAccess.currentProject.path, path);
+				haxeStdFileList.push(path);
+			}
+
+			if (ProjectAccess.path != null) 
+			{
+				pathToFile = Node.path.relative(ProjectAccess.path, path);
 			}
 			else 
 			{
@@ -205,7 +253,7 @@ class ClasspathWalker
 				{
 					if (error == null) 
 					{
-						ClassParser.processFile(data, path);
+						ClassParser.processFile(data, path, std);
 					}
 				}
 				);
@@ -228,7 +276,7 @@ class ClasspathWalker
 	
 	static function walkProjectFolder(path:String):Void 
 	{
-		var emitter = Walkdir.walk(path);
+		var emitter = Walkdir.walk(path, {});
 		
 		var options:NodeFsFileOptions = { };
 		options.encoding = NodeC.UTF8;
@@ -237,7 +285,7 @@ class ClasspathWalker
 		{
 			if (!StringTools.startsWith(path, ".git")) 
 			{
-				var relativePath = Node.path.relative(ProjectAccess.currentProject.path, path);
+				var relativePath = Node.path.relative(ProjectAccess.path, path);
 				
 				if (ClassParser.filesList.indexOf(relativePath) == -1 && ClassParser.filesList.indexOf(path) == -1) 
 				{

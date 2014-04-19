@@ -1,5 +1,5 @@
 package core;
-import cm.CodeMirrorEditor;
+import cm.Editor;
 import core.Completion.CompletionItem;
 import js.Browser;
 import js.html.DivElement;
@@ -36,7 +36,7 @@ class FunctionParametersHelper
 			msg.appendChild(spanDescription);
 		}
 		
-		var widget = CodeMirrorEditor.editor.addLineWidget(lineNumber, msg, { coverGutter: false, noHScroll: true } );
+		var widget = Editor.editor.addLineWidget(lineNumber, msg, { coverGutter: false, noHScroll: true } );
 		widgets.push(widget);
 		
 		lines.push(lineNumber);
@@ -49,12 +49,12 @@ class FunctionParametersHelper
 	
 	public static function updateScroll():Void
 	{
-		var info = CodeMirrorEditor.editor.getScrollInfo();
-		var after = CodeMirrorEditor.editor.charCoords( { line: CodeMirrorEditor.editor.getCursor().line + 1, ch: 0 }, "local").top;
+		var info = Editor.editor.getScrollInfo();
+		var after = Editor.editor.charCoords( { line: Editor.editor.getCursor().line + 1, ch: 0 }, "local").top;
 		
 		if (info.top + info.clientHeight < after)
 		{
-			CodeMirrorEditor.editor.scrollTo(null, after - info.clientHeight + 3);
+			Editor.editor.scrollTo(null, after - info.clientHeight + 3);
 		}
 	}
 	
@@ -62,7 +62,7 @@ class FunctionParametersHelper
 	{
 		for (widget in widgets) 
 		{
-			CodeMirrorEditor.editor.removeLineWidget(widget);
+			Editor.editor.removeLineWidget(widget);
 		}
 		
 		lines = [];
@@ -106,7 +106,7 @@ class FunctionParametersHelper
 	
 	static function getFunctionParams(cm:CodeMirror, pos:CodeMirror.Pos):Void
 	{
-		var word = Completion.getCurrentWord(cm, {}, {line:pos.line, ch:pos.ch - 1});
+		var word = Completion.getCurrentWord(cm, {}, {line:pos.line, ch:pos.ch - 1}).word;
 				
 		TabManager.saveActiveFile(function ():Void 
 		{
@@ -120,13 +120,16 @@ class FunctionParametersHelper
 					{							
 						var text = parseFunctionParams(completion);
 						
-						var description = parseDescription(completion);
-						
-						FunctionParametersHelper.clear();
-						FunctionParametersHelper.addWidget(text, description, cm.getCursor().line);
-						FunctionParametersHelper.updateScroll();
-						found = true;
-						break;
+						if (text != null) 
+						{
+							var description = parseDescription(completion);
+							
+							FunctionParametersHelper.clear();
+							FunctionParametersHelper.addWidget(text, description, cm.getCursor().line);
+							FunctionParametersHelper.updateScroll();
+							found = true;
+							break;
+						}
 					}
 				}
 				
@@ -157,29 +160,36 @@ class FunctionParametersHelper
 	
 	static function parseFunctionParams(completion:CompletionItem)
 	{
-		var info:String = "(";
-						
-		var args:Array<String> = completion.t.split("->");
+		var functionParamsText:String = null;
 		
-		if (args.length > 2) 
+		var info:String = "(";
+		
+		if (completion.t.indexOf("->") != -1) 
 		{
-			for (i in 0...args.length - 1) 
+			var args:Array<String> = completion.t.split("->");
+			
+			if (args.length > 1) 
 			{
-				info += args[i];
-				
-				if (i != args.length - 2) 
+				for (i in 0...args.length - 1) 
 				{
-					info += ", ";
+					info += args[i];
+					
+					if (i != args.length - 2) 
+					{
+						info += ", ";
+					}
 				}
+				
+				info += "):" + args[args.length - 1];
+			}
+			else 
+			{
+				info += "):" + args[args.length - 1];
 			}
 			
-			info += "):" + args[args.length - 1];
-		}
-		else 
-		{
-			info += "):" + args[args.length - 1];
+			functionParamsText = "function " + completion.n + info;
 		}
 		
-		return "function " + completion.n + info;
+		return functionParamsText;
 	}
 }

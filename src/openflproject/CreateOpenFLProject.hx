@@ -1,4 +1,5 @@
 package openflproject;
+import core.ProcessHelper;
 
 /**
  * ...
@@ -6,34 +7,24 @@ package openflproject;
  */
 class CreateOpenFLProject
 {
-
-	public function new() 
-	{
-		
-	}
-	
 	public static function createOpenFLProject(params:Array<String>, path:String, ?onComplete:Dynamic):Void
 	{	
-		var args = ["haxelib", "run", "openfl", "create"].concat(params).join(" ");
+		var processParams = ["run", "lime", "create"].concat(params);
 		
-		trace(args);
-		
-		var OpenFLTools:js.Node.NodeChildProcess = js.Node.child_process.exec(args, { cwd: path }, function (error, stdout, stderr) 
+		ProcessHelper.runProcess("haxelib", processParams, path, onComplete, function (code, stdout, stderr):Void 
 		{
-			trace(stderr);
-		}
-		);
-		
-		OpenFLTools.on("close", function (code:Int)
-		{
-			trace("exit code: " + Std.string(code));
+			Alertify.error(["haxelib"].concat(processParams).join(" ") + " " + Std.string(code));
 			
-			if (code == 0 && onComplete != null) 
+			if (stdout != "") 
 			{
-				onComplete();
+				Alertify.error("stdout:\n" + stdout);
 			}
-		}
-		);
+			
+			if (stderr != "") 
+			{
+				Alertify.error("stderr:\n" + stderr);
+			}
+		});
 	}
 	
 }

@@ -1,8 +1,12 @@
 package core;
+import dialogs.DialogManager;
+import dialogs.ProjectOptionsDialog;
 import filetree.FileTree;
+import js.Node;
 import menu.BootstrapMenu;
 import newprojectdialog.NewProjectDialog;
 import nodejs.webkit.App;
+import nodejs.webkit.Shell;
 import nodejs.webkit.Window;
 import openproject.OpenProject;
 import tabmanager.TabManager;
@@ -36,13 +40,13 @@ class MenuCommands
 		}
 		, "Ctrl-Shift-0");
 		
-		BootstrapMenu.getMenu("View", 2).addMenuItem("Toggle Fullscreen", 1, function ():Void
+		BootstrapMenu.getMenu("View", 3).addMenuItem("Toggle Fullscreen", 1, function ():Void
 		{
 			window.toggleFullscreen();
 		}
 		, "F11");
 		
-		BootstrapMenu.getMenu("Help").addMenuItem("changelog", 1, TabManager.openFileInNewTab.bind("changes.md"));
+		BootstrapMenu.getMenu("Help").addMenuItem("changelog", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "changes.md")));
 		
 		BootstrapMenu.getMenu("Developer Tools", 100).addMenuItem("Reload IDE", 1, window.reloadIgnoringCache, "Ctrl-Shift-R");
 
@@ -65,12 +69,10 @@ class MenuCommands
 		
 		BootstrapMenu.getMenu("Developer Tools").addMenuItem("Console", 3, window.showDevTools);
 		
-		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind("settings.json"));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(SettingsWatcher.settings.theme));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind("editor.json"));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", "templates"));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(SettingsWatcher.settings.locale));
-		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 2, TabManager.openFileInNewTab.bind("bindings.txt"));
+		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "bindings.txt")));
+		BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub", 2, Shell.openExternal.bind("https://github.com/as3boyan/HIDE-2"));
+		BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker", 3, Shell.openExternal.bind("https://github.com/as3boyan/HIDE-2/issues/new"));
+		BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...", 4, HIDE.openPageInNewWindow.bind(null, "about.html", {toolbar:false}));
 		
 		//Ctrl-Tab
 		Hotkeys.add("Tab Manager->Show Next Tab", "Ctrl-Tab", null, TabManager.showNextTab);
@@ -86,26 +88,51 @@ class MenuCommands
 		//Ctrl-N
 		BootstrapMenu.getMenu("File").addMenuItem("New File...", 2, TabManager.createFileInNewTab, "Ctrl-N");
 		BootstrapMenu.getMenu("File").addSeparator();
-		BootstrapMenu.getMenu("File").addMenuItem("Open...", 3, OpenProject.openProject, "Ctrl-O");
+		BootstrapMenu.getMenu("File").addMenuItem("Open Project...", 3, OpenProject.openProject.bind(null, true));
+		BootstrapMenu.getMenu("File").addSubmenu("Open Recent Project");
 		BootstrapMenu.getMenu("File").addMenuItem("Close Project", 4, OpenProject.closeProject);
+		BootstrapMenu.getMenu("File").addMenuItem("Open File...", 5, OpenProject.openProject, "Ctrl-O");
+		BootstrapMenu.getMenu("File").addSubmenu("Open Recent File");
 		BootstrapMenu.getMenu("File").addSeparator();
 		
 		//Ctrl-S
-		BootstrapMenu.getMenu("File").addMenuItem("Save", 5, TabManager.saveActiveFile, "Ctrl-S");
+		BootstrapMenu.getMenu("File").addMenuItem("Save", 6, TabManager.saveActiveFile, "Ctrl-S");
 		//Ctrl-Shift-S
-		BootstrapMenu.getMenu("File").addMenuItem("Save As...", 6, TabManager.saveActiveFileAs, "Ctrl-Shift-S");
-		BootstrapMenu.getMenu("File").addMenuItem("Save All", 7, TabManager.saveAll);
+		BootstrapMenu.getMenu("File").addMenuItem("Save As...", 7, TabManager.saveActiveFileAs, "Ctrl-Shift-S");
+		BootstrapMenu.getMenu("File").addMenuItem("Save All", 8, TabManager.saveAll);
 		BootstrapMenu.getMenu("File").addSeparator();
 		
-		BootstrapMenu.getMenu("File").addMenuItem("Exit", 8, App.closeAllWindows);
+		BootstrapMenu.getMenu("File").addMenuItem("Exit", 9, App.closeAllWindows);
 		
 		Window.get().on('close', TabManager.saveAll);
 		
-		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind("hotkeys.json"));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
+		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","settings.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(SettingsWatcher.settings.theme));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","editor.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
+		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","hotkeys.json")));
 		
-		Hotkeys.add("Code Editor->Go to Line", "Ctrl-G", null, GoToLine.show);
+		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, null);
+		BootstrapMenu.getMenu("Edit").addSeparator();
+		BootstrapMenu.getMenu("Edit").addMenuItem("Cut", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Copy", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Paste", 1, null);
+		BootstrapMenu.getMenu("Edit").addSeparator();
+		BootstrapMenu.getMenu("Edit").addMenuItem("Find...", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Replace...", 1, null);
 		
-		Hotkeys.add("Completion->Open File", "Ctrl-Shift-O", null, Completion.showFileList);
-		Hotkeys.add("Completion->Show Class List", "Ctrl-Shift-P", null, Completion.showClassList);
+		BootstrapMenu.getMenu("Navigate", 4).addMenuItem("Go to Line", 2, GoToLine.show, "Ctrl-G");
+		BootstrapMenu.getMenu("Navigate").addMenuItem("Open File", 3, Completion.showFileList, "Ctrl-Shift-O");
+		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
+		
+		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");
+		BootstrapMenu.getMenu("Project").addMenuItem("Build", 2, RunProject.buildProject, "F8");
+		BootstrapMenu.getMenu("Project").addMenuItem("Clean", 3, RunProject.cleanProject, "Shift-F8");
+		BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File", 4, RunProject.setHxmlAsProjectBuildFile);
+		BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
+		BootstrapMenu.getMenu("Project").addMenuItem("Project Options...", 5, DialogManager.showProjectOptions);
 	}
 }

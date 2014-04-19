@@ -7,10 +7,7 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Generate CSS and JS scripts embed code for folders
 * Autoformat on change
 * Autorebuild on change
-* Remove Tern(reuse code from hide-future to manage completion and function parameters hints)
 * Show history of recently opened/build hxmls
-* Moved CSS of UI elements to theme.css, added command to open theme.css stylesheet to customize visual look of UI in HIDE itself(open theme.css file, and update visual look on file save, similar to hotkeys management).
-* Options : Open templates folder
 * Options : Open snippets configuration file
 * Configure autoformat using config.json
 * Hide panes when no project was opened(hide project options for hxml files)
@@ -100,14 +97,40 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Hotkeys to hide/show panels
 * Find in files
 * FD theme
-* Hxml mode
 * Lower case first char of path on Windows
 * Fix removing dist file with --no-output
 * Calculate indents based on brackets
 * HaxeParserProvider: check if pos is null
 * Adjust ":" completion for typedefs
+* Show multiple function declaration
+* Function description in completion
+* Check if hxml is in proper format
+* Show do not installed warning in hxml
+* Parse hxml
+* Make themes for editor
+* Check hotkeys for Mac OS(check os, and fix replacing Ctrl to Cmd)
+* Download and install Haxe
+* Check and refactor code for Haxe server(if not found, then download and install)
+* Add notification for errors
+* Prevent getting completion from Haxe more than one time(if no completion found for it) for function parameters hint
+* Fix match brackets
+* Split RunProject to multiple classes
+* Show hints for variables
+* Search in API reference
+* Replace tab tooltips with tooltips from Bootstrap
+* Fix indentation for "for" loop
+* Automatically fix missing colon
+* Standalone package each platform(install Haxe if not installed, get updates from haxelib)
+* Toggle EReg preview from popup over EReg
+* Build Failed Behaviour Change: if errors not found, then switch to Output(if haxelibs missing propose to install)
+* Add Enter hotkey for Browse File Dialog
+* Run Grunt for current project(add support for multiple build/run commands)
+* Add current HIDE version(from haxelib.json) to issue reporter
 
 ###Important
+* Custom hxml, build and run commands for each target
+* Fix broken completion(watch 'project.xml' for changes, get compiler arguments from OpenFL display)
+* Fix code editor visibility when user clicks on file tree item
 * Fix for building *.hxml with -cmd arguments(test https://github.com/Justinfront/Jigsawx)
 * Fix OpenFL projects(check webserver)
 * Parse code with hxparse(classes on path)

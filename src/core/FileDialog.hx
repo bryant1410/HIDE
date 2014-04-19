@@ -6,7 +6,7 @@ import js.html.InputElement;
  * ...
  * @author AS3Boyan
  */
-@:keepSub @:expose class FileDialog
+class FileDialog
 {
 	static var input:InputElement;
 	static var onClick:String->Void;
@@ -28,7 +28,7 @@ import js.html.InputElement;
 		Browser.document.body.appendChild(input);
 	}
 	
-	public static function openFile(_onClick:String->Void):Void
+	public static function openFile(_onClick:String->Void, ?extensions:String):Void
 	{
 		input.value = "";
 		
@@ -42,6 +42,15 @@ import js.html.InputElement;
 		if (input.hasAttribute("nwdirectory"))
 		{
 			input.removeAttribute("nwdirectory");
+		}
+		
+		if (extensions != null) 
+		{
+			input.setAttribute("accept", extensions);
+		}
+		else 
+		{
+			input.removeAttribute("accept");
 		}
 		
 		input.click();

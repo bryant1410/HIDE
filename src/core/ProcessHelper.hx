@@ -1,5 +1,5 @@
 package core;
-import cm.CodeMirrorEditor;
+import cm.Editor;
 import haxe.ds.StringMap;
 import jQuery.JQuery;
 import js.Browser;
@@ -13,18 +13,23 @@ import tabmanager.TabManager;
  * ...
  * @author 
  */
-@:keepSub @:expose("ProcessHelper") class ProcessHelper
+class ProcessHelper
 {
 	static var processStdout:String;
 	static var processStderr:String;
 	
-	public static function runProcess(process:String, params:Array<String>, onComplete:String->String->Void, ?onFailed:Int->String->String->Void):NodeChildProcess
+	public static function runProcess(process:String, params:Array<String>, path:String, onComplete:String->String->Void, ?onFailed:Int->String->String->Void):NodeChildProcess
 	{		
-		var command:String = process + " " + params.join(" ");
+		var command:String = processParamsToCommand(process, params);
 		
-		//trace(command);
+		var options:NodeExecOpt = { };
 		
-		var process:NodeChildProcess = Node.child_process.exec(command, { }, function (error, stdout:String, stderr:String):Void
+		if (path != null) 
+		{
+			options.cwd = path;
+		}
+		
+		var process:NodeChildProcess = Node.child_process.exec(command, options, function (error, stdout:String, stderr:String):Void
 		{			
 			//if (stdout != "")
 			//{
@@ -52,7 +57,9 @@ import tabmanager.TabManager;
 	
 	public static function runProcessAndPrintOutputToConsole(process:String, params:Array<String>, ?onComplete:Void->Void):NodeChildProcess
 	{
-		var command:String = process + " " + params.join(" ");
+		var command:String = processParamsToCommand(process, params);
+		
+		new JQuery("#outputTab").click();
 		
 		var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
 		textarea.value = "Build started\n";
@@ -60,35 +67,9 @@ import tabmanager.TabManager;
 		
 		new JQuery("#errors").html("");
 		
-		var process:NodeChildProcess = Node.child_process.spawn(process, params);
-		
-		process.stdout.setEncoding(NodeC.UTF8);
-		process.stderr.setEncoding(NodeC.UTF8);
-		
-		var processStdout:String = "";
-		var processStderr:String = "";
-		
-		process.stdout.on("data", function (data:String):Void 
-		{
-			processStdout += data;
-		}
-		);
-		
-		process.stderr.on("data", function (data:String):Void 
-		{
-			processStderr += data;
-		}
-		);
-		
-		process.on("close", function (code:Int)
+		var process:NodeChildProcess = runPersistentProcess(process, params, function (code:Int, stdout:String, stderr:String):Void 
 		{
 			processOutput(code, processStdout, processStderr, onComplete);
-		}
-		);
-		
-		process.on("error", function (e):Void 
-		{
-			trace(e);
 		}
 		);
 		
@@ -120,7 +101,7 @@ import tabmanager.TabManager;
 					if (args.length > 3) 
 					{
 						var relativePath:String = args[0];
-						var fullPath:String = Node.path.join(ProjectAccess.currentProject.path, relativePath);
+						var fullPath:String = Node.path.join(ProjectAccess.path, relativePath);
 						
 						var data:Array<HaxeLint.Info> = [];
 						
@@ -153,7 +134,7 @@ import tabmanager.TabManager;
 						{
 							TabManager.openFileInNewTab(fullPath, true, function ():Void 
 							{
-								var cm:Dynamic = CodeMirrorEditor.editor;
+								var cm:Dynamic = Editor.editor;
 								cm.centerOnLine(lineNumber);
 							});
 							
@@ -162,7 +143,6 @@ import tabmanager.TabManager;
 						new JQuery("#errors").append(a);
 						
 						var info:HaxeLint.Info = { from: {line:lineNumber, ch:start}, to: {line:lineNumber, ch:end}, message: message, severity: "error" };
-						trace(info);
 						data.push(info);
 						
 						//Check if it's open
@@ -187,7 +167,7 @@ import tabmanager.TabManager;
 				onComplete();
 			}
 			
-			new JQuery("#buildStatus").fadeIn();
+			new JQuery("#buildStatus").fadeIn(250);
 		}
 		else 
 		{
@@ -198,14 +178,16 @@ import tabmanager.TabManager;
 			//trace(command);
 			textarea.value += "Build failed (exit code: " + Std.string(code) +  ")\n" ;
 			
-			new JQuery("#buildStatus").fadeOut();
+			new JQuery("#buildStatus").fadeOut(250);
 		}
 		
 		HaxeLint.updateLinting();
 	}
 	
-	public static function runPersistentProcess(process:String, params:Array<String>, ?onClose:String->String->Void):NodeChildProcess
+	public static function runPersistentProcess(process:String, params:Array<String>, ?onClose:Int->String->String->Void, ?redirectToOutput:Bool = false):NodeChildProcess
 	{
+		var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
+		
 		processStdout = "";
 		processStderr = "";
 		
@@ -215,6 +197,11 @@ import tabmanager.TabManager;
 		process.stdout.on("data", function (data:String)
 		{
 			processStdout += data;
+			
+			if (redirectToOutput) 
+			{
+				textarea.value += data;
+			}
 		}
 		);
 		
@@ -222,6 +209,17 @@ import tabmanager.TabManager;
 		process.stderr.on("data", function (data:String)
 		{
 			processStderr += data;
+			
+			if (redirectToOutput) 
+			{
+				textarea.value += data;
+			}
+		}
+		);
+		
+		process.on("error", function (e):Void 
+		{
+			trace(e);
 		}
 		);
 		
@@ -232,7 +230,7 @@ import tabmanager.TabManager;
 			
 			if (onClose != null) 
 			{
-				onClose(processStdout, processStderr);
+				onClose(code, processStdout, processStderr);
 			}
 			
 			if (code != 0)
@@ -245,5 +243,38 @@ import tabmanager.TabManager;
 		);	
 		
 		return process;
+	}
+	
+	public static function checkProcessInstalled(process:String, params:Array<String>, onComplete:Bool->Void):Void
+	{
+		var installed:Bool;
+		
+		Node.child_process.exec(processParamsToCommand(process, params), { }, function (error, stdout, stderr) 
+		{			
+			if (error == null)
+			{
+				installed = true;
+			}
+			else 
+			{
+				//if (error.code = 1)
+				//{
+					//process not found
+				//}
+				
+				//trace(error);
+				//trace(stdout);
+				//trace(stderr);
+				installed = false;
+			}
+			
+			onComplete(installed);
+		}
+		);
+	}
+	
+	static function processParamsToCommand(process:String, params:Array<String>):String
+	{
+		return [process].concat(params).join(" ");
 	}
 }

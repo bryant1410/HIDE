@@ -28,12 +28,12 @@ interface MenuItem
 //alternatively you can just remove -dce full flag from plugin.hxml
 //more info about meta tags can be obtained at Haxe website: 
 //http://haxe.org/manual/tips_and_tricks
-@:keepSub class MenuButtonItem implements MenuItem
+class MenuButtonItem implements MenuItem
 {	
 	var li:LIElement;
 	public var position:Int;
 	
-	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "")
+	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "", ?_submenu:Bool = false)
 	{		
 		var hotkeyText:String = _hotkey;
 		
@@ -43,15 +43,27 @@ interface MenuItem
 		span.style.color = "silver";
 		span.style.float = "right";
 		
-		Hotkeys.add(menuItem, hotkeyText, span, _onClickFunction);
+		if (!_submenu) 
+		{
+			Hotkeys.add(menuItem, hotkeyText, span, _onClickFunction);
+		}
 		
 		li = Browser.document.createLIElement();	
 		li.classList.add("menu-item");
 		
 		var a:AnchorElement = Browser.document.createAnchorElement();
 		a.style.left = "0";
-		a.textContent = LocaleWatcher.getStringSync(_text);
-		a.setAttribute("localeString", _text);
+		
+		//Do not translate submenu items
+		if (!_submenu)
+		{
+			a.textContent = LocaleWatcher.getStringSync(_text);
+			a.setAttribute("localeString", _text);
+		}
+		else 
+		{
+			a.textContent = _text;
+		}
 		
 		if (_onClickFunction != null) 
 		{
@@ -78,7 +90,7 @@ interface MenuItem
 }
 
 //@:keepSub prevents -dce full from deleting unused functions, so they still can be used in other plugins
-@:keepSub class Separator implements MenuItem
+class Separator implements MenuItem
 {
 	var li:LIElement;
 	
@@ -94,7 +106,7 @@ interface MenuItem
 	}
 }
 
-@:keepSub @:expose("ui.menu.basic.Submenu") class Submenu
+class Submenu
 {
 	var ul:UListElement;
 	var li:LIElement;
@@ -132,22 +144,25 @@ interface MenuItem
 			// If a menu is already open we close it
 			//$('ul.dropdown-menu [data-toggle=dropdown]').parent().removeClass('open');
 			// opening the one you clicked on
-			
-			li2.classList.add('open');
+				
+			if (ul.childElementCount > 0) 
+			{
+				li2.classList.add('open');
 
-			var menu:UListElement = ul;
-			var newpos:Int;
-			
-			if ((menu.offsetLeft + menu.clientWidth) + 30 > Browser.window.innerWidth) 
-			{
-				newpos = -menu.clientWidth;
+				var menu:UListElement = ul;
+				var newpos:Int;
+				
+				if ((menu.offsetLeft + menu.clientWidth) + 30 > Browser.window.innerWidth) 
+				{
+					newpos = -menu.clientWidth;
+				}
+				else 
+				{
+					newpos = li2.clientWidth;
+				}
+				
+				menu.style.left = Std.string(newpos) + "px";
 			}
-			else 
-			{
-				newpos = li2.clientWidth;
-			}
-			
-			menu.style.left = Std.string(newpos) + "px";
 		}
 		
 		li2.appendChild(a2);
@@ -158,8 +173,16 @@ interface MenuItem
 	
 	public function addMenuItem(_text:String, _position:Int, _onClickFunction:Dynamic, ?_hotkey:String):Void
 	{
-		var menuButtonItem:MenuButtonItem = new MenuButtonItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey);
+		var menuButtonItem:MenuButtonItem = new MenuButtonItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
 		ul.appendChild(menuButtonItem.getElement());
+	}
+	
+	public function clear():Void 
+	{
+		while (ul.firstChild != null) 
+		{
+			ul.removeChild(ul.firstChild);
+		}
 	}
 	
 	public function getElement():Element
@@ -170,7 +193,7 @@ interface MenuItem
  
 //@:expose makes this class available in global scope
 //@:keepSub prevents -dce full from deleting unused functions, so they still can be used in other plugins
-@:keepSub @:expose("ui.menu.basic.Menu") class Menu
+class Menu
 {
 	var li:LIElement;
 	var ul:UListElement;
@@ -259,6 +282,7 @@ interface MenuItem
 	{
 		var submenu = new Submenu(name, _text);
 		ul.appendChild(submenu.getElement());
+		submenus.set(_text, submenu);
 		return submenu;
 	}
 	

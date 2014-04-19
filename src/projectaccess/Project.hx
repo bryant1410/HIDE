@@ -5,7 +5,13 @@ package projectaccess;
  * @author AS3Boyan
  */
  
-@:keepSub @:expose class Project
+typedef TargetData = {
+	@:optional var pathToHxml:String;
+	@:optional var runActionType:Int;
+	@:optional var runActionText:String;
+} 
+ 
+class Project
 {
 	inline public static var HAXE:Int = 0;
 	inline public static var OPENFL:Int = 1;
@@ -13,11 +19,11 @@ package projectaccess;
 	
 	inline public static var FLASH:Int = 0;
 	inline public static var JAVASCRIPT:Int = 1;
-	inline public static var PHP:Int = 2;
-	inline public static var CPP:Int = 3;
-	inline public static var JAVA:Int = 4;
-	inline public static var CSHARP:Int = 5;
-	inline public static var NEKO:Int = 6;
+	inline public static var NEKO:Int = 2;
+	inline public static var PHP:Int = 3;
+	inline public static var CPP:Int = 4;
+	inline public static var JAVA:Int = 5;
+	inline public static var CSHARP:Int = 6;
 	
 	inline public static var URL:Int = 0;
 	inline public static var FILE:Int = 1;
@@ -36,11 +42,10 @@ package projectaccess;
 	public var url:String;
 	
 	public var args:Array<String>;
+	public var targetData:Array<TargetData>;
 	
 	public var files:Array<String>;
 	public var activeFile:String;
-	
-	public var path:String;
 	
 	public var openFLTarget:String;
 	
@@ -48,10 +53,17 @@ package projectaccess;
 	public var runActionText:String;
 	public var buildActionCommand:String;
 	
+	public var hiddenItems:Array<String>;
+	public var showHiddenItems:Bool;
+	
 	public function new() 
 	{
 		args = [];
 		files = [];
+		hiddenItems = [];
+		targetData = [];
+		
+		showHiddenItems = false;
 	}
 	
 }

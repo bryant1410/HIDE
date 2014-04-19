@@ -4,8 +4,10 @@ import core.Splitter;
 import filetree.FileTree;
 import js.Browser;
 import js.html.TextAreaElement;
+import js.Node;
 import mustache.Mustache;
 import newprojectdialog.NewProjectDialog;
+import openproject.OpenProject;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
 import projectaccess.ProjectOptions;
@@ -31,15 +33,38 @@ class HaxeProject
 			NewProjectDialog.getCategory("Haxe").addItem("Java Project", createJavaProject);
 			NewProjectDialog.getCategory("Haxe").addItem("C# Project", createCSharpProject);
 			
-			HIDE.readFile(null, "templates/Main.hx", function (data:String):Void
-			{				
-				code = data;
+			var options:NodeFsFileOptions = { };
+			options.encoding = NodeC.UTF8;
+			
+			var path:String = Node.path.join("core", "templates", "Main.hx");
+			
+			Node.fs.readFile(path, options, function (error:NodeErr, data:String):Void
+			{
+				if (error == null) 
+				{
+					code = data;
+				}
+				else 
+				{
+					trace(error);
+					Alertify.error("Can't load template " + path);
+				}
 			}
 			);
 			
-			HIDE.readFile(null, "templates/index.html", function (data:String):Void
+			path = Node.path.join("core", "templates", "index.html");
+			
+			Node.fs.readFile(path, options, function (error:NodeErr, data:String):Void
 			{
-				indexPageCode = data;
+				if (error == null) 
+				{
+					indexPageCode = data;
+				}
+				else 
+				{
+					trace(error);
+					Alertify.error("Can't load template " + path);
+				}
 			}
 			);
 	}
@@ -87,18 +112,18 @@ class HaxeProject
 			
 			if (data.createDirectory)
 			{
-				pathToProject = js.Node.path.join(pathToProject, data.projectName);
+				pathToProject = Node.path.join(pathToProject, data.projectName);
 			}
 			
 			var pathToMain:String = pathToProject;
 			
-			pathToMain = js.Node.path.join(pathToMain, "src", "Main.hx");
+			pathToMain = Node.path.join(pathToMain, "src", "Main.hx");
 			
 			js.Node.fs.writeFile(pathToMain, code, function (error:js.Node.NodeErr):Void
 			{
 				if (error != null)
 				{
-					trace(error);
+					Alertify.error(error);
 				}
 				
 				js.Node.fs.exists(pathToMain, function (exists:Bool):Void
@@ -124,84 +149,77 @@ class HaxeProject
 			project.url = data.projectURL;
 			project.type = Project.HAXE;
 			project.target = target;
-			project.path = pathToProject;
-			project.buildActionCommand = ["haxe", "--connect", "5000", "--cwd", '"%path%"'].join(" ");
+			ProjectAccess.path = pathToProject;
 			
-			var pathToBin:String = js.Node.path.join(pathToProject, "bin");
+			var filenames = ["flash", "javascript", "neko", "php", "cpp", "java", "csharp"];
 			
-			js.Node.fs.mkdir(pathToBin, function (error):Void
+			var pathToProjectTemplates = Node.path.join("core", "templates", "project");
+			
+			for (i in 0...filenames.length) 
 			{
-				var args:String = "-cp src\n-main Main\n"; 
-			
-				switch (project.target) 
+				var targetData:TargetData = { };
+				targetData.pathToHxml = filenames[i] + ".hxml";
+				
+				var options:NodeFsFileOptions = { };
+				options.encoding = NodeC.UTF8;
+				
+				var templateCode:String = Node.fs.readFileSync(Node.path.join(pathToProjectTemplates, targetData.pathToHxml), options);
+				
+				var pathToFile:String;
+				
+				switch (i)
 				{
 					case Project.FLASH:
-						var pathToFile:String = "bin/" + project.name + ".swf";
-						
-						args += "-swf " + pathToFile + "\n";
-						
-						project.runActionType = Project.FILE;
-						project.runActionText = pathToFile;
+						pathToFile = "bin/" + project.name + ".swf";
+						targetData.runActionType = Project.FILE;
+						targetData.runActionText = pathToFile;
 					case Project.JAVASCRIPT:
-						var pathToFile:String = "bin/" +  project.name + ".js";
-						
-						args += "-js " + pathToFile + "\n";
+						pathToFile = "bin/" +  project.name + ".js";
 						
 						var updatedPageCode:String = Mustache.render(indexPageCode, { title: project.name, script: project.name + ".js" } );
 						
-						var pathToWebPage:String = js.Node.path.join(pathToBin, "index.html");
+						var pathToWebPage:String = Node.path.join(pathToProject, "bin", "index.html");
 						
-						js.Node.fs.writeFile(pathToWebPage, updatedPageCode, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr):Void
+						Node.fs.writeFile(pathToWebPage, updatedPageCode, NodeC.UTF8, function (error:js.Node.NodeErr):Void
 						{
 							
 						}
 						);
 						
-						project.runActionType = Project.FILE;
-						project.runActionText = js.Node.path.join("bin", "index.html");
+						targetData.runActionType = Project.FILE;
+						targetData.runActionText = Node.path.join("bin", "index.html");
 					case Project.NEKO:
-						var pathToFile:String  = "bin/" + project.name + ".n";
+						pathToFile  = "bin/" + project.name + ".n";
 						
-						args += "-neko " + pathToFile +  "\n";
-						
-						project.runActionType = Project.COMMAND;
-						project.runActionText = "neko " + js.Node.path.join(project.path, pathToFile);
+						targetData.runActionType = Project.COMMAND;
+						targetData.runActionText = "neko " + pathToFile;
 					case Project.PHP:
-						args += "-php " + "bin/" + project.name + ".php\n";
+						pathToFile = "bin/" + project.name + ".php";
 					case Project.CPP:
-						var pathToFile:String = "bin/" + project.name + ".exe";
-						args += "-cpp " + pathToFile + "\n";
+						pathToFile = "bin/" + project.name + ".exe";
 						
-						project.runActionType = Project.COMMAND;
-						project.runActionText = js.Node.path.join(project.path, pathToFile);
+						targetData.runActionType = Project.COMMAND;
+						targetData.runActionText = pathToFile;
 					case Project.JAVA:
-						args += "-java " + "bin/" + project.name + ".jar\n";
+						pathToFile = "bin/" + project.name + ".jar";
 					case Project.CSHARP:
-						args += "-cs " + "bin/" + project.name + ".exe\n";
+						pathToFile = "bin/" + project.name + ".exe";
 						
 					default:
-						
+						throw "Path to file is null";
 				}
 				
-				args += "-debug\n -dce full";
+				templateCode = Mustache.render(templateCode, { file: pathToFile } );
+				Node.fs.writeFileSync(Node.path.join(pathToProject, targetData.pathToHxml), templateCode, NodeC.UTF8);
 				
-				project.args = args.split("\n");
-				
-				var path:String = js.Node.path.join(pathToProject, "project.json");
-				Browser.getLocalStorage().setItem("pathToLastProject", path);
-				
-				ProjectAccess.currentProject = project;
-				
-				ProjectAccess.save(function ()
-				{
-					FileTree.load(project.name, pathToProject);
-				}
-				);
-				
-				ProjectOptions.updateProjectOptions();
-				
-				Splitter.show();
-			});
+				project.targetData.push(targetData);
+			}
+			
+			Node.fs.mkdir(Node.path.join(pathToProject, "bin"));
+			
+			var path:String = js.Node.path.join(pathToProject, "project.hide");
+			ProjectAccess.currentProject = project;
+			ProjectAccess.save(OpenProject.openProject.bind(path));
 		}
 		);
 	}

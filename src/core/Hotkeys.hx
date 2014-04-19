@@ -19,18 +19,18 @@ typedef Hotkey =
 	var onKeyDown:Dynamic;
 }
  
-@:keepSub @:expose("Hotkeys") class Hotkeys
+class Hotkeys
 {
 	static var hotkeys:Array<Hotkey> = new Array();
 	static var commandMap:StringMap<String> = new StringMap();
 	static var spanMap:StringMap<SpanElement> = new StringMap();
 	public static var data:Dynamic;
 	static var pathToData:String;
-	static var commandKey:Bool = Utils.os == Utils.OTHER;
+	static var commandKey:Bool = Utils.os == Utils.MAC;
 	
 	public static function prepare():Void
 	{
-		pathToData = "hotkeys.json";
+		pathToData = Node.path.join("core", "config","hotkeys.json");
 		parseData();
 		
 		var options:NodeWatchOpt = { };
