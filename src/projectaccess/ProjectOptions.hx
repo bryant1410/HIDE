@@ -38,7 +38,7 @@ class ProjectOptions
 	static var runActionDescription:ParagraphElement;
 	static var pathToHxmlDescription;
 	static var inputGroupButton:bootstrap.InputGroupButton;
-	static var input:InputElement;
+	static var pathToHxmlInput:InputElement;
 	
 	public static function create():Void
 	{
@@ -66,7 +66,7 @@ class ProjectOptions
 		
 		inputGroupButton = new InputGroupButton("Browse...");
 		
-		input = inputGroupButton.getInput();
+		pathToHxmlInput = inputGroupButton.getInput();
 		
 		var browseButton = inputGroupButton.getButton();
 		
@@ -74,10 +74,10 @@ class ProjectOptions
 		{
 			FileDialog.openFile(function (path:String):Void 
 			{
-				input.value = path;
+				pathToHxmlInput.value = path;
 				
 				var project = ProjectAccess.currentProject;
-				project.targetData[project.target].pathToHxml = input.value;
+				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
 			}
 			, ".hxml");
 		};
@@ -85,7 +85,7 @@ class ProjectOptions
 		var editButton = ButtonManager.createButton("Edit", false, true);
 		editButton.onclick = function (e):Void 
 		{
-			TabManager.openFileInNewTab(Node.path.resolve(ProjectAccess.path, input.value));
+			TabManager.openFileInNewTab(Node.path.resolve(ProjectAccess.path, pathToHxmlInput.value));
 		};
 		
 		inputGroupButton.getSpan().appendChild(editButton);
@@ -143,17 +143,19 @@ class ProjectOptions
 					throw "Unknown target";
 			}
 			
-			//switch (project.type) 
-			//{
-				//case Project.HAXE:
-					//var targetData:TargetData = project.targetData[project.target];
-					//
+			switch (project.type) 
+			{
+				case Project.HAXE:
+					var targetData:TargetData = project.targetData[project.target];
+					
+					pathToHxmlInput.value = targetData.pathToHxml;
+					
 					//runActionType = targetData.runActionType;
 					//runActionText = targetData.runActionText;
-				//default:
+				default:
 					//runActionType = project.runActionType;
 					//runActionText = project.runActionText;
-			//}
+			} 
 			
 			updateProjectOptions();
 		};
@@ -291,8 +293,8 @@ class ProjectOptions
 		}
 		else 
 		{
-			buildActionTextArea.style.display = "";
-			buildActionDescription.style.display = "";
+			buildActionTextArea.style.display = "none";
+			buildActionDescription.style.display = "none";
 			runActionTextAreaDescription.style.display = "";
 			runActionList.style.display = "";
 			runActionDescription.style.display = "";

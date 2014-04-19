@@ -88,6 +88,8 @@ class ProcessHelper
 		
 		HaxeLint.fileData = new StringMap();
 		
+		var switchToResultsTab:Bool = false;
+		
 		if (stderr != "")
 		{
 			var lines = stderr.split("\n");
@@ -145,6 +147,8 @@ class ProcessHelper
 						var info:HaxeLint.Info = { from: {line:lineNumber, ch:start}, to: {line:lineNumber, ch:end}, message: message, severity: "error" };
 						data.push(info);
 						
+						switchToResultsTab = true;
+						
 						//Check if it's open
 						//Show hints when swithing document
 						TabManager.openFileInNewTab(fullPath, false);
@@ -171,7 +175,10 @@ class ProcessHelper
 		}
 		else 
 		{
-			new JQuery("#resultsTab").click();
+			if (switchToResultsTab) 
+			{
+				new JQuery("#resultsTab").click();
+			}
 			
 			Alertify.error("Build failed");
 			

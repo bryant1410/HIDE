@@ -2726,6 +2726,7 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 		console.log("stdout:\n" + stdout);
 	}
 	core.HaxeLint.fileData = new haxe.ds.StringMap();
+	var switchToResultsTab = false;
 	if(stderr != "") {
 		var lines = stderr.split("\n");
 		var _g = 0;
@@ -2770,6 +2771,7 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 					new $("#errors").append(a);
 					var info = { from : { line : lineNumber[0], ch : start}, to : { line : lineNumber[0], ch : end}, message : message, severity : "error"};
 					data.push(info);
+					switchToResultsTab = true;
 					tabmanager.TabManager.openFileInNewTab(fullPath[0],false);
 				}
 			}
@@ -2783,7 +2785,7 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 		if(onComplete != null) onComplete();
 		new $("#buildStatus").fadeIn(250);
 	} else {
-		new $("#resultsTab").click();
+		if(switchToResultsTab) new $("#resultsTab").click();
 		Alertify.error("Build failed");
 		textarea.value += "Build failed (exit code: " + (code == null?"null":"" + code) + ")\n";
 		new $("#buildStatus").fadeOut(250);
@@ -13553,18 +13555,18 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.pathToHxmlDescription.setAttribute("localeString","Path to Hxml:");
 	projectaccess.ProjectOptions.pathToHxmlDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
-	projectaccess.ProjectOptions.input = projectaccess.ProjectOptions.inputGroupButton.getInput();
+	projectaccess.ProjectOptions.pathToHxmlInput = projectaccess.ProjectOptions.inputGroupButton.getInput();
 	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
 	browseButton.onclick = function(e) {
 		core.FileDialog.openFile(function(path) {
-			projectaccess.ProjectOptions.input.value = path;
+			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
 			var project = projectaccess.ProjectAccess.currentProject;
-			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.input.value;
+			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
 		},".hxml");
 	};
 	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
 	editButton.onclick = function(e1) {
-		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.input.value));
+		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.pathToHxmlInput.value));
 	};
 	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
 	var _this2 = window.document;
@@ -13626,21 +13628,29 @@ projectaccess.ProjectOptions.create = function() {
 		default:
 			throw "Unknown target";
 		}
+		var _g3 = project1.type;
+		switch(_g3) {
+		case 0:
+			var targetData = project1.targetData[project1.target];
+			projectaccess.ProjectOptions.pathToHxmlInput.value = targetData.pathToHxml;
+			break;
+		default:
+		}
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
 	projectaccess.ProjectOptions.openFLTargets = ["flash","html5","neko","android","blackberry","emscripten","webos","tizen","ios","windows","mac","linux"];
-	var _g3 = 0;
+	var _g4 = 0;
 	var _g11 = projectaccess.ProjectOptions.openFLTargets;
-	while(_g3 < _g11.length) {
-		var target1 = _g11[_g3];
-		++_g3;
+	while(_g4 < _g11.length) {
+		var target1 = _g11[_g4];
+		++_g4;
 		projectaccess.ProjectOptions.openFLTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target1));
 	}
 	projectaccess.ProjectOptions.openFLTargetList.onchange = function(_) {
 		projectaccess.ProjectAccess.currentProject.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
 		var buildParams = ["haxelib","run","openfl","build",HIDE.surroundWithQuotes(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.xml")),projectaccess.ProjectAccess.currentProject.openFLTarget];
-		var _g4 = projectaccess.ProjectAccess.currentProject.openFLTarget;
-		switch(_g4) {
+		var _g5 = projectaccess.ProjectAccess.currentProject.openFLTarget;
+		switch(_g5) {
 		case "flash":case "html5":case "neko":
 			buildParams = buildParams.concat(["--connect","5000"]);
 			break;
@@ -13667,10 +13677,10 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.runActionList = _this8.createElement("select");
 	projectaccess.ProjectOptions.runActionList.style.width = "100%";
 	projectaccess.ProjectOptions.runActionList.onchange = projectaccess.ProjectOptions.update;
-	var _g5 = 0;
-	while(_g5 < actions.length) {
-		var action = actions[_g5];
-		++_g5;
+	var _g6 = 0;
+	while(_g6 < actions.length) {
+		var action = actions[_g6];
+		++_g6;
 		projectaccess.ProjectOptions.runActionList.appendChild(projectaccess.ProjectOptions.createListItem(action));
 	}
 	var _this9 = window.document;
@@ -13722,8 +13732,8 @@ projectaccess.ProjectOptions.update = function(_) {
 		projectaccess.ProjectOptions.projectTargetList.style.display = "none";
 		projectaccess.ProjectOptions.projectTargetText.style.display = "none";
 	} else {
-		projectaccess.ProjectOptions.buildActionTextArea.style.display = "";
-		projectaccess.ProjectOptions.buildActionDescription.style.display = "";
+		projectaccess.ProjectOptions.buildActionTextArea.style.display = "none";
+		projectaccess.ProjectOptions.buildActionDescription.style.display = "none";
 		projectaccess.ProjectOptions.runActionTextAreaDescription.style.display = "";
 		projectaccess.ProjectOptions.runActionList.style.display = "";
 		projectaccess.ProjectOptions.runActionDescription.style.display = "";
