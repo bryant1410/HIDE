@@ -13564,7 +13564,7 @@ projectaccess.ProjectOptions.create = function() {
 	};
 	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
 	editButton.onclick = function(e1) {
-		tabmanager.TabManager.openFileInNewTab(projectaccess.ProjectOptions.input.value);
+		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.input.value));
 	};
 	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
 	var _this2 = window.document;
@@ -15170,5 +15170,3 @@ watchers.LocaleWatcher.listenerAdded = false;
 watchers.ThemeWatcher.listenerAdded = false;
 Main.main();
 })();
-
-//# sourceMappingURL=HIDE.js.map

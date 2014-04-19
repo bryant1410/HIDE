@@ -5,6 +5,7 @@ import core.FileDialog;
 import haxe.ds.ArraySort;
 import js.Browser;
 import js.html.DivElement;
+import js.html.InputElement;
 import js.html.OptionElement;
 import js.html.ParagraphElement;
 import js.html.SelectElement;
@@ -35,9 +36,9 @@ class ProjectOptions
 	static var runActionTextAreaDescription:ParagraphElement;
 	static var buildActionDescription:ParagraphElement;
 	static var runActionDescription:ParagraphElement;
-	static private var pathToHxmlDescription;
-	static private var inputGroupButton:bootstrap.InputGroupButton;
-	static private var input;
+	static var pathToHxmlDescription;
+	static var inputGroupButton:bootstrap.InputGroupButton;
+	static var input:InputElement;
 	
 	public static function create():Void
 	{
