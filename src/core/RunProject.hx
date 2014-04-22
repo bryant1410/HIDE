@@ -25,7 +25,26 @@ class RunProject
 	
 	public static function cleanProject() 
 	{
-		
+		if (ProjectAccess.path != null) 
+		{
+			var project = ProjectAccess.currentProject;
+			
+			switch (project.type) 
+			{
+				case Project.HAXE:
+					var pathToHxml:String = Node.path.join(ProjectAccess.path, project.targetData[project.target].pathToHxml);
+				case Project.OPENFL:
+					runProcess = killRunningProcessAndRunNew("haxelib", ["run", "lime", "clean", project.openFLTarget]);
+				case Project.HXML:
+					var pathToHxml:String = Node.path.join(ProjectAccess.path, project.main);
+				default:
+					
+			}
+		}
+		else 
+		{
+			Alertify.error("Open or create project first");
+		}
 	}
 	
 	public static function setHxmlAsProjectBuildFile():Void
@@ -113,9 +132,7 @@ class RunProject
 						
 						var process:String = params.shift();
 						
-						killRunProcess();
-						
-						runProcess = ProcessHelper.runPersistentProcess(process, params, null, true);
+						runProcess = killRunningProcessAndRunNew(process, params);
 						
 						var window:Window = Window.get();
 		
@@ -131,6 +148,12 @@ class RunProject
 			}
 		}
 		);
+	}
+	
+	static function killRunningProcessAndRunNew(process:String, params:Array<String>):NodeChildProcess 
+	{
+		killRunProcess();
+		return ProcessHelper.runPersistentProcess(process, params, null, true);
 	}
 	
 	static function killRunProcess():Void

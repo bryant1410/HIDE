@@ -112,6 +112,8 @@ public function scanForBracket(pos:CodeMirror.Pos, dir:Int, ?style:Dynamic, ?con
 public function execCommand(command:String):Void;
 public function replaceRange(replacement: String, from: Pos, to: Pos, ?origin: String):Void;
 public function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
+public function getSelection(?lineSep: String):String;
+public function replaceSelection(replacement: String, ?select: String):Void;
 
 public function markText(from : Pos, to : Pos, options:{className : String} ) : MarkedText;
 function getAllMarks():Array<MarkedText>;

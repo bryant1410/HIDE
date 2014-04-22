@@ -236,8 +236,7 @@ class Editor
 			//Helper.debounce("filechange", function ():Void 
 			//{
 				var tab = TabManager.tabMap.get(TabManager.selectedPath);
-				//!tab.doc.isClean()
-				tab.setChanged(true);
+				tab.setChanged(!tab.doc.isClean());
 			//}
 			//, 150);
 		}

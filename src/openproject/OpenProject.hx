@@ -150,7 +150,6 @@ class OpenProject
 						var project:Project = new Project();
 						project.name = pathToProject.substr(pathToProject.lastIndexOf(js.Node.path.sep));
 						project.type = Project.HXML;
-						//project.args = data.split("\n");
 						ProjectAccess.path = pathToProject;
 						project.main = Node.path.basename(path);
 						

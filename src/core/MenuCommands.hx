@@ -1,4 +1,5 @@
 package core;
+import cm.Editor;
 import dialogs.DialogManager;
 import dialogs.ProjectOptionsDialog;
 import filetree.FileTree;
@@ -6,9 +7,11 @@ import js.Node;
 import menu.BootstrapMenu;
 import newprojectdialog.NewProjectDialog;
 import nodejs.webkit.App;
+import nodejs.webkit.Clipboard;
 import nodejs.webkit.Shell;
 import nodejs.webkit.Window;
 import openproject.OpenProject;
+import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import watchers.SettingsWatcher;
 
@@ -108,21 +111,34 @@ class MenuCommands
 		
 		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
 		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","settings.json")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(SettingsWatcher.settings.theme));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", SettingsWatcher.settings.theme)));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","editor.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
 		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","hotkeys.json")));
 		
-		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, null);
-		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, null);
+		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, Editor.editor.execCommand.bind("undo"));
+		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, Editor.editor.execCommand.bind("redo"));
 		BootstrapMenu.getMenu("Edit").addSeparator();
-		BootstrapMenu.getMenu("Edit").addMenuItem("Cut", 1, null);
-		BootstrapMenu.getMenu("Edit").addMenuItem("Copy", 1, null);
-		BootstrapMenu.getMenu("Edit").addMenuItem("Paste", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Cut", 1, function ():Void 
+		{
+			Clipboard.getInstance().set(Editor.editor.getSelection());
+			Editor.editor.replaceSelection("");
+		});
+		
+		BootstrapMenu.getMenu("Edit").addMenuItem("Copy", 1, function ():Void 
+		{
+			Clipboard.getInstance().set(Editor.editor.getSelection());
+		});
+		
+		BootstrapMenu.getMenu("Edit").addMenuItem("Paste", 1, function ():Void 
+		{
+			Editor.editor.replaceSelection(Clipboard.getInstance().get());
+		});
+		
 		BootstrapMenu.getMenu("Edit").addSeparator();
-		BootstrapMenu.getMenu("Edit").addMenuItem("Find...", 1, null);
-		BootstrapMenu.getMenu("Edit").addMenuItem("Replace...", 1, null);
+		BootstrapMenu.getMenu("Edit").addMenuItem("Find...", 1, Editor.editor.execCommand.bind("find"));
+		BootstrapMenu.getMenu("Edit").addMenuItem("Replace...", 1, Editor.editor.execCommand.bind("replace"));
 		
 		BootstrapMenu.getMenu("Navigate", 4).addMenuItem("Go to Line", 2, GoToLine.show, "Ctrl-G");
 		BootstrapMenu.getMenu("Navigate").addMenuItem("Open File", 3, Completion.showFileList, "Ctrl-Shift-O");
@@ -133,6 +149,16 @@ class MenuCommands
 		BootstrapMenu.getMenu("Project").addMenuItem("Clean", 3, RunProject.cleanProject, "Shift-F8");
 		BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File", 4, RunProject.setHxmlAsProjectBuildFile);
 		BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
-		BootstrapMenu.getMenu("Project").addMenuItem("Project Options...", 5, DialogManager.showProjectOptions);
+		BootstrapMenu.getMenu("Project").addMenuItem("Project Options...", 5, function ():Void 
+		{
+			if (ProjectAccess.path != null) 
+			{
+				DialogManager.showProjectOptions();
+			}
+			else 
+			{
+				Alertify.error("Open or create project first");
+			}
+		});
 	}
 }

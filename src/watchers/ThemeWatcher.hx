@@ -25,7 +25,7 @@ class ThemeWatcher
 		
 		Watcher.watchFileForUpdates(pathToTheme, function ():Void 
 		{
-			new JQuery("#theme").attr("href", pathToTheme);
+			new JQuery("#theme").attr("href", SettingsWatcher.settings.theme);
 		}, 1000);
 		
 		if (!listenerAdded) 

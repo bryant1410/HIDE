@@ -14,3 +14,8 @@
 	line-height: 1;
 	float: right;
 }
+
+#welcomeScreen
+{
+    -webkit-user-select: none;
+}

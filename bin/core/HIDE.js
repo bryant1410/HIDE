@@ -1204,7 +1204,7 @@ cm.Editor.load = function() {
 			if(data1.charAt(cursor1.ch - 1) == "-") core.Completion.showHxmlCompletion();
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
-		tab.setChanged(true);
+		tab.setChanged(!tab.doc.isClean());
 	});
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
@@ -2584,38 +2584,55 @@ core.MenuCommands.add = function() {
 			return f2(a12);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","settings.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,function() {
-		return tabmanager.TabManager.openFileInNewTab(watchers.SettingsWatcher.settings.theme);
-	});
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file",1,(function(f3,a13) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,(function(f3,a13) {
 		return function() {
 			return f3(a13);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","editor.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f4,a14,a2) {
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme)));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file",1,(function(f4,a14) {
 		return function() {
-			return f4(a14,a2);
+			return f4(a14);
+		};
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","editor.json")));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f5,a15,a2) {
+		return function() {
+			return f5(a15,a2);
 		};
 	})(filetree.FileTree.load,"templates",js.Node.require("path").join("core","templates")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open localization file",1,(function(f5,a15) {
-		return function() {
-			return f5(a15);
-		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
-	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open hotkey configuration file",1,(function(f6,a16) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open localization file",1,(function(f6,a16) {
 		return function() {
 			return f6(a16);
 		};
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
+	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open hotkey configuration file",1,(function(f7,a17) {
+		return function() {
+			return f7(a17);
+		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","hotkeys.json")));
-	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,null);
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Redo",1,null);
+	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
+		return cm.Editor.editor.execCommand("undo");
+	});
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Redo",1,function() {
+		return cm.Editor.editor.execCommand("redo");
+	});
 	menu.BootstrapMenu.getMenu("Edit").addSeparator();
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Cut",1,null);
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Copy",1,null);
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Paste",1,null);
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Cut",1,function() {
+		nodejs.webkit.Clipboard.get().set(cm.Editor.editor.getSelection());
+		cm.Editor.editor.replaceSelection("");
+	});
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Copy",1,function() {
+		nodejs.webkit.Clipboard.get().set(cm.Editor.editor.getSelection());
+	});
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Paste",1,function() {
+		cm.Editor.editor.replaceSelection(nodejs.webkit.Clipboard.get().get());
+	});
 	menu.BootstrapMenu.getMenu("Edit").addSeparator();
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Find...",1,null);
-	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Replace...",1,null);
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Find...",1,function() {
+		return cm.Editor.editor.execCommand("find");
+	});
+	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Replace...",1,function() {
+		return cm.Editor.editor.execCommand("replace");
+	});
 	menu.BootstrapMenu.getMenu("Navigate",4).addMenuItem("Go to Line",2,core.GoToLine.show,"Ctrl-G");
 	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Open File",3,core.Completion.showFileList,"Ctrl-Shift-O");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
@@ -2624,7 +2641,9 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Clean",3,core.RunProject.cleanProject,"Shift-F8");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File",4,core.RunProject.setHxmlAsProjectBuildFile);
 	menu.BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
-	menu.BootstrapMenu.getMenu("Project").addMenuItem("Project Options...",5,dialogs.DialogManager.showProjectOptions);
+	menu.BootstrapMenu.getMenu("Project").addMenuItem("Project Options...",5,function() {
+		if(projectaccess.ProjectAccess.path != null) dialogs.DialogManager.showProjectOptions(); else Alertify.error("Open or create project first");
+	});
 };
 var nodejs = {};
 nodejs.webkit = {};
@@ -2950,6 +2969,22 @@ core.RunProject = function() { };
 $hxClasses["core.RunProject"] = core.RunProject;
 core.RunProject.__name__ = ["core","RunProject"];
 core.RunProject.cleanProject = function() {
+	if(projectaccess.ProjectAccess.path != null) {
+		var project = projectaccess.ProjectAccess.currentProject;
+		var _g = project.type;
+		switch(_g) {
+		case 0:
+			var pathToHxml = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.targetData[project.target].pathToHxml);
+			break;
+		case 1:
+			core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew("haxelib",["run","lime","clean",project.openFLTarget]);
+			break;
+		case 2:
+			var pathToHxml1 = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.main);
+			break;
+		default:
+		}
+	} else Alertify.error("Open or create project first");
 };
 core.RunProject.setHxmlAsProjectBuildFile = function() {
 	var path = tabmanager.TabManager.getCurrentDocumentPath();
@@ -3000,8 +3035,7 @@ core.RunProject.runProject = function() {
 			if(core.RunProject.isValidCommand(command)) {
 				var params = build.CommandPreprocessor.preprocess(command,projectaccess.ProjectAccess.path).split(" ");
 				var process = params.shift();
-				core.RunProject.killRunProcess();
-				core.RunProject.runProcess = core.ProcessHelper.runPersistentProcess(process,params,null,true);
+				core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew(process,params);
 				var $window = nodejs.webkit.Window.get();
 				$window.on("close",function(e) {
 					core.RunProject.killRunProcess();
@@ -3012,6 +3046,10 @@ core.RunProject.runProject = function() {
 		default:
 		}
 	});
+};
+core.RunProject.killRunningProcessAndRunNew = function(process,params) {
+	core.RunProject.killRunProcess();
+	return core.ProcessHelper.runPersistentProcess(process,params,null,true);
 };
 core.RunProject.killRunProcess = function() {
 	console.log(core.RunProject.runProcess);
@@ -13565,52 +13603,25 @@ projectaccess.ProjectOptions.__name__ = ["projectaccess","ProjectOptions"];
 projectaccess.ProjectOptions.create = function() {
 	var _this = window.document;
 	projectaccess.ProjectOptions.page = _this.createElement("div");
+	projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects();
 	var _this1 = window.document;
-	projectaccess.ProjectOptions.pathToHxmlDescription = _this1.createElement("p");
-	projectaccess.ProjectOptions.pathToHxmlDescription.textContent = watchers.LocaleWatcher.getStringSync("Path to Hxml:");
-	projectaccess.ProjectOptions.pathToHxmlDescription.setAttribute("localeString","Path to Hxml:");
-	projectaccess.ProjectOptions.pathToHxmlDescription.className = "custom-font-size";
-	projectaccess.ProjectOptions.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
-	projectaccess.ProjectOptions.pathToHxmlInput = projectaccess.ProjectOptions.inputGroupButton.getInput();
-	projectaccess.ProjectOptions.pathToHxmlInput.onchange = function(e) {
-		if(js.Node.require("fs").existsSync(projectaccess.ProjectOptions.pathToHxmlInput.value)) {
-			var project = projectaccess.ProjectAccess.currentProject;
-			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
-			projectaccess.ProjectAccess.save();
-		}
-	};
-	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
-	browseButton.onclick = function(e1) {
-		core.FileDialog.openFile(function(path) {
-			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
-			var project1 = projectaccess.ProjectAccess.currentProject;
-			project1.targetData[project1.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
-			projectaccess.ProjectAccess.save();
-		},".hxml");
-	};
-	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
-	editButton.onclick = function(e2) {
-		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.pathToHxmlInput.value));
-	};
-	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
-	var _this2 = window.document;
-	projectaccess.ProjectOptions.projectTargetText = _this2.createElement("p");
+	projectaccess.ProjectOptions.projectTargetText = _this1.createElement("p");
 	projectaccess.ProjectOptions.projectTargetText.textContent = watchers.LocaleWatcher.getStringSync("Project target:");
 	projectaccess.ProjectOptions.projectTargetText.setAttribute("localeString","Project target:");
 	projectaccess.ProjectOptions.projectTargetText.className = "custom-font-size";
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.projectTargetText);
-	var _this3 = window.document;
-	projectaccess.ProjectOptions.projectTargetList = _this3.createElement("select");
+	var _this2 = window.document;
+	projectaccess.ProjectOptions.projectTargetList = _this2.createElement("select");
 	projectaccess.ProjectOptions.projectTargetList.id = "project-options-project-target";
 	projectaccess.ProjectOptions.projectTargetList.className = "custom-font-size";
 	projectaccess.ProjectOptions.projectTargetList.style.width = "100%";
-	var _this4 = window.document;
-	projectaccess.ProjectOptions.openFLTargetList = _this4.createElement("select");
+	var _this3 = window.document;
+	projectaccess.ProjectOptions.openFLTargetList = _this3.createElement("select");
 	projectaccess.ProjectOptions.openFLTargetList.id = "project-options-openfl-target";
 	projectaccess.ProjectOptions.openFLTargetList.className = "custom-font-size";
 	projectaccess.ProjectOptions.openFLTargetList.style.width = "100%";
-	var _this5 = window.document;
-	projectaccess.ProjectOptions.openFLTargetText = _this5.createElement("p");
+	var _this4 = window.document;
+	projectaccess.ProjectOptions.openFLTargetText = _this4.createElement("p");
 	projectaccess.ProjectOptions.openFLTargetText.innerText = watchers.LocaleWatcher.getStringSync("OpenFL target:");
 	projectaccess.ProjectOptions.openFLTargetText.setAttribute("localeString","OpenFL target:");
 	projectaccess.ProjectOptions.openFLTargetText.className = "custom-font-size";
@@ -13621,33 +13632,33 @@ projectaccess.ProjectOptions.create = function() {
 		++_g;
 		projectaccess.ProjectOptions.projectTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target));
 	}
-	projectaccess.ProjectOptions.projectTargetList.onchange = function(e3) {
-		var project2 = projectaccess.ProjectAccess.currentProject;
+	projectaccess.ProjectOptions.projectTargetList.onchange = function(e) {
+		var project = projectaccess.ProjectAccess.currentProject;
 		var _g2 = projectaccess.ProjectOptions.projectTargetList.value;
 		switch(_g2) {
 		case "Flash":
-			project2.target = 0;
+			project.target = 0;
 			break;
 		case "JavaScript":
-			project2.target = 1;
+			project.target = 1;
 			break;
 		case "Neko":
-			project2.target = 2;
+			project.target = 2;
 			break;
 		case "OpenFL":
-			project2.target = 1;
+			project.target = 1;
 			break;
 		case "PHP":
-			project2.target = 3;
+			project.target = 3;
 			break;
 		case "C++":
-			project2.target = 4;
+			project.target = 4;
 			break;
 		case "Java":
-			project2.target = 5;
+			project.target = 5;
 			break;
 		case "C#":
-			project2.target = 6;
+			project.target = 6;
 			break;
 		default:
 			throw "Unknown target";
@@ -13673,24 +13684,23 @@ projectaccess.ProjectOptions.create = function() {
 		default:
 		}
 		projectaccess.ProjectAccess.currentProject.buildActionCommand = buildParams.join(" ");
-		console.log(buildParams);
 		projectaccess.ProjectAccess.currentProject.runActionType = 2;
 		projectaccess.ProjectAccess.currentProject.runActionText = ["haxelib","run","openfl","run",HIDE.surroundWithQuotes(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.xml")),projectaccess.ProjectAccess.currentProject.openFLTarget].join(" ");
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
-	var _this6 = window.document;
-	projectaccess.ProjectOptions.runActionDescription = _this6.createElement("p");
+	var _this5 = window.document;
+	projectaccess.ProjectOptions.runActionDescription = _this5.createElement("p");
 	projectaccess.ProjectOptions.runActionDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.runActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Run action:");
 	projectaccess.ProjectOptions.runActionDescription.setAttribute("localeString","Run action:");
-	var _this7 = window.document;
-	projectaccess.ProjectOptions.runActionTextAreaDescription = _this7.createElement("p");
+	var _this6 = window.document;
+	projectaccess.ProjectOptions.runActionTextAreaDescription = _this6.createElement("p");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.textContent = watchers.LocaleWatcher.getStringSync("URL:");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.setAttribute("localeString","URL:");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.className = "custom-font-size";
 	var actions = ["Open URL","Open File","Run command"];
-	var _this8 = window.document;
-	projectaccess.ProjectOptions.runActionList = _this8.createElement("select");
+	var _this7 = window.document;
+	projectaccess.ProjectOptions.runActionList = _this7.createElement("select");
 	projectaccess.ProjectOptions.runActionList.style.width = "100%";
 	projectaccess.ProjectOptions.runActionList.onchange = projectaccess.ProjectOptions.update;
 	var _g5 = 0;
@@ -13699,28 +13709,28 @@ projectaccess.ProjectOptions.create = function() {
 		++_g5;
 		projectaccess.ProjectOptions.runActionList.appendChild(projectaccess.ProjectOptions.createListItem(action));
 	}
-	var _this9 = window.document;
-	projectaccess.ProjectOptions.actionTextArea = _this9.createElement("textarea");
+	var _this8 = window.document;
+	projectaccess.ProjectOptions.actionTextArea = _this8.createElement("textarea");
 	projectaccess.ProjectOptions.actionTextArea.id = "project-options-action-textarea";
 	projectaccess.ProjectOptions.actionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.actionTextArea.onchange = function(e4) {
-		var project3 = projectaccess.ProjectAccess.currentProject;
-		if(project3.type == 0) {
-			var targetData = project3.targetData[project3.target];
+	projectaccess.ProjectOptions.actionTextArea.onchange = function(e1) {
+		var project1 = projectaccess.ProjectAccess.currentProject;
+		if(project1.type == 0) {
+			var targetData = project1.targetData[project1.target];
 			targetData.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
-		} else project3.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
+		} else project1.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
 		projectaccess.ProjectOptions.update(null);
 	};
-	var _this10 = window.document;
-	projectaccess.ProjectOptions.buildActionDescription = _this10.createElement("p");
+	var _this9 = window.document;
+	projectaccess.ProjectOptions.buildActionDescription = _this9.createElement("p");
 	projectaccess.ProjectOptions.buildActionDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.buildActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Build command:");
 	projectaccess.ProjectOptions.buildActionDescription.setAttribute("localeString","Build command:");
-	var _this11 = window.document;
-	projectaccess.ProjectOptions.buildActionTextArea = _this11.createElement("textarea");
+	var _this10 = window.document;
+	projectaccess.ProjectOptions.buildActionTextArea = _this10.createElement("textarea");
 	projectaccess.ProjectOptions.buildActionTextArea.id = "project-options-build-action-textarea";
 	projectaccess.ProjectOptions.buildActionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e5) {
+	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e2) {
 		projectaccess.ProjectAccess.currentProject.buildActionCommand = projectaccess.ProjectOptions.buildActionTextArea.value;
 		projectaccess.ProjectAccess.save();
 	};
@@ -13735,6 +13745,36 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionList);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionTextAreaDescription);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.actionTextArea);
+};
+projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects = function() {
+	var _this = window.document;
+	projectaccess.ProjectOptions.pathToHxmlDescription = _this.createElement("p");
+	projectaccess.ProjectOptions.pathToHxmlDescription.textContent = watchers.LocaleWatcher.getStringSync("Path to Hxml:");
+	projectaccess.ProjectOptions.pathToHxmlDescription.setAttribute("localeString","Path to Hxml:");
+	projectaccess.ProjectOptions.pathToHxmlDescription.className = "custom-font-size";
+	projectaccess.ProjectOptions.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
+	projectaccess.ProjectOptions.pathToHxmlInput = projectaccess.ProjectOptions.inputGroupButton.getInput();
+	projectaccess.ProjectOptions.pathToHxmlInput.onchange = function(e) {
+		if(js.Node.require("fs").existsSync(projectaccess.ProjectOptions.pathToHxmlInput.value)) {
+			var project = projectaccess.ProjectAccess.currentProject;
+			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
+			projectaccess.ProjectAccess.save();
+		} else Alertify.error(projectaccess.ProjectOptions.pathToHxmlInput.value + " is not found");
+	};
+	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
+	browseButton.onclick = function(e1) {
+		core.FileDialog.openFile(function(path) {
+			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
+			var project1 = projectaccess.ProjectAccess.currentProject;
+			project1.targetData[project1.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
+			projectaccess.ProjectAccess.save();
+		},".hxml");
+	};
+	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
+	editButton.onclick = function(e2) {
+		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.pathToHxmlInput.value));
+	};
+	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
 };
 projectaccess.ProjectOptions.update = function(_) {
 	if(projectaccess.ProjectOptions.projectTargetList.selectedIndex == 3) {
@@ -14750,7 +14790,7 @@ watchers.ThemeWatcher.load = function() {
 	watchers.ThemeWatcher.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
 	if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
 	watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
-		new $("#theme").attr("href",watchers.ThemeWatcher.pathToTheme);
+		new $("#theme").attr("href",watchers.SettingsWatcher.settings.theme);
 	},1000);
 	if(!watchers.ThemeWatcher.listenerAdded) {
 		nodejs.webkit.Window.get().on("close",function(e) {
@@ -14843,6 +14883,7 @@ js.node.Remove.remove = js.Node.require("remove");
 Walkdir.walkdir = js.Node.require("walkdir");
 var Watchr = js.Node.require("watchr");
 nodejs.webkit.App = nodejs.webkit.$ui.App;
+nodejs.webkit.Clipboard = nodejs.webkit.$ui.Clipboard;
 nodejs.webkit.Menu = nodejs.webkit.$ui.Menu;
 nodejs.webkit.MenuItem = nodejs.webkit.$ui.MenuItem;
 nodejs.webkit.Shell = nodejs.webkit.$ui.Shell;

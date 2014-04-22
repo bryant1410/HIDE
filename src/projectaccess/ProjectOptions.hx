@@ -23,19 +23,26 @@ class ProjectOptions
 {	
 	public static var page:DivElement;
 	
-	//static var textarea:TextAreaElement;
+	//Select element(ComboBox-like) for project target selection
 	static var projectTargetList:SelectElement;
 	static var projectTargetText:ParagraphElement;
-	//static var projectOptionsText:ParagraphElement;
+	
+	//OpenFL specific targets
 	static var openFLTargetList:SelectElement;
 	static var openFLTargetText:ParagraphElement;
 	static var openFLTargets:Array<String>;
+	
+	//Build action(currently only shown for OpenFL projects)
+	static var buildActionDescription:ParagraphElement;
 	static var buildActionTextArea:TextAreaElement;
+	
+	//Run action type and command/file/url
 	static var actionTextArea:TextAreaElement;
 	static var runActionList:SelectElement;
 	static var runActionTextAreaDescription:ParagraphElement;
-	static var buildActionDescription:ParagraphElement;
 	static var runActionDescription:ParagraphElement;
+	
+	//Multiple Hxml-based projects(Project.HAXE)
 	static var pathToHxmlDescription:ParagraphElement;
 	static var inputGroupButton:bootstrap.InputGroupButton;
 	static var pathToHxmlInput:InputElement;
@@ -44,62 +51,7 @@ class ProjectOptions
 	{
 		page = Browser.document.createDivElement();
 		
-		//projectOptionsText = Browser.document.createParagraphElement();
-		//projectOptionsText.id = "project-options-text";
-		//projectOptionsText.className = "custom-font-size";
-		//projectOptionsText.textContent = LocaleWatcher.getStringSync("Project arguments:");
-		//projectOptionsText.setAttribute("localeString", "Project arguments:");
-		//
-		//textarea = Browser.document.createTextAreaElement();
-		//textarea.id = "project-options-textarea";
-		//textarea.className = "custom-font-size";
-		//textarea.onchange = function (e)
-		//{
-			//ProjectAccess.currentProject.args = textarea.value.split("\n");
-			//ProjectAccess.save();
-		//};
-		
-		pathToHxmlDescription = Browser.document.createParagraphElement();
-		pathToHxmlDescription.textContent = LocaleWatcher.getStringSync("Path to Hxml:");
-		pathToHxmlDescription.setAttribute("localeString", "Path to Hxml:");
-		pathToHxmlDescription.className = "custom-font-size";
-		
-		inputGroupButton = new InputGroupButton("Browse...");
-		
-		pathToHxmlInput = inputGroupButton.getInput();
-		
-		pathToHxmlInput.onchange = function (e):Void 
-		{
-			if (Node.fs.existsSync(pathToHxmlInput.value)) 
-			{
-				var project = ProjectAccess.currentProject;
-				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
-				ProjectAccess.save();
-			}
-		};
-		
-		var browseButton = inputGroupButton.getButton();
-		
-		browseButton.onclick = function (e):Void 
-		{
-			FileDialog.openFile(function (path:String):Void 
-			{
-				pathToHxmlInput.value = path;
-				
-				var project = ProjectAccess.currentProject;
-				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
-				ProjectAccess.save();
-			}
-			, ".hxml");
-		};
-		
-		var editButton = ButtonManager.createButton("Edit", false, true);
-		editButton.onclick = function (e):Void 
-		{
-			TabManager.openFileInNewTab(Node.path.resolve(ProjectAccess.path, pathToHxmlInput.value));
-		};
-		
-		inputGroupButton.getSpan().appendChild(editButton);
+		createOptionsForMultipleHxmlProjects();
 		
 		projectTargetText = Browser.document.createParagraphElement();
 		projectTargetText.textContent = LocaleWatcher.getStringSync("Project target:");
@@ -180,8 +132,6 @@ class ProjectOptions
 			
 			ProjectAccess.currentProject.buildActionCommand = buildParams.join(" ");
 			
-			trace(buildParams);
-			
 			ProjectAccess.currentProject.runActionType = Project.COMMAND;
 			ProjectAccess.currentProject.runActionText = ["haxelib", "run", "openfl", "run", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.path, "project.xml")), ProjectAccess.currentProject.openFLTarget].join(" ");
 			
@@ -249,24 +199,64 @@ class ProjectOptions
 		page.appendChild(buildActionTextArea);
 		page.appendChild(pathToHxmlDescription);
 		page.appendChild(inputGroupButton.getElement());
-		//page.appendChild(projectOptionsText);
-		//page.appendChild(textarea);
 		page.appendChild(openFLTargetText);
 		page.appendChild(openFLTargetList);
 		page.appendChild(runActionDescription);
 		page.appendChild(runActionList);
 		page.appendChild(runActionTextAreaDescription);
 		page.appendChild(actionTextArea);
-		
-		//new jQuery.JQuery("#options").append(page);
 	}
 	
-	//public static function getProjectArguments():String
-	//{
-		//return textarea.value;
-	//}
+	static function createOptionsForMultipleHxmlProjects() 
+	{
+		pathToHxmlDescription = Browser.document.createParagraphElement();
+		pathToHxmlDescription.textContent = LocaleWatcher.getStringSync("Path to Hxml:");
+		pathToHxmlDescription.setAttribute("localeString", "Path to Hxml:");
+		pathToHxmlDescription.className = "custom-font-size";
+		
+		inputGroupButton = new InputGroupButton("Browse...");
+		
+		pathToHxmlInput = inputGroupButton.getInput();
+		
+		pathToHxmlInput.onchange = function (e):Void 
+		{
+			if (Node.fs.existsSync(pathToHxmlInput.value)) 
+			{
+				var project = ProjectAccess.currentProject;
+				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
+				ProjectAccess.save();
+			}
+			else 
+			{
+				Alertify.error(pathToHxmlInput.value + " is not found");
+			}
+		};
+		
+		var browseButton = inputGroupButton.getButton();
+		
+		browseButton.onclick = function (e):Void 
+		{
+			FileDialog.openFile(function (path:String):Void 
+			{
+				pathToHxmlInput.value = path;
+				
+				var project = ProjectAccess.currentProject;
+				project.targetData[project.target].pathToHxml = pathToHxmlInput.value;
+				ProjectAccess.save();
+			}
+			, ".hxml");
+		};
+		
+		var editButton = ButtonManager.createButton("Edit", false, true);
+		editButton.onclick = function (e):Void 
+		{
+			TabManager.openFileInNewTab(Node.path.resolve(ProjectAccess.path, pathToHxmlInput.value));
+		};
+		
+		inputGroupButton.getSpan().appendChild(editButton);
+	}
 	
-	private static function update(_):Void
+	static function update(_):Void
 	{
 		if (projectTargetList.selectedIndex == 3)
 		{
