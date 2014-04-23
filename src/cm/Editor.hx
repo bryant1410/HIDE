@@ -51,8 +51,6 @@ class Editor
 		
 		options.extraKeys = 
 		{
-			"Ctrl-Space": triggerCompletion,
-			"Ctrl-Q": "toggleComment",
 			"." : 
 				function passAndHint(cm) 
 				{
@@ -248,7 +246,7 @@ class Editor
 		};
 	}
 	
-	private static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
+	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
 	{
 		var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
 		

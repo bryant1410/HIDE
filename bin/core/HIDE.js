@@ -1117,7 +1117,7 @@ cm.Editor.load = function() {
 		} else throw(err);
 	}
 	cm.Editor.walk(options);
-	options.extraKeys = { 'Ctrl-Space' : cm.Editor.triggerCompletion, 'Ctrl-Q' : "toggleComment", '.' : (function($this) {
+	options.extraKeys = { '.' : (function($this) {
 		var $r;
 		var passAndHint = function(cm1) {
 			setTimeout(function() {
@@ -2636,6 +2636,10 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Navigate",4).addMenuItem("Go to Line",2,core.GoToLine.show,"Ctrl-G");
 	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Open File",3,core.Completion.showFileList,"Ctrl-Shift-O");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
+	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,cm.Editor.triggerCompletion,"Ctrl-Space");
+	menu.BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment",5,function() {
+		return cm.Editor.editor.execCommand("toggleComment");
+	},"Ctrl-Q");
 	menu.BootstrapMenu.getMenu("Project",80).addMenuItem("Run",1,core.RunProject.runProject,"F5");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core.RunProject.buildProject,"F8");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Clean",3,core.RunProject.cleanProject,"Shift-F8");

@@ -143,6 +143,8 @@ class MenuCommands
 		BootstrapMenu.getMenu("Navigate", 4).addMenuItem("Go to Line", 2, GoToLine.show, "Ctrl-G");
 		BootstrapMenu.getMenu("Navigate").addMenuItem("Open File", 3, Completion.showFileList, "Ctrl-Shift-O");
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
+		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion, "Ctrl-Space");
+		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
 		
 		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");
 		BootstrapMenu.getMenu("Project").addMenuItem("Build", 2, RunProject.buildProject, "F8");

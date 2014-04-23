@@ -55,4 +55,6 @@
     ,"Project->Clean" : "Shift-F8"
     ,"Project->Project Options" : ""
     ,"Project->Project Options..." : ""
+    ,"Source->Show Code Completion" : "Ctrl-Space"
+    ,"Source->Toggle Comment" : "Ctrl-Q"
 }
