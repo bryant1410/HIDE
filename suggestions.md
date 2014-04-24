@@ -126,6 +126,7 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Add Enter hotkey for Browse File Dialog
 * Run Grunt for current project(add support for multiple build/run commands)
 * Add current HIDE version(from haxelib.json) to issue reporter
+* On compilation error without file and line, if hxml project - show hxml file.
 
 ###Important
 * Custom hxml, build and run commands for each target

@@ -74,8 +74,6 @@ class ProjectAccess
 		{
 			var relativePath:String = Node.path.relative(ProjectAccess.path, path);
 			
-			trace(relativePath);
-			
 			if (ProjectAccess.currentProject.hiddenItems.indexOf(relativePath) != -1) 
 			{
 				ignore = true;

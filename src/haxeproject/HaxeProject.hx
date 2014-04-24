@@ -115,15 +115,15 @@ class HaxeProject
 				pathToProject = Node.path.join(pathToProject, data.projectName);
 			}
 			
-			var pathToMain:String = pathToProject;
+			var pathToMain:String;
 			
-			pathToMain = Node.path.join(pathToMain, "src", "Main.hx");
+			pathToMain = Node.path.join(pathToProject, "src", "Main.hx");
 			
 			js.Node.fs.writeFile(pathToMain, code, function (error:js.Node.NodeErr):Void
 			{
 				if (error != null)
 				{
-					Alertify.error(error);
+					Alertify.error("Write file error" + error);
 				}
 				
 				js.Node.fs.exists(pathToMain, function (exists:Bool):Void
@@ -218,17 +218,14 @@ class HaxeProject
 						if (error != null) 
 						{
 							trace(error);
-						}
-						else 
-						{
-							Alertify.error(error);
+							Alertify.error("Generate web page error: " + error);
 						}
 					}
 					);
 				}
 				else 
 				{
-					Alertify.error(error);
+					Alertify.error("Folder creation error: " + error);
 				}
 			});
 			

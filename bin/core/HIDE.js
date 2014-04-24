@@ -11759,10 +11759,10 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 	core.FileTools.createDirectoryRecursively(data.projectLocation,[data.projectName,"src"],function() {
 		var pathToProject = data.projectLocation;
 		if(data.createDirectory) pathToProject = js.Node.require("path").join(pathToProject,data.projectName);
-		var pathToMain = pathToProject;
-		pathToMain = js.Node.require("path").join(pathToMain,"src","Main.hx");
+		var pathToMain;
+		pathToMain = js.Node.require("path").join(pathToProject,"src","Main.hx");
 		js.Node.require("fs").writeFile(pathToMain,haxeproject.HaxeProject.code,null,function(error) {
-			if(error != null) Alertify.error(error);
+			if(error != null) Alertify.error("Write file error" + error);
 			js.Node.require("fs").exists(pathToMain,function(exists) {
 				if(exists) tabmanager.TabManager.openFileInNewTab(pathToMain); else console.log(pathToMain + " file was not generated");
 			});
@@ -11830,9 +11830,12 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 				var updatedPageCode = mustache.Mustache.render(haxeproject.HaxeProject.indexPageCode,{ title : project.name, script : project.name + ".js"});
 				var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
 				js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
-					if(error2 != null) console.log(error2); else Alertify.error(error2);
+					if(error2 != null) {
+						console.log(error2);
+						Alertify.error("Generate web page error: " + error2);
+					}
 				});
-			} else Alertify.error(error1);
+			} else Alertify.error("Folder creation error: " + error1);
 		});
 		var path = js.Node.require("path").join(pathToProject,"project.hide");
 		projectaccess.ProjectAccess.currentProject = project;
@@ -13670,7 +13673,6 @@ projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
 	if(!projectaccess.ProjectAccess.currentProject.showHiddenItems) {
 		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		console.log(relativePath);
 		if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) != -1) ignore = true;
 	}
 	return ignore;
