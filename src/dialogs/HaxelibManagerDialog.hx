@@ -26,7 +26,7 @@ class HaxelibManagerDialog extends ModalDialog
 		listGroup = new ListGroup();
 		listGroup.getElement().id = "haxelibsList";
 		
-		HaxeHelper.getHaxelibList(function (data:Array<String>):Void 
+		HaxeHelper.getInstalledHaxelibList(function (data:Array<String>):Void 
 		{
 			for (item in data)
 			{

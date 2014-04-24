@@ -1426,14 +1426,30 @@ completion.Hxml.load = function() {
 	});
 };
 completion.Hxml.getHaxelibList = function(onComplete) {
-	core.HaxeHelper.getHaxelibList(function(data) {
+	core.HaxeHelper.getInstalledHaxelibList(function(installedLibs) {
 		var _g = 0;
-		while(_g < data.length) {
-			var item = data[_g];
+		while(_g < installedLibs.length) {
+			var item = installedLibs[_g];
 			++_g;
-			completion.Hxml.completions.push({ text : "-lib " + item});
+			var completionItem = { };
+			completionItem.text = "-lib " + item;
+			completionItem.displayText = completionItem.text + " - installed";
+			completion.Hxml.completions.push(completionItem);
 		}
-		if(onComplete != null) onComplete();
+		core.HaxeHelper.getHaxelibList(function(libs) {
+			var _g1 = 0;
+			while(_g1 < libs.length) {
+				var item1 = libs[_g1];
+				++_g1;
+				if(HxOverrides.indexOf(installedLibs,item1,0) == -1) {
+					var completionItem1 = { };
+					completionItem1.text = "-lib " + item1;
+					completionItem1.displayText = completionItem1.text + " - not installed";
+					completion.Hxml.completions.push(completionItem1);
+				}
+			}
+			if(onComplete != null) onComplete();
+		});
 	});
 };
 completion.Hxml.getDefines = function(onComplete) {
@@ -1906,7 +1922,7 @@ core.HaxeHelper.getDefines = function(onComplete) {
 		onComplete(data);
 	});
 };
-core.HaxeHelper.getHaxelibList = function(onComplete) {
+core.HaxeHelper.getInstalledHaxelibList = function(onComplete) {
 	var data = [];
 	core.ProcessHelper.runProcess("haxelib",["list"],null,function(stdout,stderr) {
 		var regex = new EReg("^[A-Z-]+:","gim");
@@ -1917,6 +1933,64 @@ core.HaxeHelper.getHaxelibList = function(onComplete) {
 		});
 		onComplete(data);
 	});
+};
+core.HaxeHelper.getHaxelibList = function(onComplete) {
+	var options = { host : "lib.haxe.org", port : 80, path : "/all"};
+	var emitter = js.Node.require("http").get(options,function(res) {
+		console.log("Got response: " + res.statusCode);
+		res.setEncoding("utf8");
+		var data = "";
+		res.on("data",function(chunk) {
+			data += chunk;
+		});
+		res.on("end",function() {
+			var libs = core.HaxeHelper.parseHtml(data);
+			onComplete(libs);
+		});
+	});
+	emitter.on("error",function(e) {
+		console.log("Got error: " + e.message);
+	});
+};
+core.HaxeHelper.parseHtml = function(data) {
+	var libs = [];
+	var xml = Xml.parse(data);
+	var fast = new haxe.xml.Fast(xml);
+	if(fast.hasNode.resolve("html")) {
+		var html = fast.node.resolve("html");
+		if(html.hasNode.resolve("body")) {
+			var body = html.node.resolve("body");
+			if(body.hasNode.resolve("div")) {
+				var $it0 = body.nodes.resolve("div").iterator();
+				while( $it0.hasNext() ) {
+					var node = $it0.next();
+					if(node.has.resolve("class") && node.att.resolve("class") == "page") {
+						var $it1 = node.nodes.resolve("div").iterator();
+						while( $it1.hasNext() ) {
+							var div = $it1.next();
+							if(div.has.resolve("class") && div.att.resolve("class") == "content") {
+								var $it2 = div.nodes.resolve("div").iterator();
+								while( $it2.hasNext() ) {
+									var div2 = $it2.next();
+									if(div2.has.resolve("class") && div2.att.resolve("class") == "projects") {
+										if(div2.hasNode.resolve("ul")) {
+											var ul = div2.node.resolve("ul");
+											var $it3 = ul.nodes.resolve("li").iterator();
+											while( $it3.hasNext() ) {
+												var li = $it3.next();
+												libs.push(li.node.resolve("a").get_innerData());
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	return libs;
 };
 var haxe = {};
 haxe.ds = {};
@@ -3347,7 +3421,7 @@ dialogs.HaxelibManagerDialog = function() {
 	this.getBody().appendChild(inputGroupButton.getElement());
 	this.listGroup = new bootstrap.ListGroup();
 	this.listGroup.getElement().id = "haxelibsList";
-	core.HaxeHelper.getHaxelibList(function(data) {
+	core.HaxeHelper.getInstalledHaxelibList(function(data) {
 		var _g = 0;
 		while(_g < data.length) {
 			var item = data[_g];

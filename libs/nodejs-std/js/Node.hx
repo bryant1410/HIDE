@@ -12,6 +12,7 @@
 */
 
 package js;
+import js.Node.NodeEventEmitter;
 
 typedef NodeListener = Dynamic;
 typedef NodeErr = Null<String>;
@@ -615,8 +616,8 @@ typedef NodeHttpReqOpt = {
 	var host:String;
 	var port:Int;
 	var path:String;
-	var method:String;
-	var headers:Dynamic;
+	@:optional var method:String;
+	@:optional var headers:Dynamic;
 }
 
 typedef NodeHttpsReqOpt = { > NodeHttpReqOpt,
@@ -640,7 +641,7 @@ typedef NodeHttp = {
 	@:overload(function(parsedUrl:NodeUrlObj,res:NodeHttpClientResp->Void):NodeHttpClientReq {})
 	function request(options:NodeHttpReqOpt,res:NodeHttpClientResp->Void):NodeHttpClientReq;
 	@:overload(function(parsedUrl:NodeUrlObj,res:NodeHttpClientResp->Void):Void {})
-	function get(options:NodeHttpReqOpt,res:NodeHttpClientResp->Void):Void;
+	function get(options:NodeHttpReqOpt,res:NodeHttpClientResp->Void):NodeEventEmitter;
 	function getAgent(host:String,port:Int):NodeAgent;
 }
 

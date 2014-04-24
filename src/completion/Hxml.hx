@@ -1,4 +1,6 @@
 package completion;
+import completion.Hxml.CompletionData;
+import core.Completion.CompletionItem;
 import core.HaxeHelper;
 import core.ProcessHelper;
 
@@ -9,7 +11,7 @@ import core.ProcessHelper;
 
 typedef CompletionData =
 {
-	var text:String;
+	@:optional var text:String;
 	@:optional var displayText:String;
 	@:optional var hint:CodeMirror->Dynamic->CompletionData->Void;
 }
@@ -25,24 +27,44 @@ class Hxml
 		getArguments(getDefines.bind(getHaxelibList));
 	}
 	
-	static private function getHaxelibList(onComplete:Dynamic) 
+	static function getHaxelibList(onComplete:Dynamic) 
 	{
-		HaxeHelper.getHaxelibList(function (data:Array<String>):Void 
+		HaxeHelper.getInstalledHaxelibList(function (installedLibs:Array<String>):Void 
 		{
-			for (item in data)
+			for (item in installedLibs)
 			{
-				completions.push({text: "-lib " + item});
+				var completionItem:CompletionData = { };
+				completionItem.text =  "-lib " + item;
+				completionItem.displayText =  completionItem.text + " - installed";
+				
+				completions.push(completionItem);
 			}
-			
-			if (onComplete != null) 
+						
+			HaxeHelper.getHaxelibList(function (libs:Array<String>):Void 
 			{
-				onComplete();
+				for (item in libs) 
+				{
+					if (installedLibs.indexOf(item) == -1)
+					{
+						var completionItem:CompletionData = { };
+						completionItem.text =  "-lib " + item;
+						completionItem.displayText =  completionItem.text + " - not installed";
+						
+						completions.push(completionItem);
+					}
+				}
+				
+				if (onComplete != null) 
+				{
+					onComplete();
+				}
 			}
+			);
 		}
 		);
 	}
 	
-	static private function getDefines(onComplete:Dynamic) 
+	static function getDefines(onComplete:Dynamic) 
 	{
 		HaxeHelper.getDefines(function (data:Array<String>):Void 
 		{
@@ -59,7 +81,7 @@ class Hxml
 		);
 	}
 	
-	static private function getArguments(?onComplete:Dynamic) 
+	static function getArguments(?onComplete:Dynamic) 
 	{
 		HaxeHelper.getArguments(function (data:Array<String>):Void 
 		{
