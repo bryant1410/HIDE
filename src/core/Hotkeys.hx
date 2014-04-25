@@ -1,4 +1,5 @@
 package core;
+import cm.Editor;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
 import js.html.KeyboardEvent;
@@ -55,7 +56,7 @@ class Hotkeys
 		{
 			for (hotkey in hotkeys)
 			{
-				if (hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || (commandKey && e.metaKey)) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey)
+				if (isHotkeyEvent(hotkey, e))
 				{
 					hotkey.onKeyDown();
 				}
@@ -74,9 +75,28 @@ class Hotkeys
 		}
 		
 		addHotkey(menuItem, hotkeyText);
+		
+		if (menuItem == "Source->Show Code Completion") 
+		{						
+			var hotkey = parseHotkey(hotkeyText);
+			
+			Editor.editor.on("keypress", function (cm, e:KeyboardEvent):Void 
+			{
+				if (isHotkeyEvent(hotkey, e)) 
+				{
+					e.preventDefault();
+				}
+			}
+			);
+		}
 	}
 	
-	private static function addHotkey(menuItem:String, ?hotkeyText:String = "")
+	public static function getHotkeyCommandCallback(menuItem:Dynamic)
+	{
+		return commandMap.get(menuItem);
+	}
+	
+	static function addHotkey(menuItem:String, ?hotkeyText:String = "")
 	{
 		if (Reflect.hasField(data, menuItem))
 		{
@@ -109,26 +129,32 @@ class Hotkeys
 			{
 				Browser.window.console.warn("can't assign hotkey " + hotkeyText + " for " + menuItem);
 			}
-		}
-		
-		if (spanMap.exists(menuItem)) 
-		{
 			
-			if (commandKey) 
+			if (spanMap.exists(menuItem)) 
 			{
-				hotkeyText = StringTools.replace(hotkeyText, "Ctrl", "Cmd");
+				
+				if (commandKey) 
+				{
+					hotkeyText = StringTools.replace(hotkeyText, "Ctrl", "Cmd");
+				}
+				
+				spanMap.get(menuItem).innerText = hotkeyText;
 			}
 			
-			spanMap.get(menuItem).innerText = hotkeyText;
-		}
-		
-		if (keyCode != null) 
-		{
-			hotkeys.push( { keyCode:keyCode, ctrl:ctrl, shift:shift, alt:alt, onKeyDown:commandMap.get(menuItem) } );
+			if (keyCode != null) 
+			{
+				hotkey.onKeyDown = commandMap.get(menuItem);
+				hotkeys.push(hotkey);
+			}
 		}
 	}
 	
-	private static function parseData():Void
+	inline static function isHotkeyEvent(hotkey:Dynamic, e:KeyboardEvent):Bool
+	{
+		return hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || (commandKey && e.metaKey)) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
+	}
+	
+	static function parseData():Void
 	{
 		var options:NodeFsFileOptions = { };
 		options.encoding = js.Node.NodeC.UTF8;

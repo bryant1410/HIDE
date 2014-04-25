@@ -296,7 +296,6 @@ Main.main = function() {
 		core.Utils.prepare();
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
-		core.MenuCommands.add();
 		cm.Zoom.load();
 		filetree.FileTree.init();
 		projectaccess.ProjectOptions.create();
@@ -305,6 +304,7 @@ Main.main = function() {
 		tabmanager.TabManager.load();
 		core.HaxeLint.load();
 		cm.Editor.load();
+		core.MenuCommands.add();
 		core.Completion.registerHelper();
 		autoformat.HaxePrinterLoader.load();
 		projectaccess.ProjectAccess.registerSaveOnCloseListener();
@@ -1599,53 +1599,75 @@ core.Completion.getCurrentWord = function(cm,options,pos) {
 };
 core.Completion.getCompletion = function(onComplete,_pos) {
 	if(projectaccess.ProjectAccess.path != null) {
-		var projectArguments = projectaccess.ProjectAccess.currentProject.args.slice();
-		if(projectaccess.ProjectAccess.currentProject.type == 2) projectArguments.push(projectaccess.ProjectAccess.currentProject.main);
-		projectArguments.push("--no-output");
-		projectArguments.push("--display");
-		var cm1 = cm.Editor.editor;
-		core.Completion.cur = _pos;
-		if(_pos == null) core.Completion.cur = cm1.getCursor();
-		core.Completion.getCurrentWord(cm1,null,core.Completion.cur);
-		if(core.Completion.curWord != null) core.Completion.cur = { line : core.Completion.cur.line, ch : core.Completion.start};
-		projectArguments.push(tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur)));
-		core.Completion.completions = [];
-		var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
-		core.ProcessHelper.runProcess("haxe",params,null,function(stdout,stderr) {
-			var xml = Xml.parse(stderr);
-			var fast = new haxe.xml.Fast(xml);
-			if(fast.hasNode.resolve("list")) {
-				var list = fast.node.resolve("list");
-				var completion;
-				if(list.hasNode.resolve("i")) {
-					var $it0 = list.nodes.resolve("i").iterator();
-					while( $it0.hasNext() ) {
-						var item = $it0.next();
-						if(item.has.resolve("n")) {
-							completion = { n : item.att.resolve("n")};
-							if(item.hasNode.resolve("d")) {
-								var str = StringTools.trim(item.node.resolve("d").get_innerHTML());
-								str = StringTools.replace(str,"\t","");
-								str = StringTools.replace(str,"\n","");
-								str = StringTools.replace(str,"*","");
-								str = StringTools.replace(str,"&lt;","<");
-								str = StringTools.replace(str,"&gt;",">");
-								str = StringTools.trim(str);
-								completion.d = str;
-							}
-							if(item.hasNode.resolve("t")) completion.t = item.node.resolve("t").get_innerData();
-							core.Completion.completions.push(completion);
+		var projectArguments = [];
+		var project = projectaccess.ProjectAccess.currentProject;
+		var _g = project.type;
+		switch(_g) {
+		case 0:
+			var pathToHxml = project.targetData[project.target].pathToHxml;
+			projectArguments.push(pathToHxml);
+			core.Completion.processArguments(projectArguments,onComplete,_pos);
+			break;
+		case 2:
+			projectArguments.push(project.main);
+			core.Completion.processArguments(projectArguments,onComplete,_pos);
+			break;
+		case 1:
+			openproject.OpenFL.parseOpenFLDisplayParameters(projectaccess.ProjectAccess.path,project.openFLTarget,function(args) {
+				projectArguments = args;
+				core.Completion.processArguments(projectArguments,onComplete,_pos);
+			});
+			break;
+		default:
+		}
+	}
+};
+core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
+	projectArguments.push("--no-output");
+	projectArguments.push("--display");
+	var cm1 = cm.Editor.editor;
+	core.Completion.cur = _pos;
+	if(_pos == null) core.Completion.cur = cm1.getCursor();
+	core.Completion.getCurrentWord(cm1,null,core.Completion.cur);
+	if(core.Completion.curWord != null) core.Completion.cur = { line : core.Completion.cur.line, ch : core.Completion.start};
+	projectArguments.push(tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur)));
+	core.Completion.completions = [];
+	var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
+	console.log(params);
+	core.ProcessHelper.runProcess("haxe",params,null,function(stdout,stderr) {
+		var xml = Xml.parse(stderr);
+		var fast = new haxe.xml.Fast(xml);
+		if(fast.hasNode.resolve("list")) {
+			var list = fast.node.resolve("list");
+			var completion;
+			if(list.hasNode.resolve("i")) {
+				var $it0 = list.nodes.resolve("i").iterator();
+				while( $it0.hasNext() ) {
+					var item = $it0.next();
+					if(item.has.resolve("n")) {
+						completion = { n : item.att.resolve("n")};
+						if(item.hasNode.resolve("d")) {
+							var str = StringTools.trim(item.node.resolve("d").get_innerHTML());
+							str = StringTools.replace(str,"\t","");
+							str = StringTools.replace(str,"\n","");
+							str = StringTools.replace(str,"*","");
+							str = StringTools.replace(str,"&lt;","<");
+							str = StringTools.replace(str,"&gt;",">");
+							str = StringTools.trim(str);
+							completion.d = str;
 						}
+						if(item.hasNode.resolve("t")) completion.t = item.node.resolve("t").get_innerData();
+						core.Completion.completions.push(completion);
 					}
 				}
 			}
-			onComplete();
-		},function(code,stdout1,stderr1) {
-			console.log(code);
-			console.log(stderr1);
-			onComplete();
-		});
-	}
+		}
+		onComplete();
+	},function(code,stdout1,stderr1) {
+		console.log(code);
+		console.log(stderr1);
+		onComplete();
+	});
 };
 core.Completion.isEditorVisible = function() {
 	var editor;
@@ -2475,6 +2497,12 @@ core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
 	core.Hotkeys.commandMap.set(menuItem,onKeyDown);
 	if(span != null) core.Hotkeys.spanMap.set(menuItem,span);
 	core.Hotkeys.addHotkey(menuItem,hotkeyText);
+	if(menuItem == "Source->Show Code Completion") {
+		var hotkey = core.Hotkeys.parseHotkey(hotkeyText);
+		cm.Editor.editor.on("keypress",function(cm,e) {
+			if(hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey) e.preventDefault();
+		});
+	}
 };
 core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 	if(hotkeyText == null) hotkeyText = "";
@@ -2495,12 +2523,15 @@ core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 			shift = hotkey.shift;
 			alt = hotkey.alt;
 		} else window.console.warn("can't assign hotkey " + hotkeyText + " for " + menuItem);
+		if(core.Hotkeys.spanMap.exists(menuItem)) {
+			if(core.Hotkeys.commandKey) hotkeyText = StringTools.replace(hotkeyText,"Ctrl","Cmd");
+			core.Hotkeys.spanMap.get(menuItem).innerText = hotkeyText;
+		}
+		if(keyCode != null) {
+			hotkey.onKeyDown = core.Hotkeys.commandMap.get(menuItem);
+			core.Hotkeys.hotkeys.push(hotkey);
+		}
 	}
-	if(core.Hotkeys.spanMap.exists(menuItem)) {
-		if(core.Hotkeys.commandKey) hotkeyText = StringTools.replace(hotkeyText,"Ctrl","Cmd");
-		core.Hotkeys.spanMap.get(menuItem).innerText = hotkeyText;
-	}
-	if(keyCode != null) core.Hotkeys.hotkeys.push({ keyCode : keyCode, ctrl : ctrl, shift : shift, alt : alt, onKeyDown : core.Hotkeys.commandMap.get(menuItem)});
 };
 core.Hotkeys.parseData = function() {
 	var options = { };
@@ -13006,17 +13037,7 @@ openproject.OpenFL.open = function(path) {
 	project.type = 1;
 	project.openFLTarget = "flash";
 	projectaccess.ProjectAccess.path = pathToProject;
-	openflproject.OpenFLTools.getParams(pathToProject,project.openFLTarget,function(stdout) {
-		var args = [];
-		var currentLine;
-		var _g = 0;
-		var _g1 = stdout.split("\n");
-		while(_g < _g1.length) {
-			var line = _g1[_g];
-			++_g;
-			currentLine = StringTools.trim(line);
-			if(!StringTools.startsWith(currentLine,"#")) args.push(currentLine);
-		}
+	openproject.OpenFL.parseOpenFLDisplayParameters(pathToProject,project.openFLTarget,function(args) {
 		project.args = args;
 		var pathToProjectHide = js.Node.require("path").join(pathToProject,"project.hide");
 		projectaccess.ProjectAccess.currentProject = project;
@@ -13029,6 +13050,21 @@ openproject.OpenFL.open = function(path) {
 		core.Splitter.show();
 		js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
 		core.RecentProjectsList.add(pathToProjectHide);
+	});
+};
+openproject.OpenFL.parseOpenFLDisplayParameters = function(pathToProject,target,onComplete) {
+	openflproject.OpenFLTools.getParams(pathToProject,target,function(stdout) {
+		var args = [];
+		var currentLine;
+		var _g = 0;
+		var _g1 = stdout.split("\n");
+		while(_g < _g1.length) {
+			var line = _g1[_g];
+			++_g;
+			currentLine = StringTools.trim(line);
+			if(!StringTools.startsWith(currentLine,"#")) args.push(currentLine);
+		}
+		onComplete(args);
 	});
 };
 openproject.OpenProject = function() { };

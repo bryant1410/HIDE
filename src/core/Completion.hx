@@ -9,6 +9,7 @@ import haxe.xml.Fast;
 import js.Browser;
 import js.html.DivElement;
 import js.Node;
+import openproject.OpenFL;
 import parser.ClassParser;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
@@ -171,107 +172,130 @@ class Completion
 	{
 		if (ProjectAccess.path != null) 
 		{
-			var projectArguments:Array<String> = ProjectAccess.currentProject.args.copy();
-					
-			if (ProjectAccess.currentProject.type == Project.HXML) 
+			var projectArguments:Array<String> = [];
+			//= ProjectAccess.currentProject.args.copy();
+			
+			var project = ProjectAccess.currentProject;
+			
+			switch (project.type)
 			{
-				projectArguments.push(ProjectAccess.currentProject.main);
-			}
-			
-			projectArguments.push("--no-output");
-			projectArguments.push("--display");
-			
-			var cm:CodeMirror = Editor.editor;
-			cur = _pos;
-			
-			if (_pos == null) 
-			{
-				cur = cm.getCursor();
-			}
-			
-			getCurrentWord(cm, null, cur);
-			
-			if (curWord != null) 
-			{
-				cur = {line: cur.line,  ch:start};
-			}
-			
-			projectArguments.push(TabManager.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur)));
-			
-			Completion.completions = [];
-			
-			var params = ["--connect", "5000", "--cwd", HIDE.surroundWithQuotes(ProjectAccess.path)].concat(projectArguments);
-			
-			ProcessHelper.runProcess("haxe", params, null, function (stdout:String, stderr:String)
-			{
-				var xml:Xml = Xml.parse(stderr);
-				
-				var fast = new Fast(xml);
-				
-				if (fast.hasNode.list)
-				{
-					var list = fast.node.list;
-					
-					var completion:CompletionItem;
-					
-					if (list.hasNode.i)
+				case Project.HAXE:
+					var pathToHxml:String = project.targetData[project.target].pathToHxml;
+					projectArguments.push(pathToHxml);
+					processArguments(projectArguments, onComplete, _pos);
+				case Project.HXML:
+					projectArguments.push(project.main);
+					processArguments(projectArguments, onComplete, _pos);
+				case Project.OPENFL:
+					OpenFL.parseOpenFLDisplayParameters(ProjectAccess.path, project.openFLTarget, function (args:Array<String>):Void 
 					{
-						for (item in list.nodes.i) 
+						projectArguments = args;
+						processArguments(projectArguments, onComplete, _pos);
+					}
+					);
+				default:
+					
+			}
+		}
+	}
+	
+	static function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos):Void 
+	{
+		projectArguments.push("--no-output");
+		projectArguments.push("--display");
+		
+		var cm:CodeMirror = Editor.editor;
+		cur = _pos;
+		
+		if (_pos == null) 
+		{
+			cur = cm.getCursor();
+		}
+		
+		getCurrentWord(cm, null, cur);
+		
+		if (curWord != null) 
+		{
+			cur = {line: cur.line,  ch:start};
+		}
+		
+		projectArguments.push(TabManager.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur)));
+		
+		Completion.completions = [];
+		
+		var params = ["--connect", "5000", "--cwd", HIDE.surroundWithQuotes(ProjectAccess.path)].concat(projectArguments);
+		
+		trace(params);
+		
+		ProcessHelper.runProcess("haxe", params, null, function (stdout:String, stderr:String)
+		{
+			var xml:Xml = Xml.parse(stderr);
+			
+			var fast = new Fast(xml);
+			
+			if (fast.hasNode.list)
+			{
+				var list = fast.node.list;
+				
+				var completion:CompletionItem;
+				
+				if (list.hasNode.i)
+				{
+					for (item in list.nodes.i) 
+					{
+						if (item.has.n)
 						{
-							if (item.has.n)
+							completion = {n: item.att.n};
+														
+							if (item.hasNode.d)
 							{
-								completion = {n: item.att.n};
-															
-								if (item.hasNode.d)
-								{
-									var str = StringTools.trim(item.node.d.innerHTML);
-									str = StringTools.replace(str, "\t", "");
-									str = StringTools.replace(str, "\n", "");
-									str = StringTools.replace(str, "*", "");
-									str = StringTools.replace(str, "&lt;", "<");
-									str = StringTools.replace(str, "&gt;", ">");
-									str = StringTools.trim(str);
-									completion.d = str;
-								}
-								
-								if (item.hasNode.t)
-								{
-									completion.t = item.node.t.innerData;
-									//var type = item.node.t.innerData;
-									//switch (type) 
-									//{
-										//case "Float", "Int":
-											//completion.type = "number";
-										//case "Bool":
-											//completion.type = "bool";
-										//case "String":
-											//completion.type = "string";
-										//default:
-											//completion.type = "fn()";
-									//}
-								}
-								//else 
-								//{
-									//completion.type = "fn()";
-								//}
-								
-								completions.push(completion);
+								var str = StringTools.trim(item.node.d.innerHTML);
+								str = StringTools.replace(str, "\t", "");
+								str = StringTools.replace(str, "\n", "");
+								str = StringTools.replace(str, "*", "");
+								str = StringTools.replace(str, "&lt;", "<");
+								str = StringTools.replace(str, "&gt;", ">");
+								str = StringTools.trim(str);
+								completion.d = str;
 							}
+							
+							if (item.hasNode.t)
+							{
+								completion.t = item.node.t.innerData;
+								//var type = item.node.t.innerData;
+								//switch (type) 
+								//{
+									//case "Float", "Int":
+										//completion.type = "number";
+									//case "Bool":
+										//completion.type = "bool";
+									//case "String":
+										//completion.type = "string";
+									//default:
+										//completion.type = "fn()";
+								//}
+							}
+							//else 
+							//{
+								//completion.type = "fn()";
+							//}
+							
+							completions.push(completion);
 						}
 					}
 				}
-				
-				onComplete();
-			}, 
-			function (code:Int, stdout:String, stderr:String)
-			{
-				trace(code);
-				trace(stderr);
-				
-				onComplete();
 			}
-			);
+			
+			onComplete();
+		}, 
+		function (code:Int, stdout:String, stderr:String)
+		{
+			trace(code);
+			trace(stderr);
+			
+			onComplete();
 		}
+		);
 	}
 	
 	static function isEditorVisible():Bool

@@ -25,7 +25,29 @@ class OpenFL
 		project.openFLTarget = "flash";
 		ProjectAccess.path = pathToProject;
 		
-		OpenFLTools.getParams(pathToProject, project.openFLTarget, function (stdout:String)
+		parseOpenFLDisplayParameters(pathToProject, project.openFLTarget, function (args):Void 
+		{
+			project.args = args;
+			
+			var pathToProjectHide:String = js.Node.path.join(pathToProject, "project.hide");
+			
+			ProjectAccess.currentProject = project;
+			
+			ProjectOptions.updateProjectOptions();
+			
+			ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
+			
+			Splitter.show();
+			
+			Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
+			RecentProjectsList.add(pathToProjectHide);
+		}
+		);
+	}
+	
+	public static function parseOpenFLDisplayParameters(pathToProject:String, target:String, onComplete:Array<String>->Void):Void
+	{
+		OpenFLTools.getParams(pathToProject, target, function (stdout:String)
 		{					
 			var args:Array<String> = [];
 		
@@ -41,20 +63,7 @@ class OpenFL
 				}
 			}
 			
-			project.args = args;
-			
-			var pathToProjectHide:String = js.Node.path.join(pathToProject, "project.hide");
-			
-			ProjectAccess.currentProject = project;
-			
-			ProjectOptions.updateProjectOptions();
-			
-			ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
-			
-			Splitter.show();
-			
-			Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
-			RecentProjectsList.add(pathToProjectHide);
+			onComplete(args);
 		}
 		);
 	}

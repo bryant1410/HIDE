@@ -4,12 +4,14 @@ import core.FunctionParametersHelper;
 import core.HaxeLint;
 import core.HaxeParserProvider;
 import core.Helper;
+import core.Hotkeys;
 import core.OutlinePanel;
 import haxe.Json;
 import haxe.Timer;
 import jQuery.JQuery;
 import js.Browser;
 import js.html.DivElement;
+import js.html.KeyboardEvent;
 import js.html.svg.TextElement;
 import js.html.TextAreaElement;
 import js.Lib;
@@ -58,7 +60,7 @@ class Editor
 					untyped __js__("return CodeMirror.Pass");
 				}
 		}
-		
+				
 		editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), options);
 		
 		new JQuery("#editor").hide(0);

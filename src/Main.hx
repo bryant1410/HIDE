@@ -83,7 +83,6 @@ class Main
 			Utils.prepare();
 			BootstrapMenu.createMenuBar();
 			NewProjectDialog.load();
-			MenuCommands.add();
 			Zoom.load();
 			FileTree.init();
 			ProjectOptions.create();
@@ -92,6 +91,7 @@ class Main
 			TabManager.load();
 			HaxeLint.load();
 			Editor.load();
+			MenuCommands.add();
 			Completion.registerHelper();
 			
 			HaxePrinterLoader.load();
