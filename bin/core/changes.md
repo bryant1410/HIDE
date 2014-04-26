@@ -8,6 +8,7 @@
 * CHANGED: created OpenFL projects will not hardcode to "project.xml", instead just use "haxelib run lime build flash", lime/OpenFL can detect project file itself
 * ADDED: Help->Open Haxe nightly build download URL(which should open default browser and start latest Haxe nightly build download for your platform)
 * ADDED: update Open File completion using file tree watcher
+* ADDED: Hxml toggle comment
 
 0.3.6
 -----------

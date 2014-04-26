@@ -1,6 +1,6 @@
 {
   "name": "HIDE",
-  "version": "0.3.5",
+  "version": "0.3.7",
   "devDependencies": {
     "grunt": "latest",
     "grunt-contrib-uglify": "latest",
