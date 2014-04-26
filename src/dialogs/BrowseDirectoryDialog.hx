@@ -10,7 +10,7 @@ import js.html.InputElement;
  * ...
  * @author AS3Boyan
  */
-class BrowseFolderDialog extends ModalDialog
+class BrowseDirectoryDialog extends ModalDialog
 {
 	var onComplete:String->Void;
 	var input:InputElement;

@@ -1,4 +1,6 @@
 package cm;
+
+#if !macro
 import core.Completion;
 import core.FunctionParametersHelper;
 import core.HaxeLint;
@@ -21,13 +23,21 @@ import nodejs.webkit.Window;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import tjson.TJSON;
+#end
 
+#if macro
+import haxe.macro.Context;
+import haxe.macro.Expr;
+import sys.FileSystem;
+#end
 /**
  * ...
  * @author AS3Boyan
  */
 class Editor
 {	
+	#if !macro
+	
 	public static var editor:CodeMirror;
 	public static var regenerateCompletionOnDot:Bool;
 	
@@ -65,33 +75,7 @@ class Editor
 		
 		new JQuery("#editor").hide(0);
 		
-		loadThemes([
-		"3024-day",
-		"3024-night",
-		"ambiance",
-		"base16-dark",
-		"base16-light",
-		"blackboard",
-		"cobalt",
-		"eclipse",
-		"elegant",
-		"erlang-dark",
-		"lesser-dark",
-		"midnight",
-		"monokai",
-		"neat",
-		"night",
-		"paraiso-dark",
-		"paraiso-light",
-		"rubyblue",
-		"solarized",
-		"the-matrix",
-		"tomorrow-night-eighties",
-		"twilight",
-		"vibrant-ink",
-		"xq-dark",
-		"xq-light",
-		], loadTheme);
+		loadThemes(getThemeList(), loadTheme);
 		
 		var value:String = "";
 		var map = CodeMirror.keyMap.sublime;
@@ -358,4 +342,20 @@ class Editor
 		editor.setOption("theme", theme);
 		Browser.getLocalStorage().setItem("theme", theme);
 	}
+	
+	#end
+	
+	macro public static function getThemeList() 
+	{
+		var p = Context.currentPos();
+		var result = [];
+		
+		for (theme in sys.FileSystem.readDirectory(Sys.getCwd() + "libs/js/CodeMirror/theme")) 
+		{
+			var eConst = EConst(CString(theme.split(".").shift()));
+			result.push( { expr: eConst, pos: p } );
+		}
+		
+		return { expr: EArrayDecl(result), pos: p };
+    }
 }

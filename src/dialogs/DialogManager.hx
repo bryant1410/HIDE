@@ -6,13 +6,13 @@ package dialogs;
  */
 class DialogManager
 {
-	static var browseFolderDialog:BrowseFolderDialog;
+	static var browseFolderDialog:BrowseDirectoryDialog;
 	static var haxelibManagerDialog:HaxelibManagerDialog;
 	static var projectOptionsDialog:ProjectOptionsDialog;
 	
 	public static function load():Void
 	{
-		browseFolderDialog =  new BrowseFolderDialog();
+		browseFolderDialog =  new BrowseDirectoryDialog();
 		haxelibManagerDialog = new HaxelibManagerDialog();
 		projectOptionsDialog = new ProjectOptionsDialog();
 	}

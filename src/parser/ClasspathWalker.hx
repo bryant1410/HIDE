@@ -1,7 +1,7 @@
 package parser;
 import core.ProcessHelper;
 import core.Utils;
-import dialogs.BrowseFolderDialog;
+import dialogs.BrowseDirectoryDialog;
 import dialogs.DialogManager;
 import dialogs.ModalDialog;
 import haxe.ds.StringMap.StringMap;

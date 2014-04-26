@@ -1130,7 +1130,7 @@ cm.Editor.load = function() {
 	}(this))};
 	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["3024-day","3024-night","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","midnight","monokai","neat","night","paraiso-dark","paraiso-light","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes(["3024-day","3024-night","ambiance-mobile","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","mbo","mdn-like","midnight","monokai","neat","night","paraiso-dark","paraiso-light","pastel-on-dark","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -3416,7 +3416,7 @@ dialogs.ModalDialog.prototype = {
 	}
 	,__class__: dialogs.ModalDialog
 };
-dialogs.BrowseFolderDialog = function(title) {
+dialogs.BrowseDirectoryDialog = function(title) {
 	var _g = this;
 	dialogs.ModalDialog.call(this,title);
 	var inputGroupButton = new bootstrap.InputGroupButton("Browse...");
@@ -3435,10 +3435,10 @@ dialogs.BrowseFolderDialog = function(title) {
 	this.getFooter().appendChild(okButton);
 	this.getFooter().appendChild(bootstrap.ButtonManager.createButton("Cancel",false,true));
 };
-$hxClasses["dialogs.BrowseFolderDialog"] = dialogs.BrowseFolderDialog;
-dialogs.BrowseFolderDialog.__name__ = ["dialogs","BrowseFolderDialog"];
-dialogs.BrowseFolderDialog.__super__ = dialogs.ModalDialog;
-dialogs.BrowseFolderDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
+$hxClasses["dialogs.BrowseDirectoryDialog"] = dialogs.BrowseDirectoryDialog;
+dialogs.BrowseDirectoryDialog.__name__ = ["dialogs","BrowseDirectoryDialog"];
+dialogs.BrowseDirectoryDialog.__super__ = dialogs.ModalDialog;
+dialogs.BrowseDirectoryDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 	onComplete: null
 	,input: null
 	,setDefaultValue: function(_value) {
@@ -3447,13 +3447,13 @@ dialogs.BrowseFolderDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 	,setCallback: function(_onComplete) {
 		this.onComplete = _onComplete;
 	}
-	,__class__: dialogs.BrowseFolderDialog
+	,__class__: dialogs.BrowseDirectoryDialog
 });
 dialogs.DialogManager = function() { };
 $hxClasses["dialogs.DialogManager"] = dialogs.DialogManager;
 dialogs.DialogManager.__name__ = ["dialogs","DialogManager"];
 dialogs.DialogManager.load = function() {
-	dialogs.DialogManager.browseFolderDialog = new dialogs.BrowseFolderDialog();
+	dialogs.DialogManager.browseFolderDialog = new dialogs.BrowseDirectoryDialog();
 	dialogs.DialogManager.haxelibManagerDialog = new dialogs.HaxelibManagerDialog();
 	dialogs.DialogManager.projectOptionsDialog = new dialogs.ProjectOptionsDialog();
 };

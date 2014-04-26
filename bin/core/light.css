@@ -19,3 +19,9 @@
 {
     -webkit-user-select: none;
 }
+
+.dropdown-submenu>.dropdown-menu
+{
+	max-height: 500px;
+	overflow: auto;
+}
