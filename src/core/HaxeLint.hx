@@ -48,8 +48,11 @@ class HaxeLint
 	
 	public static function updateLinting():Void
 	{
-		Editor.editor.setOption("lint", false);
-		Editor.editor.setOption("lint", true);
+		if (TabManager.getCurrentDocument().getMode().name == "haxe")
+		{
+			Editor.editor.setOption("lint", false);
+			Editor.editor.setOption("lint", true);
+		}
 	}
 	
 }

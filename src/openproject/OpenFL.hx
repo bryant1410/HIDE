@@ -24,25 +24,22 @@ class OpenFL
 		project.type = Project.OPENFL;
 		project.openFLTarget = "flash";
 		ProjectAccess.path = pathToProject;
+		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
+		project.runActionType = Project.COMMAND;
+		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
 		
-		parseOpenFLDisplayParameters(pathToProject, project.openFLTarget, function (args):Void 
-		{
-			project.args = args;
-			
-			var pathToProjectHide:String = js.Node.path.join(pathToProject, "project.hide");
-			
-			ProjectAccess.currentProject = project;
-			
-			ProjectOptions.updateProjectOptions();
-			
-			ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
-			
-			Splitter.show();
-			
-			Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
-			RecentProjectsList.add(pathToProjectHide);
-		}
-		);
+		var pathToProjectHide:String = js.Node.path.join(pathToProject, "project.hide");
+		
+		ProjectAccess.currentProject = project;
+		
+		ProjectOptions.updateProjectOptions();
+		
+		ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
+		
+		Splitter.show();
+		
+		Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
+		RecentProjectsList.add(pathToProjectHide);
 	}
 	
 	public static function parseOpenFLDisplayParameters(pathToProject:String, target:String, onComplete:Array<String>->Void):Void

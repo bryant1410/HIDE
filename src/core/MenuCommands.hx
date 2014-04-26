@@ -75,7 +75,28 @@ class MenuCommands
 		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "bindings.txt")));
 		BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub", 2, Shell.openExternal.bind("https://github.com/as3boyan/HIDE"));
 		BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker", 3, Shell.openExternal.bind("https://github.com/as3boyan/HIDE/issues/new"));
-		BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...", 4, HIDE.openPageInNewWindow.bind(null, "about.html", {toolbar:false}));
+		BootstrapMenu.getMenu("Help").addMenuItem("Open Haxe nightly build download URL", 4, function ():Void 
+		{
+			var serverUrl = "http://hxbuilds.s3-website-us-east-1.amazonaws.com/builds/haxe/";
+			
+			var target;
+			
+			switch (Utils.os) 
+			{
+				case Utils.WINDOWS:
+					target = "windows";
+				case Utils.LINUX:
+					target = "linux64";
+				case Utils.MAC:
+					target = "mac";
+					
+				default:
+					throw "Utils class was not able to detect OS";
+			}
+			
+			Shell.openExternal(serverUrl + target + "/haxe_latest.tar.gz");
+		});
+		BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...", 5, HIDE.openPageInNewWindow.bind(null, "about.html", {toolbar:false}));
 		
 		//Ctrl-Tab
 		Hotkeys.add("Tab Manager->Show Next Tab", "Ctrl-Tab", null, TabManager.showNextTab);
@@ -115,7 +136,7 @@ class MenuCommands
 		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","editor.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
-		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","hotkeys.json")));
+		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config", "hotkeys.json")));
 		
 		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, Editor.editor.execCommand.bind("undo"));
 		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, Editor.editor.execCommand.bind("redo"));

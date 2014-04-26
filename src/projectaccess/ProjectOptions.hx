@@ -11,6 +11,7 @@ import js.html.ParagraphElement;
 import js.html.SelectElement;
 import js.html.TextAreaElement;
 import js.Node;
+import parser.ClasspathWalker;
 import projectaccess.Project.TargetData;
 import tabmanager.TabManager;
 import watchers.LocaleWatcher;
@@ -106,6 +107,8 @@ class ProjectOptions
 					throw "Unknown target";
 			}
 			
+			ClasspathWalker.parseProjectArguments();
+			
 			updateProjectOptions();
 		};
 		
@@ -118,9 +121,11 @@ class ProjectOptions
 		
 		openFLTargetList.onchange = function (_)
 		{
-			ProjectAccess.currentProject.openFLTarget = openFLTargets[openFLTargetList.selectedIndex];
+			var project = ProjectAccess.currentProject;
 			
-			var buildParams:Array<String> = ["haxelib", "run", "openfl", "build", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.path, "project.xml")), ProjectAccess.currentProject.openFLTarget];
+			project.openFLTarget = openFLTargets[openFLTargetList.selectedIndex];
+			
+			var buildParams:Array<String> = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget];
 			
 			switch (ProjectAccess.currentProject.openFLTarget) 
 			{
@@ -130,10 +135,12 @@ class ProjectOptions
 					
 			}
 			
-			ProjectAccess.currentProject.buildActionCommand = buildParams.join(" ");
+			project.buildActionCommand = buildParams.join(" ");
 			
-			ProjectAccess.currentProject.runActionType = Project.COMMAND;
-			ProjectAccess.currentProject.runActionText = ["haxelib", "run", "openfl", "run", HIDE.surroundWithQuotes(js.Node.path.join(ProjectAccess.path, "project.xml")), ProjectAccess.currentProject.openFLTarget].join(" ");
+			project.runActionType = Project.COMMAND;
+			project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
+			
+			ClasspathWalker.parseProjectArguments();
 			
 			updateProjectOptions();
 		};
@@ -299,6 +306,17 @@ class ProjectOptions
 			projectTargetList.style.display = "";
 			projectTargetText.style.display = "";
 			actionTextArea.style.display = "";
+		}
+		
+		if (ProjectAccess.currentProject.type == Project.HAXE) 
+		{
+			pathToHxmlDescription.style.display = "";
+			inputGroupButton.getElement().style.display = "";
+		}
+		else
+		{
+			pathToHxmlDescription.style.display = "none";
+			inputGroupButton.getElement().style.display = "none";
 		}
 		
 		var runActionType;

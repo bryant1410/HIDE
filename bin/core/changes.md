@@ -1,9 +1,19 @@
+0.3.7
+-----------
+
+* FIX: OpenFL project import(*.xml, *.lime)
+* FIX: Do not show multiple hxml options for HXML projects(which depend on only one hxml)
+* FIX: Do not update linting for non Haxe files on project build
+* FIX: Class path walker for HAXE projects
+* CHANGED: created OpenFL projects will not hardcode to "project.xml", instead just use "haxelib run lime build flash", lime/OpenFL can detect project file itself
+* ADDED: Help->Open Haxe nightly build download URL(which should open default browser and start latest Haxe nightly build download for your platform)
+* ADDED: update Open File completion using file tree watcher
+
 0.3.6
 -----------
 
-* FIX: Code Completion for Haxe project type
-* FIX: Dirty fix for custom completion hotkey(Introduced in 0.3.5 - code completion hotkey was moved to hotkeys.json to make it customizable)
-From now, code editor should not type data, when user presses code completion hotkey, for example, it shoudn't insert space character when user presses "Ctrl-Space" and etc.
+* FIX: Code Completion for Haxe project type(Thanks Philippe Elsass for bug report)
+* FIX: Dirty fix for custom completion hotkey(Introduced in 0.3.5 - code completion hotkey was moved to hotkeys.json to make it customizable). From now, code editor should not type data, when user presses code completion hotkey, for example, it shoudn't insert space character when user presses "Ctrl-Space" and etc.
 * FIX: Code Completion for OpenFL projects
 
 0.3.5

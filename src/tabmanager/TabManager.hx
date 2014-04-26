@@ -410,10 +410,7 @@ class TabManager
 		
 		Editor.editor.swapDoc(tabMap.get(selectedPath).doc);
 		
-		if (Node.path.extname(selectedPath) == ".hx") 
-		{
-			HaxeLint.updateLinting();
-		}
+		HaxeLint.updateLinting();
 	}
 	
 	public static function getCurrentDocumentPath():String

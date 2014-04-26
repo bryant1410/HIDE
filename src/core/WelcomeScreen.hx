@@ -57,7 +57,6 @@ class WelcomeScreen
 		
 		new JQuery("#github").on("click", Shell.openExternal.bind("https://github.com/as3boyan/HIDE"));
 		new JQuery("#as3boyan").on("click", Shell.openExternal.bind("http://twitter.com/As3Boyan"));
-		new JQuery("#misterpah").on("click", Shell.openExternal.bind("http://twitter.com/misterpah"));
 	}
 	
 	static function createListElement(text:String, onClick:Dynamic)

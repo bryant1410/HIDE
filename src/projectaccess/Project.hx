@@ -41,7 +41,6 @@ class Project
 	public var license:String;
 	public var url:String;
 	
-	public var args:Array<String>;
 	public var targetData:Array<TargetData>;
 	
 	public var files:Array<String>;
@@ -58,7 +57,6 @@ class Project
 	
 	public function new() 
 	{
-		args = [];
 		files = [];
 		hiddenItems = [];
 		targetData = [];

@@ -105,9 +105,9 @@ class OpenFLProject
 		//project.target = target;
 		project.openFLTarget = "flash";
 		ProjectAccess.path = pathToProject;
-		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%join%(%path%,project.xml)"', project.openFLTarget, "--connect", "5000"].join(" ");
+		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
 		project.runActionType = Project.COMMAND;
-		project.runActionText = ["haxelib", "run", "lime", "run", '"%join%(%path%,project.xml)"', project.openFLTarget].join(" ");
+		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
 		
 		ProjectAccess.currentProject = project;
 		
@@ -117,34 +117,6 @@ class OpenFLProject
 			OpenProject.openProject(path);
 		}
 		);
-		
-		//OpenFLTools.getParams(pathToProject, project.openFLTarget, function (stdout:String)
-		//{
-			//var args:Array<String> = [];
-			//
-			//var currentLine:String;
-			//
-			//for (line in stdout.split("\n"))
-			//{
-				//currentLine = StringTools.trim(line);
-				//
-				//if (!StringTools.startsWith(currentLine, "#"))
-				//{
-					//args.push(currentLine);
-				//}
-			//}
-			//
-			//project.args = args;
-			//ProjectOptions.updateProjectOptions();
-			//
-			//var path:String = js.Node.path.join(pathToProject, "project.hide");
-			//Browser.getLocalStorage().setItem("pathToLastProject", path);
-			//
-			//ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
-			//
-			//Splitter.show();
-		//}
-		//);
 	}
 	
 }

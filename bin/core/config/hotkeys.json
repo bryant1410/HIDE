@@ -57,4 +57,5 @@
     ,"Project->Project Options..." : ""
     ,"Source->Show Code Completion" : "Ctrl-Space"
     ,"Source->Toggle Comment" : "Ctrl-Q"
+    ,"Help->Open Haxe nightly build download URL" : ""
 }

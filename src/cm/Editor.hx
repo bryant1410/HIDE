@@ -164,9 +164,9 @@ class Editor
 		
 		editor.on("change", function (cm:CodeMirror, e:CodeMirror.ChangeEvent):Void 
 		{
-			var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
+			var modeName:String = TabManager.getCurrentDocument().getMode().name;
 			
-			if (extname == ".hx") 
+			if (modeName == "haxe") 
 			{
 				Helper.debounce("change", function ():Void 
 				{
@@ -222,7 +222,7 @@ class Editor
 					Completion.showClassList(true);
 				}
 			}
-			else if (extname == ".hxml") 
+			else if (modeName == "hxml") 
 			{
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
@@ -250,11 +250,11 @@ class Editor
 	
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
 	{
-		var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
+		var modeName:String = TabManager.getCurrentDocument().getMode().name;
 		
-		switch (extname) 
+		switch (modeName) 
 		{
-			case ".hx":
+			case "haxe":
 				//HaxeParserProvider.getClassName();
 				
 				if (!dot || regenerateCompletionOnDot || (dot && !cm.state.completionActive)) 
@@ -264,7 +264,7 @@ class Editor
 						Completion.getCompletion(Completion.showRegularCompletion);
 					});
 				}
-			case ".hxml":
+			case "hxml":
 				Completion.showHxmlCompletion();
 			default:
 				

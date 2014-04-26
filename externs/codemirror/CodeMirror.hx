@@ -54,6 +54,7 @@ typedef DocHistory = {
 	function isClean(?generation: Int):Bool;
 	function clearHistory():Void;
 	function historySize():Int;
+	function getMode():Dynamic;
 	var history:DocHistory;
 }
 

@@ -225,8 +225,6 @@ class Completion
 		
 		var params = ["--connect", "5000", "--cwd", HIDE.surroundWithQuotes(ProjectAccess.path)].concat(projectArguments);
 		
-		trace(params);
-		
 		ProcessHelper.runProcess("haxe", params, null, function (stdout:String, stderr:String)
 		{
 			var xml:Xml = Xml.parse(stderr);

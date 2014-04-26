@@ -127,6 +127,8 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Run Grunt for current project(add support for multiple build/run commands)
 * Add current HIDE version(from haxelib.json) to issue reporter
 * On compilation error without file and line, if hxml project - show hxml file.
+* Show project locked if dependencies are not met(for example if lime/OpenFL is not installed then gray out OpenFL project and show install/provide path to dependencies)
+* Convert HXML projects to HAXE projects(with multiple hxmls)
 
 ###Important
 * Custom hxml, build and run commands for each target

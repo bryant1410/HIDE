@@ -15,6 +15,7 @@ import js.node.Remove;
 import js.node.Walkdir;
 import js.node.Watchr;
 import nodejs.webkit.Shell;
+import parser.ClasspathWalker;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import watchers.LocaleWatcher;
@@ -84,11 +85,13 @@ class FileTree
 			
 					if (dirname != null)
 					{
-						Node.fs.mkdir(Node.path.join(path, dirname), function (error:NodeErr):Void
+						var pathToFolder = Node.path.join(path, dirname);
+						
+						Node.fs.mkdir(pathToFolder, function (error:NodeErr):Void
 						{
 							if (error == null) 
 							{
-								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFile, icon: "includes/images/folder.png"} }, selectedItem.element);
+								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFolder, icon: "includes/images/folder.png"} }, selectedItem.element);
 								attachContextMenu();
 							}
 							else 
@@ -413,11 +416,38 @@ class FileTree
 			path: path,
 			listener:
 				function (changeType, filePath, fileCurrentStat, filePreviousStat):Void 
-				{
+				{					
 					switch (changeType) 
 					{
 						case 'create', 'delete':
 							load();
+							
+							Node.fs.stat(filePath, function (error:NodeErr, stat:NodeStat):Void 
+							{
+								if (error == null) 
+								{
+									if (stat.isFile()) 
+									{
+										if (changeType == 'create') 
+										{
+											ClasspathWalker.addFile(filePath);
+										}
+										else
+										{
+											ClasspathWalker.removeFile(filePath);
+										}
+									}
+									else if(stat.isDirectory()) 
+									{
+										ClasspathWalker.parseProjectArguments();
+									}
+								}
+								else 
+								{
+									trace(error);
+								}
+							}
+							);
 						default:
 							
 					}

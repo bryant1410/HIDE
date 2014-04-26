@@ -12,6 +12,7 @@ import openflproject.OpenFLTools;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
 import watchers.LocaleWatcher;
+import watchers.SettingsWatcher;
 
 /**
  * ...
@@ -127,12 +128,21 @@ class ClasspathWalker
 		
 		if (ProjectAccess.path != null) 
 		{
-			switch (ProjectAccess.currentProject.type) 
+			var project = ProjectAccess.currentProject;
+			
+			switch (project.type) 
 			{
-				case Project.HAXE:
-					getClasspaths(ProjectAccess.currentProject.args);
-				case Project.HXML:
-					var path:String = Node.path.join(ProjectAccess.path, ProjectAccess.currentProject.main);
+				case Project.HAXE, Project.HXML:
+					var path:String;
+					
+					if (project.type == Project.HAXE) 
+					{
+						path = Node.path.join(ProjectAccess.path, project.targetData[project.target].pathToHxml);
+					}
+					else 
+					{
+						path = Node.path.join(ProjectAccess.path, project.main);
+					}
 					
 					var options:js.Node.NodeFsFileOptions = { };
 					options.encoding = NodeC.UTF8;
@@ -140,7 +150,7 @@ class ClasspathWalker
 					var data:String = Node.fs.readFileSync(path, options);
 					getClasspaths(data.split("\n"));
 				case Project.OPENFL:
-					OpenFLTools.getParams(ProjectAccess.path, ProjectAccess.currentProject.openFLTarget, function (stdout:String):Void 
+					OpenFLTools.getParams(ProjectAccess.path, project.openFLTarget, function (stdout:String):Void 
 					{
 						getClasspaths(stdout.split("\n"));
 					});
@@ -149,7 +159,7 @@ class ClasspathWalker
 			}
 		}
 		
-		walkProjectFolder(ProjectAccess.path);
+		walkProjectDirectory(ProjectAccess.path);
 	}
 	
 	static function getClasspaths(data:Array<String>)
@@ -274,7 +284,42 @@ class ClasspathWalker
 		);
 	}
 	
-	static function walkProjectFolder(path:String):Void 
+	public static function addFile(path:String)
+	{
+		if (!SettingsWatcher.isItemInIgnoreList(path) && !ProjectAccess.isItemInIgnoreList(path)) 
+		{
+			var relativePath;
+			
+			if (ProjectAccess.path != null) 
+			{
+				relativePath = Node.path.relative(ProjectAccess.path, path);
+				
+				if (ClassParser.filesList.indexOf(relativePath) == -1 && ClassParser.filesList.indexOf(path) == -1) 
+				{
+					ClassParser.filesList.push(relativePath);
+				}
+			}
+			else 
+			{
+				ClassParser.filesList.push(path);
+			}
+		}
+	}
+	
+	public static function removeFile(path:String)
+	{
+		var relativePath;
+		
+		if (ProjectAccess.path != null) 
+		{
+			relativePath = Node.path.relative(ProjectAccess.path, path);
+			ClassParser.filesList.remove(relativePath);
+		}
+		
+		ClassParser.filesList.remove(path);
+	}
+	
+	static function walkProjectDirectory(path:String):Void 
 	{
 		var emitter = Walkdir.walk(path, {});
 		
@@ -282,16 +327,8 @@ class ClasspathWalker
 		options.encoding = NodeC.UTF8;
 		
 		emitter.on("file", function (path, stat):Void 
-		{
-			if (!StringTools.startsWith(path, ".git")) 
-			{
-				var relativePath = Node.path.relative(ProjectAccess.path, path);
-				
-				if (ClassParser.filesList.indexOf(relativePath) == -1 && ClassParser.filesList.indexOf(path) == -1) 
-				{
-					ClassParser.filesList.push(relativePath);
-				}
-			}
+		{			
+			addFile(path);
 		}
 		);
 		

@@ -1177,8 +1177,8 @@ cm.Editor.load = function() {
 	var ignoreNewLineKeywords_1 = "for ";
 	var ignoreNewLineKeywords_2 = "while";
 	cm.Editor.editor.on("change",function(cm3,e1) {
-		var extname = js.Node.require("path").extname(tabmanager.TabManager.getCurrentDocumentPath());
-		if(extname == ".hx") {
+		var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
+		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
 				core.HaxeParserProvider.getClassName();
 				core.HaxeLint.updateLinting();
@@ -1198,7 +1198,7 @@ cm.Editor.load = function() {
 					}
 				}
 			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true);
-		} else if(extname == ".hxml") {
+		} else if(modeName == "hxml") {
 			var cursor1 = cm3.getCursor();
 			var data1 = cm3.getLine(cursor1.line);
 			if(data1.charAt(cursor1.ch - 1) == "-") core.Completion.showHxmlCompletion();
@@ -1212,14 +1212,14 @@ cm.Editor.load = function() {
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
-	var extname = js.Node.require("path").extname(tabmanager.TabManager.getCurrentDocumentPath());
-	switch(extname) {
-	case ".hx":
+	var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
+	switch(modeName) {
+	case "haxe":
 		if(!dot || cm.Editor.regenerateCompletionOnDot || dot && !cm1.state.completionActive) tabmanager.TabManager.saveActiveFile(function() {
 			core.Completion.getCompletion(core.Completion.showRegularCompletion);
 		});
 		break;
-	case ".hxml":
+	case "hxml":
 		core.Completion.showHxmlCompletion();
 		break;
 	default:
@@ -1633,7 +1633,6 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
 	projectArguments.push(tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur)));
 	core.Completion.completions = [];
 	var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
-	console.log(params);
 	core.ProcessHelper.runProcess("haxe",params,null,function(stdout,stderr) {
 		var xml = Xml.parse(stderr);
 		var fast = new haxe.xml.Fast(xml);
@@ -1921,58 +1920,70 @@ core.HaxeHelper = function() { };
 $hxClasses["core.HaxeHelper"] = core.HaxeHelper;
 core.HaxeHelper.__name__ = ["core","HaxeHelper"];
 core.HaxeHelper.getArguments = function(onComplete) {
-	var data = [];
-	core.ProcessHelper.runProcess("haxe",["--help"],null,function(stdout,stderr) {
-		var regex = new EReg("-+[A-Z-]+ ","gim");
-		regex.map(stderr,function(ereg) {
-			var str = ereg.matched(0);
-			data.push(HxOverrides.substr(str,0,str.length - 1));
-			return str;
+	if(core.HaxeHelper.haxeArguments != null) onComplete(core.HaxeHelper.haxeArguments); else {
+		var data = [];
+		core.ProcessHelper.runProcess("haxe",["--help"],null,function(stdout,stderr) {
+			var regex = new EReg("-+[A-Z-]+ ","gim");
+			regex.map(stderr,function(ereg) {
+				var str = ereg.matched(0);
+				data.push(HxOverrides.substr(str,0,str.length - 1));
+				return str;
+			});
+			core.HaxeHelper.haxeArguments = data;
+			onComplete(core.HaxeHelper.haxeArguments);
 		});
-		onComplete(data);
-	});
+	}
 };
 core.HaxeHelper.getDefines = function(onComplete) {
-	var data = [];
-	core.ProcessHelper.runProcess("haxe",["--help-defines"],null,function(stdout,stderr) {
-		var regex = new EReg("[A-Z-]+ +:","gim");
-		regex.map(stdout,function(ereg) {
-			var str = ereg.matched(0);
-			data.push(StringTools.trim(HxOverrides.substr(str,0,str.length - 1)));
-			return ereg.matched(0);
+	if(core.HaxeHelper.haxeDefines != null) onComplete(core.HaxeHelper.haxeDefines); else {
+		var data = [];
+		core.ProcessHelper.runProcess("haxe",["--help-defines"],null,function(stdout,stderr) {
+			var regex = new EReg("[A-Z-]+ +:","gim");
+			regex.map(stdout,function(ereg) {
+				var str = ereg.matched(0);
+				data.push(StringTools.trim(HxOverrides.substr(str,0,str.length - 1)));
+				return ereg.matched(0);
+			});
+			core.HaxeHelper.haxeDefines = data;
+			onComplete(core.HaxeHelper.haxeDefines);
 		});
-		onComplete(data);
-	});
+	}
 };
 core.HaxeHelper.getInstalledHaxelibList = function(onComplete) {
-	var data = [];
-	core.ProcessHelper.runProcess("haxelib",["list"],null,function(stdout,stderr) {
-		var regex = new EReg("^[A-Z-]+:","gim");
-		regex.map(stdout,function(ereg) {
-			var str = ereg.matched(0);
-			data.push(HxOverrides.substr(str,0,str.length - 1));
-			return str;
+	if(core.HaxeHelper.installedHaxelibs != null) onComplete(core.HaxeHelper.installedHaxelibs); else {
+		var data = [];
+		core.ProcessHelper.runProcess("haxelib",["list"],null,function(stdout,stderr) {
+			var regex = new EReg("^[A-Z-]+:","gim");
+			regex.map(stdout,function(ereg) {
+				var str = ereg.matched(0);
+				data.push(HxOverrides.substr(str,0,str.length - 1));
+				return str;
+			});
+			core.HaxeHelper.installedHaxelibs = data;
+			onComplete(core.HaxeHelper.installedHaxelibs);
 		});
-		onComplete(data);
-	});
+	}
 };
 core.HaxeHelper.getHaxelibList = function(onComplete) {
-	var options = { host : "lib.haxe.org", port : 80, path : "/all"};
-	var emitter = js.Node.require("http").get(options,function(res) {
-		console.log("Got response: " + res.statusCode);
-		res.setEncoding("utf8");
-		var data = "";
-		res.on("data",function(chunk) {
-			data += chunk;
+	if(core.HaxeHelper.haxelibHaxelibs != null) onComplete(core.HaxeHelper.haxelibHaxelibs); else {
+		var options = { host : "lib.haxe.org", port : 80, path : "/all"};
+		var emitter = js.Node.require("http").get(options,function(res) {
+			console.log("Got response: " + res.statusCode);
+			res.setEncoding("utf8");
+			var data = "";
+			res.on("data",function(chunk) {
+				data += chunk;
+			});
+			res.on("end",function() {
+				var libs = core.HaxeHelper.parseHtml(data);
+				core.HaxeHelper.haxelibHaxelibs = libs;
+				onComplete(core.HaxeHelper.haxelibHaxelibs);
+			});
 		});
-		res.on("end",function() {
-			var libs = core.HaxeHelper.parseHtml(data);
-			onComplete(libs);
+		emitter.on("error",function(e) {
+			console.log("Got error: " + e.message);
 		});
-	});
-	emitter.on("error",function(e) {
-		console.log("Got error: " + e.message);
-	});
+	}
 };
 core.HaxeHelper.parseHtml = function(data) {
 	var libs = [];
@@ -2075,8 +2086,10 @@ core.HaxeLint.load = function() {
 	});
 };
 core.HaxeLint.updateLinting = function() {
-	cm.Editor.editor.setOption("lint",false);
-	cm.Editor.editor.setOption("lint",true);
+	if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+		cm.Editor.editor.setOption("lint",false);
+		cm.Editor.editor.setOption("lint",true);
+	}
 };
 core.FunctionScopeType = $hxClasses["core.FunctionScopeType"] = { __ename__ : ["core","FunctionScopeType"], __constructs__ : ["SClass","SStatic","SRegular"] };
 core.FunctionScopeType.SClass = ["SClass",0];
@@ -2660,7 +2673,26 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker",3,function() {
 		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE/issues/new");
 	});
-	menu.BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...",4,function() {
+	menu.BootstrapMenu.getMenu("Help").addMenuItem("Open Haxe nightly build download URL",4,function() {
+		var serverUrl = "http://hxbuilds.s3-website-us-east-1.amazonaws.com/builds/haxe/";
+		var target;
+		var _g = core.Utils.os;
+		switch(_g) {
+		case 0:
+			target = "windows";
+			break;
+		case 1:
+			target = "linux64";
+			break;
+		case 2:
+			target = "mac";
+			break;
+		default:
+			throw "Utils class was not able to detect OS";
+		}
+		nodejs.webkit.Shell.openExternal(serverUrl + target + "/haxe_latest.tar.gz");
+	});
+	menu.BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...",5,function() {
 		return HIDE.openPageInNewWindow(null,"about.html",{ toolbar : false});
 	});
 	core.Hotkeys.add("Tab Manager->Show Next Tab","Ctrl-Tab",null,tabmanager.TabManager.showNextTab);
@@ -3310,9 +3342,6 @@ core.WelcomeScreen.load = function() {
 	new $("#as3boyan").on("click",null,function() {
 		return nodejs.webkit.Shell.openExternal("http://twitter.com/As3Boyan");
 	});
-	new $("#misterpah").on("click",null,function() {
-		return nodejs.webkit.Shell.openExternal("http://twitter.com/misterpah");
-	});
 };
 core.WelcomeScreen.show = function() {
 	new $(core.WelcomeScreen.div).fadeIn(250);
@@ -3512,12 +3541,15 @@ filetree.FileTree.init = function() {
 		Alertify.prompt("Folder name:",function(e1,str1) {
 			if(e1) {
 				var dirname = str1;
-				if(dirname != null) js.Node.require("fs").mkdir(js.Node.require("path").join(path1,dirname),null,function(error) {
-					if(error == null) {
-						new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFile, icon : "includes/images/folder.png"}},selectedItem1.element);
-						filetree.FileTree.attachContextMenu();
-					} else Alertify.error(error);
-				});
+				if(dirname != null) {
+					var pathToFolder = js.Node.require("path").join(path1,dirname);
+					js.Node.require("fs").mkdir(pathToFolder,null,function(error) {
+						if(error == null) {
+							new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder, icon : "includes/images/folder.png"}},selectedItem1.element);
+							filetree.FileTree.attachContextMenu();
+						} else Alertify.error(error);
+					});
+				}
 			}
 		},"New Folder");
 	});
@@ -3687,6 +3719,13 @@ filetree.FileTree.load = function(projectName,path) {
 		switch(changeType) {
 		case "create":case "delete":
 			filetree.FileTree.load();
+			js.Node.require("fs").stat(filePath,function(error,stat) {
+				if(error == null) {
+					if(stat.isFile()) {
+						if(changeType == "create") parser.ClasspathWalker.addFile(filePath); else parser.ClasspathWalker.removeFile(filePath);
+					} else if(stat.isDirectory()) parser.ClasspathWalker.parseProjectArguments();
+				} else console.log(error);
+			});
 			break;
 		default:
 		}
@@ -13000,9 +13039,9 @@ openflproject.OpenFLProject.createProject = function(data) {
 	project.type = 1;
 	project.openFLTarget = "flash";
 	projectaccess.ProjectAccess.path = pathToProject;
-	project.buildActionCommand = ["haxelib","run","lime","build","\"%join%(%path%,project.xml)\"",project.openFLTarget,"--connect","5000"].join(" ");
+	project.buildActionCommand = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget,"--connect","5000"].join(" ");
 	project.runActionType = 2;
-	project.runActionText = ["haxelib","run","lime","run","\"%join%(%path%,project.xml)\"",project.openFLTarget].join(" ");
+	project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
 	projectaccess.ProjectAccess.currentProject = project;
 	projectaccess.ProjectAccess.save(function() {
 		var path = js.Node.require("path").join(pathToProject,"project.hide");
@@ -13037,20 +13076,20 @@ openproject.OpenFL.open = function(path) {
 	project.type = 1;
 	project.openFLTarget = "flash";
 	projectaccess.ProjectAccess.path = pathToProject;
-	openproject.OpenFL.parseOpenFLDisplayParameters(pathToProject,project.openFLTarget,function(args) {
-		project.args = args;
-		var pathToProjectHide = js.Node.require("path").join(pathToProject,"project.hide");
-		projectaccess.ProjectAccess.currentProject = project;
-		projectaccess.ProjectOptions.updateProjectOptions();
-		projectaccess.ProjectAccess.save((function(f,a1,a2) {
-			return function() {
-				return f(a1,a2);
-			};
-		})(filetree.FileTree.load,project.name,pathToProject));
-		core.Splitter.show();
-		js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
-		core.RecentProjectsList.add(pathToProjectHide);
-	});
+	project.buildActionCommand = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget,"--connect","5000"].join(" ");
+	project.runActionType = 2;
+	project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
+	var pathToProjectHide = js.Node.require("path").join(pathToProject,"project.hide");
+	projectaccess.ProjectAccess.currentProject = project;
+	projectaccess.ProjectOptions.updateProjectOptions();
+	projectaccess.ProjectAccess.save((function(f,a1,a2) {
+		return function() {
+			return f(a1,a2);
+		};
+	})(filetree.FileTree.load,project.name,pathToProject));
+	core.Splitter.show();
+	js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
+	core.RecentProjectsList.add(pathToProjectHide);
 };
 openproject.OpenFL.parseOpenFLDisplayParameters = function(pathToProject,target,onComplete) {
 	openflproject.OpenFLTools.getParams(pathToProject,target,function(stdout) {
@@ -13372,27 +13411,26 @@ parser.ClasspathWalker.parseProjectArguments = function() {
 	}
 	parser.ClassParser.classList = parser.ClasspathWalker.haxeStdClassList.slice();
 	if(projectaccess.ProjectAccess.path != null) {
-		var _g2 = projectaccess.ProjectAccess.currentProject.type;
+		var project = projectaccess.ProjectAccess.currentProject;
+		var _g2 = project.type;
 		switch(_g2) {
-		case 0:
-			parser.ClasspathWalker.getClasspaths(projectaccess.ProjectAccess.currentProject.args);
-			break;
-		case 2:
-			var path = js.Node.require("path").join(projectaccess.ProjectAccess.path,projectaccess.ProjectAccess.currentProject.main);
+		case 0:case 2:
+			var path;
+			if(project.type == 0) path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.targetData[project.target].pathToHxml); else path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.main);
 			var options = { };
 			options.encoding = "utf8";
 			var data = js.Node.require("fs").readFileSync(path,options);
 			parser.ClasspathWalker.getClasspaths(data.split("\n"));
 			break;
 		case 1:
-			openflproject.OpenFLTools.getParams(projectaccess.ProjectAccess.path,projectaccess.ProjectAccess.currentProject.openFLTarget,function(stdout) {
+			openflproject.OpenFLTools.getParams(projectaccess.ProjectAccess.path,project.openFLTarget,function(stdout) {
 				parser.ClasspathWalker.getClasspaths(stdout.split("\n"));
 			});
 			break;
 		default:
 		}
 	}
-	parser.ClasspathWalker.walkProjectFolder(projectaccess.ProjectAccess.path);
+	parser.ClasspathWalker.walkProjectDirectory(projectaccess.ProjectAccess.path);
 };
 parser.ClasspathWalker.getClasspaths = function(data) {
 	var classpaths = [];
@@ -13470,15 +13508,29 @@ parser.ClasspathWalker.parseClasspath = function(path,std) {
 		console.log(path2);
 	});
 };
-parser.ClasspathWalker.walkProjectFolder = function(path) {
+parser.ClasspathWalker.addFile = function(path) {
+	if(!watchers.SettingsWatcher.isItemInIgnoreList(path) && !projectaccess.ProjectAccess.isItemInIgnoreList(path)) {
+		var relativePath;
+		if(projectaccess.ProjectAccess.path != null) {
+			relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+			if(HxOverrides.indexOf(parser.ClassParser.filesList,relativePath,0) == -1 && HxOverrides.indexOf(parser.ClassParser.filesList,path,0) == -1) parser.ClassParser.filesList.push(relativePath);
+		} else parser.ClassParser.filesList.push(path);
+	}
+};
+parser.ClasspathWalker.removeFile = function(path) {
+	var relativePath;
+	if(projectaccess.ProjectAccess.path != null) {
+		relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+		HxOverrides.remove(parser.ClassParser.filesList,relativePath);
+	}
+	HxOverrides.remove(parser.ClassParser.filesList,path);
+};
+parser.ClasspathWalker.walkProjectDirectory = function(path) {
 	var emitter = Walkdir.walk(path,{ });
 	var options = { };
 	options.encoding = "utf8";
 	emitter.on("file",function(path1,stat) {
-		if(!StringTools.startsWith(path1,".git")) {
-			var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path1);
-			if(HxOverrides.indexOf(parser.ClassParser.filesList,relativePath,0) == -1 && HxOverrides.indexOf(parser.ClassParser.filesList,path1,0) == -1) parser.ClassParser.filesList.push(relativePath);
-		}
+		parser.ClasspathWalker.addFile(path1);
 	});
 	emitter.on("error",function(path2,stat1) {
 		console.log(path2);
@@ -13654,7 +13706,6 @@ pluginloader.PluginManager.compilePlugins = function(onComplete,onFailed) {
 };
 var projectaccess = {};
 projectaccess.Project = function() {
-	this.args = [];
 	this.files = [];
 	this.hiddenItems = [];
 	this.targetData = [];
@@ -13671,7 +13722,6 @@ projectaccess.Project.prototype = {
 	,company: null
 	,license: null
 	,url: null
-	,args: null
 	,targetData: null
 	,files: null
 	,activeFile: null
@@ -13779,6 +13829,7 @@ projectaccess.ProjectOptions.create = function() {
 		default:
 			throw "Unknown target";
 		}
+		parser.ClasspathWalker.parseProjectArguments();
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
 	projectaccess.ProjectOptions.openFLTargets = ["flash","html5","neko","android","blackberry","emscripten","webos","tizen","ios","windows","mac","linux"];
@@ -13790,8 +13841,9 @@ projectaccess.ProjectOptions.create = function() {
 		projectaccess.ProjectOptions.openFLTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target1));
 	}
 	projectaccess.ProjectOptions.openFLTargetList.onchange = function(_) {
-		projectaccess.ProjectAccess.currentProject.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
-		var buildParams = ["haxelib","run","openfl","build",HIDE.surroundWithQuotes(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.xml")),projectaccess.ProjectAccess.currentProject.openFLTarget];
+		var project1 = projectaccess.ProjectAccess.currentProject;
+		project1.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
+		var buildParams = ["haxelib","run","lime","build","\"%path%\"",project1.openFLTarget];
 		var _g4 = projectaccess.ProjectAccess.currentProject.openFLTarget;
 		switch(_g4) {
 		case "flash":case "html5":case "neko":
@@ -13799,9 +13851,10 @@ projectaccess.ProjectOptions.create = function() {
 			break;
 		default:
 		}
-		projectaccess.ProjectAccess.currentProject.buildActionCommand = buildParams.join(" ");
-		projectaccess.ProjectAccess.currentProject.runActionType = 2;
-		projectaccess.ProjectAccess.currentProject.runActionText = ["haxelib","run","openfl","run",HIDE.surroundWithQuotes(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.xml")),projectaccess.ProjectAccess.currentProject.openFLTarget].join(" ");
+		project1.buildActionCommand = buildParams.join(" ");
+		project1.runActionType = 2;
+		project1.runActionText = ["haxelib","run","lime","run","\"%path%\"",project1.openFLTarget].join(" ");
+		parser.ClasspathWalker.parseProjectArguments();
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
 	var _this5 = window.document;
@@ -13830,11 +13883,11 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.actionTextArea.id = "project-options-action-textarea";
 	projectaccess.ProjectOptions.actionTextArea.className = "custom-font-size";
 	projectaccess.ProjectOptions.actionTextArea.onchange = function(e1) {
-		var project1 = projectaccess.ProjectAccess.currentProject;
-		if(project1.type == 0) {
-			var targetData = project1.targetData[project1.target];
+		var project2 = projectaccess.ProjectAccess.currentProject;
+		if(project2.type == 0) {
+			var targetData = project2.targetData[project2.target];
 			targetData.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
-		} else project1.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
+		} else project2.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
 		projectaccess.ProjectOptions.update(null);
 	};
 	var _this9 = window.document;
@@ -13916,6 +13969,13 @@ projectaccess.ProjectOptions.update = function(_) {
 		projectaccess.ProjectOptions.projectTargetList.style.display = "";
 		projectaccess.ProjectOptions.projectTargetText.style.display = "";
 		projectaccess.ProjectOptions.actionTextArea.style.display = "";
+	}
+	if(projectaccess.ProjectAccess.currentProject.type == 0) {
+		projectaccess.ProjectOptions.pathToHxmlDescription.style.display = "";
+		projectaccess.ProjectOptions.inputGroupButton.getElement().style.display = "";
+	} else {
+		projectaccess.ProjectOptions.pathToHxmlDescription.style.display = "none";
+		projectaccess.ProjectOptions.inputGroupButton.getElement().style.display = "none";
 	}
 	var runActionType;
 	var _g = projectaccess.ProjectOptions.runActionList.selectedIndex;
@@ -14375,7 +14435,7 @@ tabmanager.TabManager.selectDoc = function(path) {
 	tabmanager.TabManager.selectedPath = path;
 	if(projectaccess.ProjectAccess.path != null) projectaccess.ProjectAccess.currentProject.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
 	cm.Editor.editor.swapDoc(tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc);
-	if(js.Node.require("path").extname(tabmanager.TabManager.selectedPath) == ".hx") core.HaxeLint.updateLinting();
+	core.HaxeLint.updateLinting();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;
