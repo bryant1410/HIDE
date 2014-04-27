@@ -3,11 +3,15 @@
 
 * FIX: add all haxelibs from haxelib server(using 'haxelib search ""', previously some haxelibs were not added due to "lib.haxe.org/all" page html parsing issues)
 * FIX: project saving on quit
-* CHANGE: submenu max-height to 500px, overflow: auto
+* FIX: trigger completion on dot only for Haxe mode
+* FIX: do not reparse classpath on watcher file change event
+* FIX: opening same file on Windows on build errors
+* CHANGED: submenu max-height to 500px, overflow: auto
 * ADDED: macro to look for CodeMirror themes and add them to
 View->Themes
 * ADDED: download button to browse directory dialog(for specifying path to Haxe, as suggested by @underscorediscovery)
 * ADDED: Options->Configure Haxe SDK(compiler will still be used from PATH, this is used for parsing purposes)
+* ADDED: Haxe pick completion on dot and show completion again(completion chaining)
 
 0.3.7
 -----------

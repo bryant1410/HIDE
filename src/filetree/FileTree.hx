@@ -420,6 +420,8 @@ class FileTree
 					switch (changeType) 
 					{
 						case 'create', 'delete':
+							trace(changeType);
+							trace(filePath);
 							load();
 							
 							Node.fs.stat(filePath, function (error:NodeErr, stat:NodeStat):Void 
@@ -439,7 +441,9 @@ class FileTree
 									}
 									else if(stat.isDirectory()) 
 									{
-										ClasspathWalker.parseProjectArguments();
+										trace(changeType);
+										trace(filePath);
+										//ClasspathWalker.parseProjectArguments();
 									}
 								}
 								else 

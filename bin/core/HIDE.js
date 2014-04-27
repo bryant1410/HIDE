@@ -1120,10 +1120,14 @@ cm.Editor.load = function() {
 	options.extraKeys = { '.' : (function($this) {
 		var $r;
 		var passAndHint = function(cm1) {
-			setTimeout(function() {
-				cm.Editor.triggerCompletion(cm1,true);
-			},100);
-			return CodeMirror.Pass;
+			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+				var completionActive = cm.Editor.editor.state.completionActive;
+				if(completionActive != null && completionActive.widget != null) completionActive.widget.pick();
+				setTimeout(function() {
+					cm.Editor.triggerCompletion(cm1,true);
+				},100);
+				return CodeMirror.Pass;
+			}
 		};
 		$r = passAndHint;
 		return $r;
@@ -1678,7 +1682,7 @@ core.Completion.showRegularCompletion = function() {
 		cm.Editor.regenerateCompletionOnDot = true;
 		core.Completion.WORD = new EReg("[A-Z]+$","i");
 		core.Completion.completionType = core.CompletionType.REGULAR;
-		cm.Editor.editor.execCommand("autocomplete");
+		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ completeSingle : false});
 	}
 };
 core.Completion.showMetaTagsCompletion = function() {
@@ -2702,7 +2706,7 @@ core.MenuCommands.add = function() {
 			return f7(a17);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","hotkeys.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Change path to Haxe compiler",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
 	});
@@ -3701,12 +3705,17 @@ filetree.FileTree.load = function(projectName,path) {
 	var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
 		switch(changeType) {
 		case "create":case "delete":
+			console.log(changeType);
+			console.log(filePath);
 			filetree.FileTree.load();
 			js.Node.require("fs").stat(filePath,function(error,stat) {
 				if(error == null) {
 					if(stat.isFile()) {
 						if(changeType == "create") parser.ClasspathWalker.addFile(filePath); else parser.ClasspathWalker.removeFile(filePath);
-					} else if(stat.isDirectory()) parser.ClasspathWalker.parseProjectArguments();
+					} else if(stat.isDirectory()) {
+						console.log(changeType);
+						console.log(filePath);
+					}
 				} else console.log(error);
 			});
 			break;
@@ -14248,6 +14257,13 @@ tabmanager.TabManager.openFile = function(path,onComplete) {
 };
 tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
 	if(show == null) show = true;
+	if(core.Utils.os == 0) {
+		var ereg = new EReg("[a-z]:\\\\","i");
+		if(ereg.match(path)) {
+			path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
+			console.log(path);
+		}
+	}
 	path = StringTools.replace(path,"\\",js.Node.require("path").sep);
 	if(tabmanager.TabManager.isAlreadyOpened(path,show)) {
 		if(onComplete != null) onComplete();

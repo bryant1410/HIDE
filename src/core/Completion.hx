@@ -309,7 +309,7 @@ class Completion
 			Editor.regenerateCompletionOnDot = true;
 			WORD = ~/[A-Z]+$/i;
 			completionType = REGULAR;
-			Editor.editor.execCommand("autocomplete");
+			CodeMirrorStatic.showHint(Editor.editor, getHints, { completeSingle: false } );
 		}
 	}
 	

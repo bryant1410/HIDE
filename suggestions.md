@@ -129,6 +129,8 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * On compilation error without file and line, if hxml project - show hxml file.
 * Show project locked if dependencies are not met(for example if lime/OpenFL is not installed then gray out OpenFL project and show install/provide path to dependencies)
 * Convert HXML projects to HAXE projects(with multiple hxmls)
+* Take in account comments when parsing hxml(when checking for "-cmd" argument)
+* Fix file watchers watching closed documents
 
 ###Important
 * Custom hxml, build and run commands for each target

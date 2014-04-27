@@ -4,6 +4,7 @@ import cm.Editor;
 import core.FileDialog;
 import core.HaxeLint;
 import core.RecentProjectsList;
+import core.Utils;
 import core.WelcomeScreen;
 import filetree.FileTree;
 import haxe.ds.StringMap.StringMap;
@@ -93,6 +94,18 @@ class TabManager
 	
 	public static function openFileInNewTab(path:String, ?show:Bool = true, ?onComplete:Dynamic):Void
 	{
+		//Fix opening same file
+		if (Utils.os == Utils.WINDOWS) 
+		{
+			var ereg:EReg = ~/[a-z]:\\/i;
+			
+			if (ereg.match(path)) 
+			{
+				path = path.substr(0, 3).toLowerCase() + path.substr(3);
+				trace(path);
+			}
+		}
+		
 		//path = js.Node.require('path').relative(js.Node.process.cwd(), path);
 		path = StringTools.replace(path, "\\", js.Node.path.sep); 
 		

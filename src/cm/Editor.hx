@@ -66,8 +66,18 @@ class Editor
 			"." : 
 				function passAndHint(cm) 
 				{
-					untyped setTimeout(function() { triggerCompletion(cm, true); }, 100);
-					untyped __js__("return CodeMirror.Pass");
+					if (TabManager.getCurrentDocument().getMode().name == "haxe") 
+					{
+						var completionActive = editor.state.completionActive;
+						
+						if (completionActive != null && completionActive.widget != null) 
+						{
+							completionActive.widget.pick();
+						}
+
+						untyped setTimeout(function() { triggerCompletion(cm, true); }, 100);
+						untyped __js__("return CodeMirror.Pass");
+					}
 				}
 		}
 				
