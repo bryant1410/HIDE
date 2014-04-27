@@ -10,6 +10,7 @@ class DialogManager
 	static var haxelibManagerDialog:HaxelibManagerDialog;
 	static var projectOptionsDialog:ProjectOptionsDialog;
 	static var browseDirectoryWithDownloadButtonDialog:BrowseDirectoryWithDownloadButtonDialog;
+	static var installHaxelibDialog:InstallHaxelibDialog;
 	
 	public static function load():Void
 	{
@@ -17,6 +18,9 @@ class DialogManager
 		browseDirectoryWithDownloadButtonDialog = new BrowseDirectoryWithDownloadButtonDialog();
 		haxelibManagerDialog = new HaxelibManagerDialog();
 		projectOptionsDialog = new ProjectOptionsDialog();
+		installHaxelibDialog = new InstallHaxelibDialog();
+		
+		//installHaxelibDialog.show();
 	}
 	
 	public static function showBrowseFolderDialog(title:String, onComplete:String->Void, ?defaultValue:String = "", ?downloadButtonText:String, ?downloadButtonURL:String):Void

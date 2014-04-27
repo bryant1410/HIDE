@@ -104,7 +104,7 @@ class Completion
 			case FILELIST:
 				for (item in ClassParser.filesList) 
 				{
-					list.push( { text: item, hint: openFile} );
+					list.push( { text: item, displayText: item, hint: openFile} );
 				}
 			case CLASSLIST:
 				for (item in ClassParser.classList) 
@@ -117,20 +117,30 @@ class Completion
 		
 		list = Filter.filter(list, curWord, completionType);
 		
+		switch (completionType) 
+		{
+			case FILELIST:
+				for (item in list) 
+				{
+					item.text = "";
+				}
+			default:
+				
+		}
+		
 		var data:Dynamic = { list: list, from: {line:cur.line, ch:start}, to: {line:cur.line, ch:end} };
 		return data;
 	}
 	
-	static function openFile(cm:CodeMirror, data:Dynamic, completion:Dynamic)
+	static function openFile(cm:CodeMirror, data:Dynamic, completion:CompletionData)
 	{		
-		var path = completion.text;
+		var path = completion.displayText;
 		
 		if (ProjectAccess.path != null) 
 		{
 			path = Node.path.resolve(ProjectAccess.path, path);
 		}
 		
-		TabManager.getCurrentDocument().setValue(backupDocValue);
 		TabManager.openFileInNewTab(path);
 	}
 	

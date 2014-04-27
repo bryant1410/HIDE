@@ -1,3 +1,8 @@
+0.3.9
+-----------
+
+* CHANGED: do not change file using Navigation->Open File(completionItem.text = "", completionItem.displayText = "path/to/file")
+
 0.3.8
 -----------
 

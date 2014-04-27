@@ -913,6 +913,39 @@ bootstrap.ListGroup.prototype = {
 	}
 	,__class__: bootstrap.ListGroup
 };
+bootstrap.RadioElement = function(_name,_value,_text,_onChange) {
+	var _this = window.document;
+	this.element = _this.createElement("div");
+	this.element.className = "radio";
+	var label;
+	var _this1 = window.document;
+	label = _this1.createElement("label");
+	this.element.appendChild(label);
+	var _this2 = window.document;
+	this.input = _this2.createElement("input");
+	this.input.type = "radio";
+	this.input.name = _name;
+	this.input.value = _value;
+	this.input.onchange = function(e) {
+		if(_onChange != null) _onChange();
+	};
+	label.appendChild(this.input);
+	label.appendChild(window.document.createTextNode(_text));
+	this.element.appendChild(label);
+};
+$hxClasses["bootstrap.RadioElement"] = bootstrap.RadioElement;
+bootstrap.RadioElement.__name__ = ["bootstrap","RadioElement"];
+bootstrap.RadioElement.prototype = {
+	element: null
+	,input: null
+	,getInput: function() {
+		return this.input;
+	}
+	,getElement: function() {
+		return this.element;
+	}
+	,__class__: bootstrap.RadioElement
+};
 var build = {};
 build.CommandPreprocessor = function() { };
 $hxClasses["build.CommandPreprocessor"] = build.CommandPreprocessor;
@@ -1566,7 +1599,7 @@ core.Completion.getHints = function(cm,options) {
 		while(_g11 < _g21.length) {
 			var item = _g21[_g11];
 			++_g11;
-			core.Completion.list.push({ text : item, hint : core.Completion.openFile});
+			core.Completion.list.push({ text : item, displayText : item, hint : core.Completion.openFile});
 		}
 		break;
 	case 2:
@@ -1580,13 +1613,25 @@ core.Completion.getHints = function(cm,options) {
 		break;
 	}
 	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
+	var _g3 = core.Completion.completionType;
+	switch(_g3[1]) {
+	case 1:
+		var _g13 = 0;
+		var _g23 = core.Completion.list;
+		while(_g13 < _g23.length) {
+			var item2 = _g23[_g13];
+			++_g13;
+			item2.text = "";
+		}
+		break;
+	default:
+	}
 	var data = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
 	return data;
 };
 core.Completion.openFile = function(cm,data,completion) {
-	var path = completion.text;
+	var path = completion.displayText;
 	if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
-	tabmanager.TabManager.getCurrentDocument().setValue(core.Completion.backupDocValue);
 	tabmanager.TabManager.openFileInNewTab(path);
 };
 core.Completion.getCurrentWord = function(cm,options,pos) {
@@ -3437,6 +3482,7 @@ dialogs.DialogManager.load = function() {
 	dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog = new dialogs.BrowseDirectoryWithDownloadButtonDialog();
 	dialogs.DialogManager.haxelibManagerDialog = new dialogs.HaxelibManagerDialog();
 	dialogs.DialogManager.projectOptionsDialog = new dialogs.ProjectOptionsDialog();
+	dialogs.DialogManager.installHaxelibDialog = new dialogs.InstallHaxelibDialog();
 };
 dialogs.DialogManager.showBrowseFolderDialog = function(title,onComplete,defaultValue,downloadButtonText,downloadButtonURL) {
 	if(defaultValue == null) defaultValue = "";
@@ -3492,6 +3538,43 @@ dialogs.HaxelibManagerDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 		this.listGroup.getElement().style.height = window.innerHeight / 2 + "px";
 	}
 	,__class__: dialogs.HaxelibManagerDialog
+});
+dialogs.InstallHaxelibDialog = function() {
+	var _g = this;
+	dialogs.ModalDialog.call(this,"Missing haxelib");
+	var form;
+	var _this = window.document;
+	form = _this.createElement("form");
+	form.setAttribute("role","form");
+	this.inputGroupButton = new bootstrap.InputGroupButton("Run command");
+	this.inputGroupButton.getButton().onclick = function(e) {
+	};
+	var installLibRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLib","install from haxelib",function() {
+		_g.inputGroupButton.getInput().value = "haxelib install";
+	});
+	installLibRadio.getInput().checked = true;
+	form.appendChild(installLibRadio.getElement());
+	var installHxmlLibsRadio = new bootstrap.RadioElement("haxelibInstallOptions","installHxmlLibs","install all libs for hxml from haxelib",function() {
+		_g.inputGroupButton.getInput().value = "haxelib install build.hxml";
+	});
+	installHxmlLibsRadio.getInput().checked = true;
+	form.appendChild(installHxmlLibsRadio.getElement());
+	var installLibFromGitRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLibFromGit","install from git",function() {
+		_g.inputGroupButton.getInput().value = "haxelib git";
+	});
+	installLibFromGitRadio.getInput().checked = true;
+	form.appendChild(installLibFromGitRadio.getElement());
+	this.getBody().appendChild(form);
+	this.getBody().appendChild(this.inputGroupButton.getElement());
+	var okButton = bootstrap.ButtonManager.createButton("OK",false,true,true);
+	this.getFooter().appendChild(okButton);
+};
+$hxClasses["dialogs.InstallHaxelibDialog"] = dialogs.InstallHaxelibDialog;
+dialogs.InstallHaxelibDialog.__name__ = ["dialogs","InstallHaxelibDialog"];
+dialogs.InstallHaxelibDialog.__super__ = dialogs.ModalDialog;
+dialogs.InstallHaxelibDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
+	inputGroupButton: null
+	,__class__: dialogs.InstallHaxelibDialog
 });
 dialogs.ProjectOptionsDialog = function() {
 	dialogs.ModalDialog.call(this,"Project Options");

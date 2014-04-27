@@ -11,9 +11,9 @@ before_script:
   - mkdir ~/haxelib                                    # create a folder for installing haxelib
   - haxelib setup ~/haxelib
   - haxelib install jQueryExtern
-  - haxelib install nodejs
+  - haxelib install mustache
   - haxelib install hxparse
-  - haxelib install haxeparser
+  - haxelib install tjson
 
 script:
   - haxe HIDE.hxml
