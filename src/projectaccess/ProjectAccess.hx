@@ -29,22 +29,22 @@ class ProjectAccess
 	}
 	
 	public static function save(?onComplete:Dynamic, ?sync:Bool = false):Void
-	{		
-		Helper.debounce("saveProject", function ():Void 
+	{
+		if (ProjectAccess.path != null)
 		{
-			if (ProjectAccess.path != null)
+			var pathToProjectHide:String = js.Node.path.join(ProjectAccess.path, "project.hide");
+			
+			var data:String = TJSON.encode(ProjectAccess.currentProject, 'fancy');
+			
+			if (sync) 
 			{
-				var pathToProjectHide:String = js.Node.path.join(ProjectAccess.path, "project.hide");
-				
-				var data:String = TJSON.encode(ProjectAccess.currentProject, 'fancy');
-				
-				if (sync) 
+				Node.fs.writeFileSync(pathToProjectHide, data, js.Node.NodeC.UTF8);
+			}
+			else 
+			{
+				Helper.debounce("saveProject", function ():Void 
 				{
-					Node.fs.writeFileSync(pathToProjectHide, data, js.Node.NodeC.UTF8);
-				}
-				else 
-				{
-					js.Node.fs.writeFile(pathToProjectHide, data, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr)
+					Node.fs.writeFile(pathToProjectHide, data, js.Node.NodeC.UTF8, function (error:js.Node.NodeErr)
 					{
 						if (onComplete != null)
 						{
@@ -52,13 +52,13 @@ class ProjectAccess
 						}
 					}
 					);
-				}
+				}, 250);
 			}
-			else 
-			{
-				trace("project path is null");
-			}
-		}, 250);
+		}
+		else 
+		{
+			trace("project path is null");
+		}
 	}
 	
 	public static function load(path:String, ?onComplete:Dynamic):Void

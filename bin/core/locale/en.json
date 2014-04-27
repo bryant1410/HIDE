@@ -167,4 +167,6 @@
     ,"Toggle Comment" : "Toggle Comment"
     ,"Open Haxe nightly build download URL" : "Open Haxe nightly build download URL"
     ,"Remove folder " : "Remove folder "
+    ,"Change path to Haxe compiler" : "Change path to Haxe compiler"
+    ,"Download" : "Download"
 }

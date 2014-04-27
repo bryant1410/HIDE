@@ -1,4 +1,5 @@
 package parser;
+import core.Hotkeys;
 import core.ProcessHelper;
 import core.Utils;
 import dialogs.BrowseDirectoryDialog;
@@ -64,26 +65,42 @@ class ClasspathWalker
 		
 		if (pathToHaxeStd == null) 
 		{
-			DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ", function (path:String):Void 
-			{
-				pathToHaxeStd = getHaxeStdFolder(path);
-				
-				if (pathToHaxeStd != null) 
-				{
-					parseClasspath(pathToHaxeStd, true);
-					localStorage2.setItem("pathToHaxe", pathToHaxeStd);
-					DialogManager.hide();
-				}
-				else 
-				{
-					Alertify.error(LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
-				}
-			});
+			showHaxeDirectoryDialog();
 		}
 		else 
 		{
 			parseClasspath(pathToHaxeStd, true);
 		}
+	}
+	
+	public static function showHaxeDirectoryDialog()
+	{
+		var localStorage2 = Browser.getLocalStorage();
+		
+		var currentLocation = "";
+		
+		var pathToHaxe = localStorage2.getItem("pathToHaxe");
+		
+		if (pathToHaxe != null) 
+		{
+			currentLocation = pathToHaxe;
+		}
+		
+		DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ", function (path:String):Void 
+		{
+			pathToHaxeStd = getHaxeStdFolder(path);
+			
+			if (pathToHaxeStd != null)
+			{
+				parseClasspath(pathToHaxeStd, true);
+				localStorage2.setItem("pathToHaxe", pathToHaxeStd);
+				DialogManager.hide();
+			}
+			else 
+			{
+				Alertify.error(LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
+			}
+		}, currentLocation, "Download Haxe", "http://haxe.org/download");
 	}
 	
 	static function getHaxeStdFolder(path:String):String

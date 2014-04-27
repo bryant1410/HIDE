@@ -1,3 +1,14 @@
+0.3.8
+-----------
+
+* FIX: add all haxelibs from haxelib server(using 'haxelib search ""', previously some haxelibs were not added due to "lib.haxe.org/all" page html parsing issues)
+* FIX: project saving on quit
+* CHANGE: submenu max-height to 500px, overflow: auto
+* ADDED: macro to look for CodeMirror themes and add them to
+View->Themes
+* ADDED: download button to browse directory dialog(for specifying path to Haxe, as suggested by @underscorediscovery)
+* ADDED: Options->Configure Haxe SDK(compiler will still be used from PATH, this is used for parsing purposes)
+
 0.3.7
 -----------
 

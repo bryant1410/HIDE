@@ -58,4 +58,5 @@
     ,"Source->Show Code Completion" : "Ctrl-Space"
     ,"Source->Toggle Comment" : "Ctrl-Q"
     ,"Help->Open Haxe nightly build download URL" : ""
+    ,"Options->Change path to Haxe compiler" : ""
 }

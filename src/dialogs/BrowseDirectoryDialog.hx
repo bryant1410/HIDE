@@ -14,12 +14,13 @@ class BrowseDirectoryDialog extends ModalDialog
 {
 	var onComplete:String->Void;
 	var input:InputElement;
+	var inputGroupButton:InputGroupButton;
 	
 	public function new(?title:String) 
 	{
 		super(title);
 		
-		var inputGroupButton = new InputGroupButton("Browse...");
+		inputGroupButton = new InputGroupButton("Browse...");
 		
 		input = inputGroupButton.getInput();
 		

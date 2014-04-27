@@ -6,23 +6,33 @@ package dialogs;
  */
 class DialogManager
 {
-	static var browseFolderDialog:BrowseDirectoryDialog;
+	static var browseDirectoryDialog:BrowseDirectoryDialog;
 	static var haxelibManagerDialog:HaxelibManagerDialog;
 	static var projectOptionsDialog:ProjectOptionsDialog;
+	static var browseDirectoryWithDownloadButtonDialog:BrowseDirectoryWithDownloadButtonDialog;
 	
 	public static function load():Void
 	{
-		browseFolderDialog =  new BrowseDirectoryDialog();
+		browseDirectoryDialog =  new BrowseDirectoryDialog();
+		browseDirectoryWithDownloadButtonDialog = new BrowseDirectoryWithDownloadButtonDialog();
 		haxelibManagerDialog = new HaxelibManagerDialog();
 		projectOptionsDialog = new ProjectOptionsDialog();
 	}
 	
-	public static function showBrowseFolderDialog(title:String, onComplete:String->Void, ?defaultValue:String = ""):Void
+	public static function showBrowseFolderDialog(title:String, onComplete:String->Void, ?defaultValue:String = "", ?downloadButtonText:String, ?downloadButtonURL:String):Void
 	{
-		browseFolderDialog.setTitle(title);
-		browseFolderDialog.setCallback(onComplete);
-		browseFolderDialog.setDefaultValue(defaultValue);
-		browseFolderDialog.show();
+		var dialog = browseDirectoryDialog;
+		
+		if (downloadButtonText != null && downloadButtonURL != null) 
+		{
+			dialog = browseDirectoryWithDownloadButtonDialog;
+			browseDirectoryWithDownloadButtonDialog.setDownloadButtonOptions(downloadButtonText, downloadButtonURL);
+		}
+		
+		dialog.setTitle(title);
+		dialog.setCallback(onComplete);
+		dialog.setDefaultValue(defaultValue);
+		dialog.show();
 	}
 	
 	public static function showHaxelibManagerDialog()
@@ -37,7 +47,8 @@ class DialogManager
 	
 	public static function hide():Void 
 	{
-		browseFolderDialog.hide();
+		browseDirectoryDialog.hide();
+		browseDirectoryWithDownloadButtonDialog.hide();
 		haxelibManagerDialog.hide();
 	}
 }

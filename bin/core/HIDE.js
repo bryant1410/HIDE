@@ -1966,64 +1966,20 @@ core.HaxeHelper.getInstalledHaxelibList = function(onComplete) {
 };
 core.HaxeHelper.getHaxelibList = function(onComplete) {
 	if(core.HaxeHelper.haxelibHaxelibs != null) onComplete(core.HaxeHelper.haxelibHaxelibs); else {
-		var options = { host : "lib.haxe.org", port : 80, path : "/all"};
-		var emitter = js.Node.require("http").get(options,function(res) {
-			console.log("Got response: " + res.statusCode);
-			res.setEncoding("utf8");
-			var data = "";
-			res.on("data",function(chunk) {
-				data += chunk;
-			});
-			res.on("end",function() {
-				var libs = core.HaxeHelper.parseHtml(data);
-				core.HaxeHelper.haxelibHaxelibs = libs;
-				onComplete(core.HaxeHelper.haxelibHaxelibs);
-			});
-		});
-		emitter.on("error",function(e) {
-			console.log("Got error: " + e.message);
-		});
-	}
-};
-core.HaxeHelper.parseHtml = function(data) {
-	var libs = [];
-	var xml = Xml.parse(data);
-	var fast = new haxe.xml.Fast(xml);
-	if(fast.hasNode.resolve("html")) {
-		var html = fast.node.resolve("html");
-		if(html.hasNode.resolve("body")) {
-			var body = html.node.resolve("body");
-			if(body.hasNode.resolve("div")) {
-				var $it0 = body.nodes.resolve("div").iterator();
-				while( $it0.hasNext() ) {
-					var node = $it0.next();
-					if(node.has.resolve("class") && node.att.resolve("class") == "page") {
-						var $it1 = node.nodes.resolve("div").iterator();
-						while( $it1.hasNext() ) {
-							var div = $it1.next();
-							if(div.has.resolve("class") && div.att.resolve("class") == "content") {
-								var $it2 = div.nodes.resolve("div").iterator();
-								while( $it2.hasNext() ) {
-									var div2 = $it2.next();
-									if(div2.has.resolve("class") && div2.att.resolve("class") == "projects") {
-										if(div2.hasNode.resolve("ul")) {
-											var ul = div2.node.resolve("ul");
-											var $it3 = ul.nodes.resolve("li").iterator();
-											while( $it3.hasNext() ) {
-												var li = $it3.next();
-												libs.push(li.node.resolve("a").get_innerData());
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
+		var data = [];
+		core.ProcessHelper.runProcess("haxelib",["search","\"\""],null,function(stdout,stderr) {
+			var lines = stdout.split("\n");
+			var _g = 0;
+			while(_g < lines.length) {
+				var line = lines[_g];
+				++_g;
+				line = StringTools.trim(line);
+				if(line.length > 0 && line.indexOf(" ") == -1) data.push(line);
 			}
-		}
+			core.HaxeHelper.haxelibHaxelibs = data;
+			onComplete(core.HaxeHelper.haxelibHaxelibs);
+		});
 	}
-	return libs;
 };
 var haxe = {};
 haxe.ds = {};
@@ -2746,6 +2702,7 @@ core.MenuCommands.add = function() {
 			return f7(a17);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","hotkeys.json")));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Change path to Haxe compiler",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
 	});
@@ -3419,15 +3376,15 @@ dialogs.ModalDialog.prototype = {
 dialogs.BrowseDirectoryDialog = function(title) {
 	var _g = this;
 	dialogs.ModalDialog.call(this,title);
-	var inputGroupButton = new bootstrap.InputGroupButton("Browse...");
-	this.input = inputGroupButton.getInput();
-	var browseButton = inputGroupButton.getButton();
+	this.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
+	this.input = this.inputGroupButton.getInput();
+	var browseButton = this.inputGroupButton.getButton();
 	browseButton.onclick = function(e) {
 		core.FileDialog.openFolder(function(path) {
 			_g.input.value = path;
 		});
 	};
-	this.getBody().appendChild(inputGroupButton.getElement());
+	this.getBody().appendChild(this.inputGroupButton.getElement());
 	var okButton = bootstrap.ButtonManager.createButton("OK",false,false,true);
 	okButton.onclick = function(e1) {
 		if(_g.onComplete != null) _g.onComplete(_g.input.value);
@@ -3441,6 +3398,7 @@ dialogs.BrowseDirectoryDialog.__super__ = dialogs.ModalDialog;
 dialogs.BrowseDirectoryDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 	onComplete: null
 	,input: null
+	,inputGroupButton: null
 	,setDefaultValue: function(_value) {
 		this.input.value = _value;
 	}
@@ -3449,20 +3407,44 @@ dialogs.BrowseDirectoryDialog.prototype = $extend(dialogs.ModalDialog.prototype,
 	}
 	,__class__: dialogs.BrowseDirectoryDialog
 });
+dialogs.BrowseDirectoryWithDownloadButtonDialog = function(title) {
+	dialogs.BrowseDirectoryDialog.call(this,title);
+	this.downloadButton = bootstrap.ButtonManager.createButton("Download");
+	this.inputGroupButton.getSpan().appendChild(this.downloadButton);
+};
+$hxClasses["dialogs.BrowseDirectoryWithDownloadButtonDialog"] = dialogs.BrowseDirectoryWithDownloadButtonDialog;
+dialogs.BrowseDirectoryWithDownloadButtonDialog.__name__ = ["dialogs","BrowseDirectoryWithDownloadButtonDialog"];
+dialogs.BrowseDirectoryWithDownloadButtonDialog.__super__ = dialogs.BrowseDirectoryDialog;
+dialogs.BrowseDirectoryWithDownloadButtonDialog.prototype = $extend(dialogs.BrowseDirectoryDialog.prototype,{
+	downloadButton: null
+	,setDownloadButtonOptions: function(text,url) {
+		this.downloadButton.textContent = text;
+		this.downloadButton.onclick = function(e) {
+			nodejs.webkit.Shell.openExternal(url);
+		};
+	}
+	,__class__: dialogs.BrowseDirectoryWithDownloadButtonDialog
+});
 dialogs.DialogManager = function() { };
 $hxClasses["dialogs.DialogManager"] = dialogs.DialogManager;
 dialogs.DialogManager.__name__ = ["dialogs","DialogManager"];
 dialogs.DialogManager.load = function() {
-	dialogs.DialogManager.browseFolderDialog = new dialogs.BrowseDirectoryDialog();
+	dialogs.DialogManager.browseDirectoryDialog = new dialogs.BrowseDirectoryDialog();
+	dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog = new dialogs.BrowseDirectoryWithDownloadButtonDialog();
 	dialogs.DialogManager.haxelibManagerDialog = new dialogs.HaxelibManagerDialog();
 	dialogs.DialogManager.projectOptionsDialog = new dialogs.ProjectOptionsDialog();
 };
-dialogs.DialogManager.showBrowseFolderDialog = function(title,onComplete,defaultValue) {
+dialogs.DialogManager.showBrowseFolderDialog = function(title,onComplete,defaultValue,downloadButtonText,downloadButtonURL) {
 	if(defaultValue == null) defaultValue = "";
-	dialogs.DialogManager.browseFolderDialog.setTitle(title);
-	dialogs.DialogManager.browseFolderDialog.setCallback(onComplete);
-	dialogs.DialogManager.browseFolderDialog.setDefaultValue(defaultValue);
-	dialogs.DialogManager.browseFolderDialog.show();
+	var dialog = dialogs.DialogManager.browseDirectoryDialog;
+	if(downloadButtonText != null && downloadButtonURL != null) {
+		dialog = dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog;
+		dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog.setDownloadButtonOptions(downloadButtonText,downloadButtonURL);
+	}
+	dialog.setTitle(title);
+	dialog.setCallback(onComplete);
+	dialog.setDefaultValue(defaultValue);
+	dialog.show();
 };
 dialogs.DialogManager.showHaxelibManagerDialog = function() {
 	dialogs.DialogManager.haxelibManagerDialog.show();
@@ -3471,7 +3453,8 @@ dialogs.DialogManager.showProjectOptions = function() {
 	dialogs.DialogManager.projectOptionsDialog.show();
 };
 dialogs.DialogManager.hide = function() {
-	dialogs.DialogManager.browseFolderDialog.hide();
+	dialogs.DialogManager.browseDirectoryDialog.hide();
+	dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog.hide();
 	dialogs.DialogManager.haxelibManagerDialog.hide();
 };
 dialogs.HaxelibManagerDialog = function() {
@@ -13378,14 +13361,21 @@ parser.ClasspathWalker.load = function() {
 			}
 		}
 	}
-	if(parser.ClasspathWalker.pathToHaxeStd == null) dialogs.DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ",function(path) {
+	if(parser.ClasspathWalker.pathToHaxeStd == null) parser.ClasspathWalker.showHaxeDirectoryDialog(); else parser.ClasspathWalker.parseClasspath(parser.ClasspathWalker.pathToHaxeStd,true);
+};
+parser.ClasspathWalker.showHaxeDirectoryDialog = function() {
+	var localStorage2 = js.Browser.getLocalStorage();
+	var currentLocation = "";
+	var pathToHaxe = localStorage2.getItem("pathToHaxe");
+	if(pathToHaxe != null) currentLocation = pathToHaxe;
+	dialogs.DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ",function(path) {
 		parser.ClasspathWalker.pathToHaxeStd = parser.ClasspathWalker.getHaxeStdFolder(path);
 		if(parser.ClasspathWalker.pathToHaxeStd != null) {
 			parser.ClasspathWalker.parseClasspath(parser.ClasspathWalker.pathToHaxeStd,true);
 			localStorage2.setItem("pathToHaxe",parser.ClasspathWalker.pathToHaxeStd);
 			dialogs.DialogManager.hide();
 		} else Alertify.error(watchers.LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
-	}); else parser.ClasspathWalker.parseClasspath(parser.ClasspathWalker.pathToHaxeStd,true);
+	},currentLocation,"Download Haxe","http://haxe.org/download");
 };
 parser.ClasspathWalker.getHaxeStdFolder = function(path) {
 	var pathToStd = null;
@@ -13745,15 +13735,15 @@ projectaccess.ProjectAccess.registerSaveOnCloseListener = function() {
 };
 projectaccess.ProjectAccess.save = function(onComplete,sync) {
 	if(sync == null) sync = false;
-	core.Helper.debounce("saveProject",function() {
-		if(projectaccess.ProjectAccess.path != null) {
-			var pathToProjectHide = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
-			var data = tjson.TJSON.encode(projectaccess.ProjectAccess.currentProject,"fancy");
-			if(sync) js.Node.require("fs").writeFileSync(pathToProjectHide,data,"utf8"); else js.Node.require("fs").writeFile(pathToProjectHide,data,"utf8",function(error) {
+	if(projectaccess.ProjectAccess.path != null) {
+		var pathToProjectHide = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
+		var data = tjson.TJSON.encode(projectaccess.ProjectAccess.currentProject,"fancy");
+		if(sync) js.Node.require("fs").writeFileSync(pathToProjectHide,data,"utf8"); else core.Helper.debounce("saveProject",function() {
+			js.Node.require("fs").writeFile(pathToProjectHide,data,"utf8",function(error) {
 				if(onComplete != null) onComplete();
 			});
-		} else console.log("project path is null");
-	},250);
+		},250);
+	} else console.log("project path is null");
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
