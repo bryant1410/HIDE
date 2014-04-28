@@ -25,3 +25,14 @@
 	max-height: 500px;
 	overflow: auto;
 }
+
+#commandInputElement
+{
+	width: 100%;
+}
+
+#commandPreviewText
+{
+	padding-top: 5px;
+	color: #585858;
+}

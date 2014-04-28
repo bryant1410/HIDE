@@ -4,6 +4,7 @@ import haxe.Json;
 import js.Browser;
 import js.Node;
 import nodejs.webkit.Window;
+import projectaccess.Project.TargetData;
 import tjson.TJSON;
 
 /**
@@ -81,5 +82,24 @@ class ProjectAccess
 		}
 		
 		return ignore;
+	}
+	
+	public static function getPathToHxml():String
+	{
+		var pathToHxml:String = null;
+					
+		var project = ProjectAccess.currentProject;
+		
+		switch (project.type) 
+		{
+			case Project.HAXE:
+				var targetData:TargetData = project.targetData[project.target];
+				pathToHxml = targetData.pathToHxml;
+			case Project.HXML:
+				pathToHxml = project.main;
+			default:
+		}
+		
+		return pathToHxml;
 	}
 }

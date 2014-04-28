@@ -76,8 +76,9 @@ class Editor
 						}
 
 						untyped setTimeout(function() { triggerCompletion(cm, true); }, 100);
-						untyped __js__("return CodeMirror.Pass");
 					}
+					
+					untyped __js__("return CodeMirror.Pass");
 				}
 		}
 				
@@ -221,7 +222,7 @@ class Editor
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
 				
-				if (data.charAt(cursor.ch - 1) == "-")
+				if (data.charAt(0) == "-")
 				{
 					Completion.showHxmlCompletion();
 				}

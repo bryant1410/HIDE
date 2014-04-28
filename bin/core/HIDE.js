@@ -1159,8 +1159,8 @@ cm.Editor.load = function() {
 				setTimeout(function() {
 					cm.Editor.triggerCompletion(cm1,true);
 				},100);
-				return CodeMirror.Pass;
 			}
+			return CodeMirror.Pass;
 		};
 		$r = passAndHint;
 		return $r;
@@ -1238,7 +1238,7 @@ cm.Editor.load = function() {
 		} else if(modeName == "hxml") {
 			var cursor1 = cm3.getCursor();
 			var data1 = cm3.getLine(cursor1.line);
-			if(data1.charAt(cursor1.ch - 1) == "-") core.Completion.showHxmlCompletion();
+			if(data1.charAt(0) == "-") core.Completion.showHxmlCompletion();
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
@@ -2941,6 +2941,15 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 					tabmanager.TabManager.openFileInNewTab(fullPath[0],false);
 				}
 			}
+			var lib = null;
+			var ereg = new EReg("haxelib install ([^']+)","gim");
+			if(ereg.match(line)) lib = ereg.matched(1);
+			var ereg2 = new EReg("library ([^ ]+) is not installed","gim");
+			if(ereg2.match(line)) lib = ereg2.matched(1);
+			if(lib != null) {
+				var pathToHxml = projectaccess.ProjectAccess.getPathToHxml();
+				dialogs.DialogManager.showInstallHaxelibDialog(lib,pathToHxml);
+			}
 		}
 		textarea.value += "stderr:\n" + stderr;
 		console.log("stderr:\n" + stderr);
@@ -2968,12 +2977,18 @@ core.ProcessHelper.runPersistentProcess = function(process,params,onClose,redire
 	process1.stdout.setEncoding("utf8");
 	process1.stdout.on("data",function(data) {
 		core.ProcessHelper.processStdout += data;
-		if(redirectToOutput) textarea.value += data;
+		if(redirectToOutput) {
+			textarea.value += data;
+			textarea.scrollTop = textarea.scrollHeight;
+		}
 	});
 	process1.stderr.setEncoding("utf8");
 	process1.stderr.on("data",function(data1) {
 		core.ProcessHelper.processStderr += data1;
-		if(redirectToOutput) textarea.value += data1;
+		if(redirectToOutput) {
+			textarea.value += data1;
+			textarea.scrollTop = textarea.scrollHeight;
+		}
 	});
 	process1.on("error",function(e) {
 		console.log(e);
@@ -3402,8 +3417,7 @@ dialogs.ModalDialog.prototype = {
 	,footer: null
 	,h4: null
 	,setTitle: function(title) {
-		this.h4.setAttribute("localeString",title);
-		this.h4.textContent = watchers.LocaleWatcher.getStringSync(title);
+		this.h4.textContent = title;
 	}
 	,getHeader: function() {
 		return this.header;
@@ -3413,6 +3427,9 @@ dialogs.ModalDialog.prototype = {
 	}
 	,getFooter: function() {
 		return this.footer;
+	}
+	,getModal: function() {
+		return this.modal;
 	}
 	,show: function() {
 		new $(this.modal).modal("show");
@@ -3502,6 +3519,11 @@ dialogs.DialogManager.showHaxelibManagerDialog = function() {
 dialogs.DialogManager.showProjectOptions = function() {
 	dialogs.DialogManager.projectOptionsDialog.show();
 };
+dialogs.DialogManager.showInstallHaxelibDialog = function(lib,pathToHxml) {
+	dialogs.DialogManager.installHaxelibDialog.setLib(lib);
+	dialogs.DialogManager.installHaxelibDialog.setPathToHxml(pathToHxml);
+	dialogs.DialogManager.installHaxelibDialog.show();
+};
 dialogs.DialogManager.hide = function() {
 	dialogs.DialogManager.browseDirectoryDialog.hide();
 	dialogs.DialogManager.browseDirectoryWithDownloadButtonDialog.hide();
@@ -3546,34 +3568,105 @@ dialogs.InstallHaxelibDialog = function() {
 	var _this = window.document;
 	form = _this.createElement("form");
 	form.setAttribute("role","form");
-	this.inputGroupButton = new bootstrap.InputGroupButton("Run command");
-	this.inputGroupButton.getButton().onclick = function(e) {
-	};
-	var installLibRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLib","install from haxelib",function() {
-		_g.inputGroupButton.getInput().value = "haxelib install";
+	var inputGroup = new bootstrap.InputGroup();
+	inputGroup.getElement().id = "commandInputElement";
+	inputGroup.getElement().style.display = "none";
+	this.input = inputGroup.getInput();
+	this.installLibRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLib","install from haxelib",function() {
+		_g.input.value = "haxelib install " + _g.lib;
+		_g.input.onchange(null);
+		inputGroup.getElement().style.display = "none";
 	});
-	installLibRadio.getInput().checked = true;
-	form.appendChild(installLibRadio.getElement());
-	var installHxmlLibsRadio = new bootstrap.RadioElement("haxelibInstallOptions","installHxmlLibs","install all libs for hxml from haxelib",function() {
-		_g.inputGroupButton.getInput().value = "haxelib install build.hxml";
+	this.installLibRadio.getInput().checked = true;
+	form.appendChild(this.installLibRadio.getElement());
+	this.installHxmlLibsRadio = new bootstrap.RadioElement("haxelibInstallOptions","installHxmlLibs","install all libs for hxml from haxelib",function() {
+		_g.input.value = "haxelib install " + _g.pathToHxml;
+		_g.input.onchange(null);
+		inputGroup.getElement().style.display = "none";
 	});
-	installHxmlLibsRadio.getInput().checked = true;
-	form.appendChild(installHxmlLibsRadio.getElement());
+	this.installHxmlLibsRadio.getInput().checked = true;
+	form.appendChild(this.installHxmlLibsRadio.getElement());
+	this.installAllHxmlLibsRadio = new bootstrap.RadioElement("haxelibInstallOptions","installHxmlLibs","install all libs for all hxml from haxelib",function() {
+		_g.input.value = "haxelib install all";
+		_g.input.onchange(null);
+		inputGroup.getElement().style.display = "none";
+	});
+	this.installAllHxmlLibsRadio.getInput().checked = true;
+	form.appendChild(this.installAllHxmlLibsRadio.getElement());
 	var installLibFromGitRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLibFromGit","install from git",function() {
-		_g.inputGroupButton.getInput().value = "haxelib git";
+		_g.input.value = "haxelib git " + _g.lib + " <git-clone-path> <branch> <subdirectory>";
+		_g.input.onchange(null);
+		inputGroup.getElement().style.display = "";
 	});
 	installLibFromGitRadio.getInput().checked = true;
 	form.appendChild(installLibFromGitRadio.getElement());
+	var installLibFromDevRadio = new bootstrap.RadioElement("haxelibInstallOptions","installLibFromDev","set development directory",function() {
+		_g.input.value = "haxelib dev " + _g.lib + " <directory>";
+		_g.input.onchange(null);
+		inputGroup.getElement().style.display = "";
+	});
+	installLibFromDevRadio.getInput().checked = true;
+	form.appendChild(installLibFromDevRadio.getElement());
 	this.getBody().appendChild(form);
-	this.getBody().appendChild(this.inputGroupButton.getElement());
-	var okButton = bootstrap.ButtonManager.createButton("OK",false,true,true);
+	this.getBody().appendChild(inputGroup.getElement());
+	var _this1 = window.document;
+	this.commandPreviewP = _this1.createElement("p");
+	this.commandPreviewP.id = "commandPreviewText";
+	this.input.onchange = function(e) {
+		_g.commandPreviewP.textContent = "Run command: " + _g.input.value;
+	};
+	this.getBody().appendChild(this.commandPreviewP);
+	var cancelButton = bootstrap.ButtonManager.createButton("Cancel",false,true);
+	this.getFooter().appendChild(cancelButton);
+	var okButton = bootstrap.ButtonManager.createButton("OK",false,false,true);
+	okButton.onclick = function(e1) {
+		Alertify.log("Running command: " + _g.input.value);
+		var params = StringTools.trim(_g.input.value).split(" ");
+		core.ProcessHelper.runPersistentProcess(params.shift(),params,function(code,stdout,stderr) {
+			if(code == 0) Alertify.success(_g.lib + " install complete(" + _g.input.value + ")."); else {
+				Alertify.error("Error on running command " + _g.input.value);
+				Alertify.error(stdout);
+				Alertify.error(stderr);
+			}
+		},true);
+		_g.hide();
+	};
 	this.getFooter().appendChild(okButton);
+	window.document.addEventListener("keyup",function(e2) {
+		if(e2.keyCode == 13 && new $(_g.getModal())["is"](":visible")) okButton.click();
+	});
 };
 $hxClasses["dialogs.InstallHaxelibDialog"] = dialogs.InstallHaxelibDialog;
 dialogs.InstallHaxelibDialog.__name__ = ["dialogs","InstallHaxelibDialog"];
 dialogs.InstallHaxelibDialog.__super__ = dialogs.ModalDialog;
 dialogs.InstallHaxelibDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
-	inputGroupButton: null
+	lib: null
+	,pathToHxml: null
+	,input: null
+	,installHxmlLibsRadio: null
+	,commandPreviewP: null
+	,installLibRadio: null
+	,installAllHxmlLibsRadio: null
+	,setLib: function(name) {
+		this.lib = name;
+		this.setTitle("Missing \"" + this.lib + "\" haxelib");
+	}
+	,setPathToHxml: function(path) {
+		this.pathToHxml = path;
+		if(path != null) {
+			this.installHxmlLibsRadio.getInput().disabled = false;
+			this.installAllHxmlLibsRadio.getInput().disabled = false;
+		} else {
+			this.installHxmlLibsRadio.getInput().disabled = true;
+			this.installAllHxmlLibsRadio.getInput().disabled = true;
+		}
+	}
+	,show: function() {
+		dialogs.ModalDialog.prototype.show.call(this);
+		this.installLibRadio.getInput().checked = true;
+		this.input.value = "haxelib install " + this.lib;
+		this.input.onchange(null);
+	}
 	,__class__: dialogs.InstallHaxelibDialog
 });
 dialogs.ProjectOptionsDialog = function() {
@@ -13844,6 +13937,22 @@ projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 		if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) != -1) ignore = true;
 	}
 	return ignore;
+};
+projectaccess.ProjectAccess.getPathToHxml = function() {
+	var pathToHxml = null;
+	var project = projectaccess.ProjectAccess.currentProject;
+	var _g = project.type;
+	switch(_g) {
+	case 0:
+		var targetData = project.targetData[project.target];
+		pathToHxml = targetData.pathToHxml;
+		break;
+	case 2:
+		pathToHxml = project.main;
+		break;
+	default:
+	}
+	return pathToHxml;
 };
 projectaccess.ProjectOptions = function() { };
 $hxClasses["projectaccess.ProjectOptions"] = projectaccess.ProjectOptions;

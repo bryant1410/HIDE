@@ -1,11 +1,14 @@
 package core;
 import cm.Editor;
+import dialogs.DialogManager;
 import haxe.ds.StringMap;
 import jQuery.JQuery;
 import js.Browser;
 import js.html.AnchorElement;
 import js.html.TextAreaElement;
 import js.Node;
+import projectaccess.Project;
+import projectaccess.Project.TargetData;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 
@@ -154,6 +157,26 @@ class ProcessHelper
 						TabManager.openFileInNewTab(fullPath, false);
 					}
 				}
+				
+				var lib:String = null;
+				
+				var ereg = ~/haxelib install ([^']+)/gim;
+				if (ereg.match(line)) 
+				{
+					lib = ereg.matched(1);
+				}
+				
+				var ereg2 = ~/library ([^ ]+) is not installed/gim;
+				if (ereg2.match(line)) 
+				{
+					lib = ereg2.matched(1);
+				}
+				
+				if (lib != null) 
+				{
+					var pathToHxml = ProjectAccess.getPathToHxml();
+					DialogManager.showInstallHaxelibDialog(lib, pathToHxml);
+				}
 			}
 			
 			textarea.value += "stderr:\n" + stderr;
@@ -208,6 +231,7 @@ class ProcessHelper
 			if (redirectToOutput) 
 			{
 				textarea.value += data;
+				textarea.scrollTop = textarea.scrollHeight;
 			}
 		}
 		);
@@ -220,6 +244,7 @@ class ProcessHelper
 			if (redirectToOutput) 
 			{
 				textarea.value += data;
+				textarea.scrollTop = textarea.scrollHeight;
 			}
 		}
 		);

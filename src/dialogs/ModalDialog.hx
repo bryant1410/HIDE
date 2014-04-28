@@ -67,8 +67,9 @@ class ModalDialog
 	
 	public function setTitle(title:String):Void
 	{
-		h4.setAttribute("localeString", title);
-		h4.textContent = LocaleWatcher.getStringSync(title);
+		//h4.setAttribute("localeString", title);
+		//h4.textContent = LocaleWatcher.getStringSync(title);
+		h4.textContent = title;
 	}
 	
 	public function getHeader() 
@@ -84,6 +85,11 @@ class ModalDialog
 	public function getFooter() 
 	{
 		return footer;
+	}
+	
+	public function getModal()
+	{
+		return modal;
 	}
 	
 	public function show():Void

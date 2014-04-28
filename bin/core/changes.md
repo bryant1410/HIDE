@@ -1,7 +1,11 @@
 0.3.9
 -----------
 
+* FIX: typing dot in non Haxe files
 * CHANGED: do not change file using Navigation->Open File(completionItem.text = "", completionItem.displayText = "path/to/file")
+* CHANGED: scroll to bottom output textarea
+* CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
+* ADDED: install missing haxelib dialog
 
 0.3.8
 -----------
