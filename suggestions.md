@@ -131,6 +131,9 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Convert HXML projects to HAXE projects(with multiple hxmls)
 * Take in account comments when parsing hxml(when checking for "-cmd" argument)
 * Fix file watchers watching closed documents
+* Open page in iframe, parse stack, add error to Results tab
+* Log errors
+* Capture page button
 
 ###Important
 * Custom hxml, build and run commands for each target

@@ -6,6 +6,7 @@
 * CHANGED: scroll to bottom output textarea
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
 * ADDED: install missing haxelib dialog
+* ADDED: annotation ruler(with very basic style)
 
 0.3.8
 -----------

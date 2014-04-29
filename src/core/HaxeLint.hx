@@ -48,8 +48,22 @@ class HaxeLint
 	
 	public static function updateLinting():Void
 	{
+		AnnotationRuler.clearErrorMarkers();
+		
 		if (TabManager.getCurrentDocument().getMode().name == "haxe")
 		{
+			var path:String = TabManager.getCurrentDocumentPath();
+			
+			if (fileData.exists(path)) 
+			{
+				var data:Array<Info> = fileData.get(path);
+				
+				for (item in data) 
+				{
+					AnnotationRuler.addErrorMarker(path, item.from.line, item.from.ch, item.message);
+				}
+			}
+			
 			Editor.editor.setOption("lint", false);
 			Editor.editor.setOption("lint", true);
 		}

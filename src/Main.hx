@@ -1,5 +1,6 @@
 package ;
 
+import core.AnnotationRuler;
 import core.ProcessHelper;
 import core.RecentProjectsList;
 import core.Splitter;
@@ -150,7 +151,7 @@ class Main
 				trace("lime installed " + Std.string(installed));
 			}
 			);
-			
+						
 			window.show();
 		}
 		);

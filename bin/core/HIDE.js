@@ -1531,6 +1531,36 @@ completion.MetaTags.getCompletion = function() {
 	return completion.MetaTags.completions;
 };
 var core = {};
+core.AnnotationRuler = function() { };
+$hxClasses["core.AnnotationRuler"] = core.AnnotationRuler;
+core.AnnotationRuler.__name__ = ["core","AnnotationRuler"];
+core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
+	var a;
+	var _this = window.document;
+	a = _this.createElement("a");
+	a.href = "#";
+	a.onclick = function(e) {
+		tabmanager.TabManager.openFileInNewTab(pathToFile,true,function() {
+			var cm1 = cm.Editor.editor;
+			cm1.centerOnLine(line);
+		});
+	};
+	var div;
+	var _this1 = window.document;
+	div = _this1.createElement("div");
+	div.className = "errorMarker";
+	var lineCount = tabmanager.TabManager.getCurrentDocument().lineCount();
+	div.style.top = Std.string(line / lineCount * 100) + "%";
+	div.setAttribute("data-toggle","tooltip");
+	div.setAttribute("data-placement","left");
+	div.title = "Line: " + (line == null?"null":"" + line) + ":" + message;
+	new $(div).tooltip({ });
+	a.appendChild(div);
+	new $("#annotationRuler").append(a);
+};
+core.AnnotationRuler.clearErrorMarkers = function() {
+	new $("#annotationRuler").children().remove();
+};
 core.CompilationOutput = function() { };
 $hxClasses["core.CompilationOutput"] = core.CompilationOutput;
 core.CompilationOutput.__name__ = ["core","CompilationOutput"];
@@ -2091,7 +2121,18 @@ core.HaxeLint.load = function() {
 	});
 };
 core.HaxeLint.updateLinting = function() {
+	core.AnnotationRuler.clearErrorMarkers();
 	if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+		var path = tabmanager.TabManager.getCurrentDocumentPath();
+		if(core.HaxeLint.fileData.exists(path)) {
+			var data = core.HaxeLint.fileData.get(path);
+			var _g = 0;
+			while(_g < data.length) {
+				var item = data[_g];
+				++_g;
+				core.AnnotationRuler.addErrorMarker(path,item.from.line,item.from.ch,item.message);
+			}
+		}
 		cm.Editor.editor.setOption("lint",false);
 		cm.Editor.editor.setOption("lint",true);
 	}
