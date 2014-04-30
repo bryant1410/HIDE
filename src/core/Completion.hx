@@ -107,7 +107,12 @@ class Completion
 					list.push( { text: item, displayText: item, hint: openFile} );
 				}
 			case CLASSLIST:
-				for (item in ClassParser.classList) 
+				for (item in ClassParser.topLevelClassList) 
+				{
+					list.push( { text: item} );
+				}
+				
+				for (item in ClassParser.importsList) 
 				{
 					list.push( { text: item} );
 				}

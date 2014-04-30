@@ -1,4 +1,5 @@
 package core;
+import cm.Editor;
 import jQuery.JQuery;
 
 /**
@@ -9,7 +10,8 @@ import jQuery.JQuery;
 typedef TreeItem = {
 	var label:String;
 	@:optional var items:Array<TreeItem>;
-	@:optional var expand:Bool;
+	@:optional var expanded:Bool;
+	@:optional var value:Dynamic;
 }
  
 class OutlinePanel
@@ -18,11 +20,30 @@ class OutlinePanel
 	
 	public static function update():Void
 	{
-		untyped new JQuery("#jqxTree").jqxTree( { source: source } );
+		untyped new JQuery("#outline").jqxTree( { source: source } );
+		
+		new JQuery('#outline').dblclick(function (event):Void 
+		{
+			var item = untyped new JQuery('#outline').jqxTree('getSelectedItem');
+			
+			var value = item.value;
+			
+			if (value != null) 
+			{
+				var line = Editor.editor.posFromIndex(value).line;
+				Editor.editor.centerOnLine(line);
+			}
+		}
+		);
 	}
 	
-	public static function add(label:String):Void
+	public static function addField(item:TreeItem):Void
 	{
-		source.push( { label: label } );
+		source.push(item);
+	}
+	
+	public static function clearFields():Void 
+	{
+		source = [];
 	}
 }

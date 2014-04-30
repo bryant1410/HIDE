@@ -23,12 +23,14 @@ class ClasspathWalker
 {
 	public static var pathToHaxeStd:String;
 	public static var haxeStdFileList:Array<String>;
-	public static var haxeStdClassList:Array<String>;
+	public static var haxeStdTopLevelClassList:Array<String>;
+	public static var haxeStdImports:Array<String>;
 	
 	public static function load():Void 
 	{
 		haxeStdFileList = [];
-		haxeStdClassList = [];
+		haxeStdTopLevelClassList = [];
+		haxeStdImports = [];
 		
 		var localStorage2 = Browser.getLocalStorage();
 		
@@ -141,7 +143,8 @@ class ClasspathWalker
 			ClassParser.filesList.push(relativePath);
 		}
 		
-		ClassParser.classList = haxeStdClassList.copy();
+		ClassParser.topLevelClassList = haxeStdTopLevelClassList.copy();
+		ClassParser.importsList = haxeStdImports.copy();
 		
 		if (ProjectAccess.path != null) 
 		{

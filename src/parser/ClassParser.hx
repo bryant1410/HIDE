@@ -19,11 +19,12 @@ import js.Node;
  */
 class ClassParser
 {	
-	public static var classList:Array<String> = [];
+	public static var topLevelClassList:Array<String> = [];
+	public static var importsList:Array<String> = [];
 	public static var classCompletions:StringMap<Array<String>> = new StringMap();
 	public static var filesList:Array<String> = [];
 	
-	static function parse(data:String, path:String)
+	public static function parse(data:String, path:String)
 	{
 		var input = ByteData.ofString(data);
 		var parser = new HaxeParser(input, path);
@@ -56,17 +57,12 @@ class ClassParser
 		
 		if (ast != null) 
 		{
-			processAst(ast, Node.path.basename(path, ".hx"), std);
+			parseDeclarations(ast, Node.path.basename(path, ".hx"), std);
 		}
 		else 
 		{
 			//trace("ast for " + path + " is null");
 		}
-	}
-	
-	static function processAst(ast:{decls:Array<TypeDef>, pack:Array<String>}, mainClass:String, std:Bool):Void
-	{		
-		parseDeclarations(ast, mainClass, std);
 	}
 	
 	static function parseDeclarations(ast:{decls:Array<TypeDef>, pack:Array<String>}, mainClass:String, std:Bool) 
@@ -181,14 +177,29 @@ class ClassParser
 	
 	static function addClassName(name:String, std:Bool):Void 
 	{
-		if (std) 
+		if (name.indexOf(".") == -1) 
 		{
-			ClasspathWalker.haxeStdClassList.push(name);
+			if (std) 
+			{
+				ClasspathWalker.haxeStdTopLevelClassList.push(name);
+			}
+			
+			if (topLevelClassList.indexOf(name) == -1)
+			{
+				topLevelClassList.push(name);
+			}
 		}
-		
-		if (classList.indexOf(name) == -1)
+		else 
 		{
-			classList.push(name);
+			if (std) 
+			{
+				ClasspathWalker.haxeStdImports.push(name);
+			}
+			
+			if (importsList.indexOf(name) == -1)
+			{
+				importsList.push(name);
+			}
 		}
 	}
 }

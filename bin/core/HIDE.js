@@ -1218,6 +1218,7 @@ cm.Editor.load = function() {
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
 				core.HaxeParserProvider.getClassName();
+				parser.OutlineHelper.getList(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
 				core.HaxeLint.updateLinting();
 			},100);
 			var cursor = cm3.getCursor();
@@ -1634,11 +1635,18 @@ core.Completion.getHints = function(cm,options) {
 		break;
 	case 2:
 		var _g12 = 0;
-		var _g22 = parser.ClassParser.classList;
+		var _g22 = parser.ClassParser.topLevelClassList;
 		while(_g12 < _g22.length) {
 			var item1 = _g22[_g12];
 			++_g12;
 			core.Completion.list.push({ text : item1});
+		}
+		var _g13 = 0;
+		var _g23 = parser.ClassParser.importsList;
+		while(_g13 < _g23.length) {
+			var item2 = _g23[_g13];
+			++_g13;
+			core.Completion.list.push({ text : item2});
 		}
 		break;
 	}
@@ -1646,12 +1654,12 @@ core.Completion.getHints = function(cm,options) {
 	var _g3 = core.Completion.completionType;
 	switch(_g3[1]) {
 	case 1:
-		var _g13 = 0;
-		var _g23 = core.Completion.list;
-		while(_g13 < _g23.length) {
-			var item2 = _g23[_g13];
-			++_g13;
-			item2.text = "";
+		var _g14 = 0;
+		var _g24 = core.Completion.list;
+		while(_g14 < _g24.length) {
+			var item3 = _g24[_g14];
+			++_g14;
+			item3.text = "";
 		}
 		break;
 	default:
@@ -2832,6 +2840,26 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Project Options...",5,function() {
 		if(projectaccess.ProjectAccess.path != null) dialogs.DialogManager.showProjectOptions(); else Alertify.error("Open or create project first");
 	});
+};
+core.OutlinePanel = function() { };
+$hxClasses["core.OutlinePanel"] = core.OutlinePanel;
+core.OutlinePanel.__name__ = ["core","OutlinePanel"];
+core.OutlinePanel.update = function() {
+	new $("#outline").jqxTree({ source : core.OutlinePanel.source});
+	new $("#outline").dblclick(function(event) {
+		var item = new $("#outline").jqxTree("getSelectedItem");
+		var value = item.value;
+		if(value != null) {
+			var line = cm.Editor.editor.posFromIndex(value).line;
+			cm.Editor.editor.centerOnLine(line);
+		}
+	});
+};
+core.OutlinePanel.addField = function(item) {
+	core.OutlinePanel.source.push(item);
+};
+core.OutlinePanel.clearFields = function() {
+	core.OutlinePanel.source = [];
 };
 var nodejs = {};
 nodejs.webkit = {};
@@ -13459,11 +13487,8 @@ parser.ClassParser.parse = function(data,path) {
 };
 parser.ClassParser.processFile = function(data,path,std) {
 	var ast = parser.ClassParser.parse(data,path);
-	if(ast != null) parser.ClassParser.processAst(ast,js.Node.require("path").basename(path,".hx"),std); else {
+	if(ast != null) parser.ClassParser.parseDeclarations(ast,js.Node.require("path").basename(path,".hx"),std); else {
 	}
-};
-parser.ClassParser.processAst = function(ast,mainClass,std) {
-	parser.ClassParser.parseDeclarations(ast,mainClass,std);
 };
 parser.ClassParser.parseDeclarations = function(ast,mainClass,std) {
 	var _g = 0;
@@ -13550,15 +13575,21 @@ parser.ClassParser.resolveClassName = function(pack,mainClass,name) {
 	return className;
 };
 parser.ClassParser.addClassName = function(name,std) {
-	if(std) parser.ClasspathWalker.haxeStdClassList.push(name);
-	if(HxOverrides.indexOf(parser.ClassParser.classList,name,0) == -1) parser.ClassParser.classList.push(name);
+	if(name.indexOf(".") == -1) {
+		if(std) parser.ClasspathWalker.haxeStdTopLevelClassList.push(name);
+		if(HxOverrides.indexOf(parser.ClassParser.topLevelClassList,name,0) == -1) parser.ClassParser.topLevelClassList.push(name);
+	} else {
+		if(std) parser.ClasspathWalker.haxeStdImports.push(name);
+		if(HxOverrides.indexOf(parser.ClassParser.importsList,name,0) == -1) parser.ClassParser.importsList.push(name);
+	}
 };
 parser.ClasspathWalker = function() { };
 $hxClasses["parser.ClasspathWalker"] = parser.ClasspathWalker;
 parser.ClasspathWalker.__name__ = ["parser","ClasspathWalker"];
 parser.ClasspathWalker.load = function() {
 	parser.ClasspathWalker.haxeStdFileList = [];
-	parser.ClasspathWalker.haxeStdClassList = [];
+	parser.ClasspathWalker.haxeStdTopLevelClassList = [];
+	parser.ClasspathWalker.haxeStdImports = [];
 	var localStorage2 = js.Browser.getLocalStorage();
 	var paths = [js.Node.process.env.HAXEPATH,js.Node.process.env.HAXE_STD_PATH,js.Node.process.env.HAXE_HOME];
 	if(localStorage2 != null) {
@@ -13625,7 +13656,8 @@ parser.ClasspathWalker.parseProjectArguments = function() {
 		relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,item);
 		parser.ClassParser.filesList.push(relativePath);
 	}
-	parser.ClassParser.classList = parser.ClasspathWalker.haxeStdClassList.slice();
+	parser.ClassParser.topLevelClassList = parser.ClasspathWalker.haxeStdTopLevelClassList.slice();
+	parser.ClassParser.importsList = parser.ClasspathWalker.haxeStdImports.slice();
 	if(projectaccess.ProjectAccess.path != null) {
 		var project = projectaccess.ProjectAccess.currentProject;
 		var _g2 = project.type;
@@ -13751,6 +13783,182 @@ parser.ClasspathWalker.walkProjectDirectory = function(path) {
 	emitter.on("error",function(path2,stat1) {
 		console.log(path2);
 	});
+};
+parser.OutlineHelper = function() { };
+$hxClasses["parser.OutlineHelper"] = parser.OutlineHelper;
+parser.OutlineHelper.__name__ = ["parser","OutlineHelper"];
+parser.OutlineHelper.getList = function(data,path) {
+	var ast = parser.ClassParser.parse(data,path);
+	if(ast != null) {
+		var parsedData = parser.OutlineHelper.parseDeclarations(ast);
+		var mainClass = js.Node.require("path").basename(path);
+		var rootItem = { label : mainClass};
+		rootItem.items = parsedData.treeItems;
+		rootItem.expanded = true;
+		core.OutlinePanel.clearFields();
+		core.OutlinePanel.addField(rootItem);
+		core.OutlinePanel.update();
+	}
+};
+parser.OutlineHelper.parseDeclarations = function(ast) {
+	var fileImports = [];
+	var treeItems = [];
+	var _g = 0;
+	var _g1 = ast.decls;
+	while(_g < _g1.length) {
+		var decl = _g1[_g];
+		++_g;
+		switch(decl[1]) {
+		case 3:
+			var mode = decl[3];
+			var sl = decl[2];
+			fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
+			break;
+		case 5:
+			var path = decl[2];
+			break;
+		case 2:
+			var data = decl[2];
+			var treeItem = { label : data.name};
+			treeItem.expanded = true;
+			treeItems.push(treeItem);
+			break;
+		case 0:
+			var data1 = decl[2];
+			var treeItem1 = { label : data1.name};
+			var items = [];
+			treeItem1.items = items;
+			treeItem1.expanded = true;
+			var _g2 = 0;
+			var _g3 = parser.OutlineHelper.getClassFields(data1);
+			while(_g2 < _g3.length) {
+				var item = _g3[_g2];
+				++_g2;
+				items.push({ label : item.name, value : item.pos});
+			}
+			treeItems.push(treeItem1);
+			break;
+		case 1:
+			var data2 = decl[2];
+			var treeItem2 = { label : data2.name};
+			treeItem2.expanded = true;
+			treeItems.push(treeItem2);
+			break;
+		case 4:
+			var data3 = decl[2];
+			var treeItem3 = { label : data3.name};
+			treeItem3.expanded = true;
+			treeItems.push(treeItem3);
+			break;
+		}
+	}
+	return { fileImports : fileImports, treeItems : treeItems};
+};
+parser.OutlineHelper.parseImports = function(sl,mode) {
+	var fileImports = [];
+	var importPackages = [];
+	var _g = 0;
+	while(_g < sl.length) {
+		var item = sl[_g];
+		++_g;
+		importPackages.push(item.pack);
+	}
+	var fullImportName = importPackages.join(".");
+	switch(mode[1]) {
+	case 0:
+		fileImports.push(fullImportName);
+		break;
+	case 1:
+		var s = mode[2];
+		fileImports.push(s);
+		break;
+	case 2:
+		fileImports.push(fullImportName);
+		var _g1 = 0;
+		var _g11 = parser.ClassParser.importsList;
+		while(_g1 < _g11.length) {
+			var item1 = _g11[_g1];
+			++_g1;
+			if(item1.indexOf(fullImportName) == 0) fileImports.push(item1);
+		}
+		break;
+	}
+	return fileImports;
+};
+parser.OutlineHelper.getClassFields = function(type) {
+	var fields = [];
+	var _g1 = 0;
+	var _g = type.data.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		{
+			var _g2 = type.data[i].kind;
+			switch(_g2[1]) {
+			case 1:
+				var f = _g2[2];
+				var data = type.data[i].name + "(";
+				var args = [];
+				var _g3 = 0;
+				var _g4 = f.args;
+				while(_g3 < _g4.length) {
+					var item = _g4[_g3];
+					++_g3;
+					args.push(parser.OutlineHelper.getFieldNameAndType(item.name,item.type));
+				}
+				data += args.join(", ");
+				data += ")";
+				if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
+				fields.push({ name : data, pos : type.data[i].pos.min});
+				break;
+			case 0:
+				var e = _g2[3];
+				var t = _g2[2];
+				fields.push({ name : parser.OutlineHelper.getFieldNameAndType(type.data[i].name,t), pos : type.data[i].pos.min});
+				break;
+			case 2:
+				var e1 = _g2[5];
+				var t1 = _g2[4];
+				var set = _g2[3];
+				var get = _g2[2];
+				fields.push({ name : type.data[i].name, pos : type.data[i].pos.min});
+				break;
+			}
+		}
+	}
+	return fields;
+};
+parser.OutlineHelper.getFieldType = function(t) {
+	var name = null;
+	switch(t[1]) {
+	case 0:
+		var p = t[2];
+		name = p.name;
+		break;
+	case 1:
+		var ret = t[3];
+		var args = t[2];
+		break;
+	case 2:
+		var fields = t[2];
+		break;
+	case 3:
+		var t1 = t[2];
+		break;
+	case 4:
+		var fields1 = t[3];
+		var p1 = t[2];
+		break;
+	case 5:
+		var t2 = t[2];
+		break;
+	}
+	return name;
+};
+parser.OutlineHelper.getFieldNameAndType = function(name,type) {
+	var nameAndType = name;
+	var fieldType = parser.OutlineHelper.getFieldType(type);
+	if(fieldType != null) nameAndType += ":" + fieldType;
+	return nameAndType;
 };
 var pluginloader = {};
 pluginloader.PluginManager = function() { };
@@ -15318,6 +15526,7 @@ core.Hotkeys.hotkeys = new Array();
 core.Hotkeys.commandMap = new haxe.ds.StringMap();
 core.Hotkeys.spanMap = new haxe.ds.StringMap();
 core.Hotkeys.commandKey = core.Utils.os == 2;
+core.OutlinePanel.source = [];
 core.PreserveWindowState.isMaximizationEvent = false;
 core.PreserveWindowState.window = nodejs.webkit.Window.get();
 core.RecentProjectsList.projectList = [];
@@ -15654,7 +15863,8 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.classList = [];
+parser.ClassParser.topLevelClassList = [];
+parser.ClassParser.importsList = [];
 parser.ClassParser.classCompletions = new haxe.ds.StringMap();
 parser.ClassParser.filesList = [];
 pluginloader.PluginManager.pathToPlugins = new haxe.ds.StringMap();

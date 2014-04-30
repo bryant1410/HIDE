@@ -20,6 +20,7 @@ import js.Lib;
 import js.Node;
 import menu.BootstrapMenu;
 import nodejs.webkit.Window;
+import parser.OutlineHelper;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import tjson.TJSON;
@@ -168,6 +169,7 @@ class Editor
 					HaxeParserProvider.getClassName();
 					//OutlinePanel.update();
 					//OutlinePanel.add(type.data[i].name);
+					OutlineHelper.getList(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
 					HaxeLint.updateLinting();
 				}, 100);
 				
