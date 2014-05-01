@@ -35,6 +35,7 @@ module.exports = function(grunt) {
 			'libs/js/CodeMirror/addon/lint/lint.js',
 			'libs/js/CodeMirror/addon/wrap/hardwrap.js',
 			'libs/js/CodeMirror/keymap/sublime.js',
+			'libs/js/CodeMirror/keymap/vim.js',
 			'libs/js/CodeMirror/addon/hint/show-hint.js',
 			'libs/js/CodeMirror/addon/edit/matchbrackets.js',
 			'libs/js/CodeMirror/addon/edit/closebrackets.js',
@@ -114,6 +115,6 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
 
   // Default task(s).
-  grunt.registerTask('default', ['concat', 'uglify', 'cssmin', 'clean']);
+  grunt.registerTask('default', ['concat', 'cssmin']);
 
 };

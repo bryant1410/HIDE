@@ -7,6 +7,8 @@
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
 * ADDED: install missing haxelib dialog
 * ADDED: annotation ruler(with very basic style)
+* ADDED: basic outline panel
+* ADDED: Vim mode(can be switched on and off in Options->Open editor configuration file, comment '"keyMap": "sublime"' line and uncomment '//"vimMode": true, //"keyMap": "vim",')
 
 0.3.8
 -----------

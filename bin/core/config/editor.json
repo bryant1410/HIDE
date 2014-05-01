@@ -12,5 +12,7 @@
 	"foldGutter": {"rangeFinder": "evalnew CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)"},
 	"showCursorWhenSelecting": true,
 	"keyMap": "sublime",
+    //"vimMode": true,
+	//"keyMap": "vim",
 	"lint": true
 }
