@@ -18,6 +18,8 @@ class ThemeWatcher
 	{		
         pathToTheme = js.Node.path.join("core", SettingsWatcher.settings.theme);
         
+		updateTheme();
+		
 		if (watcher != null) 
 		{
 			watcher.close();
@@ -25,7 +27,7 @@ class ThemeWatcher
 		
 		Watcher.watchFileForUpdates(pathToTheme, function ():Void 
 		{
-			new JQuery("#theme").attr("href", SettingsWatcher.settings.theme);
+			updateTheme();
 		}, 1000);
 		
 		if (!listenerAdded) 
@@ -41,5 +43,10 @@ class ThemeWatcher
 			
 			listenerAdded = true;
 		}
+	}
+	
+	static function updateTheme() 
+	{
+		new JQuery("#theme").attr("href", SettingsWatcher.settings.theme);
 	}
 }

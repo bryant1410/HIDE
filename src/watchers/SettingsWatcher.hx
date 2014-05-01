@@ -43,7 +43,7 @@ class SettingsWatcher
 	}
 	
 	static function parse():Void 
-	{
+	{		
 		var options:NodeFsFileOptions = { };
 		options.encoding = NodeC.UTF8;
 		

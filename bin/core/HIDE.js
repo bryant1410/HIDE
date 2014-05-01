@@ -15411,9 +15411,10 @@ $hxClasses["watchers.ThemeWatcher"] = watchers.ThemeWatcher;
 watchers.ThemeWatcher.__name__ = ["watchers","ThemeWatcher"];
 watchers.ThemeWatcher.load = function() {
 	watchers.ThemeWatcher.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
+	watchers.ThemeWatcher.updateTheme();
 	if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
 	watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
-		new $("#theme").attr("href",watchers.SettingsWatcher.settings.theme);
+		watchers.ThemeWatcher.updateTheme();
 	},1000);
 	if(!watchers.ThemeWatcher.listenerAdded) {
 		nodejs.webkit.Window.get().on("close",function(e) {
@@ -15421,6 +15422,9 @@ watchers.ThemeWatcher.load = function() {
 		});
 		watchers.ThemeWatcher.listenerAdded = true;
 	}
+};
+watchers.ThemeWatcher.updateTheme = function() {
+	new $("#theme").attr("href",watchers.SettingsWatcher.settings.theme);
 };
 watchers.Watcher = function() { };
 $hxClasses["watchers.Watcher"] = watchers.Watcher;
