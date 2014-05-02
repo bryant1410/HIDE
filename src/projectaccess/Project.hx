@@ -24,6 +24,7 @@ class Project
 	inline public static var CPP:Int = 4;
 	inline public static var JAVA:Int = 5;
 	inline public static var CSHARP:Int = 6;
+	inline public static var PYTHON:Int = 7;
 	
 	inline public static var URL:Int = 0;
 	inline public static var FILE:Int = 1;

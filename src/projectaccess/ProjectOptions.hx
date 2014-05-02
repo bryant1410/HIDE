@@ -75,7 +75,7 @@ class ProjectOptions
 		openFLTargetText.setAttribute("localeString", "OpenFL target:");
 		openFLTargetText.className = "custom-font-size";
 		
-		for (target in ["Flash", "JavaScript", "Neko", "OpenFL", "PHP", "C++", "Java", "C#"])
+		for (target in ["Flash", "JavaScript", "Neko", "OpenFL", "PHP", "C++", "Java", "C#", "Python"])
 		{
 			projectTargetList.appendChild(createListItem(target));
 		}
@@ -404,6 +404,8 @@ class ProjectOptions
 					projectTargetList.selectedIndex = 6;
 				case Project.CSHARP:
 					projectTargetList.selectedIndex = 7;
+				case Project.PYTHON:
+					projectTargetList.selectedIndex = 8;
 				default:
 					
 			}

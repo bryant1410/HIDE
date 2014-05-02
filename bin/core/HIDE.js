@@ -2968,7 +2968,11 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 		while(_g < lines.length) {
 			var line = lines[_g];
 			++_g;
-			if(line.indexOf(":") != 0) {
+			line = StringTools.trim(line);
+			if(line.indexOf("Error:") == 0) {
+				Alertify.error(line);
+				if(line.indexOf("unknown option `-python'") != -1) Alertify.log("You may need to install latest version of Haxe to compile to Python target","",10000);
+			} else if(line.indexOf(":") != 0) {
 				var args = line.split(":");
 				if(args.length > 3) {
 					var relativePath = args[0];
@@ -2976,38 +2980,44 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 					var data = [];
 					core.HaxeLint.fileData.set(fullPath[0],data);
 					var lineNumber = [Std.parseInt(args[1]) - 1];
-					var charsData = StringTools.trim(args[2]).split(" ")[1].split("-");
-					var start = Std.parseInt(charsData[0]);
-					var end = Std.parseInt(charsData[1]);
-					var message = "";
-					var _g2 = 3;
-					var _g1 = args.length;
-					while(_g2 < _g1) {
-						var i = _g2++;
-						message += args[i];
-						if(i != args.length - 1) message += ":";
+					var charsData = null;
+					if(args[2].indexOf(" ") != -1) {
+						var data1 = StringTools.trim(args[2]).split(" ");
+						if(data1.length > 1 && data1[1].indexOf("-") != -1) charsData = data1[1].split("-");
 					}
-					var a;
-					var _this = window.document;
-					a = _this.createElement("a");
-					a.href = "#";
-					a.className = "list-group-item";
-					a.innerText = line;
-					a.onclick = (function(lineNumber,fullPath) {
-						return function(e) {
-							tabmanager.TabManager.openFileInNewTab(fullPath[0],true,(function(lineNumber) {
-								return function() {
-									var cm1 = cm.Editor.editor;
-									cm1.centerOnLine(lineNumber[0]);
-								};
-							})(lineNumber));
-						};
-					})(lineNumber,fullPath);
-					new $("#errors").append(a);
-					var info = { from : { line : lineNumber[0], ch : start}, to : { line : lineNumber[0], ch : end}, message : message, severity : "error"};
-					data.push(info);
-					switchToResultsTab = true;
-					tabmanager.TabManager.openFileInNewTab(fullPath[0],false);
+					if(charsData != null) {
+						var start = Std.parseInt(charsData[0]);
+						var end = Std.parseInt(charsData[1]);
+						var message = "";
+						var _g2 = 3;
+						var _g1 = args.length;
+						while(_g2 < _g1) {
+							var i = _g2++;
+							message += args[i];
+							if(i != args.length - 1) message += ":";
+						}
+						var a;
+						var _this = window.document;
+						a = _this.createElement("a");
+						a.href = "#";
+						a.className = "list-group-item";
+						a.innerText = line;
+						a.onclick = (function(lineNumber,fullPath) {
+							return function(e) {
+								tabmanager.TabManager.openFileInNewTab(fullPath[0],true,(function(lineNumber) {
+									return function() {
+										var cm1 = cm.Editor.editor;
+										cm1.centerOnLine(lineNumber[0]);
+									};
+								})(lineNumber));
+							};
+						})(lineNumber,fullPath);
+						new $("#errors").append(a);
+						var info = { from : { line : lineNumber[0], ch : start}, to : { line : lineNumber[0], ch : end}, message : message, severity : "error"};
+						data.push(info);
+						switchToResultsTab = true;
+						tabmanager.TabManager.openFileInNewTab(fullPath[0],false);
+					}
 				}
 			}
 			var lib = null;
@@ -12024,6 +12034,7 @@ haxeproject.HaxeProject.load = function() {
 	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C++ Project",haxeproject.HaxeProject.createCppProject);
 	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Java Project",haxeproject.HaxeProject.createJavaProject);
 	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C# Project",haxeproject.HaxeProject.createCSharpProject);
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Python Project",haxeproject.HaxeProject.createPythonProject);
 	var options = { };
 	options.encoding = "utf8";
 	var path = js.Node.require("path").join("core","templates","Main.hx");
@@ -12040,6 +12051,9 @@ haxeproject.HaxeProject.load = function() {
 			Alertify.error("Can't load template " + path);
 		}
 	});
+};
+haxeproject.HaxeProject.createPythonProject = function(data) {
+	haxeproject.HaxeProject.createHaxeProject(data,7);
 };
 haxeproject.HaxeProject.createCSharpProject = function(data) {
 	haxeproject.HaxeProject.createHaxeProject(data,6);
@@ -12083,7 +12097,7 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 		project.type = 0;
 		project.target = target;
 		projectaccess.ProjectAccess.path = pathToProject;
-		var filenames = ["flash","javascript","neko","php","cpp","java","csharp"];
+		var filenames = ["flash","javascript","neko","php","cpp","java","csharp","python"];
 		var pathToProjectTemplates = js.Node.require("path").join("core","templates","project");
 		var _g1 = 0;
 		var _g = filenames.length;
@@ -12124,6 +12138,11 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 				break;
 			case 6:
 				pathToFile = "bin/" + project.name + ".exe";
+				break;
+			case 7:
+				pathToFile = "bin/" + project.name + ".py";
+				targetData.runActionType = 2;
+				targetData.runActionText = "python " + pathToFile;
 				break;
 			default:
 				throw "Path to file is null";
@@ -14232,7 +14251,7 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.openFLTargetText.setAttribute("localeString","OpenFL target:");
 	projectaccess.ProjectOptions.openFLTargetText.className = "custom-font-size";
 	var _g = 0;
-	var _g1 = ["Flash","JavaScript","Neko","OpenFL","PHP","C++","Java","C#"];
+	var _g1 = ["Flash","JavaScript","Neko","OpenFL","PHP","C++","Java","C#","Python"];
 	while(_g < _g1.length) {
 		var target = _g1[_g];
 		++_g;
@@ -14490,6 +14509,9 @@ projectaccess.ProjectOptions.updateProjectOptions = function() {
 			break;
 		case 6:
 			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 7;
+			break;
+		case 7:
+			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 8;
 			break;
 		default:
 		}

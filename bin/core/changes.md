@@ -3,6 +3,7 @@
 
 * FIX: typing dot in non Haxe files
 * FIX: theme file switching on settings.json file save
+* FIX: added additional checks for process stdout and stderr parsing to fix parsing issues
 * CHANGED: do not change file using Navigation->Open File(completionItem.text = "", completionItem.displayText = "path/to/file")
 * CHANGED: scroll to bottom output textarea
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
@@ -11,6 +12,7 @@
 * ADDED: annotation ruler(with very basic style)
 * ADDED: basic outline panel
 * ADDED: Vim mode(can be switched on and off in Options->Open editor configuration file, comment '"keyMap": "sublime"' line and uncomment '//"vimMode": true, //"keyMap": "vim",')
+* ADDED: Python target support
 
 0.3.8
 -----------

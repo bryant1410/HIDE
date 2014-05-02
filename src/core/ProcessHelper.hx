@@ -94,12 +94,23 @@ class ProcessHelper
 		var switchToResultsTab:Bool = false;
 		
 		if (stderr != "")
-		{
+		{		
 			var lines = stderr.split("\n");
 			
 			for (line in lines) 
 			{
-				if (line.indexOf(":") != 0) 
+				line = StringTools.trim(line);
+				
+				if (line.indexOf("Error:") == 0) 
+				{
+					Alertify.error(line);
+					
+					if (line.indexOf("unknown option `-python'") != -1) 
+					{
+						Alertify.log("You may need to install latest version of Haxe to compile to Python target", "", 10000);
+					}
+				}
+				else if (line.indexOf(":") != 0) 
 				{
 					var args:Array<String> = line.split(":");
 					
@@ -114,47 +125,60 @@ class ProcessHelper
 						
 						var lineNumber:Int = Std.parseInt(args[1]) - 1;
 						
-						var charsData:Array<String> = StringTools.trim(args[2]).split(" ")[1].split("-");
+						var charsData:Array<String> = null;
 						
-						var start:Int = Std.parseInt(charsData[0]);
-						var end:Int = Std.parseInt(charsData[1]);
-						
-						var message:String = "";
-						
-						for (i in 3...args.length) 
+						if (args[2].indexOf(" ") != -1)
 						{
-							message += args[i];
+							var data = StringTools.trim(args[2]).split(" ");
 							
-							if (i != args.length - 1) 
+							if (data.length > 1 && data[1].indexOf("-") != -1)
 							{
-								message += ":";
+								charsData = data[1].split("-");
 							}
 						}
 						
-						var a:AnchorElement = Browser.document.createAnchorElement();
-						a.href = "#";
-						a.className = "list-group-item";
-						a.innerText = line;
-						a.onclick = function (e)
+						if (charsData != null) 
 						{
-							TabManager.openFileInNewTab(fullPath, true, function ():Void 
-							{
-								var cm:Dynamic = Editor.editor;
-								cm.centerOnLine(lineNumber);
-							});
+							var start:Int = Std.parseInt(charsData[0]);
+							var end:Int = Std.parseInt(charsData[1]);
 							
-						};
-						
-						new JQuery("#errors").append(a);
-						
-						var info:HaxeLint.Info = { from: {line:lineNumber, ch:start}, to: {line:lineNumber, ch:end}, message: message, severity: "error" };
-						data.push(info);
-						
-						switchToResultsTab = true;
-						
-						//Check if it's open
-						//Show hints when swithing document
-						TabManager.openFileInNewTab(fullPath, false);
+							var message:String = "";
+							
+							for (i in 3...args.length) 
+							{
+								message += args[i];
+								
+								if (i != args.length - 1) 
+								{
+									message += ":";
+								}
+							}
+							
+							var a:AnchorElement = Browser.document.createAnchorElement();
+							a.href = "#";
+							a.className = "list-group-item";
+							a.innerText = line;
+							a.onclick = function (e)
+							{
+								TabManager.openFileInNewTab(fullPath, true, function ():Void 
+								{
+									var cm:Dynamic = Editor.editor;
+									cm.centerOnLine(lineNumber);
+								});
+								
+							};
+							
+							new JQuery("#errors").append(a);
+							
+							var info:HaxeLint.Info = { from: {line:lineNumber, ch:start}, to: {line:lineNumber, ch:end}, message: message, severity: "error" };
+							data.push(info);
+							
+							switchToResultsTab = true;
+							
+							//Check if it's open
+							//Show hints when swithing document
+							TabManager.openFileInNewTab(fullPath, false);
+						}
 					}
 				}
 				
@@ -198,6 +222,10 @@ class ProcessHelper
 		}
 		else 
 		{
+			//trace(code);
+			//trace(stdout);
+			//trace(stderr);
+			
 			if (switchToResultsTab) 
 			{
 				new JQuery("#resultsTab").click();

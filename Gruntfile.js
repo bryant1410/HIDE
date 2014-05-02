@@ -90,7 +90,18 @@ module.exports = function(grunt) {
 			}
 		},
 	},
-	clean: ["bin/core/includes/js/main.js"]
+	clean: ["bin/core/includes/js/main.js"],
+	watch: 
+	{
+		scripts: 
+		{
+			files: '**/*.js',
+			tasks: ['concat', 'cssmin'],
+			options: 
+			{
+			},
+		},
+	},
   });
 
   //grunt.initConfig({
@@ -113,8 +124,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-cssmin');
+  grunt.loadNpmTasks('grunt-contrib-watch');
 
   // Default task(s).
-  grunt.registerTask('default', ['concat', 'cssmin']);
+  grunt.registerTask('default', ['concat', 'cssmin', 'watch']);
 
 };

@@ -7,7 +7,8 @@
     "grunt-node-webkit-builder": "latest",
     "grunt-contrib-concat": "latest",
     "grunt-contrib-cssmin": "latest",
-    "grunt-contrib-clean": "latest"
+    "grunt-contrib-clean": "latest",
+    "grunt-contrib-watch": "^0.6.1"
   },
   "main": "core/index.html",
   "window": {

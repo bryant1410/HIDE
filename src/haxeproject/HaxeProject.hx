@@ -32,6 +32,7 @@ class HaxeProject
 			NewProjectDialog.getCategory("Haxe").addItem("C++ Project", createCppProject);
 			NewProjectDialog.getCategory("Haxe").addItem("Java Project", createJavaProject);
 			NewProjectDialog.getCategory("Haxe").addItem("C# Project", createCSharpProject);
+			NewProjectDialog.getCategory("Haxe").addItem("Python Project", createPythonProject);
 			
 			var options:NodeFsFileOptions = { };
 			options.encoding = NodeC.UTF8;
@@ -69,42 +70,47 @@ class HaxeProject
 			);
 	}
 	
-	private static function createCSharpProject(data:Dynamic):Void 
+	static function createPythonProject(data:Dynamic):Void  
+	{
+		createHaxeProject(data, Project.PYTHON);
+	}
+	
+	static function createCSharpProject(data:Dynamic):Void 
 	{
 		createHaxeProject(data, Project.CSHARP);
 	}
 	
-	private static function createJavaProject(data:Dynamic):Void
+	static function createJavaProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.JAVA);
 	}
 	
-	private static function createCppProject(data:Dynamic):Void
+	static function createCppProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.CPP);
 	}
 	
-	private static function createPhpProject(data:Dynamic):Void
+	static function createPhpProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.PHP);
 	}
 	
-	private static function createNekoProject(data:Dynamic):Void
+	static function createNekoProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.NEKO);
 	}
 	
-	private static function createFlashProject(data:Dynamic):Void
+	static function createFlashProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.FLASH);
 	}
 	
-	private static function createJavaScriptProject(data:Dynamic):Void
+	static function createJavaScriptProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.JAVASCRIPT);
 	}
 	
-	private static function createHaxeProject(data:Dynamic, target:Int):Void
+	static function createHaxeProject(data:Dynamic, target:Int):Void
 	{
 		FileTools.createDirectoryRecursively(data.projectLocation, [data.projectName, "src"], function ():Void
 		{
@@ -151,7 +157,7 @@ class HaxeProject
 			project.target = target;
 			ProjectAccess.path = pathToProject;
 			
-			var filenames = ["flash", "javascript", "neko", "php", "cpp", "java", "csharp"];
+			var filenames = ["flash", "javascript", "neko", "php", "cpp", "java", "csharp", "python"];
 			
 			var pathToProjectTemplates = Node.path.join("core", "templates", "project");
 			
@@ -194,7 +200,11 @@ class HaxeProject
 						pathToFile = "bin/" + project.name + ".jar";
 					case Project.CSHARP:
 						pathToFile = "bin/" + project.name + ".exe";
+					case Project.PYTHON:
+						pathToFile = "bin/" + project.name + ".py";
 						
+						targetData.runActionType = Project.COMMAND;
+						targetData.runActionText = "python " + pathToFile;
 					default:
 						throw "Path to file is null";
 				}
