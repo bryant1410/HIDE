@@ -8,6 +8,7 @@ import haxe.ds.StringMap.StringMap;
 import haxe.xml.Fast;
 import js.Browser;
 import js.html.DivElement;
+import js.html.SpanElement;
 import js.Node;
 import openproject.OpenFL;
 import parser.ClassParser;
@@ -95,7 +96,41 @@ class Completion
 			case REGULAR:
 				for (completion in completions) 
 				{
-					list.push( { text: completion.n } );
+					var completionItem:CompletionData = { text: completion.n };
+					
+					var functionData = FunctionParametersHelper.parseFunctionParams(completion);
+					
+					var info:String;
+					
+					if (functionData.parameters != null) 
+					{
+						info = completion.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
+					}
+					else 
+					{
+						info = completion.t;
+					}
+					
+					var infoSpan:SpanElement = Browser.document.createSpanElement();
+					
+					var infoTypeSpan:SpanElement = Browser.document.createSpanElement();
+					infoTypeSpan.textContent = info;
+					infoSpan.appendChild(infoTypeSpan);
+					
+					infoSpan.appendChild(Browser.document.createElement("br"));
+					infoSpan.appendChild(Browser.document.createElement("br"));
+					
+					var infoDescriptionSpan:SpanElement = Browser.document.createSpanElement();
+					infoDescriptionSpan.className = "completionDescription";
+					infoDescriptionSpan.innerHTML = completion.d;
+					infoSpan.appendChild(infoDescriptionSpan);
+					
+					completionItem.info = function (completionItem) 
+					{
+						return infoSpan;
+					};
+					
+					list.push(completionItem);
 				}
 			case METATAGS:
 				list = MetaTags.getCompletion();
@@ -133,7 +168,8 @@ class Completion
 				
 		}
 		
-		var data:Dynamic = { list: list, from: {line:cur.line, ch:start}, to: {line:cur.line, ch:end} };
+		var data:Dynamic = { list: list, from: { line:cur.line, ch:start }, to: { line:cur.line, ch:end } };
+		CodeMirrorStatic.attachContextInfo(data);
 		return data;
 	}
 	

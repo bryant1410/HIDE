@@ -1,10 +1,10 @@
 package haxeproject;
-import core.FileTools;
 import core.Splitter;
 import filetree.FileTree;
 import js.Browser;
 import js.html.TextAreaElement;
 import js.Node;
+import js.node.Mkdirp;
 import mustache.Mustache;
 import newprojectdialog.NewProjectDialog;
 import openproject.OpenProject;
@@ -112,7 +112,9 @@ class HaxeProject
 	
 	static function createHaxeProject(data:Dynamic, target:Int):Void
 	{
-		FileTools.createDirectoryRecursively(data.projectLocation, [data.projectName, "src"], function ():Void
+		var pathToSrc:String = Node.path.join(data.projectLocation, data.projectName, "src");
+		
+		Mkdirp.mkdirp(pathToSrc, function (err:Dynamic, made:String):Void
 		{
 			var pathToProject:String  = data.projectLocation;
 			

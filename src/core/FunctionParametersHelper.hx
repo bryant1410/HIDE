@@ -1,6 +1,7 @@
 package core;
 import cm.Editor;
 import core.Completion.CompletionItem;
+import core.LineWidget;
 import js.Browser;
 import js.html.DivElement;
 import js.html.SpanElement;
@@ -13,32 +14,13 @@ import tabmanager.TabManager;
  */
 class FunctionParametersHelper
 {
-	public static var widgets:Array<Dynamic> = [];
+	public static var widgets:Array<LineWidget> = [];
 	static var lines:Array<Int> = [];
 	
-	public static function addWidget(text:String, description:String, lineNumber:Int):Void
-	{
-		var msg:DivElement = Browser.document.createDivElement();
-		//var icon:SpanElement = Browser.document.createSpanElement();
-		//msg.appendChild(icon);
-		//icon.className = "lint-error-icon";
-		msg.className = "lint-error";
-		
-		var spanText:SpanElement = Browser.document.createSpanElement();
-		spanText.textContent = text;
-		msg.appendChild(spanText);
-		
-		if (description != null) 
-		{
-			msg.appendChild(Browser.document.createBRElement());
-			var spanDescription:SpanElement = Browser.document.createSpanElement();
-			spanDescription.textContent = description;
-			msg.appendChild(spanDescription);
-		}
-		
-		var widget = Editor.editor.addLineWidget(lineNumber, msg, { coverGutter: false, noHScroll: true } );
-		widgets.push(widget);
-		
+	public static function addWidget(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, lineNumber:Int):Void
+	{		
+		var lineWidget:LineWidget = new LineWidget(type, name, parameters, retType, description, currentParameter, lineNumber);
+		widgets.push(lineWidget);
 		lines.push(lineNumber);
 	}
 	
@@ -62,18 +44,19 @@ class FunctionParametersHelper
 	{
 		for (widget in widgets) 
 		{
-			Editor.editor.removeLineWidget(widget);
+			Editor.editor.removeLineWidget(widget.getWidget());
 		}
 		
 		lines = [];
+		widgets = [];
 	}
 	
 	public static function update(cm:CodeMirror):Void
-	{
-		var extname:String = Node.path.extname(TabManager.getCurrentDocumentPath());
+	{		
+		var modeName:String = TabManager.getCurrentDocument().getMode().name;
 			
-		if (extname == ".hx" && !cm.state.completionActive) 
-		{			
+		if (modeName == "haxe" && !cm.state.completionActive)
+		{	
 			var cursor = cm.getCursor();
 			var data = cm.getLine(cursor.line);			
 			
@@ -91,56 +74,61 @@ class FunctionParametersHelper
 		
 		if (bracketsData != null && bracketsData.ch == "(") 
 		{
+			var range:String = cm.getRange(bracketsData.pos, cursor);
+			
 			var pos = {line:bracketsData.pos.line, ch:bracketsData.pos.ch};
+			
+			var currentParameter:Int = range.split(",").length - 1;
 			
 			if (!FunctionParametersHelper.alreadyShown(pos.line)) 
 			{						
-				getFunctionParams(cm, pos);				
+				getFunctionParams(cm, pos, currentParameter);				
+			}
+			else 
+			{
+				trace(widgets.length);
+				widgets[0].updateParameters(currentParameter);
 			}
 		}
-		else 
+		else
 		{
 			FunctionParametersHelper.clear();
 		}
 	}
 	
-	static function getFunctionParams(cm:CodeMirror, pos:CodeMirror.Pos):Void
+	static function getFunctionParams(cm:CodeMirror, pos:CodeMirror.Pos, currentParameter:Int):Void
 	{
 		var word = Completion.getCurrentWord(cm, {}, {line:pos.line, ch:pos.ch - 1}).word;
-				
-		TabManager.saveActiveFile(function ():Void 
+		
+		Completion.getCompletion(function ()
 		{
-			Completion.getCompletion(function ()
-			{
-				var found:Bool = false;
-				
-				for (completion in Completion.completions) 
-				{							
-					if (word == completion.n) 
-					{							
-						var text = parseFunctionParams(completion);
+			var found:Bool = false;
+			
+			for (completion in Completion.completions) 
+			{							
+				if (word == completion.n) 
+				{
+					var functionData = parseFunctionParams(completion);
+					
+					if (functionData.parameters != null)
+					{
+						var description = parseDescription(completion);
 						
-						if (text != null) 
-						{
-							var description = parseDescription(completion);
-							
-							FunctionParametersHelper.clear();
-							FunctionParametersHelper.addWidget(text, description, cm.getCursor().line);
-							FunctionParametersHelper.updateScroll();
-							found = true;
-							break;
-						}
+						FunctionParametersHelper.clear();
+						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor().line);
+						FunctionParametersHelper.updateScroll();
+						found = true;
+						break;
 					}
 				}
-				
-				if (!found) 
-				{
-					FunctionParametersHelper.clear();
-				}
 			}
-			, {line: pos.line, ch: pos.ch - 1});
+			
+			if (!found) 
+			{
+				FunctionParametersHelper.clear();
+			}
 		}
-		);
+		, {line: pos.line, ch: pos.ch - 1});
 	}
 	
 	static function parseDescription(completion:CompletionItem)
@@ -158,38 +146,66 @@ class FunctionParametersHelper
 		return description;
 	}
 	
-	static function parseFunctionParams(completion:CompletionItem)
+	public static function parseFunctionParams(completion:CompletionItem)
 	{
-		var functionParamsText:String = null;
+		var parameters:Array<String> = null;
 		
-		var info:String = "(";
+		var retType:String = null;
 		
 		if (completion.t.indexOf("->") != -1) 
 		{
-			var args:Array<String> = completion.t.split("->");
+			var openBracketsCount:Int = 0;
+			var positions:Array<{start:Int, end:Int}> = [];
+			var i:Int = 0;
+			var lastPos:Int = 0;
 			
-			if (args.length > 1) 
-			{
-				for (i in 0...args.length - 1) 
+			while (i < completion.t.length) 
+			{				
+				switch (completion.t.charAt(i)) 
 				{
-					info += args[i];
-					
-					if (i != args.length - 2) 
-					{
-						info += ", ";
-					}
+					case "-":
+						if (openBracketsCount == 0 && completion.t.charAt(i + 1) == ">") 
+						{
+							positions.push({start: lastPos, end: i-1});
+							i++;
+							i++;
+							lastPos = i;
+						}
+					case "(":
+						openBracketsCount++;
+					case ")":
+						openBracketsCount--;
+					default:
+						
 				}
 				
-				info += "):" + args[args.length - 1];
-			}
-			else 
-			{
-				info += "):" + args[args.length - 1];
+				i++;
 			}
 			
-			functionParamsText = "function " + completion.n + info;
+			positions.push( { start: lastPos, end: completion.t.length } );
+			
+			parameters = [];
+			
+			for (j in 0...positions.length) 
+			{
+				var param:String = StringTools.trim(completion.t.substring(positions[j].start, positions[j].end));
+				
+				if (j < positions.length - 1) 
+				{
+					parameters.push(param);
+				}
+				else 
+				{
+					retType = param;
+				}
+			}
+			
+			if (parameters.length == 1 && parameters[0] == "Void") 
+			{
+				parameters = [];
+			}
 		}
 		
-		return functionParamsText;
+		return {parameters: parameters, retType: retType};
 	}
 }

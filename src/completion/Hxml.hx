@@ -14,6 +14,7 @@ typedef CompletionData =
 	@:optional var text:String;
 	@:optional var displayText:String;
 	@:optional var hint:CodeMirror->Dynamic->CompletionData->Void;
+	@:optional var info:CompletionData->Dynamic;
 }
  
 class Hxml

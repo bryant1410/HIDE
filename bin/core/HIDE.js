@@ -1164,8 +1164,27 @@ cm.Editor.load = function() {
 		};
 		$r = passAndHint;
 		return $r;
+	}(this)), ';' : (function($this) {
+		var $r;
+		var passAndHint1 = function(cm2) {
+			var cursor = cm.Editor.editor.getCursor();
+			var ch = cm.Editor.editor.getRange(cursor,{ line : cursor.line, ch : cursor.ch + 1});
+			if(ch == ";") cm2.execCommand("goCharRight"); else {
+				return CodeMirror.Pass;
+			}
+		};
+		$r = passAndHint1;
+		return $r;
 	}(this))};
 	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
+	cm.Editor.editor.on("keypress",function(cm2,e) {
+		if(e.keyCode == 40 && e.shiftKey) {
+			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+				var completionActive1 = cm.Editor.editor.state.completionActive;
+				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
+			}
+		}
+	});
 	new $("#editor").hide(0);
 	cm.Editor.loadThemes(["3024-day","3024-night","ambiance-mobile","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","mbo","mdn-like","midnight","monokai","neat","night","paraiso-dark","paraiso-light","pastel-on-dark","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
 	var value = "";
@@ -1187,7 +1206,7 @@ cm.Editor.load = function() {
 	}
 	console.log(cm.Editor.editor);
 	js.Node.require("fs").writeFileSync(js.Node.require("path").join("core","bindings.txt"),value,"utf8");
-	window.addEventListener("resize",function(e) {
+	window.addEventListener("resize",function(e1) {
 		core.Helper.debounce("resize",function() {
 			cm.Editor.editor.refresh();
 		},100);
@@ -1198,14 +1217,14 @@ cm.Editor.load = function() {
 		cm.Editor.resize();
 	});
 	cm.ColorPreview.create(cm.Editor.editor);
-	cm.Editor.editor.on("cursorActivity",function(cm2) {
+	cm.Editor.editor.on("cursorActivity",function(cm3) {
 		core.Helper.debounce("cursorActivity",function() {
-			core.FunctionParametersHelper.update(cm2);
-			cm.ColorPreview.update(cm2);
-			cm.ERegPreview.update(cm2);
+			core.FunctionParametersHelper.update(cm3);
+			cm.ColorPreview.update(cm3);
+			cm.ERegPreview.update(cm3);
 		},100);
 	});
-	cm.Editor.editor.on("scroll",function(cm3) {
+	cm.Editor.editor.on("scroll",function(cm4) {
 		cm.ColorPreview.scroll(cm.Editor.editor);
 	});
 	var timer = null;
@@ -1213,7 +1232,7 @@ cm.Editor.load = function() {
 	var ignoreNewLineKeywords_0 = "function";
 	var ignoreNewLineKeywords_1 = "for ";
 	var ignoreNewLineKeywords_2 = "while";
-	cm.Editor.editor.on("change",function(cm3,e1) {
+	cm.Editor.editor.on("change",function(cm5,e2) {
 		var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
@@ -1221,24 +1240,24 @@ cm.Editor.load = function() {
 				parser.OutlineHelper.getList(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
 				core.HaxeLint.updateLinting();
 			},100);
-			var cursor = cm3.getCursor();
-			var data = cm3.getLine(cursor.line);
-			if(data.charAt(cursor.ch - 1) == ":") {
-				if(data.charAt(cursor.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
-			} else if(data.charAt(cursor.ch - 1) == "<") {
+			var cursor1 = cm5.getCursor();
+			var data = cm5.getLine(cursor1.line);
+			if(data.charAt(cursor1.ch - 1) == ":") {
+				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
+			} else if(data.charAt(cursor1.ch - 1) == "<") {
 				var _g3 = 0;
 				while(_g3 < basicTypes.length) {
 					var type = basicTypes[_g3];
 					++_g3;
-					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor.ch - 1),type)) {
+					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor1.ch - 1),type)) {
 						core.Completion.showClassList();
 						break;
 					}
 				}
 			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true);
 		} else if(modeName == "hxml") {
-			var cursor1 = cm3.getCursor();
-			var data1 = cm3.getLine(cursor1.line);
+			var cursor2 = cm5.getCursor();
+			var data1 = cm5.getLine(cursor2.line);
 			if(data1.charAt(0) == "-") core.Completion.showHxmlCompletion();
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
@@ -1365,6 +1384,7 @@ cm.Zoom.setFontSize = function(fontSize) {
 	new $(".CodeMirror").css("font-size",(fontSize == null?"null":"" + fontSize) + "px");
 	new $(".CodeMirror-hint").css("font-size",Std.string(fontSize - 2) + "px");
 	new $(".CodeMirror-hints").css("font-size",Std.string(fontSize - 2) + "px");
+	cm.Editor.editor.refresh();
 };
 var completion = {};
 completion.Filter = function() { };
@@ -1615,7 +1635,35 @@ core.Completion.getHints = function(cm,options) {
 		while(_g1 < _g2.length) {
 			var completion1 = _g2[_g1];
 			++_g1;
-			core.Completion.list.push({ text : completion1.n});
+			var completionItem = { text : completion1.n};
+			var functionData = core.FunctionParametersHelper.parseFunctionParams(completion1);
+			var info;
+			if(functionData.parameters != null) info = completion1.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType; else info = completion1.t;
+			var infoSpan = [(function($this) {
+				var $r;
+				var _this = window.document;
+				$r = _this.createElement("span");
+				return $r;
+			}(this))];
+			var infoTypeSpan;
+			var _this1 = window.document;
+			infoTypeSpan = _this1.createElement("span");
+			infoTypeSpan.textContent = info;
+			infoSpan[0].appendChild(infoTypeSpan);
+			infoSpan[0].appendChild(window.document.createElement("br"));
+			infoSpan[0].appendChild(window.document.createElement("br"));
+			var infoDescriptionSpan;
+			var _this2 = window.document;
+			infoDescriptionSpan = _this2.createElement("span");
+			infoDescriptionSpan.className = "completionDescription";
+			infoDescriptionSpan.innerHTML = completion1.d;
+			infoSpan[0].appendChild(infoDescriptionSpan);
+			completionItem.info = (function(infoSpan) {
+				return function(completionItem1) {
+					return infoSpan[0];
+				};
+			})(infoSpan);
+			core.Completion.list.push(completionItem);
 		}
 		break;
 	case 4:
@@ -1665,6 +1713,7 @@ core.Completion.getHints = function(cm,options) {
 	default:
 	}
 	var data = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
+	CodeMirror.attachContextInfo(data);
 	return data;
 };
 core.Completion.openFile = function(cm,data,completion) {
@@ -1864,50 +1913,12 @@ core.FileDialog.openFolder = function(_onClick) {
 	core.FileDialog.input.setAttribute("nwdirectory","");
 	core.FileDialog.input.click();
 };
-core.FileTools = function() { };
-$hxClasses["core.FileTools"] = core.FileTools;
-core.FileTools.__name__ = ["core","FileTools"];
-core.FileTools.createDirectoryRecursively = function(path,folderPath,onCreated) {
-	var fullPath = js.Node.require("path").join(path,folderPath[0]);
-	core.FileTools.createDirectory(fullPath,function() {
-		folderPath.splice(0,1);
-		if(folderPath.length > 0) core.FileTools.createDirectoryRecursively(fullPath,folderPath,onCreated); else onCreated();
-	});
-};
-core.FileTools.createDirectory = function(path,onCreated) {
-	js.Node.require("fs").mkdir(path,null,function(error) {
-		if(error != null) console.log(error);
-		if(onCreated != null) onCreated();
-	});
-};
 core.FunctionParametersHelper = function() { };
 $hxClasses["core.FunctionParametersHelper"] = core.FunctionParametersHelper;
 core.FunctionParametersHelper.__name__ = ["core","FunctionParametersHelper"];
-core.FunctionParametersHelper.addWidget = function(text,description,lineNumber) {
-	var msg;
-	var _this = window.document;
-	msg = _this.createElement("div");
-	msg.className = "lint-error";
-	var spanText;
-	var _this1 = window.document;
-	spanText = _this1.createElement("span");
-	spanText.textContent = text;
-	msg.appendChild(spanText);
-	if(description != null) {
-		msg.appendChild((function($this) {
-			var $r;
-			var _this2 = window.document;
-			$r = _this2.createElement("br");
-			return $r;
-		}(this)));
-		var spanDescription;
-		var _this3 = window.document;
-		spanDescription = _this3.createElement("span");
-		spanDescription.textContent = description;
-		msg.appendChild(spanDescription);
-	}
-	var widget = cm.Editor.editor.addLineWidget(lineNumber,msg,{ coverGutter : false, noHScroll : true});
-	core.FunctionParametersHelper.widgets.push(widget);
+core.FunctionParametersHelper.addWidget = function(type,name,parameters,retType,description,currentParameter,lineNumber) {
+	var lineWidget = new core.LineWidget(type,name,parameters,retType,description,currentParameter,lineNumber);
+	core.FunctionParametersHelper.widgets.push(lineWidget);
 	core.FunctionParametersHelper.lines.push(lineNumber);
 };
 core.FunctionParametersHelper.alreadyShown = function(lineNumber) {
@@ -1924,13 +1935,14 @@ core.FunctionParametersHelper.clear = function() {
 	while(_g < _g1.length) {
 		var widget = _g1[_g];
 		++_g;
-		cm.Editor.editor.removeLineWidget(widget);
+		cm.Editor.editor.removeLineWidget(widget.getWidget());
 	}
 	core.FunctionParametersHelper.lines = [];
+	core.FunctionParametersHelper.widgets = [];
 };
 core.FunctionParametersHelper.update = function(cm) {
-	var extname = js.Node.require("path").extname(tabmanager.TabManager.getCurrentDocumentPath());
-	if(extname == ".hx" && !cm.state.completionActive) {
+	var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
+	if(modeName == "haxe" && !cm.state.completionActive) {
 		var cursor = cm.getCursor();
 		var data = cm.getLine(cursor.line);
 		if(cursor != null && data.charAt(cursor.ch - 1) != ".") core.FunctionParametersHelper.scanForBracket(cm,cursor);
@@ -1939,35 +1951,38 @@ core.FunctionParametersHelper.update = function(cm) {
 core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
 	var bracketsData = cm.scanForBracket(cursor,-1,null);
 	if(bracketsData != null && bracketsData.ch == "(") {
+		var range = cm.getRange(bracketsData.pos,cursor);
 		var pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
-		if(!core.FunctionParametersHelper.alreadyShown(pos.line)) core.FunctionParametersHelper.getFunctionParams(cm,pos);
+		var currentParameter = range.split(",").length - 1;
+		if(!core.FunctionParametersHelper.alreadyShown(pos.line)) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else {
+			console.log(core.FunctionParametersHelper.widgets.length);
+			core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
+		}
 	} else core.FunctionParametersHelper.clear();
 };
-core.FunctionParametersHelper.getFunctionParams = function(cm,pos) {
+core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
 	var word = core.Completion.getCurrentWord(cm,{ },{ line : pos.line, ch : pos.ch - 1}).word;
-	tabmanager.TabManager.saveActiveFile(function() {
-		core.Completion.getCompletion(function() {
-			var found = false;
-			var _g = 0;
-			var _g1 = core.Completion.completions;
-			while(_g < _g1.length) {
-				var completion = _g1[_g];
-				++_g;
-				if(word == completion.n) {
-					var text = core.FunctionParametersHelper.parseFunctionParams(completion);
-					if(text != null) {
-						var description = core.FunctionParametersHelper.parseDescription(completion);
-						core.FunctionParametersHelper.clear();
-						core.FunctionParametersHelper.addWidget(text,description,cm.getCursor().line);
-						core.FunctionParametersHelper.updateScroll();
-						found = true;
-						break;
-					}
+	core.Completion.getCompletion(function() {
+		var found = false;
+		var _g = 0;
+		var _g1 = core.Completion.completions;
+		while(_g < _g1.length) {
+			var completion = _g1[_g];
+			++_g;
+			if(word == completion.n) {
+				var functionData = core.FunctionParametersHelper.parseFunctionParams(completion);
+				if(functionData.parameters != null) {
+					var description = core.FunctionParametersHelper.parseDescription(completion);
+					core.FunctionParametersHelper.clear();
+					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor().line);
+					core.FunctionParametersHelper.updateScroll();
+					found = true;
+					break;
 				}
 			}
-			if(!found) core.FunctionParametersHelper.clear();
-		},{ line : pos.line, ch : pos.ch - 1});
-	});
+		}
+		if(!found) core.FunctionParametersHelper.clear();
+	},{ line : pos.line, ch : pos.ch - 1});
 };
 core.FunctionParametersHelper.parseDescription = function(completion) {
 	var description = completion.d;
@@ -1977,23 +1992,46 @@ core.FunctionParametersHelper.parseDescription = function(completion) {
 	return description;
 };
 core.FunctionParametersHelper.parseFunctionParams = function(completion) {
-	var functionParamsText = null;
-	var info = "(";
+	var parameters = null;
+	var retType = null;
 	if(completion.t.indexOf("->") != -1) {
-		var args = completion.t.split("->");
-		if(args.length > 1) {
-			var _g1 = 0;
-			var _g = args.length - 1;
-			while(_g1 < _g) {
-				var i = _g1++;
-				info += args[i];
-				if(i != args.length - 2) info += ", ";
+		var openBracketsCount = 0;
+		var positions = [];
+		var i = 0;
+		var lastPos = 0;
+		while(i < completion.t.length) {
+			var _g = completion.t.charAt(i);
+			switch(_g) {
+			case "-":
+				if(openBracketsCount == 0 && completion.t.charAt(i + 1) == ">") {
+					positions.push({ start : lastPos, end : i - 1});
+					i++;
+					i++;
+					lastPos = i;
+				}
+				break;
+			case "(":
+				openBracketsCount++;
+				break;
+			case ")":
+				openBracketsCount--;
+				break;
+			default:
 			}
-			info += "):" + args[args.length - 1];
-		} else info += "):" + args[args.length - 1];
-		functionParamsText = "function " + completion.n + info;
+			i++;
+		}
+		positions.push({ start : lastPos, end : completion.t.length});
+		parameters = [];
+		var _g1 = 0;
+		var _g2 = positions.length;
+		while(_g1 < _g2) {
+			var j = _g1++;
+			var param = StringTools.trim(completion.t.substring(positions[j].start,positions[j].end));
+			if(j < positions.length - 1) parameters.push(param); else retType = param;
+		}
+		if(parameters.length == 1 && parameters[0] == "Void") parameters = [];
 	}
-	return functionParamsText;
+	return { parameters : parameters, retType : retType};
 };
 core.GoToLine = function() { };
 $hxClasses["core.GoToLine"] = core.GoToLine;
@@ -2685,6 +2723,79 @@ core.Hotkeys.parseHotkey = function(hotkey) {
 		}
 	}
 	return { keyCode : keyCode, ctrl : ctrl, shift : shift, alt : alt};
+};
+core.LineWidget = function(type,name,parameters,retType,description,currentParameter,lineNumber) {
+	var _this = window.document;
+	this.element = _this.createElement("div");
+	this.element.className = "lint-error";
+	var spanText;
+	var _this1 = window.document;
+	spanText = _this1.createElement("span");
+	spanText.textContent = type + " " + name + "(";
+	this.element.appendChild(spanText);
+	var parametersSpan;
+	var _this2 = window.document;
+	parametersSpan = _this2.createElement("span");
+	spanText.appendChild(parametersSpan);
+	this.parametersSpanElements = [];
+	var _g1 = 0;
+	var _g = parameters.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		var spanText2;
+		var _this3 = window.document;
+		spanText2 = _this3.createElement("span");
+		spanText2.textContent = parameters[i];
+		if(i == currentParameter) spanText2.className = "selectedParameter";
+		parametersSpan.appendChild(spanText2);
+		this.parametersSpanElements.push(spanText2);
+		if(i != parameters.length - 1) {
+			var spanCommaText;
+			var _this4 = window.document;
+			spanCommaText = _this4.createElement("span");
+			spanCommaText.textContent = ", ";
+			parametersSpan.appendChild(spanCommaText);
+		}
+	}
+	this.updateParameters(currentParameter);
+	var spanText3;
+	var _this5 = window.document;
+	spanText3 = _this5.createElement("span");
+	spanText3.textContent = "):" + retType;
+	this.element.appendChild(spanText3);
+	if(description != null) {
+		this.element.appendChild((function($this) {
+			var $r;
+			var _this6 = window.document;
+			$r = _this6.createElement("br");
+			return $r;
+		}(this)));
+		var spanDescription;
+		var _this7 = window.document;
+		spanDescription = _this7.createElement("span");
+		spanDescription.textContent = description;
+		this.element.appendChild(spanDescription);
+	}
+	this.widget = cm.Editor.editor.addLineWidget(lineNumber,this.element,{ coverGutter : false, noHScroll : true});
+};
+$hxClasses["core.LineWidget"] = core.LineWidget;
+core.LineWidget.__name__ = ["core","LineWidget"];
+core.LineWidget.prototype = {
+	element: null
+	,parametersSpanElements: null
+	,widget: null
+	,updateParameters: function(currentParameter) {
+		var _g1 = 0;
+		var _g = this.parametersSpanElements.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(i == currentParameter) this.parametersSpanElements[i].className = "selectedParameter"; else this.parametersSpanElements[i].className = "";
+		}
+	}
+	,getWidget: function() {
+		return this.widget;
+	}
+	,__class__: core.LineWidget
 };
 core.MenuCommands = function() { };
 $hxClasses["core.MenuCommands"] = core.MenuCommands;
@@ -12077,7 +12188,8 @@ haxeproject.HaxeProject.createJavaScriptProject = function(data) {
 	haxeproject.HaxeProject.createHaxeProject(data,1);
 };
 haxeproject.HaxeProject.createHaxeProject = function(data,target) {
-	core.FileTools.createDirectoryRecursively(data.projectLocation,[data.projectName,"src"],function() {
+	var pathToSrc = js.Node.require("path").join(data.projectLocation,data.projectName,"src");
+	js.node.Mkdirp.mkdirp(pathToSrc,function(err,made) {
 		var pathToProject = data.projectLocation;
 		if(data.createDirectory) pathToProject = js.Node.require("path").join(pathToProject,data.projectName);
 		var pathToMain;
@@ -12249,6 +12361,12 @@ js.Node = function() { };
 $hxClasses["js.Node"] = js.Node;
 js.Node.__name__ = ["js","Node"];
 js.node = {};
+js.node.Mkdirp = function() { };
+$hxClasses["js.node.Mkdirp"] = js.node.Mkdirp;
+js.node.Mkdirp.__name__ = ["js","node","Mkdirp"];
+js.node.Mkdirp.mkdirp = function(dir,mode,cb) {
+	if(cb == null) js.node.Mkdirp._mkdirp(dir,mode); else js.node.Mkdirp._mkdirp(dir,mode,cb);
+};
 js.node.Mv = function() { };
 $hxClasses["js.node.Mv"] = js.node.Mv;
 js.node.Mv.__name__ = ["js","node","Mv"];
@@ -15527,6 +15645,7 @@ if(version[0] > 0 || version[1] >= 9) {
 	js.Node.setImmediate = setImmediate;
 	js.Node.clearImmediate = clearImmediate;
 }
+js.node.Mkdirp._mkdirp = js.Node.require("mkdirp");
 js.node.Mv.mv = js.Node.require("mv");
 js.node.Remove.remove = js.Node.require("remove");
 Walkdir.walkdir = js.Node.require("walkdir");

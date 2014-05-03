@@ -117,6 +117,7 @@ function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
 function getSelection(?lineSep: String):String;
 function replaceSelection(replacement: String, ?select: String):Void;
 function lineCount():Int;
+function getRange(from: Pos, to: Pos, ?separator: String):String;
 
 function markText(from : Pos, to : Pos, options:{className : String} ) : MarkedText;
 function getAllMarks():Array<MarkedText>;

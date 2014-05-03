@@ -7,24 +7,29 @@ import js.Node;
  */
 class Mkdirp
 {
-	static var mkdirp:Dynamic;
+	static var _mkdirp:Dynamic;
 	
 	static function __init__() : Void untyped {
-		mkdirp = Node.require('mkdirp');
+		_mkdirp = Node.require('mkdirp');
 	}
 	
-	@:overload(function (dir:String, cb:Dynamic->String->Void):Void 
-	{
-		mkdirp(dir, cb);
-	})
+	@:overload(function (dir:String, cb:Dynamic->String->Void):Void { } )
+	
 	public static function mkdirp(dir:String, mode:Int, cb:Dynamic->String->Void):Void 
 	{
-		mkdirp(dir, mode, cb);
+		if (cb == null) 
+		{
+			_mkdirp(dir, mode);
+		}
+		else 
+		{
+			_mkdirp(dir, mode, cb);
+		}
 	}
 	
 	public static function mkdirpSync(dir:String, ?mode:Int):String 
 	{
-		return mkdirp.sync(dir, mode);
+		return _mkdirp.sync(dir, mode);
 	}
 	
 }

@@ -4,6 +4,8 @@
 * FIX: typing dot in non Haxe files
 * FIX: theme file switching on settings.json file save
 * FIX: added additional checks for process stdout and stderr parsing to fix parsing issues
+* FIX: create directory recursively for new project using "mkdirp" node module(which will create folders recursively, if some of them doesn't exists)
+* FIX: code editor zoom(using Alt and View menu) will call refresh on code editor(should fix issues with cursor)
 * CHANGED: do not change file using Navigation->Open File(completionItem.text = "", completionItem.displayText = "path/to/file")
 * CHANGED: scroll to bottom output textarea
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
@@ -13,6 +15,8 @@
 * ADDED: basic outline panel
 * ADDED: Vim mode(can be switched on and off in Options->Open editor configuration file, comment '"keyMap": "sublime"' line and uncomment '//"vimMode": true, //"keyMap": "vim",')
 * ADDED: Python target support
+* ADDED: Code Completion description
+* ADDED: Improved function parameters hinting(show active parameter).
 
 0.3.8
 -----------

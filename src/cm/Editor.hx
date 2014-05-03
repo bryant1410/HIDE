@@ -53,7 +53,7 @@ class Editor
 		
 		try 
 		{
-			options = TJSON.parse(Node.fs.readFileSync(Node.path.join("core","config","editor.json"), readFileOptions));
+			options = TJSON.parse(Node.fs.readFileSync(Node.path.join("core", "config", "editor.json"), readFileOptions));
 		}
 		catch (err:Error)
 		{
@@ -80,10 +80,42 @@ class Editor
 					}
 					
 					untyped __js__("return CodeMirror.Pass");
+				},
+			";":
+				function passAndHint(cm:CodeMirror) 
+				{
+					var cursor = editor.getCursor();
+					var ch = editor.getRange(cursor, { line: cursor.line, ch: cursor.ch +1 } );
+					
+					if (ch == ";") 
+					{
+						cm.execCommand("goCharRight");
+					}
+					else 
+					{
+						untyped __js__("return CodeMirror.Pass");
+					}
 				}
 		}
-				
+		
 		editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), options);
+		
+		editor.on("keypress", function (cm:CodeMirror, e:KeyboardEvent):Void 
+		{
+			if (e.keyCode == 40 && e.shiftKey) 
+			{
+				if (TabManager.getCurrentDocument().getMode().name == "haxe") 
+				{
+					var completionActive = editor.state.completionActive;
+					
+					if (completionActive != null && completionActive.widget != null) 
+					{
+						completionActive.widget.pick();
+					}
+				}
+			}
+		}
+		);
 		
 		new JQuery("#editor").hide(0);
 		

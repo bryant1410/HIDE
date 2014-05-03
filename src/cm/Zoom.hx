@@ -59,6 +59,7 @@ class Zoom
 		new JQuery(".CodeMirror").css("font-size", Std.string(fontSize) + "px");
 		new JQuery(".CodeMirror-hint").css("font-size", Std.string(fontSize - 2) + "px");
 		new JQuery(".CodeMirror-hints").css("font-size", Std.string(fontSize - 2) + "px");
+		Editor.editor.refresh();
 	}
 	
 }
