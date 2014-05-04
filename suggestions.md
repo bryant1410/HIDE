@@ -134,6 +134,7 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Open page in iframe, parse stack, add error to Results tab
 * Log errors
 * Capture page button
+* Check if new version of HIDE is available
 
 ###Important
 * Custom hxml, build and run commands for each target

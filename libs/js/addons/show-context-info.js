@@ -1,8 +1,10 @@
 (function() {
 
   var contextInfo = null;
-
-  CodeMirror.attachContextInfo = function(data) {
+  var left;
+  var top;
+  
+  CodeMirror.attachContextInfo = function(cm, data) {
     CodeMirror.on(data, 'select', function(completion, hints) {
       hints = hints.parentNode;
       var information = null;
@@ -19,6 +21,10 @@
         contextInfo.innerHTML = '';
         contextInfo.style.top = hints.style.top;
         contextInfo.style.left = box.right + 'px';
+		
+		top = parseInt(hints.style.top);
+		left = box.right;
+		
         if(typeof information == "string") {
           contextInfo.innerHTML = information;
         } else {
@@ -33,13 +39,27 @@
       }
     });
 
+	var startScroll = cm.getScrollInfo();
+	cm.on("scroll", onScroll);
+	
     CodeMirror.on(data, 'close', function() {
       if (contextInfo != null) {
         contextInfo.parentNode.removeChild(contextInfo);
       }
       contextInfo = null;
+	  
+	  cm.off("scroll", onScroll);
     });
-    
+	
+	function onScroll(cm) 
+	{
+		var curScroll = cm.getScrollInfo();
+		var editor = cm.getWrapperElement().getBoundingClientRect();
+		var newTop = top + startScroll.top - curScroll.top;
+		
+		contextInfo.style.top = newTop + "px";
+		contextInfo.style.left = (left + startScroll.left - curScroll.left) + "px";
+    }
   }
 
   CodeMirror.showContextInfo = function(getHints) {

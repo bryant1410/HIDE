@@ -53,7 +53,8 @@ module.exports = function(grunt) {
 			'libs/js/CodeMirror/mode/markdown/markdown.js',
 			'libs/js/CodeMirror/mode/shell/shell.js',
 			'libs/js/alertify.js/lib/alertify.min.js',
-			"libs/js/addons/show-context-info.js",
+			'libs/js/addons/show-context-info.js',
+			'libs/js/addons/templates-hint.js',
 			],
 			dest: 'bin/core/includes/js/main.js',
 		},
@@ -96,7 +97,7 @@ module.exports = function(grunt) {
 	{
 		scripts: 
 		{
-			files: 'libs/**/*.js',
+			files: 'libs/**/*.*',
 			tasks: ['concat', 'cssmin'],
 			options: 
 			{

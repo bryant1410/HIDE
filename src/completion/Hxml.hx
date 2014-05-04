@@ -15,6 +15,7 @@ typedef CompletionData =
 	@:optional var displayText:String;
 	@:optional var hint:CodeMirror->Dynamic->CompletionData->Void;
 	@:optional var info:CompletionData->Dynamic;
+	@:optional var className:String;
 }
  
 class Hxml
@@ -37,6 +38,7 @@ class Hxml
 				var completionItem:CompletionData = { };
 				completionItem.text =  "-lib " + item;
 				completionItem.displayText =  completionItem.text + " - installed";
+				completionItem.className = "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-lib";
 				
 				completions.push(completionItem);
 			}
@@ -50,6 +52,7 @@ class Hxml
 						var completionItem:CompletionData = { };
 						completionItem.text =  "-lib " + item;
 						completionItem.displayText =  completionItem.text + " - not installed";
+						completionItem.className = "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-lib";
 						
 						completions.push(completionItem);
 					}
@@ -71,7 +74,7 @@ class Hxml
 		{
 			for (item in data)
 			{
-				completions.push( { text: "-D " + item } );
+				completions.push( { text: "-D " + item, className: "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-define" } );
 			}
 			
 			if (onComplete != null) 
@@ -88,7 +91,7 @@ class Hxml
 		{
 			for (item in data)
 			{
-				completions.push( { text: item } );
+				completions.push( { text: item, className: "CodeMirror-Tern-completion"} );
 			}
 			
 			if (onComplete != null) 

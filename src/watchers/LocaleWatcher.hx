@@ -27,7 +27,7 @@ class LocaleWatcher
 		
 		parse();
 		
-		Watcher.watchFileForUpdates(pathToLocale, function ():Void 
+		watcher = Watcher.watchFileForUpdates(pathToLocale, function ():Void 
 		{
 			parse();
 			processHtmlElements();

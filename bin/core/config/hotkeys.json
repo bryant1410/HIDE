@@ -60,4 +60,5 @@
     ,"Help->Open Haxe nightly build download URL" : ""
     ,"Options->Change path to Haxe compiler" : ""
     ,"Options->Configure Haxe SDK" : ""
+    ,"Options->Open snippets configuration file" : ""
 }

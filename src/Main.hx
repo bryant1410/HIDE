@@ -43,6 +43,7 @@ import projectaccess.ProjectAccess;
 import projectaccess.ProjectOptions;
 import tabmanager.TabManager;
 import watchers.SettingsWatcher;
+import watchers.SnippetsWatcher;
 
 /**
  * ...
@@ -80,6 +81,7 @@ class Main
 			Splitter.load();
 			
 			SettingsWatcher.load();
+			SnippetsWatcher.load();
 			
 			Utils.prepare();
 			BootstrapMenu.createMenuBar();

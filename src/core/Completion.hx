@@ -4,6 +4,7 @@ import CodeMirror;
 import completion.Filter;
 import completion.Hxml;
 import completion.MetaTags;
+import completion.SnippetsCompletion;
 import haxe.ds.StringMap.StringMap;
 import haxe.xml.Fast;
 import js.Browser;
@@ -58,18 +59,19 @@ class Completion
 	{
 		Hxml.load();
 		MetaTags.load();
+		SnippetsCompletion.load();
 		
 		CodeMirror.registerHelper("hint", "haxe", getHints);
 		CodeMirror.registerHelper("hint", "hxml", getHints);
 		
-		Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
-		{
-			if (completionType == FILELIST) 
-			{
-				backupDocValue = TabManager.getCurrentDocument().getValue();
-			}
-		}
-		);
+		//Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
+		//{
+			//if (completionType == FILELIST) 
+			//{
+				//backupDocValue = TabManager.getCurrentDocument().getValue();
+			//}
+		//}
+		//);
 	}
 	
 	static function getHints(cm:CodeMirror, options)
@@ -102,13 +104,39 @@ class Completion
 					
 					var info:String;
 					
+					completionItem.className = "CodeMirror-Tern-completion";
+					
 					if (functionData.parameters != null) 
 					{
 						info = completion.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
+						completionItem.className += " CodeMirror-Tern-completion-fn";
 					}
-					else 
+					else
 					{
 						info = completion.t;
+						
+						switch (info) 
+						{
+							case "Bool":
+								completionItem.className += " CodeMirror-Tern-completion-bool";
+							case "Float", "Int", "UInt":
+								completionItem.className += " CodeMirror-Tern-completion-number";
+							case "String":
+								completionItem.className += " CodeMirror-Tern-completion-string";
+							default:
+								if (info.indexOf("Array") != -1) 
+								{
+									completionItem.className += " CodeMirror-Tern-completion-array";
+								}
+								else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) 
+								{
+									completionItem.className += " CodeMirror-Tern-completion-map";
+								}
+								else 
+								{
+									completionItem.className += " CodeMirror-Tern-completion-object";
+								}
+						}
 					}
 					
 					var infoSpan:SpanElement = Browser.document.createSpanElement();
@@ -132,6 +160,8 @@ class Completion
 					
 					list.push(completionItem);
 				}
+				
+				list = list.concat(SnippetsCompletion.getCompletion());
 			case METATAGS:
 				list = MetaTags.getCompletion();
 			case HXML:
@@ -169,7 +199,7 @@ class Completion
 		}
 		
 		var data:Dynamic = { list: list, from: { line:cur.line, ch:start }, to: { line:cur.line, ch:end } };
-		CodeMirrorStatic.attachContextInfo(data);
+		CodeMirrorStatic.attachContextInfo(Editor.editor, data);
 		return data;
 	}
 	

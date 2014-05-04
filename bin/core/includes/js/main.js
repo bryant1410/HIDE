@@ -17805,8 +17805,10 @@ CodeMirror.defineMIME('text/x-sh', 'shell');
 !function(a,b){"use strict";var c,d=a.document;c=function(){var c,e,f,g,h,i,j,k,l,m,n,o,p,q={},r={},s=!1,t={ENTER:13,ESC:27,SPACE:32},u=[];return r={buttons:{holder:'<nav class="alertify-buttons">{{buttons}}</nav>',submit:'<button type="submit" class="alertify-button alertify-button-ok" id="alertify-ok">{{ok}}</button>',ok:'<button class="alertify-button alertify-button-ok" id="alertify-ok">{{ok}}</button>',cancel:'<button class="alertify-button alertify-button-cancel" id="alertify-cancel">{{cancel}}</button>'},input:'<div class="alertify-text-wrapper"><input type="text" class="alertify-text" id="alertify-text"></div>',message:'<p class="alertify-message">{{message}}</p>',log:'<article class="alertify-log{{class}}">{{message}}</article>'},p=function(){var a,c,e=!1,f=d.createElement("fakeelement"),g={WebkitTransition:"webkitTransitionEnd",MozTransition:"transitionend",OTransition:"otransitionend",transition:"transitionend"};for(a in g)if(f.style[a]!==b){c=g[a],e=!0;break}return{type:c,supported:e}},c=function(a){return d.getElementById(a)},q={labels:{ok:"OK",cancel:"Cancel"},delay:5e3,buttonReverse:!1,buttonFocus:"ok",transition:b,addListeners:function(a){var b,c,i,j,k,l="undefined"!=typeof f,m="undefined"!=typeof e,n="undefined"!=typeof o,p="",q=this;b=function(b){return"undefined"!=typeof b.preventDefault&&b.preventDefault(),i(b),"undefined"!=typeof o&&(p=o.value),"function"==typeof a&&("undefined"!=typeof o?a(!0,p):a(!0)),!1},c=function(b){return"undefined"!=typeof b.preventDefault&&b.preventDefault(),i(b),"function"==typeof a&&a(!1),!1},i=function(){q.hide(),q.unbind(d.body,"keyup",j),q.unbind(g,"focus",k),l&&q.unbind(f,"click",b),m&&q.unbind(e,"click",c)},j=function(a){var d=a.keyCode;(d===t.SPACE&&!n||n&&d===t.ENTER)&&b(a),d===t.ESC&&m&&c(a)},k=function(){n?o.focus():!m||q.buttonReverse?f.focus():e.focus()},this.bind(g,"focus",k),this.bind(h,"focus",k),l&&this.bind(f,"click",b),m&&this.bind(e,"click",c),this.bind(d.body,"keyup",j),this.transition.supported||this.setFocus()},bind:function(a,b,c){"function"==typeof a.addEventListener?a.addEventListener(b,c,!1):a.attachEvent&&a.attachEvent("on"+b,c)},handleErrors:function(){if("undefined"!=typeof a.onerror){var b=this;return a.onerror=function(a,c,d){b.error("["+a+" on line "+d+" of "+c+"]",0)},!0}return!1},appendButtons:function(a,b){return this.buttonReverse?b+a:a+b},build:function(a){var b="",c=a.type,d=a.message,e=a.cssClass||"";switch(b+='<div class="alertify-dialog">',b+='<a id="alertify-resetFocusBack" class="alertify-resetFocus" href="#">Reset Focus</a>',"none"===q.buttonFocus&&(b+='<a href="#" id="alertify-noneFocus" class="alertify-hidden"></a>'),"prompt"===c&&(b+='<div id="alertify-form">'),b+='<article class="alertify-inner">',b+=r.message.replace("{{message}}",d),"prompt"===c&&(b+=r.input),b+=r.buttons.holder,b+="</article>","prompt"===c&&(b+="</div>"),b+='<a id="alertify-resetFocus" class="alertify-resetFocus" href="#">Reset Focus</a>',b+="</div>",c){case"confirm":b=b.replace("{{buttons}}",this.appendButtons(r.buttons.cancel,r.buttons.ok)),b=b.replace("{{ok}}",this.labels.ok).replace("{{cancel}}",this.labels.cancel);break;case"prompt":b=b.replace("{{buttons}}",this.appendButtons(r.buttons.cancel,r.buttons.submit)),b=b.replace("{{ok}}",this.labels.ok).replace("{{cancel}}",this.labels.cancel);break;case"alert":b=b.replace("{{buttons}}",r.buttons.ok),b=b.replace("{{ok}}",this.labels.ok)}return l.className="alertify alertify-"+c+" "+e,k.className="alertify-cover",b},close:function(a,b){var c,d,e=b&&!isNaN(b)?+b:this.delay,f=this;this.bind(a,"click",function(){c(a)}),d=function(a){a.stopPropagation(),f.unbind(this,f.transition.type,d),m.removeChild(this),m.hasChildNodes()||(m.className+=" alertify-logs-hidden")},c=function(a){"undefined"!=typeof a&&a.parentNode===m&&(f.transition.supported?(f.bind(a,f.transition.type,d),a.className+=" alertify-log-hide"):(m.removeChild(a),m.hasChildNodes()||(m.className+=" alertify-logs-hidden")))},0!==b&&setTimeout(function(){c(a)},e)},dialog:function(a,b,c,e,f){j=d.activeElement;var g=function(){m&&null!==m.scrollTop&&k&&null!==k.scrollTop||g()};if("string"!=typeof a)throw new Error("message must be a string");if("string"!=typeof b)throw new Error("type must be a string");if("undefined"!=typeof c&&"function"!=typeof c)throw new Error("fn must be a function");return this.init(),g(),u.push({type:b,message:a,callback:c,placeholder:e,cssClass:f}),s||this.setup(),this},extend:function(a){if("string"!=typeof a)throw new Error("extend method must have exactly one paramter");return function(b,c){return this.log(b,a,c),this}},hide:function(){var a,b=this;u.splice(0,1),u.length>0?this.setup(!0):(s=!1,a=function(c){c.stopPropagation(),b.unbind(l,b.transition.type,a)},this.transition.supported?(this.bind(l,this.transition.type,a),l.className="alertify alertify-hide alertify-hidden"):l.className="alertify alertify-hide alertify-hidden alertify-isHidden",k.className="alertify-cover alertify-cover-hidden",j.focus())},init:function(){d.createElement("nav"),d.createElement("article"),d.createElement("section"),null==c("alertify-cover")&&(k=d.createElement("div"),k.setAttribute("id","alertify-cover"),k.className="alertify-cover alertify-cover-hidden",d.body.appendChild(k)),null==c("alertify")&&(s=!1,u=[],l=d.createElement("section"),l.setAttribute("id","alertify"),l.className="alertify alertify-hidden",d.body.appendChild(l)),null==c("alertify-logs")&&(m=d.createElement("section"),m.setAttribute("id","alertify-logs"),m.className="alertify-logs alertify-logs-hidden",d.body.appendChild(m)),d.body.setAttribute("tabindex","0"),this.transition=p()},log:function(a,b,c){var d=function(){m&&null!==m.scrollTop||d()};return this.init(),d(),m.className="alertify-logs",this.notify(a,b,c),this},notify:function(a,b,c){var e=d.createElement("article");e.className="alertify-log"+("string"==typeof b&&""!==b?" alertify-log-"+b:""),e.innerHTML=a,m.appendChild(e),setTimeout(function(){e.className=e.className+" alertify-log-show"},50),this.close(e,c)},set:function(a){var b;if("object"!=typeof a&&a instanceof Array)throw new Error("args must be an object");for(b in a)a.hasOwnProperty(b)&&(this[b]=a[b])},setFocus:function(){o?(o.focus(),o.select()):i.focus()},setup:function(a){var d,j=u[0],k=this;s=!0,d=function(a){a.stopPropagation(),k.setFocus(),k.unbind(l,k.transition.type,d)},this.transition.supported&&!a&&this.bind(l,this.transition.type,d),l.innerHTML=this.build(j),g=c("alertify-resetFocus"),h=c("alertify-resetFocusBack"),f=c("alertify-ok")||b,e=c("alertify-cancel")||b,i="cancel"===q.buttonFocus?e:"none"===q.buttonFocus?c("alertify-noneFocus"):f,o=c("alertify-text")||b,n=c("alertify-form")||b,"string"==typeof j.placeholder&&""!==j.placeholder&&(o.value=j.placeholder),a&&this.setFocus(),this.addListeners(j.callback)},unbind:function(a,b,c){"function"==typeof a.removeEventListener?a.removeEventListener(b,c,!1):a.detachEvent&&a.detachEvent("on"+b,c)}},{alert:function(a,b,c){return q.dialog(a,"alert",b,"",c),this},confirm:function(a,b,c){return q.dialog(a,"confirm",b,"",c),this},extend:q.extend,init:q.init,log:function(a,b,c){return q.log(a,b,c),this},prompt:function(a,b,c,d){return q.dialog(a,"prompt",b,c,d),this},success:function(a,b){return q.log(a,"success",b),this},error:function(a,b){return q.log(a,"error",b),this},set:function(a){q.set(a)},labels:q.labels,debug:q.handleErrors}},"function"==typeof define?define([],function(){return new c}):"undefined"==typeof a.alertify&&(a.alertify=new c)}(this);;(function() {
 
   var contextInfo = null;
-
-  CodeMirror.attachContextInfo = function(data) {
+  var left;
+  var top;
+  
+  CodeMirror.attachContextInfo = function(cm, data) {
     CodeMirror.on(data, 'select', function(completion, hints) {
       hints = hints.parentNode;
       var information = null;
@@ -17823,6 +17825,10 @@ CodeMirror.defineMIME('text/x-sh', 'shell');
         contextInfo.innerHTML = '';
         contextInfo.style.top = hints.style.top;
         contextInfo.style.left = box.right + 'px';
+		
+		top = parseInt(hints.style.top);
+		left = box.right;
+		
         if(typeof information == "string") {
           contextInfo.innerHTML = information;
         } else {
@@ -17837,13 +17843,27 @@ CodeMirror.defineMIME('text/x-sh', 'shell');
       }
     });
 
+	var startScroll = cm.getScrollInfo();
+	cm.on("scroll", onScroll);
+	
     CodeMirror.on(data, 'close', function() {
       if (contextInfo != null) {
         contextInfo.parentNode.removeChild(contextInfo);
       }
       contextInfo = null;
+	  
+	  cm.off("scroll", onScroll);
     });
-    
+	
+	function onScroll(cm) 
+	{
+		var curScroll = cm.getScrollInfo();
+		var editor = cm.getWrapperElement().getBoundingClientRect();
+		var newTop = top + startScroll.top - curScroll.top;
+		
+		contextInfo.style.top = newTop + "px";
+		contextInfo.style.left = (left + startScroll.left - curScroll.left) + "px";
+    }
   }
 
   CodeMirror.showContextInfo = function(getHints) {
@@ -17853,6 +17873,364 @@ CodeMirror.defineMIME('text/x-sh', 'shell');
       var data = getHints(cm, options);
       CodeMirror.attachContextInfo(data);
       return data;
+    }
+  }
+
+})();;(function() {
+  var templatesMap = [];
+  var Pos = CodeMirror.Pos;
+
+  function startsWith(str, token) {
+    return str.slice(0, token.length).toUpperCase() == token.toUpperCase();
+  }
+
+  CodeMirror.templatesHint = {};
+
+  function getLabel(proposal) {
+    var template = proposal.template;
+    return document.createTextNode(template.name);
+  }
+
+  CodeMirror.templatesHint.getCompletions = function(cm) {
+
+    var ourMap = {
+      Tab : selectNextVariable,
+      Esc : uninstall,
+      Enter : uninstall,
+    }
+
+    function TemplateState() {
+      this.marked = [];
+      this.selectableMarkers = [];
+      this.varIndex = -1;
+    }
+
+    function getMarkerChanged(cm, textChanged) {
+      var markers = cm.findMarksAt(textChanged.from);
+      if (markers) {
+        for ( var i = 0; i < markers.length; i++) {
+          var marker = markers[i];
+          if (marker._templateVar) {
+            return marker;
+          }
+        }
+      }
+      return null;
+    }
+
+    function onChange(cm, textChanged) {
+      var state = cm._templateState;
+      if (!textChanged.origin || !state || state.updating) {
+        return;
+      }
+      try {
+        state.updating = true;
+        var markerChanged = getMarkerChanged(cm, textChanged);
+        if (markerChanged == null) {
+          uninstall(cm);
+        } else {
+          var posChanged = markerChanged.find();
+          var newContent = cm.getRange(posChanged.from, posChanged.to);
+          for ( var i = 0; i < state.marked.length; i++) {
+            var marker = state.marked[i];
+            if (marker != markerChanged
+                && marker._templateVar == markerChanged._templateVar) {
+              var pos = marker.find();
+              cm.replaceRange(newContent, pos.from, pos.to);
+            }
+          }
+        }
+      } finally {
+        state.updating = false;
+      }
+    }
+
+    function selectNextVariable(cm) {
+      var state = cm._templateState;
+      if (state.selectableMarkers.length > 0) {
+        state.varIndex++;
+        if (state.varIndex >= state.selectableMarkers.length) {
+          state.varIndex = 0;
+        }
+        var marker = state.selectableMarkers[state.varIndex];
+        var pos = marker.find();
+        var templateVar = marker._templateVar;  
+          
+        cm.setSelection(pos.from, pos.to);
+          
+        for ( var i = 0; i < state.marked.length; i++) {
+          var m = state.marked[i];
+          if (m == marker) {
+            m.className = "";
+            m.startStyle = "";
+            m.endStyle = "";
+          } else {
+            if (m._templateVar == marker._templateVar) {
+              m.className = "CodeMirror-templates-variable-selected";
+              m.startStyle = "";
+              m.endStyle = "";
+            } else {
+              m.className = "CodeMirror-templates-variable";
+              m.startStyle = "CodeMirror-templates-variable-start";
+              m.endStyle = "CodeMirror-templates-variable-end";
+            }
+          }
+        }
+        cm.refresh();
+          
+        if (templateVar == "cursor")
+        {
+            cm.replaceRange("", pos.from, {line: pos.from.line, ch: pos.from.ch + 2})
+            cm.setSelection(pos.from);
+            uninstall(cm);
+        }
+      }
+    }
+
+    function parseTemplate(template) {
+      var content = template.template;
+      var tokens = [];
+      var varParsing = false;
+      var last = null;
+      var token = '';
+      var posX = 0;
+      for ( var i = 0; i < content.length; i++) {
+        var current = content.charAt(i);
+        if (current == "\n") {
+          if (token != '') {
+            tokens.push(token);
+          }
+          token = '';
+          tokens.push(current);
+          posX = 0;
+          last = null;
+        } else {
+          var addChar = true;
+          if (varParsing) {
+            if (current == "}") {
+              varParsing = false;
+              addChar = false;
+              tokens.push({
+                "variable" : token,
+                "x" : posX
+              });
+              posX += token.length;
+              token = '';
+            }
+          } else {
+            if (current == "$" && (i + 1) <= content.length) {
+              i++;
+              var next = content.charAt(i);
+              if (next == "{") {
+                varParsing = true;
+                addChar = false;
+                if (token != '') {
+                  tokens.push(token);
+                  posX += token.length;
+                }
+                token = '';
+              }
+            }
+
+          }
+          if (addChar && last != "$") {
+            token += current;
+            last = current;
+          } else {
+            last = null;
+          }
+        }
+      }
+      if (token != '') {
+        tokens.push(token);
+      }
+      return tokens;
+    }
+
+    function isSpecialVar(variable) {
+      return variable == 'cursor' || variable == 'line_selection';
+    }
+
+    function install(cm, data, completion) {
+      if (cm._templateState) {
+        uninstall(cm);
+      }
+      var state = new TemplateState();
+      cm._templateState = state;
+
+      var template = completion.template;
+      var tokens = parseTemplate(template);
+      var content = '';
+      var line = 0;
+      var markers = [];
+      var variables = [];
+      for ( var i = 0; i < tokens.length; i++) {
+        var token = tokens[i];
+        if (token.variable) {
+          if (!isSpecialVar(token.variable)) {
+            content += token.variable;
+            var from = Pos(data.from.line + line, token.x);
+            var to = Pos(data.from.line + line, token.x
+                + token.variable.length);
+            var selectable = variables[token.variable] != false;
+            markers.push({
+              from : from,
+              to : to,
+              variable : token.variable,
+              selectable : selectable
+            });
+            variables[token.variable] = false;
+          }
+            else {
+                content += "//";
+                var from = Pos(data.from.line + line, token.x);
+                var to = Pos(data.from.line + line, token.x
+                    + 2);
+                var selectable = variables[token.variable] != false;
+                markers.push({
+                  from : from,
+                  to : to,
+                  variable : token.variable,
+                  selectable : true
+                });
+                
+                variables[token.variable] = false;
+               
+            }
+        } else {
+          content += token;
+          if (token == "\n") {
+            line++;
+          }
+        }
+      }
+
+      var from = data.from;
+      var to = data.to;
+      cm.replaceRange(content, from, to);
+      
+      var lines = content.split("\n");
+      
+      for (x = 0; x < lines.length; x++) 
+      {        
+        var targetLine = from.line + x;
+        
+        cm.indentLine(targetLine);
+        var line = cm.getLine(targetLine);
+        var deltaIndent = line.length - lines[x].length;
+        
+        for (y = 0; y < markers.length; y++)
+        {
+          if (markers[y].from.line == targetLine)
+          {
+            markers[y].from.ch += deltaIndent;
+            markers[y].to.ch += deltaIndent;
+          }
+        }
+      }
+      
+      for ( var i = 0; i < markers.length; i++) {
+        var marker = markers[i], from = marker.from, to = marker.to;
+        var markText = cm.markText(from, to, {
+          className : "CodeMirror-templates-variable",
+          startStyle : "CodeMirror-templates-variable-start",
+          endStyle : "CodeMirror-templates-variable-end",
+          inclusiveLeft : true,
+          inclusiveRight : true,
+          _templateVar : marker.variable
+        });
+        state.marked.push(markText);
+        if (marker.selectable == true) {
+          state.selectableMarkers.push(markText);
+        }
+      }
+      selectNextVariable(cm);
+
+      cm.on("change", onChange);
+      cm.addKeyMap(ourMap);
+
+    }
+
+    function uninstall(cm) {
+      var state = cm._templateState;
+      for ( var i = 0; i < state.marked.length; i++) {
+        state.marked[i].clear();
+      }
+      state.marked.length = 0;
+      state.selectableMarkers.length = 0;
+      cm.off("change", onChange);
+      cm.removeKeyMap(ourMap);
+      delete cm._templateState;
+    }
+
+	var completions = [];
+	
+    var mode = cm.doc.mode.name;
+    var list = templatesMap[mode];
+    if (list) {
+      for ( var i = 0; i < list.length; i++) {
+        var templates = list[i].templates;
+        for ( var j = 0; j < templates.length; j++) {
+          var template = templates[j];
+          if (true) {
+            var label = template.name;
+            if (template.description) {
+              label += '- ' + template.description;
+            }
+            var className = "CodeMirror-Tern-completion CodeMirror-Tern-completion-template";
+            if (template.className)
+              className = template.className;
+            var completion = {
+              "className" : className,
+              "text" : label,
+              "template" : template,
+            };
+            //completion.data = completion;
+            completion.hint = function(cm, data, completion) {
+              install(cm, data, completion);
+            };
+            //completion.info = function(completion) {
+              //var content = '';
+              //var tokens = parseTemplate(completion.template);
+              //for ( var i = 0; i < tokens.length; i++) {
+                //var token = tokens[i];
+                //if (token.variable) {
+                  //if (!isSpecialVar(token.variable)) {
+                    //content += token.variable;
+                  //}
+                //} else {
+                  //content += token;
+                //}
+              //}
+//
+              //if (CodeMirror.runMode) {
+                //var result = document.createElement('div');
+                //result.className = 'cm-s-default';
+                //if (cm.options && cm.options.theme)
+                  //result.className = 'cm-s-' + cm.options.theme;
+                //CodeMirror.runMode(content, cm.getMode().name, result);
+                //return result;
+              //}
+              //return content;
+            //};
+            completions.push(completion);
+          }
+        }
+      }
+    }
+	
+	return completions;
+  }
+
+  CodeMirror.templatesHint.addTemplates = function(templates, clear) {
+    var context = templates.context;
+    if (context) {
+      var list = templatesMap[context];
+      if (!list || clear) {
+        list = [];
+        templatesMap[context] = list;
+      }
+      list.push(templates);
     }
   }
 

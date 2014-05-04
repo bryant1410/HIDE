@@ -25,7 +25,7 @@ class ThemeWatcher
 			watcher.close();
 		}
 		
-		Watcher.watchFileForUpdates(pathToTheme, function ():Void 
+		watcher = Watcher.watchFileForUpdates(pathToTheme, function ():Void 
 		{
 			updateTheme();
 		}, 1000);

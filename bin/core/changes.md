@@ -10,6 +10,7 @@
 * CHANGED: scroll to bottom output textarea
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
 * CHANGED: do not wrap file tree context menu items
+* CHANGED: do not save file for function parameters hint
 * ADDED: install missing haxelib dialog
 * ADDED: annotation ruler(with very basic style)
 * ADDED: basic outline panel

@@ -28,7 +28,7 @@ class SettingsWatcher
 	{
         pathToSettings = Node.path.join("core", "config", "settings.json");
         
-		Watcher.watchFileForUpdates(pathToSettings, parse, 3000);
+		watcher = Watcher.watchFileForUpdates(pathToSettings, parse, 3000);
 		
 		parse();
 		

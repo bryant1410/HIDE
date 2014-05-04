@@ -293,6 +293,7 @@ Main.main = function() {
 	window.addEventListener("load",function(e) {
 		core.Splitter.load();
 		watchers.SettingsWatcher.load();
+		watchers.SnippetsWatcher.load();
 		core.Utils.prepare();
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
@@ -1105,8 +1106,8 @@ cm.ColorPreview.scroll = function(cm1) {
 cm.ERegPreview = function() { };
 $hxClasses["cm.ERegPreview"] = cm.ERegPreview;
 cm.ERegPreview.__name__ = ["cm","ERegPreview"];
-cm.ERegPreview.update = function(cm) {
-	var lineData = cm.getLine(cm.getCursor().line);
+cm.ERegPreview.update = function(cm1) {
+	var lineData = cm1.getLine(cm1.getCursor().line);
 	var ereg = new EReg("~/(.)+/[gimsu]+","");
 	var foundEreg = null;
 	var foundEregOptions = null;
@@ -1118,18 +1119,19 @@ cm.ERegPreview.update = function(cm) {
 		foundEregOptions = HxOverrides.substr(str,index + 1,null);
 	}
 	var _g = 0;
-	var _g1 = cm.getAllMarks();
+	var _g1 = cm.ERegPreview.markers;
 	while(_g < _g1.length) {
 		var marker = _g1[_g];
 		++_g;
 		marker.clear();
 	}
+	cm.ERegPreview.markers = [];
 	if(foundEreg != null) {
 		var ereg1 = new EReg(foundEreg,foundEregOptions);
-		ereg1.map(cm.getValue(),function(matchedEreg) {
-			var pos = cm.posFromIndex(matchedEreg.matchedPos().pos);
-			var pos2 = cm.posFromIndex(matchedEreg.matchedPos().pos + matchedEreg.matchedPos().len);
-			cm.markText(pos,pos2,{ className : "showRegex"});
+		ereg1.map(cm1.getValue(),function(matchedEreg) {
+			var pos = cm1.posFromIndex(matchedEreg.matchedPos().pos);
+			var pos2 = cm1.posFromIndex(matchedEreg.matchedPos().pos + matchedEreg.matchedPos().len);
+			cm.ERegPreview.markers.push(cm1.markText(pos,pos2,{ className : "showRegex"}));
 			return "";
 		});
 	}
@@ -1492,6 +1494,7 @@ completion.Hxml.getHaxelibList = function(onComplete) {
 			var completionItem = { };
 			completionItem.text = "-lib " + item;
 			completionItem.displayText = completionItem.text + " - installed";
+			completionItem.className = "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-lib";
 			completion.Hxml.completions.push(completionItem);
 		}
 		core.HaxeHelper.getHaxelibList(function(libs) {
@@ -1503,6 +1506,7 @@ completion.Hxml.getHaxelibList = function(onComplete) {
 					var completionItem1 = { };
 					completionItem1.text = "-lib " + item1;
 					completionItem1.displayText = completionItem1.text + " - not installed";
+					completionItem1.className = "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-lib";
 					completion.Hxml.completions.push(completionItem1);
 				}
 			}
@@ -1516,7 +1520,7 @@ completion.Hxml.getDefines = function(onComplete) {
 		while(_g < data.length) {
 			var item = data[_g];
 			++_g;
-			completion.Hxml.completions.push({ text : "-D " + item});
+			completion.Hxml.completions.push({ text : "-D " + item, className : "CodeMirror-Tern-completion" + " CodeMirror-Tern-completion-define"});
 		}
 		if(onComplete != null) onComplete();
 	});
@@ -1527,7 +1531,7 @@ completion.Hxml.getArguments = function(onComplete) {
 		while(_g < data.length) {
 			var item = data[_g];
 			++_g;
-			completion.Hxml.completions.push({ text : item});
+			completion.Hxml.completions.push({ text : item, className : "CodeMirror-Tern-completion"});
 		}
 		if(onComplete != null) onComplete();
 	});
@@ -1550,6 +1554,29 @@ completion.MetaTags.load = function() {
 };
 completion.MetaTags.getCompletion = function() {
 	return completion.MetaTags.completions;
+};
+completion.SnippetsCompletion = function() { };
+$hxClasses["completion.SnippetsCompletion"] = completion.SnippetsCompletion;
+completion.SnippetsCompletion.__name__ = ["completion","SnippetsCompletion"];
+completion.SnippetsCompletion.load = function() {
+	var options = { };
+	options.encoding = "utf8";
+	js.Node.require("fs").readFile(js.Node.require("path").join("core","config","snippets.json"),options,function(error,data) {
+		if(error == null) {
+			var templates = tjson.TJSON.parse(data);
+			var snippets = templates.snippets;
+			var _g = 0;
+			while(_g < snippets.length) {
+				var template = snippets[_g];
+				++_g;
+				CodeMirror.templatesHint.addTemplates(template,true);
+			}
+		} else Alertify.error("Can't open core/config/snippets.json");
+	});
+};
+completion.SnippetsCompletion.getCompletion = function() {
+	var completions = CodeMirror.templatesHint.getCompletions(cm.Editor.editor);
+	return completions;
 };
 var core = {};
 core.AnnotationRuler = function() { };
@@ -1615,17 +1642,15 @@ core.Completion.__name__ = ["core","Completion"];
 core.Completion.registerHelper = function() {
 	completion.Hxml.load();
 	completion.MetaTags.load();
+	completion.SnippetsCompletion.load();
 	CodeMirror.registerHelper("hint","haxe",core.Completion.getHints);
 	CodeMirror.registerHelper("hint","hxml",core.Completion.getHints);
-	cm.Editor.editor.on("startCompletion",function(cm) {
-		if(core.Completion.completionType == core.CompletionType.FILELIST) core.Completion.backupDocValue = tabmanager.TabManager.getCurrentDocument().getValue();
-	});
 };
-core.Completion.getHints = function(cm,options) {
+core.Completion.getHints = function(cm1,options) {
 	core.Completion.word = null;
 	core.Completion.range = null;
 	if(options != null && options.range != null) core.Completion.range = options.range; else if(core.Completion.RANGE != null) core.Completion.range = core.Completion.RANGE;
-	core.Completion.getCurrentWord(cm,options);
+	core.Completion.getCurrentWord(cm1,options);
 	core.Completion.list = new Array();
 	var _g = core.Completion.completionType;
 	switch(_g[1]) {
@@ -1638,7 +1663,26 @@ core.Completion.getHints = function(cm,options) {
 			var completionItem = { text : completion1.n};
 			var functionData = core.FunctionParametersHelper.parseFunctionParams(completion1);
 			var info;
-			if(functionData.parameters != null) info = completion1.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType; else info = completion1.t;
+			completionItem.className = "CodeMirror-Tern-completion";
+			if(functionData.parameters != null) {
+				info = completion1.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
+				completionItem.className += " CodeMirror-Tern-completion-fn";
+			} else {
+				info = completion1.t;
+				switch(info) {
+				case "Bool":
+					completionItem.className += " CodeMirror-Tern-completion-bool";
+					break;
+				case "Float":case "Int":case "UInt":
+					completionItem.className += " CodeMirror-Tern-completion-number";
+					break;
+				case "String":
+					completionItem.className += " CodeMirror-Tern-completion-string";
+					break;
+				default:
+					if(info.indexOf("Array") != -1) completionItem.className += " CodeMirror-Tern-completion-array"; else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) completionItem.className += " CodeMirror-Tern-completion-map"; else completionItem.className += " CodeMirror-Tern-completion-object";
+				}
+			}
 			var infoSpan = [(function($this) {
 				var $r;
 				var _this = window.document;
@@ -1665,6 +1709,7 @@ core.Completion.getHints = function(cm,options) {
 			})(infoSpan);
 			core.Completion.list.push(completionItem);
 		}
+		core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 		break;
 	case 4:
 		core.Completion.list = completion.MetaTags.getCompletion();
@@ -1713,7 +1758,7 @@ core.Completion.getHints = function(cm,options) {
 	default:
 	}
 	var data = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
-	CodeMirror.attachContextInfo(data);
+	CodeMirror.attachContextInfo(cm.Editor.editor,data);
 	return data;
 };
 core.Completion.openFile = function(cm,data,completion) {
@@ -2906,11 +2951,16 @@ core.MenuCommands.add = function() {
 			return f6(a16);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
-	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open hotkey configuration file",1,(function(f7,a17) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file",1,(function(f7,a17) {
 		return function() {
 			return f7(a17);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","hotkeys.json")));
+	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open snippets configuration file",1,(function(f8,a18) {
+		return function() {
+			return f8(a18);
+		};
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","snippets.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
@@ -15469,7 +15519,7 @@ watchers.LocaleWatcher.__name__ = ["watchers","LocaleWatcher"];
 watchers.LocaleWatcher.load = function() {
 	if(watchers.LocaleWatcher.watcher != null) watchers.LocaleWatcher.watcher.close();
 	watchers.LocaleWatcher.parse();
-	watchers.Watcher.watchFileForUpdates(watchers.LocaleWatcher.pathToLocale,function() {
+	watchers.LocaleWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.LocaleWatcher.pathToLocale,function() {
 		watchers.LocaleWatcher.parse();
 		watchers.LocaleWatcher.processHtmlElements();
 	},1000);
@@ -15515,7 +15565,7 @@ $hxClasses["watchers.SettingsWatcher"] = watchers.SettingsWatcher;
 watchers.SettingsWatcher.__name__ = ["watchers","SettingsWatcher"];
 watchers.SettingsWatcher.load = function() {
 	watchers.SettingsWatcher.pathToSettings = js.Node.require("path").join("core","config","settings.json");
-	watchers.Watcher.watchFileForUpdates(watchers.SettingsWatcher.pathToSettings,watchers.SettingsWatcher.parse,3000);
+	watchers.SettingsWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.SettingsWatcher.pathToSettings,watchers.SettingsWatcher.parse,3000);
 	watchers.SettingsWatcher.parse();
 	nodejs.webkit.Window.get().on("close",function(e) {
 		if(watchers.SettingsWatcher.watcher != null) watchers.SettingsWatcher.watcher.close();
@@ -15546,6 +15596,18 @@ watchers.SettingsWatcher.isItemInIgnoreList = function(path) {
 	}
 	return ignored;
 };
+watchers.SnippetsWatcher = function() { };
+$hxClasses["watchers.SnippetsWatcher"] = watchers.SnippetsWatcher;
+watchers.SnippetsWatcher.__name__ = ["watchers","SnippetsWatcher"];
+watchers.SnippetsWatcher.load = function() {
+	var pathToFile = js.Node.require("path").join("core","config","snippets.json");
+	watchers.SnippetsWatcher.watcher = watchers.Watcher.watchFileForUpdates(pathToFile,function() {
+		completion.SnippetsCompletion.load();
+	},1000);
+	nodejs.webkit.Window.get().on("close",function(e) {
+		if(watchers.SnippetsWatcher.watcher != null) watchers.SnippetsWatcher.watcher.close();
+	});
+};
 watchers.ThemeWatcher = function() { };
 $hxClasses["watchers.ThemeWatcher"] = watchers.ThemeWatcher;
 watchers.ThemeWatcher.__name__ = ["watchers","ThemeWatcher"];
@@ -15553,7 +15615,7 @@ watchers.ThemeWatcher.load = function() {
 	watchers.ThemeWatcher.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
 	watchers.ThemeWatcher.updateTheme();
 	if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
-	watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
+	watchers.ThemeWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
 		watchers.ThemeWatcher.updateTheme();
 	},1000);
 	if(!watchers.ThemeWatcher.listenerAdded) {
@@ -15658,6 +15720,7 @@ nodejs.webkit.Shell = nodejs.webkit.$ui.Shell;
 HIDE.windows = [];
 cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
+cm.ERegPreview.markers = [];
 core.Completion.WORD = new EReg("[A-Z]+$","i");
 core.Completion.RANGE = 500;
 core.Completion.completions = [];

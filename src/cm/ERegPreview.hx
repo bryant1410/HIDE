@@ -6,6 +6,8 @@ package cm;
  */
 class ERegPreview
 {
+	static var markers:Array<CodeMirror.MarkedText> = [];
+	
 	public static function update(cm:CodeMirror):Void 
 	{
 		var lineData = cm.getLine(cm.getCursor().line);
@@ -25,10 +27,12 @@ class ERegPreview
 			foundEregOptions = str.substr(index + 1);
 		}
 		
-		for (marker in cm.getAllMarks())
+		for (marker in markers)
 		{
 			marker.clear();
 		}
+		
+		markers = [];
 		
 		if (foundEreg != null) 
 		{
@@ -37,7 +41,7 @@ class ERegPreview
 			{
 				var pos = cm.posFromIndex(matchedEreg.matchedPos().pos);
 				var pos2 = cm.posFromIndex(matchedEreg.matchedPos().pos + matchedEreg.matchedPos().len);
-				cm.markText(pos, pos2, {className: "showRegex"});
+				markers.push(cm.markText(pos, pos2, {className: "showRegex"}));
 				return "";
 			}
 			);
