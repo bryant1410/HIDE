@@ -180,15 +180,18 @@ class OutlineHelper
 	{
 		var name:String = null;
 		
-		switch (t) 
+		if (t != null)
 		{
-			case TPath(p):
-				name = p.name;
-			case TFunction(args, ret):
-			case TAnonymous(fields):
-			case TParent(t):
-			case TExtend(p, fields):
-			case TOptional(t):	
+			switch (t) 
+			{
+				case TPath(p):
+					name = p.name;
+				case TFunction(args, ret):
+				case TAnonymous(fields):
+				case TParent(t):
+				case TExtend(p, fields):
+				case TOptional(t):	
+			}    
 		}
 		
 		return name;

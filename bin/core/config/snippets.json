@@ -34,13 +34,8 @@
 				},
 				{
 					"name": "static function",
-					"description": "private static function",
+					"description": "static function",
 					"template": "static function ${name}(${params})\n{\n${cursor}\n}\n"
-				},
-				{
-					"name": "public static function",
-					"description": "public static function",
-					"template": "public static function ${name}(${params})\n{\n${cursor}\n}\n"
 				},
 				{
 					"name": "inline function",
@@ -51,6 +46,21 @@
 					"name": "macro function",
 					"description": "macro function",
 					"template": "macro function ${name}(${params})\n{\n${cursor}\n}\n"
+				},
+				{
+					"name": "public static function",
+					"description": "public static function",
+					"template": "public static function ${name}(${params})\n{\n${cursor}\n}\n"
+				},
+				{
+					"name": "inline public static function",
+					"description": "inline public static function",
+					"template": "inline public static function ${name}(${params})\n{\n${cursor}\n}\n"
+				},
+				{
+					"name": "trace",
+					"description": "trace",
+					"template": "trace(${cursor});"
 				},
                 {
 					"name": "switch",
