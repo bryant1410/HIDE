@@ -61,4 +61,5 @@
     ,"Options->Change path to Haxe compiler" : ""
     ,"Options->Configure Haxe SDK" : ""
     ,"Options->Open snippets configuration file" : ""
+    ,"Source->Import Class Definition" : "Ctrl-Shift-1"
 }

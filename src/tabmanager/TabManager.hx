@@ -424,6 +424,13 @@ class TabManager
 		Editor.editor.swapDoc(tabMap.get(selectedPath).doc);
 		
 		HaxeLint.updateLinting();
+
+		var completionActive = Editor.editor.state.completionActive;
+						
+        if (completionActive != null && completionActive.widget != null) 
+        {
+            completionActive.widget.close();
+        }
 	}
 	
 	public static function getCurrentDocumentPath():String

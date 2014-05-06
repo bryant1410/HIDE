@@ -169,6 +169,7 @@ class MenuCommands
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion, "Ctrl-Space");
 		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
+		BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition", 6, ImportDefinition.searchImport.bind(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath()), "Ctrl-Shift-1");
 		
 		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");
 		BootstrapMenu.getMenu("Project").addMenuItem("Build", 2, RunProject.buildProject, "F8");

@@ -1155,7 +1155,7 @@ cm.Editor.load = function() {
 	options.extraKeys = { '.' : (function($this) {
 		var $r;
 		var passAndHint = function(cm1) {
-			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
 				if(completionActive != null && completionActive.widget != null) completionActive.widget.pick();
 				setTimeout(function() {
@@ -1181,7 +1181,7 @@ cm.Editor.load = function() {
 	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
 	cm.Editor.editor.on("keypress",function(cm2,e) {
 		if(e.keyCode == 40 && e.shiftKey) {
-			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive1 = cm.Editor.editor.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
 			}
@@ -1645,6 +1645,9 @@ core.Completion.registerHelper = function() {
 	completion.SnippetsCompletion.load();
 	CodeMirror.registerHelper("hint","haxe",core.Completion.getHints);
 	CodeMirror.registerHelper("hint","hxml",core.Completion.getHints);
+	cm.Editor.editor.on("startCompletion",function(cm) {
+		if(core.Completion.completionType == core.CompletionType.FILELIST) core.Completion.backupDocValue = tabmanager.TabManager.getCurrentDocument().getValue();
+	});
 };
 core.Completion.getHints = function(cm1,options) {
 	core.Completion.word = null;
@@ -1709,7 +1712,7 @@ core.Completion.getHints = function(cm1,options) {
 			})(infoSpan);
 			core.Completion.list.push(completionItem);
 		}
-		core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
+		if(core.Completion.curWord == null || core.Completion.curWord.length == 0) core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 		break;
 	case 4:
 		core.Completion.list = completion.MetaTags.getCompletion();
@@ -1764,6 +1767,7 @@ core.Completion.getHints = function(cm1,options) {
 core.Completion.openFile = function(cm,data,completion) {
 	var path = completion.displayText;
 	if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
+	tabmanager.TabManager.getCurrentDocument().setValue(core.Completion.backupDocValue);
 	tabmanager.TabManager.openFileInNewTab(path);
 };
 core.Completion.getCurrentWord = function(cm,options,pos) {
@@ -1895,6 +1899,9 @@ core.Completion.showClassList = function(ignoreWhitespace) {
 		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : closeCharacters});
 	}
 };
+core.Completion.getCompletionType = function() {
+	return core.Completion.completionType;
+};
 core.DragAndDrop = function() { };
 $hxClasses["core.DragAndDrop"] = core.DragAndDrop;
 core.DragAndDrop.__name__ = ["core","DragAndDrop"];
@@ -1999,10 +2006,7 @@ core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
 		var range = cm.getRange(bracketsData.pos,cursor);
 		var pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
 		var currentParameter = range.split(",").length - 1;
-		if(!core.FunctionParametersHelper.alreadyShown(pos.line)) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else {
-			console.log(core.FunctionParametersHelper.widgets.length);
-			core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
-		}
+		if(!core.FunctionParametersHelper.alreadyShown(pos.line)) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
 	} else core.FunctionParametersHelper.clear();
 };
 core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
@@ -2769,6 +2773,16 @@ core.Hotkeys.parseHotkey = function(hotkey) {
 	}
 	return { keyCode : keyCode, ctrl : ctrl, shift : shift, alt : alt};
 };
+core.ImportDefinition = function() { };
+$hxClasses["core.ImportDefinition"] = core.ImportDefinition;
+core.ImportDefinition.__name__ = ["core","ImportDefinition"];
+core.ImportDefinition.searchImport = function(data,path) {
+	var ast = parser.ClassParser.parse(data,path);
+	if(ast != null) {
+		var parsedData = parser.OutlineHelper.parseDeclarations(ast);
+		console.log(parsedData);
+	}
+};
 core.LineWidget = function(type,name,parameters,retType,description,currentParameter,lineNumber) {
 	var _this = window.document;
 	this.element = _this.createElement("div");
@@ -2993,6 +3007,11 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment",5,function() {
 		return cm.Editor.editor.execCommand("toggleComment");
 	},"Ctrl-Q");
+	menu.BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition",6,(function(f9,a19,a21) {
+		return function() {
+			return f9(a19,a21);
+		};
+	})(core.ImportDefinition.searchImport,tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath()),"Ctrl-Shift-1");
 	menu.BootstrapMenu.getMenu("Project",80).addMenuItem("Run",1,core.RunProject.runProject,"F5");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core.RunProject.buildProject,"F8");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Clean",3,core.RunProject.cleanProject,"Shift-F8");
@@ -15073,6 +15092,8 @@ tabmanager.TabManager.selectDoc = function(path) {
 	if(projectaccess.ProjectAccess.path != null) projectaccess.ProjectAccess.currentProject.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
 	cm.Editor.editor.swapDoc(tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc);
 	core.HaxeLint.updateLinting();
+	var completionActive = cm.Editor.editor.state.completionActive;
+	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;

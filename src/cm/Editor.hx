@@ -67,7 +67,7 @@ class Editor
 			"." : 
 				function passAndHint(cm) 
 				{
-					if (TabManager.getCurrentDocument().getMode().name == "haxe") 
+					if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
 					{
 						var completionActive = editor.state.completionActive;
 						
@@ -104,7 +104,7 @@ class Editor
 		{
 			if (e.keyCode == 40 && e.shiftKey) 
 			{
-				if (TabManager.getCurrentDocument().getMode().name == "haxe") 
+				if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
 				{
 					var completionActive = editor.state.completionActive;
 					

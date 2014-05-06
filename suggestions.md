@@ -113,7 +113,6 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Check and refactor code for Haxe server(if not found, then download and install)
 * Add notification for errors
 * Prevent getting completion from Haxe more than one time(if no completion found for it) for function parameters hint
-* Fix match brackets
 * Split RunProject to multiple classes
 * Show hints for variables
 * Search in API reference
@@ -137,6 +136,7 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Check if new version of HIDE is available
 
 ###Important
+* Ctrl-Shift-O shows file list for previous project(when OpenFL project is open, then user drags HXML to HIDE)
 * Custom hxml, build and run commands for each target
 * Fix broken completion(watch 'project.xml' for changes, get compiler arguments from OpenFL display)
 * Fix code editor visibility when user clicks on file tree item
@@ -144,10 +144,5 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Fix OpenFL projects(check webserver)
 * Parse code with hxparse(classes on path)
 * Unit tests
-* Annotation ruler
 * Go to definition
-* Show prompt to install missing haxelibs
-* Outline panel
-* move out plugins loading function to new classes
 * Check if import is missing
-* Add completion to menu(and Go to Line command to menu)

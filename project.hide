@@ -1,0 +1,31 @@
+{
+     "type" : 2
+    ,"target" : null
+    ,"name" : "/HIDE"
+    ,"main" : "HIDE.hxml"
+    ,"projectPackage" : null
+    ,"company" : null
+    ,"license" : null
+    ,"url" : null
+    ,"targetData" : [
+
+    ]
+    ,"files" : [
+         "src/core/ImportDefinition.hx"
+        ,"src/parser/OutlineHelper.hx"
+        ,"src/core/MenuCommands.hx"
+        ,"src/cm/Editor.hx"
+        ,"src/core/CompilationOutput.hx"
+        ,"src/core/DragAndDrop.hx"
+        ,"src/core/FileDialog.hx"
+    ]
+    ,"activeFile" : "src/core/ImportDefinition.hx"
+    ,"openFLTarget" : null
+    ,"runActionType" : 2
+    ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
+    ,"buildActionCommand" : null
+    ,"hiddenItems" : [
+
+    ]
+    ,"showHiddenItems" : false
+}

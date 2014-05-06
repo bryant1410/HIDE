@@ -41,7 +41,7 @@ class OutlineHelper
 		}
 	}
 	
-	static function parseDeclarations(ast:{decls:Array<TypeDef>, pack:Array<String>}) 
+	public static function parseDeclarations(ast:{decls:Array<TypeDef>, pack:Array<String>}) 
 	{		
 		var fileImports = [];
 		
@@ -81,7 +81,7 @@ class OutlineHelper
 		return { fileImports: fileImports, treeItems: treeItems};
 	}
 	
-	static function parseImports(sl : Array<{ pos : Position, pack : String }> ,  mode : ImportMode ) 
+	public static function parseImports(sl : Array<{ pos : Position, pack : String }> ,  mode : ImportMode ) 
 	{
 		var fileImports = [];
 		

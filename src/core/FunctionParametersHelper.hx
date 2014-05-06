@@ -86,7 +86,6 @@ class FunctionParametersHelper
 			}
 			else 
 			{
-				trace(widgets.length);
 				widgets[0].updateParameters(currentParameter);
 			}
 		}

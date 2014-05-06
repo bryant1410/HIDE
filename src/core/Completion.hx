@@ -64,14 +64,14 @@ class Completion
 		CodeMirror.registerHelper("hint", "haxe", getHints);
 		CodeMirror.registerHelper("hint", "hxml", getHints);
 		
-		//Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
-		//{
-			//if (completionType == FILELIST) 
-			//{
-				//backupDocValue = TabManager.getCurrentDocument().getValue();
-			//}
-		//}
-		//);
+		Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
+		{
+			if (completionType == FILELIST) 
+			{
+				backupDocValue = TabManager.getCurrentDocument().getValue();
+			}
+		}
+		);
 	}
 	
 	static function getHints(cm:CodeMirror, options)
@@ -160,8 +160,11 @@ class Completion
 					
 					list.push(completionItem);
 				}
-				
-				list = list.concat(SnippetsCompletion.getCompletion());
+
+				if (curWord == null || curWord.length == 0)
+				{
+				    list = list.concat(SnippetsCompletion.getCompletion());
+				}
 			case METATAGS:
 				list = MetaTags.getCompletion();
 			case HXML:
@@ -212,6 +215,8 @@ class Completion
 			path = Node.path.resolve(ProjectAccess.path, path);
 		}
 		
+        TabManager.getCurrentDocument().setValue(backupDocValue);
+            
 		TabManager.openFileInNewTab(path);
 	}
 	
@@ -443,4 +448,10 @@ class Completion
 			CodeMirrorStatic.showHint(Editor.editor, null, { closeCharacters: closeCharacters  } );
 		}
 	}
+
+	public static function getCompletionType()
+    {
+        return completionType;
+    }
+
 }
