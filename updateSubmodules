@@ -1,0 +1,14 @@
+cd libs
+cd hxparse
+git pull origin master
+cd ..
+cd haxeparser
+git pull origin master
+cd ..
+cd js/CodeMirror
+git pull origin master
+cd ../..
+cd js/alertify.js
+git pull origin 0.3
+cd ../..
+

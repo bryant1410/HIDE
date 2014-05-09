@@ -15,7 +15,7 @@ class LineWidget
 	var parametersSpanElements:Array<SpanElement>;
 	var widget:Dynamic;
 	
-	public function new(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, lineNumber:Int) 
+	public function new(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, pos:CodeMirror.Pos) 
 	{		
 		element = Browser.document.createDivElement();
 		//var icon:SpanElement = Browser.document.createSpanElement();
@@ -67,7 +67,7 @@ class LineWidget
 			element.appendChild(spanDescription);
 		}
 		
-		widget = Editor.editor.addLineWidget(lineNumber, element, { coverGutter: false, noHScroll: true } );
+		widget = Editor.editor.addLineWidget(pos.line, element, { coverGutter: false, noHScroll: true } );
 	}
 	
 	public function updateParameters(currentParameter:Int) 

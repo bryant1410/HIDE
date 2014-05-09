@@ -95,24 +95,42 @@ class Editor
 					{
 						untyped __js__("return CodeMirror.Pass");
 					}
-				}
+				},
+           	"=":
+				function passAndHint(cm:CodeMirror) 
+				{
+					if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
+					{
+						var completionActive = editor.state.completionActive;
+						
+						if (completionActive != null && completionActive.widget != null) 
+						{
+							completionActive.widget.pick();
+						}
+					}
+					
+					untyped __js__("return CodeMirror.Pass");
+				},
 		}
 		
 		editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), options);
 		
 		editor.on("keypress", function (cm:CodeMirror, e:KeyboardEvent):Void 
 		{
-			if (e.keyCode == 40 && e.shiftKey) 
+			if (e.shiftKey) 
 			{
-				if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
-				{
-					var completionActive = editor.state.completionActive;
-					
-					if (completionActive != null && completionActive.widget != null) 
-					{
-						completionActive.widget.pick();
-					}
-				}
+                if (e.keyCode == 40 || e.keyCode == 62)
+                {
+                    if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
+                    {
+                        var completionActive = editor.state.completionActive;
+
+                        if (completionActive != null && completionActive.widget != null) 
+                        {
+                            completionActive.widget.pick();
+                        }
+                    }
+                }
 			}
 		}
 		);
@@ -198,10 +216,6 @@ class Editor
 			{
 				Helper.debounce("change", function ():Void 
 				{
-					HaxeParserProvider.getClassName();
-					//OutlinePanel.update();
-					//OutlinePanel.add(type.data[i].name);
-					OutlineHelper.getList(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
 					HaxeLint.updateLinting();
 				}, 100);
 				
@@ -256,10 +270,22 @@ class Editor
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
 				
-				if (data.charAt(0) == "-")
+				if (data == "-")
 				{
 					Completion.showHxmlCompletion();
 				}
+                else if (data == "-cp ")
+                {
+                    Completion.showFileList(false);
+                }
+                else if (data == "-dce ")
+                {
+                    Completion.showHxmlCompletion();
+				}
+                else if (data == "--macro ")
+               	{
+                    Completion.showClassList();
+                }
 			}
 			
 			//Helper.debounce("filechange", function ():Void 

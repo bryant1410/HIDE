@@ -82,45 +82,14 @@ HIDE.loadJS = function(name,urls,onLoad) {
 	}
 	HIDE.loadJSAsync(name,urls,onLoad);
 };
-HIDE.loadCSS = function(name,urls,onLoad) {
-	if(name != null) {
-		var _g1 = 0;
-		var _g = urls.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			urls[i] = js.Node.require("path").join(HIDE.getPluginPath(name),urls[i]);
-		}
-	}
-	HIDE.loadCSSAsync(name,urls,onLoad);
-};
-HIDE.loadCSSAsync = function(name,urls,onLoad) {
-	var link;
-	var _this = window.document;
-	link = _this.createElement("link");
-	link.href = urls.splice(0,1)[0];
-	link.type = "text/css";
-	link.rel = "stylesheet";
-	link.onload = function(e) {
-		HIDE.traceScriptLoadingInfo(name,link.href);
-		if(urls.length > 0) HIDE.loadCSSAsync(name,urls,onLoad); else if(onLoad != null) onLoad();
-	};
-	window.document.head.appendChild(link);
-};
 HIDE.traceScriptLoadingInfo = function(name,url) {
 	var str;
 	if(name != null) str = "\n" + name + ":\n" + url + "\n"; else str = url + " loaded";
 };
 HIDE.getPluginPath = function(name) {
 	var pathToPlugin = pluginloader.PluginManager.pathToPlugins.get(name);
-	if(pathToPlugin == null) haxe.Log.trace("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'",{ fileName : "HIDE.hx", lineNumber : 98, className : "HIDE", methodName : "getPluginPath"});
+	if(pathToPlugin == null) console.log("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'");
 	return pathToPlugin;
-};
-HIDE.waitForDependentPluginsToBeLoaded = function(name,plugins,onLoaded,callOnLoadWhenAtLeastOnePluginLoaded) {
-	if(callOnLoadWhenAtLeastOnePluginLoaded == null) callOnLoadWhenAtLeastOnePluginLoaded = false;
-	pluginloader.PluginManager.waitForDependentPluginsToBeLoaded(name,plugins,onLoaded,callOnLoadWhenAtLeastOnePluginLoaded);
-};
-HIDE.notifyLoadingComplete = function(name) {
-	pluginloader.PluginManager.notifyLoadingComplete(name);
 };
 HIDE.openPageInNewWindow = function(name,url,params) {
 	var fullPath = url;
@@ -135,20 +104,6 @@ HIDE.openPageInNewWindow = function(name,url,params) {
 };
 HIDE.compilePlugins = function(onComplete,onFailed) {
 	pluginloader.PluginManager.compilePlugins(onComplete,onFailed);
-};
-HIDE.readFile = function(name,path,onComplete) {
-	var options = { };
-	options.encoding = "utf8";
-	var fullPath = path;
-	if(name != null) fullPath = js.Node.require("path").join(pluginloader.PluginManager.pathToPlugins.get(name),path);
-	js.Node.require("fs").readFile(fullPath,options,function(error,data) {
-		if(error != null) haxe.Log.trace(error,{ fileName : "HIDE.hx", lineNumber : 157, className : "HIDE", methodName : "readFile"}); else onComplete(data);
-	});
-};
-HIDE.writeFile = function(name,path,contents,onComplete) {
-	js.Node.require("fs").writeFile(js.Node.require("path").join(pluginloader.PluginManager.pathToPlugins.get(name),path),contents,"utf8",function(error) {
-		if(onComplete != null && error == null) onComplete();
-	});
 };
 HIDE.surroundWithQuotes = function(path) {
 	return "\"" + path + "\"";
@@ -248,14 +203,6 @@ Lambda.has = function(it,elt) {
 	}
 	return false;
 };
-Lambda.foreach = function(it,f) {
-	var $it0 = $iterator(it)();
-	while( $it0.hasNext() ) {
-		var x = $it0.next();
-		if(!f(x)) return false;
-	}
-	return true;
-};
 Lambda.count = function(it,pred) {
 	var n = 0;
 	if(pred == null) {
@@ -338,7 +285,7 @@ Main.main = function() {
 	Main.window = nodejs.webkit.Window.get();
 	Main.window.showDevTools();
 	js.Node.process.on("uncaughtException",function(err) {
-		haxe.Log.trace(err,{ fileName : "Main.hx", lineNumber : 65, className : "Main", methodName : "main"});
+		console.log(err);
 		Main.window.show();
 	});
 	core.Hotkeys.prepare();
@@ -381,20 +328,20 @@ Main.main = function() {
 			}
 		});
 		core.ProcessHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
-			haxe.Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 134, className : "Main", methodName : "main"});
+			console.log("npm installed " + (installed1 == null?"null":"" + installed1));
 			if(installed1) core.ProcessHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
-				haxe.Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 140, className : "Main", methodName : "main"});
+				console.log("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
 			},function(code,stdout1,stderr1) {
-				haxe.Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 144, className : "Main", methodName : "main"});
+				console.log("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1));
 			});
 		});
 		core.ProcessHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
-			haxe.Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 153, className : "Main", methodName : "main"});
+			console.log("lime installed " + (installed2 == null?"null":"" + installed2));
 		});
 		Main.window.show();
 	});
-	core.ProcessHelper.checkProcessInstalled("git",[],function(installed3) {
-		haxe.Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 163, className : "Main", methodName : "main"});
+	core.ProcessHelper.checkProcessInstalled("git",["--version"],function(installed3) {
+		console.log("git installed " + (installed3 == null?"null":"" + installed3));
 	});
 	Main.window.on("close",function(e1) {
 		nodejs.webkit.App.closeAllWindows();
@@ -934,7 +881,6 @@ bootstrap.InputGroupButton.prototype = $extend(bootstrap.InputGroup.prototype,{
 	,__class__: bootstrap.InputGroupButton
 });
 bootstrap.ListGroup = function() {
-	this.items = [];
 	var _this = window.document;
 	this.listGroup = _this.createElement("div");
 	this.listGroup.className = "list-group";
@@ -943,7 +889,6 @@ $hxClasses["bootstrap.ListGroup"] = bootstrap.ListGroup;
 bootstrap.ListGroup.__name__ = ["bootstrap","ListGroup"];
 bootstrap.ListGroup.prototype = {
 	listGroup: null
-	,items: null
 	,addItem: function(text,description,onClick) {
 		var a;
 		var _this = window.document;
@@ -1050,204 +995,14 @@ build.Hxml.buildHxml = function(dirname,filename,useCompilationServer,startComma
 	core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,onComplete);
 };
 var byte = {};
-byte._LittleEndianReader = {};
-byte._LittleEndianReader.LittleEndianReader_Impl_ = function() { };
-$hxClasses["byte._LittleEndianReader.LittleEndianReader_Impl_"] = byte._LittleEndianReader.LittleEndianReader_Impl_;
-byte._LittleEndianReader.LittleEndianReader_Impl_.__name__ = ["byte","_LittleEndianReader","LittleEndianReader_Impl_"];
-byte._LittleEndianReader.LittleEndianReader_Impl_._new = function(data) {
-	return data;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readInt8 = function(this1,pos) {
-	var n = this1[pos];
-	if(n >= 128) return n - 256;
-	return n;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readUInt8 = function(this1,pos) {
-	return this1[pos];
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readInt16 = function(this1,pos) {
-	var ch1 = this1[pos];
-	var ch2 = this1[pos + 1];
-	var n = ch1 | ch2 << 8;
-	if((n & 32768) != 0) return n - 65536;
-	return n;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readUInt16 = function(this1,pos) {
-	var ch1 = this1[pos];
-	var ch2 = this1[pos + 1];
-	return ch1 | ch2 << 8;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readInt24 = function(this1,pos) {
-	var ch1 = this1[pos];
-	var ch2 = this1[pos + 1];
-	var ch3 = this1[pos + 2];
-	var n = ch1 | ch2 << 8 | ch3 << 16;
-	if((n & 8388608) != 0) return n - 16777216;
-	return n;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readUInt24 = function(this1,pos) {
-	var ch1 = this1[pos];
-	var ch2 = this1[pos + 1];
-	var ch3 = this1[pos + 2];
-	return ch1 | ch2 << 8 | ch3 << 16;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readInt32 = function(this1,pos) {
-	var ch1 = this1[pos];
-	var ch2 = this1[pos + 1];
-	var ch3 = this1[pos + 2];
-	var ch4 = this1[pos + 3];
-	return ch1 | ch2 << 8 | ch3 << 16 | ch4 << 24;
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readString = function(this1,pos,len) {
-	return byte.js._ByteData.ByteData_Impl_.readString(this1,pos,len);
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readFloat = function(this1,pos) {
-	var bytes = [];
-	bytes.push(this1[pos]);
-	bytes.push(this1[pos + 1]);
-	bytes.push(this1[pos + 2]);
-	bytes.push(this1[pos + 3]);
-	var sign = 1 - (bytes[0] >> 7 << 1);
-	var exp = (bytes[0] << 1 & 255 | bytes[1] >> 7) - 127;
-	var sig = (bytes[1] & 127) << 16 | bytes[2] << 8 | bytes[3];
-	if(sig == 0 && exp == -127) return 0.0;
-	return sign * (1 + Math.pow(2,-23) * sig) * Math.pow(2,exp);
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.readDouble = function(this1,pos) {
-	var bytes = [];
-	bytes.push(this1[pos]);
-	bytes.push(this1[pos + 1]);
-	bytes.push(this1[pos + 2]);
-	bytes.push(this1[pos + 3]);
-	bytes.push(this1[pos + 4]);
-	bytes.push(this1[pos + 5]);
-	bytes.push(this1[pos + 6]);
-	bytes.push(this1[pos + 7]);
-	var sign = 1 - (bytes[0] >> 7 << 1);
-	var exp = (bytes[0] << 4 & 2047 | bytes[1] >> 4) - 1023;
-	var sig = byte._LittleEndianReader.LittleEndianReader_Impl_.getDoubleSig(this1,bytes);
-	if(sig == 0 && exp == -1023) return 0.0;
-	return sign * (1.0 + Math.pow(2,-52) * sig) * Math.pow(2,exp);
-};
-byte._LittleEndianReader.LittleEndianReader_Impl_.getDoubleSig = function(this1,bytes) {
-	return ((bytes[1] & 15) << 16 | bytes[2] << 8 | bytes[3]) * 4294967296. + (bytes[4] >> 7) * 2147483648 + ((bytes[4] & 127) << 24 | bytes[5] << 16 | bytes[6] << 8 | bytes[7]);
-};
-byte._LittleEndianWriter = {};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_ = function() { };
-$hxClasses["byte._LittleEndianWriter.LittleEndianWriter_Impl_"] = byte._LittleEndianWriter.LittleEndianWriter_Impl_;
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.__name__ = ["byte","_LittleEndianWriter","LittleEndianWriter_Impl_"];
-byte._LittleEndianWriter.LittleEndianWriter_Impl_._new = function(data) {
-	return data;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeInt8 = function(this1,pos,x) {
-	if(x < -128 || x >= 128) throw haxe.io.Error.Overflow;
-	this1[pos] = x & 255 & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeUInt8 = function(this1,pos,x) {
-	this1[pos] = x & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeInt16 = function(this1,pos,x) {
-	if(x < -32768 || x >= 32768) throw haxe.io.Error.Overflow;
-	byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeUInt16(this1,pos,x & 65535);
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeUInt16 = function(this1,pos,x) {
-	if(x < 0 || x >= 65536) throw haxe.io.Error.Overflow;
-	this1[pos] = x & 255 & 255;
-	this1[pos + 1] = x >> 8 & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeInt24 = function(this1,pos,x) {
-	if(x < -8388608 || x >= 8388608) throw haxe.io.Error.Overflow;
-	byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeUInt24(this1,pos,x & 16777215);
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeUInt24 = function(this1,pos,x) {
-	if(x < 0 || x >= 16777216) throw haxe.io.Error.Overflow;
-	this1[pos] = x & 255 & 255;
-	this1[pos + 1] = x >> 8 & 255 & 255;
-	this1[pos + 2] = x >> 16 & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeInt32 = function(this1,pos,x) {
-	this1[pos] = x & 255 & 255;
-	this1[pos + 1] = x >> 8 & 255 & 255;
-	this1[pos + 2] = x >> 16 & 255 & 255;
-	this1[pos + 3] = x >>> 24 & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeFloat = function(this1,pos,x) {
-	if(x == 0.0) {
-		this1[pos] = 0;
-		this1[pos + 1] = 0;
-		this1[pos + 2] = 0;
-		this1[pos + 3] = 0;
-		return;
-	}
-	var exp = Math.floor(Math.log(Math.abs(x)) / byte._LittleEndianWriter.LittleEndianWriter_Impl_.LN2);
-	var sig = Math.floor(Math.abs(x) / Math.pow(2,exp) * 8388608) & 8388607;
-	var b1;
-	b1 = exp + 127 >> 1 | (exp > 0?x < 0?128:64:x < 0?128:0);
-	var b2 = exp + 127 << 7 & 255 | sig >> 16 & 127;
-	var b3 = sig >> 8 & 255;
-	var b4 = sig & 255;
-	this1[pos] = b1 & 255;
-	this1[pos + 1] = b2 & 255;
-	this1[pos + 2] = b3 & 255;
-	this1[pos + 3] = b4 & 255;
-};
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.writeDouble = function(this1,pos,x) {
-	if(x == 0.0) {
-		this1[pos] = 0;
-		this1[pos + 1] = 0;
-		this1[pos + 2] = 0;
-		this1[pos + 3] = 0;
-		this1[pos + 4] = 0;
-		this1[pos + 5] = 0;
-		this1[pos + 6] = 0;
-		this1[pos + 7] = 0;
-		return;
-	}
-	var exp = Math.floor(Math.log(Math.abs(x)) / byte._LittleEndianWriter.LittleEndianWriter_Impl_.LN2);
-	var sig = Math.floor(Math.abs(x) / Math.pow(2,exp) * Math.pow(2,52));
-	var sig_h = sig & 34359738367;
-	var sig_l = Math.floor(sig / Math.pow(2,32));
-	var b1;
-	b1 = exp + 1023 >> 4 | (exp > 0?x < 0?128:64:x < 0?128:0);
-	var b2 = exp + 1023 << 4 & 255 | sig_l >> 16 & 15;
-	var b3 = sig_l >> 8 & 255;
-	var b4 = sig_l & 255;
-	var b5 = sig_h >> 24 & 255;
-	var b6 = sig_h >> 16 & 255;
-	var b7 = sig_h >> 8 & 255;
-	var b8 = sig_h & 255;
-	this1[pos] = b1 & 255;
-	this1[pos + 1] = b2 & 255;
-	this1[pos + 2] = b3 & 255;
-	this1[pos + 3] = b4 & 255;
-	this1[pos + 4] = b5 & 255;
-	this1[pos + 5] = b6 & 255;
-	this1[pos + 6] = b7 & 255;
-	this1[pos + 7] = b8 & 255;
-};
 byte.js = {};
 byte.js._ByteData = {};
 byte.js._ByteData.ByteData_Impl_ = function() { };
 $hxClasses["byte.js._ByteData.ByteData_Impl_"] = byte.js._ByteData.ByteData_Impl_;
 byte.js._ByteData.ByteData_Impl_.__name__ = ["byte","js","_ByteData","ByteData_Impl_"];
-byte.js._ByteData.ByteData_Impl_.__properties__ = {get_writer:"get_writer",get_reader:"get_reader",get_length:"get_length"}
+byte.js._ByteData.ByteData_Impl_.__properties__ = {get_length:"get_length"}
 byte.js._ByteData.ByteData_Impl_.get_length = function(this1) {
 	return this1.length;
-};
-byte.js._ByteData.ByteData_Impl_.get_reader = function(this1) {
-	return this1;
-};
-byte.js._ByteData.ByteData_Impl_.get_writer = function(this1) {
-	return this1;
-};
-byte.js._ByteData.ByteData_Impl_._new = function(data) {
-	return data;
-};
-byte.js._ByteData.ByteData_Impl_.readByte = function(this1,pos) {
-	return this1[pos];
-};
-byte.js._ByteData.ByteData_Impl_.writeByte = function(this1,pos,v) {
-	this1[pos] = v & 255;
 };
 byte.js._ByteData.ByteData_Impl_.readString = function(this1,pos,len) {
 	var buf = new StringBuf();
@@ -1259,12 +1014,8 @@ byte.js._ByteData.ByteData_Impl_.readString = function(this1,pos,len) {
 	}
 	return buf.b;
 };
-byte.js._ByteData.ByteData_Impl_.alloc = function(length) {
-	var b = new Int8Array(length);
-	return b;
-};
 byte.js._ByteData.ByteData_Impl_.ofString = function(s) {
-	var a = new Int8Array(s.length);
+	var a = new Uint8Array(s.length);
 	var _g1 = 0;
 	var _g = s.length;
 	while(_g1 < _g) {
@@ -1274,19 +1025,6 @@ byte.js._ByteData.ByteData_Impl_.ofString = function(s) {
 	return a;
 };
 var cm = {};
-cm.CMDoc = function(_name,_doc,_path) {
-	this.name = _name;
-	this.doc = _doc;
-	this.path = _path;
-};
-$hxClasses["cm.CMDoc"] = cm.CMDoc;
-cm.CMDoc.__name__ = ["cm","CMDoc"];
-cm.CMDoc.prototype = {
-	name: null
-	,doc: null
-	,path: null
-	,__class__: cm.CMDoc
-};
 cm.ColorPreview = function() { };
 $hxClasses["cm.ColorPreview"] = cm.ColorPreview;
 cm.ColorPreview.__name__ = ["cm","ColorPreview"];
@@ -1410,7 +1148,7 @@ cm.Editor.load = function() {
 		options = tjson.TJSON.parse(js.Node.require("fs").readFileSync(js.Node.require("path").join("core","config","editor.json"),readFileOptions));
 	} catch( err ) {
 		if( js.Boot.__instanceof(err,Error) ) {
-			haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 60, className : "cm.Editor", methodName : "load"});
+			console.log(err);
 		} else throw(err);
 	}
 	cm.Editor.walk(options);
@@ -1439,18 +1177,31 @@ cm.Editor.load = function() {
 		};
 		$r = passAndHint1;
 		return $r;
-	}(this))};
-	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
-	cm.Editor.editor.on("keypress",function(cm2,e) {
-		if(e.keyCode == 40 && e.shiftKey) {
+	}(this)), '=' : (function($this) {
+		var $r;
+		var passAndHint2 = function(cm2) {
 			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive1 = cm.Editor.editor.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
 			}
+			return CodeMirror.Pass;
+		};
+		$r = passAndHint2;
+		return $r;
+	}(this))};
+	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
+	cm.Editor.editor.on("keypress",function(cm3,e) {
+		if(e.shiftKey) {
+			if(e.keyCode == 40 || e.keyCode == 62) {
+				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+					var completionActive2 = cm.Editor.editor.state.completionActive;
+					if(completionActive2 != null && completionActive2.widget != null) completionActive2.widget.pick();
+				}
+			}
 		}
 	});
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["base16-light","ambiance-mobile","solarized","night","base16-dark","midnight","vibrant-ink","xq-light","ambiance","elegant","tomorrow-night-eighties","twilight","paraiso-light","monokai","3024-night","3024-day","xq-dark","pastel-on-dark","erlang-dark","cobalt","lesser-dark","blackboard","mbo","paraiso-dark","neat","eclipse","rubyblue","the-matrix","mdn-like"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes(["base16-light","ambiance-mobile","solarized","night","base16-dark","midnight","vibrant-ink","xq-light","ambiance","elegant","tomorrow-night-eighties","twilight","paraiso-light","monokai","3024-night","3024-day","xq-dark","pastel-on-dark","erlang-dark","cobalt","lesser-dark","blackboard","mbo","neo","paraiso-dark","neat","eclipse","rubyblue","the-matrix","mdn-like"],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -1468,7 +1219,7 @@ cm.Editor.load = function() {
 		++_g2;
 		if(key1 != "auto" && key1 != "nofallthrough") value += "  \"Ctrl-K " + key1 + "\": \"" + Std.string(Reflect.field(mapK,key1)) + "\",\n";
 	}
-	haxe.Log.trace(cm.Editor.editor,{ fileName : "Editor.hx", lineNumber : 146, className : "cm.Editor", methodName : "load"});
+	console.log(cm.Editor.editor);
 	js.Node.require("fs").writeFileSync(js.Node.require("path").join("core","bindings.txt"),value,"utf8");
 	window.addEventListener("resize",function(e1) {
 		core.Helper.debounce("resize",function() {
@@ -1481,14 +1232,14 @@ cm.Editor.load = function() {
 		cm.Editor.resize();
 	});
 	cm.ColorPreview.create(cm.Editor.editor);
-	cm.Editor.editor.on("cursorActivity",function(cm3) {
+	cm.Editor.editor.on("cursorActivity",function(cm4) {
 		core.Helper.debounce("cursorActivity",function() {
-			core.FunctionParametersHelper.update(cm3);
-			cm.ColorPreview.update(cm3);
-			cm.ERegPreview.update(cm3);
+			core.FunctionParametersHelper.update(cm4);
+			cm.ColorPreview.update(cm4);
+			cm.ERegPreview.update(cm4);
 		},100);
 	});
-	cm.Editor.editor.on("scroll",function(cm4) {
+	cm.Editor.editor.on("scroll",function(cm5) {
 		cm.ColorPreview.scroll(cm.Editor.editor);
 	});
 	var timer = null;
@@ -1496,16 +1247,14 @@ cm.Editor.load = function() {
 	var ignoreNewLineKeywords_0 = "function";
 	var ignoreNewLineKeywords_1 = "for ";
 	var ignoreNewLineKeywords_2 = "while";
-	cm.Editor.editor.on("change",function(cm5,e2) {
+	cm.Editor.editor.on("change",function(cm6,e2) {
 		var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
-				core.HaxeParserProvider.getClassName();
-				parser.OutlineHelper.getList(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
 				core.HaxeLint.updateLinting();
 			},100);
-			var cursor1 = cm5.getCursor();
-			var data = cm5.getLine(cursor1.line);
+			var cursor1 = cm6.getCursor();
+			var data = cm6.getLine(cursor1.line);
 			if(data.charAt(cursor1.ch - 1) == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
 			} else if(data.charAt(cursor1.ch - 1) == "<") {
@@ -1520,9 +1269,9 @@ cm.Editor.load = function() {
 				}
 			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true);
 		} else if(modeName == "hxml") {
-			var cursor2 = cm5.getCursor();
-			var data1 = cm5.getLine(cursor2.line);
-			if(data1.charAt(0) == "-") core.Completion.showHxmlCompletion();
+			var cursor2 = cm6.getCursor();
+			var data1 = cm6.getLine(cursor2.line);
+			if(data1 == "-") core.Completion.showHxmlCompletion(); else if(data1 == "-cp ") core.Completion.showFileList(false); else if(data1 == "-dce ") core.Completion.showHxmlCompletion(); else if(data1 == "--macro ") core.Completion.showClassList();
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
@@ -1559,13 +1308,13 @@ cm.Editor.walk = function(object) {
 				Reflect.setField(object,field,Type.createInstance(regexp,[value.substring(6)]));
 			} catch( err ) {
 				if( js.Boot.__instanceof(err,Error) ) {
-					haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 321, className : "cm.Editor", methodName : "walk"});
+					console.log(err);
 				} else throw(err);
 			} else if(StringTools.startsWith(value,"eval")) try {
 				Reflect.setField(object,field,js.Lib["eval"](value.substring(4)));
 			} catch( err1 ) {
 				if( js.Boot.__instanceof(err1,Error) ) {
-					haxe.Log.trace(err1,{ fileName : "Editor.hx", lineNumber : 332, className : "cm.Editor", methodName : "walk"});
+					console.log(err1);
 				} else throw(err1);
 			}
 		}
@@ -1794,6 +1543,11 @@ completion.Hxml.getArguments = function(onComplete) {
 			var item = data[_g];
 			++_g;
 			completion.Hxml.completions.push({ text : item, className : "CodeMirror-Tern-completion"});
+			if(item == "-dce") {
+				completion.Hxml.completions.push({ text : item + " " + "no", className : "CodeMirror-Tern-completion"});
+				completion.Hxml.completions.push({ text : item + " " + "std", className : "CodeMirror-Tern-completion"});
+				completion.Hxml.completions.push({ text : item + " " + "full", className : "CodeMirror-Tern-completion"});
+			}
 		}
 		if(onComplete != null) onComplete();
 	});
@@ -1882,20 +1636,23 @@ core.CompilationOutput.load = function() {
 	output.readOnly = true;
 	new $("#output").append(output);
 };
-core.CompletionType = $hxClasses["core.CompletionType"] = { __ename__ : ["core","CompletionType"], __constructs__ : ["REGULAR","FILELIST","CLASSLIST","HXML","METATAGS"] };
+core.CompletionType = $hxClasses["core.CompletionType"] = { __ename__ : ["core","CompletionType"], __constructs__ : ["REGULAR","FILELIST","OPENFILE","CLASSLIST","HXML","METATAGS"] };
 core.CompletionType.REGULAR = ["REGULAR",0];
 core.CompletionType.REGULAR.toString = $estr;
 core.CompletionType.REGULAR.__enum__ = core.CompletionType;
 core.CompletionType.FILELIST = ["FILELIST",1];
 core.CompletionType.FILELIST.toString = $estr;
 core.CompletionType.FILELIST.__enum__ = core.CompletionType;
-core.CompletionType.CLASSLIST = ["CLASSLIST",2];
+core.CompletionType.OPENFILE = ["OPENFILE",2];
+core.CompletionType.OPENFILE.toString = $estr;
+core.CompletionType.OPENFILE.__enum__ = core.CompletionType;
+core.CompletionType.CLASSLIST = ["CLASSLIST",3];
 core.CompletionType.CLASSLIST.toString = $estr;
 core.CompletionType.CLASSLIST.__enum__ = core.CompletionType;
-core.CompletionType.HXML = ["HXML",3];
+core.CompletionType.HXML = ["HXML",4];
 core.CompletionType.HXML.toString = $estr;
 core.CompletionType.HXML.__enum__ = core.CompletionType;
-core.CompletionType.METATAGS = ["METATAGS",4];
+core.CompletionType.METATAGS = ["METATAGS",5];
 core.CompletionType.METATAGS.toString = $estr;
 core.CompletionType.METATAGS.__enum__ = core.CompletionType;
 core.Completion = function() { };
@@ -1908,14 +1665,13 @@ core.Completion.registerHelper = function() {
 	CodeMirror.registerHelper("hint","haxe",core.Completion.getHints);
 	CodeMirror.registerHelper("hint","hxml",core.Completion.getHints);
 	cm.Editor.editor.on("startCompletion",function(cm) {
-		if(core.Completion.completionType == core.CompletionType.FILELIST) core.Completion.backupDocValue = tabmanager.TabManager.getCurrentDocument().getValue();
+		if(core.Completion.completionType == core.CompletionType.OPENFILE) core.Completion.backupDocValue = tabmanager.TabManager.getCurrentDocument().getValue();
 	});
 };
 core.Completion.getHints = function(cm1,options) {
 	core.Completion.word = null;
 	core.Completion.range = null;
 	if(options != null && options.range != null) core.Completion.range = options.range; else if(core.Completion.RANGE != null) core.Completion.range = core.Completion.RANGE;
-	core.Completion.getCurrentWord(cm1,options);
 	core.Completion.list = new Array();
 	var _g = core.Completion.completionType;
 	switch(_g[1]) {
@@ -1974,50 +1730,76 @@ core.Completion.getHints = function(cm1,options) {
 			})(infoSpan);
 			core.Completion.list.push(completionItem);
 		}
-		if(core.Completion.curWord == null || core.Completion.curWord.length == 0) core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
+		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
+		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 		break;
-	case 4:
+	case 5:
 		core.Completion.list = completion.MetaTags.getCompletion();
 		break;
-	case 3:
-		core.Completion.list = completion.Hxml.getCompletion();
-		break;
-	case 1:
+	case 4:
+		var _this3 = completion.Hxml.getCompletion();
+		core.Completion.list = _this3.slice();
 		var _g11 = 0;
-		var _g21 = parser.ClassParser.filesList;
+		var _g21 = parser.ClassParser.topLevelClassList;
 		while(_g11 < _g21.length) {
 			var item = _g21[_g11];
 			++_g11;
-			core.Completion.list.push({ text : item, displayText : item, hint : core.Completion.openFile});
+			core.Completion.list.push({ text : item});
 		}
-		break;
-	case 2:
 		var _g12 = 0;
-		var _g22 = parser.ClassParser.topLevelClassList;
+		var _g22 = parser.ClassParser.importsList;
 		while(_g12 < _g22.length) {
 			var item1 = _g22[_g12];
 			++_g12;
 			core.Completion.list.push({ text : item1});
 		}
+		break;
+	case 1:
 		var _g13 = 0;
-		var _g23 = parser.ClassParser.importsList;
+		var _g23 = parser.ClassParser.filesList;
 		while(_g13 < _g23.length) {
 			var item2 = _g23[_g13];
 			++_g13;
-			core.Completion.list.push({ text : item2});
+			core.Completion.list.push({ text : item2, displayText : item2});
 		}
 		break;
-	}
-	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
-	var _g3 = core.Completion.completionType;
-	switch(_g3[1]) {
-	case 1:
+	case 2:
 		var _g14 = 0;
-		var _g24 = core.Completion.list;
+		var _g24 = parser.ClassParser.filesList;
 		while(_g14 < _g24.length) {
 			var item3 = _g24[_g14];
 			++_g14;
-			item3.text = "";
+			core.Completion.list.push({ text : item3, displayText : item3, hint : core.Completion.openFile});
+		}
+		break;
+	case 3:
+		var _g15 = 0;
+		var _g25 = parser.ClassParser.topLevelClassList;
+		while(_g15 < _g25.length) {
+			var item4 = _g25[_g15];
+			++_g15;
+			core.Completion.list.push({ text : item4});
+		}
+		var _g16 = 0;
+		var _g26 = parser.ClassParser.importsList;
+		while(_g16 < _g26.length) {
+			var item5 = _g26[_g16];
+			++_g16;
+			core.Completion.list.push({ text : item5});
+		}
+		break;
+	}
+	core.Completion.getCurrentWord(cm1,options);
+	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
+	var _g3 = core.Completion.completionType;
+	switch(_g3[1]) {
+	case 2:
+		var _g17 = 0;
+		var _g27 = core.Completion.list;
+		while(_g17 < _g27.length) {
+			var item6 = _g27[_g17];
+			++_g17;
+			item6.text = "";
 		}
 		break;
 	default:
@@ -2030,6 +1812,7 @@ core.Completion.openFile = function(cm,data,completion) {
 	var path = completion.displayText;
 	if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
 	tabmanager.TabManager.getCurrentDocument().setValue(core.Completion.backupDocValue);
+	tabmanager.TabManager.saveActiveFile();
 	tabmanager.TabManager.openFileInNewTab(path);
 };
 core.Completion.getCurrentWord = function(cm,options,pos) {
@@ -2110,8 +1893,8 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
 		}
 		onComplete();
 	},function(code,stdout1,stderr1) {
-		haxe.Log.trace(code,{ fileName : "Completion.hx", lineNumber : 377, className : "core.Completion", methodName : "processArguments"});
-		haxe.Log.trace(stderr1,{ fileName : "Completion.hx", lineNumber : 378, className : "core.Completion", methodName : "processArguments"});
+		console.log(code);
+		console.log(stderr1);
 		onComplete();
 	});
 };
@@ -2142,11 +1925,12 @@ core.Completion.showHxmlCompletion = function() {
 		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : /[()\[\]{};:>,]/});
 	}
 };
-core.Completion.showFileList = function() {
+core.Completion.showFileList = function(openFile) {
+	if(openFile == null) openFile = true;
 	if(core.Completion.isEditorVisible()) {
 		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z\\.]+$","i");
-		core.Completion.completionType = core.CompletionType.FILELIST;
+		if(openFile) core.Completion.completionType = core.CompletionType.OPENFILE; else core.Completion.completionType = core.CompletionType.FILELIST;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints);
 	}
 };
@@ -2230,13 +2014,12 @@ core.FileDialog.openFolder = function(_onClick) {
 core.FunctionParametersHelper = function() { };
 $hxClasses["core.FunctionParametersHelper"] = core.FunctionParametersHelper;
 core.FunctionParametersHelper.__name__ = ["core","FunctionParametersHelper"];
-core.FunctionParametersHelper.addWidget = function(type,name,parameters,retType,description,currentParameter,lineNumber) {
-	var lineWidget = new core.LineWidget(type,name,parameters,retType,description,currentParameter,lineNumber);
+core.FunctionParametersHelper.addWidget = function(type,name,parameters,retType,description,currentParameter,pos) {
+	var lineWidget = new core.LineWidget(type,name,parameters,retType,description,currentParameter,pos);
 	core.FunctionParametersHelper.widgets.push(lineWidget);
-	core.FunctionParametersHelper.lines.push(lineNumber);
 };
-core.FunctionParametersHelper.alreadyShown = function(lineNumber) {
-	return HxOverrides.indexOf(core.FunctionParametersHelper.lines,lineNumber,0) != -1;
+core.FunctionParametersHelper.alreadyShown = function() {
+	return core.FunctionParametersHelper.widgets.length > 0;
 };
 core.FunctionParametersHelper.updateScroll = function() {
 	var info = cm.Editor.editor.getScrollInfo();
@@ -2251,7 +2034,6 @@ core.FunctionParametersHelper.clear = function() {
 		++_g;
 		cm.Editor.editor.removeLineWidget(widget.getWidget());
 	}
-	core.FunctionParametersHelper.lines = [];
 	core.FunctionParametersHelper.widgets = [];
 };
 core.FunctionParametersHelper.update = function(cm) {
@@ -2263,13 +2045,24 @@ core.FunctionParametersHelper.update = function(cm) {
 	}
 };
 core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
-	var bracketsData = cm.scanForBracket(cursor,-1,null);
+	var bracketsData = cm.scanForBracket(cursor,-1,null,{ bracketRegex : /[([\]}]/});
+	var pos = null;
 	if(bracketsData != null && bracketsData.ch == "(") {
-		var range = cm.getRange(bracketsData.pos,cursor);
-		var pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
-		var currentParameter = range.split(",").length - 1;
-		if(!core.FunctionParametersHelper.alreadyShown(pos.line)) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
-	} else core.FunctionParametersHelper.clear();
+		pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
+		var matchedBracket = cm.findMatchingBracket(pos,false,null).to;
+		if(matchedBracket == null || cursor.line <= matchedBracket.line && cursor.ch <= matchedBracket.ch) {
+			var range = cm.getRange(bracketsData.pos,cursor);
+			var currentParameter = range.split(",").length - 1;
+			if(core.FunctionParametersHelper.lastPos == null || core.FunctionParametersHelper.lastPos.ch != pos.ch || core.FunctionParametersHelper.lastPos.line != pos.line) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else if(core.FunctionParametersHelper.alreadyShown()) core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
+			core.FunctionParametersHelper.lastPos = pos;
+		} else {
+			core.FunctionParametersHelper.lastPos = null;
+			core.FunctionParametersHelper.clear();
+		}
+	} else {
+		core.FunctionParametersHelper.lastPos = null;
+		core.FunctionParametersHelper.clear();
+	}
 };
 core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
 	var word = core.Completion.getCurrentWord(cm,{ },{ line : pos.line, ch : pos.ch - 1}).word;
@@ -2285,7 +2078,7 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 				if(functionData.parameters != null) {
 					var description = core.FunctionParametersHelper.parseDescription(completion);
 					core.FunctionParametersHelper.clear();
-					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor().line);
+					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor());
 					core.FunctionParametersHelper.updateScroll();
 					found = true;
 					break;
@@ -2480,6 +2273,8 @@ core.HaxeLint.load = function() {
 core.HaxeLint.updateLinting = function() {
 	core.AnnotationRuler.clearErrorMarkers();
 	if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+		core.HaxeParserProvider.getClassName();
+		parser.OutlineHelper.getList(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
 		var path = tabmanager.TabManager.getCurrentDocumentPath();
 		if(core.HaxeLint.fileData.exists(path)) {
 			var data = core.HaxeLint.fileData.get(path);
@@ -2492,6 +2287,9 @@ core.HaxeLint.updateLinting = function() {
 		}
 		cm.Editor.editor.setOption("lint",false);
 		cm.Editor.editor.setOption("lint",true);
+	} else {
+		core.OutlinePanel.clearFields();
+		core.OutlinePanel.update();
 	}
 };
 core.FunctionScopeType = $hxClasses["core.FunctionScopeType"] = { __ename__ : ["core","FunctionScopeType"], __constructs__ : ["SClass","SStatic","SRegular"] };
@@ -2507,8 +2305,6 @@ core.FunctionScopeType.SRegular.__enum__ = core.FunctionScopeType;
 core.HaxeParserProvider = function() { };
 $hxClasses["core.HaxeParserProvider"] = core.HaxeParserProvider;
 core.HaxeParserProvider.__name__ = ["core","HaxeParserProvider"];
-core.HaxeParserProvider.test = function() {
-};
 core.HaxeParserProvider.processClass = function(type,pos) {
 	var found = false;
 	core.HaxeParserProvider.currentClass = type.name;
@@ -2767,7 +2563,7 @@ core.HaxeParserProvider.getClassName = function() {
 				}
 			}
 		} catch( e ) { if( e != "__break__" ) throw e; }
-	} else haxe.Log.trace("ast is null",{ fileName : "HaxeParserProvider.hx", lineNumber : 236, className : "core.HaxeParserProvider", methodName : "getClassName"});
+	} else console.log("ast is null");
 };
 core.HaxeParserProvider.parse = function(data,path) {
 	var input = byte.js._ByteData.ByteData_Impl_.ofString(data);
@@ -2780,19 +2576,17 @@ core.HaxeParserProvider.parse = function(data,path) {
 	} catch( $e0 ) {
 		if( js.Boot.__instanceof($e0,hxparse.NoMatch) ) {
 			var e = $e0;
-			haxe.Log.trace(e,{ fileName : "HaxeParserProvider.hx", lineNumber : 257, className : "core.HaxeParserProvider", methodName : "parse"});
 			var pos = e.pos.getLinePosition(input);
 			var info = { from : { line : pos.lineMin - 1, ch : pos.posMin}, to : { line : pos.lineMax - 1, ch : pos.posMax}, message : "Parser error:\nUnexpected " + Std.string(e.token.tok), severity : "warning"};
 			data1.push(info);
 		} else if( js.Boot.__instanceof($e0,hxparse.Unexpected) ) {
 			var e1 = $e0;
-			haxe.Log.trace(e1,{ fileName : "HaxeParserProvider.hx", lineNumber : 267, className : "core.HaxeParserProvider", methodName : "parse"});
 			var pos1 = e1.pos.getLinePosition(input);
 			var info1 = { from : { line : pos1.lineMin - 1, ch : pos1.posMin}, to : { line : pos1.lineMax - 1, ch : pos1.posMax}, message : "Parser error:\nUnexpected " + Std.string(e1.token.tok), severity : "warning"};
 			data1.push(info1);
 		} else {
 		var e2 = $e0;
-		if(Object.prototype.hasOwnProperty.call(e2,"pos")) {
+		if(e2 != null && e2.pos) {
 			var cm1 = cm.Editor.editor;
 			var message = "Parser error:\n";
 			{
@@ -2827,96 +2621,11 @@ core.HaxeParserProvider.processImport = function(path,mode,currentPosition) {
 	while(_g1 < _g) {
 		var i = _g1++;
 		if(currentPosition > path[i].pos.min && currentPosition < path[i].pos.max) {
-			haxe.Log.trace(path[i].pack,{ fileName : "HaxeParserProvider.hx", lineNumber : 311, className : "core.HaxeParserProvider", methodName : "processImport"});
 			found = true;
 			break;
 		}
 	}
 	return found;
-};
-core.HaxeParserProvider.printImport = function(path,mode) {
-	var fullPackage = "";
-	var _g1 = 0;
-	var _g = path.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		fullPackage += path[i].pack;
-		if(i != path.length - 1) fullPackage += ".";
-	}
-	haxe.Log.trace(fullPackage,{ fileName : "HaxeParserProvider.hx", lineNumber : 337, className : "core.HaxeParserProvider", methodName : "printImport"});
-};
-core.HaxeParserProvider.printClass = function(type) {
-	haxe.Log.trace(type.name,{ fileName : "HaxeParserProvider.hx", lineNumber : 342, className : "core.HaxeParserProvider", methodName : "printClass"});
-	var publicFunctions = [];
-	var publicStaticFunctions = [];
-	var _g = 0;
-	while(_g < publicStaticFunctions.length) {
-		var publicStaticFunction = publicStaticFunctions[_g];
-		++_g;
-		var info = publicStaticFunction.name;
-		{
-			var _g1 = publicStaticFunction.kind;
-			switch(_g1[1]) {
-			case 1:
-				var f = _g1[2];
-				haxe.Log.trace(f.expr,{ fileName : "HaxeParserProvider.hx", lineNumber : 374, className : "core.HaxeParserProvider", methodName : "printClass"});
-				haxe.Log.trace(f.params,{ fileName : "HaxeParserProvider.hx", lineNumber : 375, className : "core.HaxeParserProvider", methodName : "printClass"});
-				info += "(";
-				var _g3 = 0;
-				var _g2 = f.args.length;
-				while(_g3 < _g2) {
-					var i = _g3++;
-					info += f.args[i].name;
-					{
-						var _g4 = f.args[i].type;
-						switch(_g4[1]) {
-						case 0:
-							var p = _g4[2];
-							info += ":" + p.name;
-							if(i != f.args.length - 1) info += ", ";
-							break;
-						case 3:
-							var t = _g4[2];
-							haxe.Log.trace(t,{ fileName : "HaxeParserProvider.hx", lineNumber : 393, className : "core.HaxeParserProvider", methodName : "printClass"});
-							break;
-						case 5:
-							var t1 = _g4[2];
-							haxe.Log.trace(t1,{ fileName : "HaxeParserProvider.hx", lineNumber : 395, className : "core.HaxeParserProvider", methodName : "printClass"});
-							break;
-						case 1:
-							var ret = _g4[3];
-							var args = _g4[2];
-							haxe.Log.trace(args,{ fileName : "HaxeParserProvider.hx", lineNumber : 397, className : "core.HaxeParserProvider", methodName : "printClass"});
-							haxe.Log.trace(ret,{ fileName : "HaxeParserProvider.hx", lineNumber : 398, className : "core.HaxeParserProvider", methodName : "printClass"});
-							break;
-						case 4:
-							var fields = _g4[3];
-							var p1 = _g4[2];
-							haxe.Log.trace(p1,{ fileName : "HaxeParserProvider.hx", lineNumber : 400, className : "core.HaxeParserProvider", methodName : "printClass", customParams : [fields]});
-							break;
-						case 2:
-							var fields1 = _g4[2];
-							haxe.Log.trace(fields1,{ fileName : "HaxeParserProvider.hx", lineNumber : 402, className : "core.HaxeParserProvider", methodName : "printClass"});
-							break;
-						}
-					}
-				}
-				info += ")";
-				break;
-			case 0:
-				var e = _g1[3];
-				var t2 = _g1[2];
-				break;
-			case 2:
-				var e1 = _g1[5];
-				var t3 = _g1[4];
-				var set = _g1[3];
-				var get = _g1[2];
-				break;
-			}
-		}
-		haxe.Log.trace(info,{ fileName : "HaxeParserProvider.hx", lineNumber : 413, className : "core.HaxeParserProvider", methodName : "printClass"});
-	}
 };
 core.HaxeServer = function() { };
 $hxClasses["core.HaxeServer"] = core.HaxeServer;
@@ -2924,17 +2633,17 @@ core.HaxeServer.__name__ = ["core","HaxeServer"];
 core.HaxeServer.check = function() {
 	var socket = js.Node.require("net").connect(5000,"localhost");
 	socket.on("error",function(e) {
-		haxe.Log.trace("Haxe server is not found at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 24, className : "core.HaxeServer", methodName : "check"});
+		console.log("Haxe server is not found at localhost:5000");
 	});
 	socket.on("close",function(e1) {
 		if(e1) core.HaxeServer.start();
 	});
 };
 core.HaxeServer.start = function() {
-	haxe.Log.trace("Starting new Haxe server at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 39, className : "core.HaxeServer", methodName : "start"});
+	console.log("Starting new Haxe server at localhost:5000");
 	core.HaxeServer.haxeServer = core.ProcessHelper.runPersistentProcess("haxe",["--wait","5000"],function(code,stdout,stderr) {
-		haxe.Log.trace(stdout,{ fileName : "HaxeServer.hx", lineNumber : 43, className : "core.HaxeServer", methodName : "start"});
-		haxe.Log.trace(stderr,{ fileName : "HaxeServer.hx", lineNumber : 44, className : "core.HaxeServer", methodName : "start"});
+		console.log(stdout);
+		console.log(stderr);
 	});
 	var $window = nodejs.webkit.Window.get();
 	$window.on("close",function(e) {
@@ -3006,9 +2715,6 @@ core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
 		});
 	}
 };
-core.Hotkeys.getHotkeyCommandCallback = function(menuItem) {
-	return core.Hotkeys.commandMap.get(menuItem);
-};
 core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 	if(hotkeyText == null) hotkeyText = "";
 	if(Object.prototype.hasOwnProperty.call(core.Hotkeys.data,menuItem)) hotkeyText = Reflect.field(core.Hotkeys.data,menuItem); else {
@@ -3037,9 +2743,6 @@ core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 			core.Hotkeys.hotkeys.push(hotkey);
 		}
 	}
-};
-core.Hotkeys.isHotkeyEvent = function(hotkey,e) {
-	return hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
 };
 core.Hotkeys.parseData = function() {
 	var options = { };
@@ -3134,10 +2837,10 @@ core.ImportDefinition.searchImport = function(data,path) {
 	var ast = parser.ClassParser.parse(data,path);
 	if(ast != null) {
 		var parsedData = parser.OutlineHelper.parseDeclarations(ast);
-		haxe.Log.trace(parsedData,{ fileName : "ImportDefinition.hx", lineNumber : 19, className : "core.ImportDefinition", methodName : "searchImport"});
+		console.log(parsedData);
 	}
 };
-core.LineWidget = function(type,name,parameters,retType,description,currentParameter,lineNumber) {
+core.LineWidget = function(type,name,parameters,retType,description,currentParameter,pos) {
 	var _this = window.document;
 	this.element = _this.createElement("div");
 	this.element.className = "lint-error";
@@ -3189,7 +2892,7 @@ core.LineWidget = function(type,name,parameters,retType,description,currentParam
 		spanDescription.textContent = description;
 		this.element.appendChild(spanDescription);
 	}
-	this.widget = cm.Editor.editor.addLineWidget(lineNumber,this.element,{ coverGutter : false, noHScroll : true});
+	this.widget = cm.Editor.editor.addLineWidget(pos.line,this.element,{ coverGutter : false, noHScroll : true});
 };
 $hxClasses["core.LineWidget"] = core.LineWidget;
 core.LineWidget.__name__ = ["core","LineWidget"];
@@ -3207,9 +2910,6 @@ core.LineWidget.prototype = {
 	}
 	,getWidget: function() {
 		return this.widget;
-	}
-	,getElement: function() {
-		return this.element;
 	}
 	,__class__: core.LineWidget
 };
@@ -3493,7 +3193,7 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 	textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
 	if(StringTools.trim(stdout) != "") {
 		textarea.value += "stdout:\n" + stdout;
-		haxe.Log.trace("stdout:\n" + stdout,{ fileName : "ProcessHelper.hx", lineNumber : 89, className : "core.ProcessHelper", methodName : "processOutput"});
+		console.log("stdout:\n" + stdout);
 	}
 	core.HaxeLint.fileData = new haxe.ds.StringMap();
 	var switchToResultsTab = false;
@@ -3566,7 +3266,7 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 			}
 		}
 		textarea.value += "stderr:\n" + stderr;
-		haxe.Log.trace("stderr:\n" + stderr,{ fileName : "ProcessHelper.hx", lineNumber : 207, className : "core.ProcessHelper", methodName : "processOutput"});
+		console.log("stderr:\n" + stderr);
 	}
 	if(code == 0) {
 		Alertify.success("Build complete!");
@@ -3605,21 +3305,26 @@ core.ProcessHelper.runPersistentProcess = function(process,params,onClose,redire
 		}
 	});
 	process1.on("error",function(e) {
-		haxe.Log.trace(e,{ fileName : "ProcessHelper.hx", lineNumber : 282, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
+		console.log(e);
 	});
 	process1.on("close",function(code) {
-		haxe.Log.trace(core.ProcessHelper.processStdout,{ fileName : "ProcessHelper.hx", lineNumber : 288, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
-		haxe.Log.trace(core.ProcessHelper.processStderr,{ fileName : "ProcessHelper.hx", lineNumber : 289, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
+		console.log(core.ProcessHelper.processStdout);
+		console.log(core.ProcessHelper.processStderr);
 		if(onClose != null) onClose(code,core.ProcessHelper.processStdout,core.ProcessHelper.processStderr);
 		if(code != 0) process1 = null;
-		haxe.Log.trace("started process quit with exit code " + code,{ fileName : "ProcessHelper.hx", lineNumber : 301, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
+		console.log("started process quit with exit code " + code);
 	});
 	return process1;
 };
 core.ProcessHelper.checkProcessInstalled = function(process,params,onComplete) {
 	var installed;
 	js.Node.require("child_process").exec(core.ProcessHelper.processParamsToCommand(process,params),{ },function(error,stdout,stderr) {
-		if(error == null) installed = true; else installed = false;
+		if(error == null) installed = true; else {
+			console.log(error);
+			console.log(stdout);
+			console.log(stderr);
+			installed = false;
+		}
 		onComplete(installed);
 	});
 };
@@ -3638,12 +3343,12 @@ core.RecentProjectsList.load = function() {
 		if(recentProjectsData != null) try {
 			core.RecentProjectsList.projectList = tjson.TJSON.parse(recentProjectsData);
 		} catch( unknown ) {
-			haxe.Log.trace(unknown,{ fileName : "RecentProjectsList.hx", lineNumber : 40, className : "core.RecentProjectsList", methodName : "load"});
+			console.log(unknown);
 		}
 		if(recentFilesData1 != null) try {
 			core.RecentProjectsList.fileList = tjson.TJSON.parse(recentFilesData1);
 		} catch( unknown1 ) {
-			haxe.Log.trace(unknown1,{ fileName : "RecentProjectsList.hx", lineNumber : 52, className : "core.RecentProjectsList", methodName : "load"});
+			console.log(unknown1);
 		}
 	}
 	nodejs.webkit.Window.get().on("close",function() {
@@ -3828,9 +3533,9 @@ core.RunProject.killRunningProcessAndRunNew = function(process,params) {
 	return core.ProcessHelper.runPersistentProcess(process,params,null,true);
 };
 core.RunProject.killRunProcess = function() {
-	haxe.Log.trace(core.RunProject.runProcess,{ fileName : "RunProject.hx", lineNumber : 161, className : "core.RunProject", methodName : "killRunProcess"});
+	console.log(core.RunProject.runProcess);
 	if(core.RunProject.runProcess != null) {
-		haxe.Log.trace("kill",{ fileName : "RunProject.hx", lineNumber : 165, className : "core.RunProject", methodName : "killRunProcess"});
+		console.log("kill");
 		core.RunProject.runProcess.kill();
 	}
 };
@@ -3880,7 +3585,7 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 					if(err == null) {
 						hxmlData = data;
 						build.Hxml.checkHxml(dirname,filename,hxmlData,onComplete);
-					} else haxe.Log.trace(err,{ fileName : "RunProject.hx", lineNumber : 252, className : "core.RunProject", methodName : "buildSpecifiedProject"});
+					} else console.log(err);
 				});
 			} else {
 				hxmlData = cm.Editor.editor.getValue();
@@ -3937,9 +3642,6 @@ core.Splitter.hide = function() {
 	new $("#annotationRuler").fadeOut(250);
 	if(tabmanager.TabManager.tabMap != null && tabmanager.TabManager.tabMap.getTabs().length == 0) core.WelcomeScreen.show();
 };
-core.Splitter.isVisible = function() {
-	return core.Splitter.visible;
-};
 core.WelcomeScreen = function() { };
 $hxClasses["core.WelcomeScreen"] = core.WelcomeScreen;
 core.WelcomeScreen.__name__ = ["core","WelcomeScreen"];
@@ -3980,21 +3682,6 @@ core.WelcomeScreen.load = function() {
 	new $("#as3boyan").on("click",null,function() {
 		return nodejs.webkit.Shell.openExternal("http://twitter.com/As3Boyan");
 	});
-};
-core.WelcomeScreen.createListElement = function(text,onClick) {
-	var li;
-	var _this = window.document;
-	li = _this.createElement("li");
-	var a;
-	var _this1 = window.document;
-	a = _this1.createElement("a");
-	a.href = "#";
-	a.textContent = text;
-	a.onclick = function(e) {
-		onClick();
-	};
-	li.appendChild(a);
-	return li;
 };
 core.WelcomeScreen.show = function() {
 	new $(core.WelcomeScreen.div).fadeIn(250);
@@ -4357,11 +4044,8 @@ filetree.FileTree.init = function() {
 	filetree.FileTree.appendToContextMenu("Show Item In Folder",function(selectedItem4) {
 		nodejs.webkit.Shell.showItemInFolder(selectedItem4.value.path);
 	});
-	filetree.FileTree.appendToContextMenu("Open Item",function(selectedItem5) {
-		if(selectedItem5.value.type == "file") tabmanager.TabManager.openFileInNewTab(selectedItem5.value.path); else new $("#filetree").jqxTree("expandItem",selectedItem5.element);
-	});
-	filetree.FileTree.appendToContextMenu("Rename...",function(selectedItem6) {
-		var path2 = selectedItem6.value.path;
+	filetree.FileTree.appendToContextMenu("Rename...",function(selectedItem5) {
+		var path2 = selectedItem5.value.path;
 		Alertify.prompt(watchers.LocaleWatcher.getStringSync("Please enter new name for ") + path2,function(e2,str2) {
 			if(e2) {
 				var currentDirectory = js.Node.require("path").dirname(path2);
@@ -4371,15 +4055,15 @@ filetree.FileTree.init = function() {
 			}
 		},js.Node.require("path").basename(path2));
 	});
-	filetree.FileTree.appendToContextMenu("Delete...",function(selectedItem7) {
-		var path3 = selectedItem7.value.path;
-		var _g = selectedItem7.value.type;
+	filetree.FileTree.appendToContextMenu("Delete...",function(selectedItem6) {
+		var path3 = selectedItem6.value.path;
+		var _g = selectedItem6.value.type;
 		switch(_g) {
 		case "file":
 			Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove file ") + path3 + " ?",function(e3) {
 				if(e3) js.Node.require("fs").unlink(path3,function(error2) {
 					if(error2 == null) {
-						new $("#filetree").jqxTree("removeItem",selectedItem7.element);
+						new $("#filetree").jqxTree("removeItem",selectedItem6.element);
 						filetree.FileTree.attachContextMenu();
 					} else Alertify.error(error2);
 				});
@@ -4389,7 +4073,7 @@ filetree.FileTree.init = function() {
 			Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove folder ") + path3 + " ?",function(e4) {
 				if(e4) js.node.Remove.removeAsync(path3,{ },function(error3) {
 					if(error3 == null) {
-						new $("#filetree").jqxTree("removeItem",selectedItem7.element);
+						new $("#filetree").jqxTree("removeItem",selectedItem6.element);
 						filetree.FileTree.attachContextMenu();
 					} else Alertify.error(error3);
 				});
@@ -4398,7 +4082,7 @@ filetree.FileTree.init = function() {
 		default:
 		}
 	});
-	filetree.FileTree.appendToContextMenu("Toggle Hidden Items Visibility",function(selectedItem8) {
+	filetree.FileTree.appendToContextMenu("Toggle Hidden Items Visibility",function(selectedItem7) {
 		if(projectaccess.ProjectAccess.path != null) {
 			projectaccess.ProjectAccess.currentProject.showHiddenItems = !projectaccess.ProjectAccess.currentProject.showHiddenItems;
 			Alertify.success(watchers.LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess.ProjectAccess.currentProject.showHiddenItems));
@@ -4406,18 +4090,18 @@ filetree.FileTree.init = function() {
 		}
 		filetree.FileTree.load();
 	});
-	filetree.FileTree.appendToContextMenu("Toggle Item Visibility",function(selectedItem9) {
+	filetree.FileTree.appendToContextMenu("Toggle Item Visibility",function(selectedItem8) {
 		if(projectaccess.ProjectAccess.path != null) {
-			var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem9.value.path);
+			var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem8.value.path);
 			if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) == -1) {
 				projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
-				new $("#filetree").jqxTree("removeItem",selectedItem9.element);
+				new $("#filetree").jqxTree("removeItem",selectedItem8.element);
 				filetree.FileTree.attachContextMenu();
 			} else {
 				HxOverrides.remove(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath);
 				filetree.FileTree.load();
 			}
-		} else new $("#filetree").jqxTree("removeItem",selectedItem9.element);
+		} else new $("#filetree").jqxTree("removeItem",selectedItem8.element);
 	});
 	filetree.FileTree.contextMenu = new $("#jqxMenu").jqxMenu({ autoOpenPopup : false, mode : "popup"});
 	filetree.FileTree.attachContextMenu();
@@ -4451,13 +4135,13 @@ filetree.FileTree.init = function() {
 				if(item3.level > 0) path4 = item3.label + "/" + path4;
 			});
 			var topDirectory = new $("#filetree").jqxTree("getItems")[0].value.path;
-			var selectedItem10 = new $("#filetree").jqxTree("getSelectedItem");
-			var previousPath = selectedItem10.value.path;
-			var newPath = js.Node.require("path").join(topDirectory,path4,selectedItem10.label);
+			var selectedItem9 = new $("#filetree").jqxTree("getSelectedItem");
+			var previousPath = selectedItem9.value.path;
+			var newPath = js.Node.require("path").join(topDirectory,path4,selectedItem9.label);
 			js.node.Mv.move(previousPath,newPath,function(error4) {
 				if(error4 == null) {
 					Alertify.success("File were successfully moved to " + newPath);
-					selectedItem10.value.path = newPath;
+					selectedItem9.value.path = newPath;
 				} else {
 					Alertify.error("Can't move file from " + previousPath + " to " + newPath);
 					filetree.FileTree.load();
@@ -4501,9 +4185,37 @@ filetree.FileTree.isRightClick = function(event) {
 filetree.FileTree.load = function(projectName,path) {
 	if(projectName == null) projectName = filetree.FileTree.lastProjectName;
 	if(path == null) path = filetree.FileTree.lastProjectPath;
+	var filetree1 = new $("#filetree");
+	filetree1.on("expand",function(event) {
+		var label = filetree1.jqxTree("getItem",event.args.element).label;
+		var element2 = new $(event.args.element);
+		var loader = false;
+		var loaderItem = null;
+		var children = element2.find("ul:first").children();
+		$.each(children,function(index,value) {
+			var item = filetree1.jqxTree("getItem",value);
+			if(item != null && item.label == "Loading...") {
+				loaderItem = item;
+				loader = true;
+				return false;
+			}
+		});
+		if(loader) {
+			var items = loaderItem.value;
+			var _g1 = 0;
+			var _g = items.length;
+			while(_g1 < _g) {
+				var i = _g1++;
+				items[i] = filetree.FileTree.prepareForLazyLoading(items[i]);
+			}
+			filetree1.jqxTree("addTo",items,element2[0]);
+			filetree1.jqxTree("removeItem",loaderItem.element);
+		}
+	});
 	filetree.FileTree.readDirItems(path,function(source) {
-		source.expanded = true;
-		new $("#filetree").jqxTree({ source : [source]});
+		var source2 = filetree.FileTree.prepareForLazyLoading(source);
+		source2.expanded = true;
+		new $("#filetree").jqxTree({ source : [source2]});
 		filetree.FileTree.attachContextMenu();
 	},true);
 	if(filetree.FileTree.watcher != null) {
@@ -4513,18 +4225,17 @@ filetree.FileTree.load = function(projectName,path) {
 	var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
 		switch(changeType) {
 		case "create":case "delete":
-			haxe.Log.trace(changeType,{ fileName : "FileTree.hx", lineNumber : 423, className : "filetree.FileTree", methodName : "load"});
-			haxe.Log.trace(filePath,{ fileName : "FileTree.hx", lineNumber : 424, className : "filetree.FileTree", methodName : "load"});
-			filetree.FileTree.load();
+			console.log(changeType);
+			console.log(filePath);
 			js.Node.require("fs").stat(filePath,function(error,stat) {
 				if(error == null) {
 					if(stat.isFile()) {
 						if(changeType == "create") parser.ClasspathWalker.addFile(filePath); else parser.ClasspathWalker.removeFile(filePath);
 					} else if(stat.isDirectory()) {
-						haxe.Log.trace(changeType,{ fileName : "FileTree.hx", lineNumber : 444, className : "filetree.FileTree", methodName : "load"});
-						haxe.Log.trace(filePath,{ fileName : "FileTree.hx", lineNumber : 445, className : "filetree.FileTree", methodName : "load"});
+						console.log(changeType);
+						console.log(filePath);
 					}
-				} else haxe.Log.trace(error,{ fileName : "FileTree.hx", lineNumber : 451, className : "filetree.FileTree", methodName : "load"});
+				} else console.log(error);
 			});
 			break;
 		default:
@@ -4537,36 +4248,74 @@ filetree.FileTree.load = function(projectName,path) {
 };
 filetree.FileTree.readDirItems = function(path,onComplete,root) {
 	if(root == null) root = false;
-	var items = [];
-	var files = [];
 	var options = { };
-	options.no_recurse = true;
-	var emitter = Walkdir.walk(path,options);
-	emitter.on("file",function(pathToFile,stat) {
-		if(!watchers.SettingsWatcher.isItemInIgnoreList(pathToFile) && !projectaccess.ProjectAccess.isItemInIgnoreList(pathToFile)) files.push(filetree.FileTree.createFileItem(pathToFile));
-	});
-	var folders = 0;
-	var end = false;
-	emitter.on("directory",function(pathToDirectory,stat1) {
-		if(!watchers.SettingsWatcher.isItemInIgnoreList(pathToDirectory) && !projectaccess.ProjectAccess.isItemInIgnoreList(pathToDirectory)) {
-			folders++;
-			filetree.FileTree.readDirItems(pathToDirectory,function(source) {
-				folders--;
-				items.push(source);
-				if(folders == 0) {
-					items = items.concat(files);
-					onComplete({ label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}, icon : "includes/images/folder.png"});
-				}
-			});
+	var source = filetree.FileTree.createFolderItem(path,[]);
+	source.expanded = true;
+	var pathToFolders = [];
+	var pathToFiles = [];
+	var _g = 0;
+	var _g1 = Walkdir.walkSync(path,options);
+	while(_g < _g1.length) {
+		var pathToItem = _g1[_g];
+		++_g;
+		var stat = js.Node.require("fs").statSync(pathToItem);
+		if(stat.isDirectory()) pathToFolders.push(pathToItem); else if(stat.isFile()) pathToFiles.push(pathToItem);
+	}
+	var type = null;
+	type = "folder";
+	var _g2 = 0;
+	while(_g2 < pathToFolders.length) {
+		var pathToItem1 = pathToFolders[_g2];
+		++_g2;
+		var relativePath = HxOverrides.substr(pathToItem1,projectaccess.ProjectAccess.path.length,null);
+		var data = relativePath.split("/");
+		var pathToFolder = projectaccess.ProjectAccess.path;
+		if(data[0] == "") {
+			data.shift();
+			pathToFolder += "/";
 		}
-	});
-	emitter.on("end",function() {
-		end = true;
-		if(folders == 0) {
-			items = items.concat(files);
-			onComplete({ label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}, icon : "includes/images/folder.png"});
+		filetree.FileTree.readDir(pathToFolder,source.items,data,type);
+	}
+	type = "file";
+	var _g3 = 0;
+	while(_g3 < pathToFiles.length) {
+		var pathToItem2 = pathToFiles[_g3];
+		++_g3;
+		var relativePath1 = HxOverrides.substr(pathToItem2,projectaccess.ProjectAccess.path.length,null);
+		var data1 = relativePath1.split("/");
+		var pathToFolder1 = projectaccess.ProjectAccess.path;
+		if(data1[0] == "") {
+			data1.shift();
+			pathToFolder1 += "/";
 		}
-	});
+		filetree.FileTree.readDir(pathToFolder1,source.items,data1,type);
+	}
+	onComplete(source);
+};
+filetree.FileTree.readDir = function(pathToFolder,items,data,type) {
+	var folder = data.shift();
+	pathToFolder = js.Node.require("path").join(pathToFolder,folder);
+	if(!watchers.SettingsWatcher.isItemInIgnoreList(pathToFolder) && !projectaccess.ProjectAccess.isItemInIgnoreList(pathToFolder)) {
+		var foundItem = null;
+		var itemType = type;
+		var _g = 0;
+		while(_g < items.length) {
+			var item = items[_g];
+			++_g;
+			if(item.value != null && item.value.path == pathToFolder) {
+				foundItem = item;
+				break;
+			}
+		}
+		if(foundItem == null) {
+			if(type == "file" && data.length > 0) itemType = "folder";
+			var item1 = null;
+			if(itemType == "folder") item1 = filetree.FileTree.createFolderItem(pathToFolder,[]); else if(itemType == "file") item1 = filetree.FileTree.createFileItem(pathToFolder);
+			items.push(item1);
+			foundItem = item1;
+		}
+		if(data.length > 0) filetree.FileTree.readDir(pathToFolder,foundItem.items,data,type);
+	}
 };
 filetree.FileTree.createFileItem = function(path) {
 	var basename = js.Node.require("path").basename(path);
@@ -4589,20 +4338,38 @@ filetree.FileTree.createFileItem = function(path) {
 	}
 	return data;
 };
+filetree.FileTree.createFolderItem = function(path,items) {
+	return { label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}, icon : "includes/images/folder.png"};
+};
+filetree.FileTree.prepareForLazyLoading = function(source) {
+	var source2 = source;
+	if(source.items != null) {
+		source2 = { label : source.label};
+		source2.icon = source.icon;
+		source2.value = source.value;
+		source2.items = [];
+		var _g = 0;
+		var _g1 = source.items;
+		while(_g < _g1.length) {
+			var item = _g1[_g];
+			++_g;
+			var newItem = { label : item.label};
+			newItem.icon = item.icon;
+			newItem.value = item.value;
+			if(item.items != null && item.items.length > 0) {
+				newItem.items = [];
+				newItem.items.push({ label : "Loading...", value : item.items});
+			}
+			source2.items.push(newItem);
+		}
+	}
+	return source2;
+};
 haxe.Json = function() { };
 $hxClasses["haxe.Json"] = haxe.Json;
 haxe.Json.__name__ = ["haxe","Json"];
-haxe.Json.stringify = function(obj,replacer,insertion) {
-	return JSON.stringify(obj,replacer,insertion);
-};
 haxe.Json.parse = function(jsonString) {
 	return JSON.parse(jsonString);
-};
-haxe.Log = function() { };
-$hxClasses["haxe.Log"] = haxe.Log;
-haxe.Log.__name__ = ["haxe","Log"];
-haxe.Log.trace = function(v,infos) {
-	js.Boot.__trace(v,infos);
 };
 haxe.Resource = function() { };
 $hxClasses["haxe.Resource"] = haxe.Resource;
@@ -5210,9 +4977,6 @@ haxe.io.Bytes.ofString = function(s) {
 	var nb = new Buffer(s,"utf8");
 	return new haxe.io.Bytes(nb.length,nb);
 };
-haxe.io.Bytes.ofData = function(b) {
-	return new haxe.io.Bytes(b.length,b);
-};
 haxe.io.Bytes.prototype = {
 	length: null
 	,b: null
@@ -5221,29 +4985,6 @@ haxe.io.Bytes.prototype = {
 	}
 	,set: function(pos,v) {
 		this.b[pos] = v;
-	}
-	,blit: function(pos,src,srcpos,len) {
-		if(pos < 0 || srcpos < 0 || len < 0 || pos + len > this.length || srcpos + len > src.length) throw haxe.io.Error.OutsideBounds;
-		src.b.copy(this.b,pos,srcpos,srcpos + len);
-	}
-	,sub: function(pos,len) {
-		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
-		var nb = new Buffer(len);
-		var slice = this.b.slice(pos,pos + len);
-		slice.copy(nb,0,0,len);
-		return new haxe.io.Bytes(len,nb);
-	}
-	,compare: function(other) {
-		var b1 = this.b;
-		var b2 = other.b;
-		var len;
-		if(this.length < other.length) len = this.length; else len = other.length;
-		var _g = 0;
-		while(_g < len) {
-			var i = _g++;
-			if(b1[i] != b2[i]) return b1[i] - b2[i];
-		}
-		return this.length - other.length;
 	}
 	,readString: function(pos,len) {
 		if(pos < 0 || len < 0 || pos + len > this.length) throw haxe.io.Error.OutsideBounds;
@@ -5270,29 +5011,6 @@ haxe.io.Bytes.prototype = {
 	}
 	,toString: function() {
 		return this.readString(0,this.length);
-	}
-	,toHex: function() {
-		var s = new StringBuf();
-		var chars = [];
-		var str = "0123456789abcdef";
-		var _g1 = 0;
-		var _g = str.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			chars.push(HxOverrides.cca(str,i));
-		}
-		var _g11 = 0;
-		var _g2 = this.length;
-		while(_g11 < _g2) {
-			var i1 = _g11++;
-			var c = this.b[i1];
-			s.b += String.fromCharCode(chars[c >> 4]);
-			s.b += String.fromCharCode(chars[c & 15]);
-		}
-		return s.b;
-	}
-	,getData: function() {
-		return this.b;
 	}
 	,__class__: haxe.io.Bytes
 };
@@ -6568,85 +6286,6 @@ haxeparser.TokenDef.At.__enum__ = haxeparser.TokenDef;
 haxeparser.TokenDef.Eof = ["Eof",22];
 haxeparser.TokenDef.Eof.toString = $estr;
 haxeparser.TokenDef.Eof.__enum__ = haxeparser.TokenDef;
-haxeparser.TokenDefPrinter = function() { };
-$hxClasses["haxeparser.TokenDefPrinter"] = haxeparser.TokenDefPrinter;
-haxeparser.TokenDefPrinter.__name__ = ["haxeparser","TokenDefPrinter"];
-haxeparser.TokenDefPrinter.print = function(def) {
-	switch(def[1]) {
-	case 0:
-		var k = def[2];
-		return HxOverrides.substr(k[0],3,null).toLowerCase();
-	case 1:
-		switch(def[2][1]) {
-		case 0:
-			var s = def[2][2];
-			return s;
-		case 1:
-			var s = def[2][2];
-			return s;
-		case 3:
-			var s = def[2][2];
-			return s;
-		case 2:
-			var s1 = def[2][2];
-			return "\"" + s1 + "\"";
-		case 4:
-			var opt = def[2][3];
-			var r = def[2][2];
-			return "~/" + r + "/" + opt;
-		}
-		break;
-	case 2:
-		var s2 = def[2];
-		return "#" + s2;
-	case 3:
-		var s3 = def[2];
-		return "$" + s3;
-	case 4:
-		var op = def[2];
-		return new haxe.macro.Printer("").printUnop(op);
-	case 5:
-		var op1 = def[2];
-		return new haxe.macro.Printer("").printBinop(op1);
-	case 6:
-		var s4 = def[2];
-		return "/*" + s4 + "/*";
-	case 7:
-		var s5 = def[2];
-		return "//" + s5;
-	case 8:
-		var s6 = def[2];
-		return "" + s6 + "...";
-	case 9:
-		return ";";
-	case 10:
-		return ".";
-	case 11:
-		return ":";
-	case 12:
-		return "->";
-	case 13:
-		return ",";
-	case 14:
-		return "[";
-	case 15:
-		return "]";
-	case 16:
-		return "{";
-	case 17:
-		return "}";
-	case 18:
-		return "(";
-	case 19:
-		return ")";
-	case 20:
-		return "?";
-	case 21:
-		return "@";
-	case 22:
-		return "<eof>";
-	}
-};
 haxeparser.Token = function(tok,pos) {
 	this.tok = tok;
 	this.pos = pos;
@@ -6656,9 +6295,6 @@ haxeparser.Token.__name__ = ["haxeparser","Token"];
 haxeparser.Token.prototype = {
 	tok: null
 	,pos: null
-	,toString: function() {
-		return haxeparser.TokenDefPrinter.print(this.tok);
-	}
 	,__class__: haxeparser.Token
 };
 haxeparser.TypeDef = $hxClasses["haxeparser.TypeDef"] = { __ename__ : ["haxeparser","TypeDef"], __constructs__ : ["EClass","EEnum","EAbstract","EImport","ETypedef","EUsing"] };
@@ -6730,11 +6366,11 @@ hxparse.Lexer = function(input,sourceName) {
 	this.input = input;
 	this.source = sourceName;
 	this.pos = 0;
-	this.eof = false;
 };
 $hxClasses["hxparse.Lexer"] = hxparse.Lexer;
 hxparse.Lexer.__name__ = ["hxparse","Lexer"];
-hxparse.Lexer.buildRuleset = function(rules) {
+hxparse.Lexer.buildRuleset = function(rules,name) {
+	if(name == null) name = "";
 	var cases = [];
 	var functions = [];
 	var eofFunction = null;
@@ -6747,19 +6383,18 @@ hxparse.Lexer.buildRuleset = function(rules) {
 			functions.push(rule.func);
 		}
 	}
-	return new hxparse.Ruleset(new hxparse.LexEngine(cases).firstState(),functions,eofFunction);
+	return new hxparse.Ruleset(new hxparse.LexEngine(cases).firstState(),functions,eofFunction,name);
 };
 hxparse.Lexer.prototype = {
 	current: null
 	,input: null
 	,source: null
 	,pos: null
-	,eof: null
 	,curPos: function() {
 		return new hxparse.Position(this.source,this.pos - this.current.length,this.pos);
 	}
 	,token: function(ruleset) {
-		if(this.eof) {
+		if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) {
 			if(ruleset.eofFunction != null) return ruleset.eofFunction(this); else throw new haxe.io.Eof();
 		}
 		var state = ruleset.state;
@@ -6771,10 +6406,7 @@ hxparse.Lexer.prototype = {
 				lastMatch = state;
 				lastMatchPos = this.pos;
 			}
-			if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) {
-				this.eof = true;
-				break;
-			}
+			if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) break;
 			var i = this.input[this.pos];
 			this.pos++;
 			state = state.trans[i];
@@ -6811,11 +6443,8 @@ hxparse.LexEngine = function(patterns) {
 };
 $hxClasses["hxparse.LexEngine"] = hxparse.LexEngine;
 hxparse.LexEngine.__name__ = ["hxparse","LexEngine"];
-hxparse.LexEngine.single = function(c) {
-	return [{ min : c, max : c}];
-};
 hxparse.LexEngine.parse = function(pattern) {
-	var p = hxparse.LexEngine.parseInner(pattern);
+	var p = hxparse.LexEngine.parseInner(byte.js._ByteData.ByteData_Impl_.ofString(pattern));
 	if(p == null) throw "Invalid pattern '" + pattern + "'";
 	return p.pattern;
 };
@@ -6916,9 +6545,12 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 	if(pDepth == null) pDepth = 0;
 	if(i == null) i = 0;
 	var r = hxparse._LexEngine.Pattern.Empty;
-	var l = pattern.length;
+	var l = byte.js._ByteData.ByteData_Impl_.get_length(pattern);
 	while(i < l) {
-		var c = StringTools.fastCodeAt(pattern,i++);
+		var c;
+		var pos = i++;
+		c = pattern[pos];
+		if(c > 255) throw c;
 		switch(c) {
 		case 43:
 			if(r != hxparse._LexEngine.Pattern.Empty) r = hxparse.LexEngine.plus(r); else r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
@@ -6946,13 +6578,15 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 		case 41:
 			return { pattern : hxparse._LexEngine.Pattern.Group(r), pos : i};
 		case 91:
-			if(pattern.length > 1) {
+			if(byte.js._ByteData.ByteData_Impl_.get_length(pattern) > 1) {
 				var range = 0;
 				var acc = [];
-				var not = pattern.charCodeAt(i) == 94;
+				var not = pattern[i] == 94;
 				if(not) i++;
 				while(true) {
-					var c1 = StringTools.fastCodeAt(pattern,i++);
+					var c1;
+					var pos1 = i++;
+					c1 = pattern[pos1];
 					if(c1 == 93) {
 						if(range != 0) return null;
 						break;
@@ -6964,7 +6598,10 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 							range = last.min;
 						}
 					} else {
-						if(c1 == 92) c1 = StringTools.fastCodeAt(pattern,i++);
+						if(c1 == 92) {
+							var pos2 = i++;
+							c1 = pattern[pos2];
+						}
 						if(range == 0) acc.push({ min : c1, max : c1}); else {
 							acc.push({ min : range, max : c1});
 							range = 0;
@@ -6983,11 +6620,12 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 			} else r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
 			break;
 		case 92:
-			c = StringTools.fastCodeAt(pattern,i++);
+			var pos3 = i++;
+			c = pattern[pos3];
 			if(c != c) c = 92; else if(c >= 48 && c <= 57) {
 				var v = c - 48;
 				while(true) {
-					var cNext = pattern.charCodeAt(i);
+					var cNext = pattern[i];
 					if(cNext >= 48 && cNext <= 57) {
 						v = v * 10 + (cNext - 48);
 						++i;
@@ -7001,7 +6639,7 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 			r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
 		}
 	}
-	if(pDepth != 0) throw "Found unclosed parenthesis while parsing \"" + pattern + "\"";
+	if(pDepth != 0) throw "Found unclosed parenthesis while parsing \"" + Std.string(pattern) + "\"";
 	return { pattern : r, pos : i};
 };
 hxparse.LexEngine.prototype = {
@@ -7167,9 +6805,6 @@ hxparse.LexEngine.prototype = {
 		}
 		return nodes;
 	}
-	,node: function(pid) {
-		return new hxparse._LexEngine.Node(this.uid++,pid);
-	}
 	,initNode: function(p,$final,pid) {
 		switch(p[1]) {
 		case 0:
@@ -7222,106 +6857,10 @@ hxparse._LexEngine.Pattern.Plus = function(p) { var $x = ["Plus",3,p]; $x.__enum
 hxparse._LexEngine.Pattern.Next = function(p1,p2) { var $x = ["Next",4,p1,p2]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
 hxparse._LexEngine.Pattern.Choice = function(p1,p2) { var $x = ["Choice",5,p1,p2]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
 hxparse._LexEngine.Pattern.Group = function(p) { var $x = ["Group",6,p]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
-hxparse._LexEngine.Node = function(id,pid) {
-	this.id = id;
-	this.pid = pid;
-	this.trans = [];
-	this.epsilon = [];
-};
-$hxClasses["hxparse._LexEngine.Node"] = hxparse._LexEngine.Node;
-hxparse._LexEngine.Node.__name__ = ["hxparse","_LexEngine","Node"];
-hxparse._LexEngine.Node.prototype = {
-	id: null
-	,pid: null
-	,trans: null
-	,epsilon: null
-	,__class__: hxparse._LexEngine.Node
-};
-hxparse.Ruleset = function(state,functions,eofFunction) {
-	this.state = state;
-	this.functions = functions;
-	this.eofFunction = eofFunction;
-};
-$hxClasses["hxparse.Ruleset"] = hxparse.Ruleset;
-hxparse.Ruleset.__name__ = ["hxparse","Ruleset"];
-hxparse.Ruleset.prototype = {
-	state: null
-	,functions: null
-	,eofFunction: null
-	,__class__: hxparse.Ruleset
-};
-hxparse.Position = function(source,min,max) {
-	this.psource = source;
-	this.pmin = min;
-	this.pmax = max;
-};
-$hxClasses["hxparse.Position"] = hxparse.Position;
-hxparse.Position.__name__ = ["hxparse","Position"];
-hxparse.Position.union = function(p1,p2) {
-	return new hxparse.Position(p1.psource,p1.pmin < p2.pmin?p1.pmin:p2.pmin,p1.pmax > p2.pmax?p1.pmax:p2.pmax);
-};
-hxparse.Position.prototype = {
-	psource: null
-	,pmin: null
-	,pmax: null
-	,toString: function() {
-		return "" + this.psource + ":characters " + this.pmin + "-" + this.pmax;
-	}
-	,getLinePosition: function(input) {
-		var lineMin = 1;
-		var lineMax = 1;
-		var posMin = 0;
-		var posMax = 0;
-		var cur = 0;
-		while(cur < this.pmin) {
-			if(input[cur] == 10) {
-				lineMin++;
-				posMin = cur;
-			}
-			cur++;
-		}
-		lineMax = lineMin;
-		posMax = posMin;
-		posMin = cur - posMin;
-		while(cur < this.pmax) {
-			if(input[cur] == 10) {
-				lineMax++;
-				posMax = cur;
-			}
-			cur++;
-		}
-		posMax = cur - posMax;
-		return { lineMin : lineMin, lineMax : lineMax, posMin : posMin, posMax : posMax};
-	}
-	,format: function(input) {
-		var linePos = this.getLinePosition(input);
-		if(linePos.lineMin != linePos.lineMax) return "" + this.psource + ":lines " + linePos.lineMin + "-" + linePos.lineMax; else return "" + this.psource + ":line " + linePos.lineMin + ":characters " + linePos.posMin + "-" + linePos.posMax;
-	}
-	,__class__: hxparse.Position
-};
 var js = {};
 js.Boot = function() { };
 $hxClasses["js.Boot"] = js.Boot;
 js.Boot.__name__ = ["js","Boot"];
-js.Boot.__unhtml = function(s) {
-	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
-};
-js.Boot.__trace = function(v,i) {
-	var msg;
-	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
-	msg += js.Boot.__string_rec(v,"");
-	if(i != null && i.customParams != null) {
-		var _g = 0;
-		var _g1 = i.customParams;
-		while(_g < _g1.length) {
-			var v1 = _g1[_g];
-			++_g;
-			msg += "," + js.Boot.__string_rec(v1,"");
-		}
-	}
-	var d;
-	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
-};
 js.Boot.getClass = function(o) {
 	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
 };
@@ -7436,6 +6975,83 @@ js.Boot.__instanceof = function(o,cl) {
 };
 js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
+};
+hxparse._LexEngine.Node = function(id,pid) {
+	this.id = id;
+	this.pid = pid;
+	this.trans = [];
+	this.epsilon = [];
+};
+$hxClasses["hxparse._LexEngine.Node"] = hxparse._LexEngine.Node;
+hxparse._LexEngine.Node.__name__ = ["hxparse","_LexEngine","Node"];
+hxparse._LexEngine.Node.prototype = {
+	id: null
+	,pid: null
+	,trans: null
+	,epsilon: null
+	,__class__: hxparse._LexEngine.Node
+};
+hxparse.Ruleset = function(state,functions,eofFunction,name) {
+	if(name == null) name = "";
+	this.state = state;
+	this.functions = functions;
+	this.eofFunction = eofFunction;
+	this.name = name;
+};
+$hxClasses["hxparse.Ruleset"] = hxparse.Ruleset;
+hxparse.Ruleset.__name__ = ["hxparse","Ruleset"];
+hxparse.Ruleset.prototype = {
+	state: null
+	,functions: null
+	,eofFunction: null
+	,name: null
+	,__class__: hxparse.Ruleset
+};
+hxparse.Position = function(source,min,max) {
+	this.psource = source;
+	this.pmin = min;
+	this.pmax = max;
+};
+$hxClasses["hxparse.Position"] = hxparse.Position;
+hxparse.Position.__name__ = ["hxparse","Position"];
+hxparse.Position.prototype = {
+	psource: null
+	,pmin: null
+	,pmax: null
+	,toString: function() {
+		return "" + this.psource + ":characters " + this.pmin + "-" + this.pmax;
+	}
+	,getLinePosition: function(input) {
+		var lineMin = 1;
+		var lineMax = 1;
+		var posMin = 0;
+		var posMax = 0;
+		var cur = 0;
+		while(cur < this.pmin) {
+			if(input[cur] == 10) {
+				lineMin++;
+				posMin = cur;
+			}
+			cur++;
+		}
+		lineMax = lineMin;
+		posMax = posMin;
+		posMin = cur - posMin;
+		while(cur < this.pmax) {
+			if(input[cur] == 10) {
+				lineMax++;
+				posMax = cur;
+			}
+			cur++;
+		}
+		posMax = cur - posMax;
+		return { lineMin : lineMin, lineMax : lineMax, posMin : posMin, posMax : posMax};
+	}
+	,format: function(input) {
+		var linePos = this.getLinePosition(input);
+		if(linePos.lineMin != linePos.lineMax) return "" + this.psource + ":lines " + linePos.lineMin + "-" + linePos.lineMax; else return "" + this.psource + ":line " + linePos.lineMin + ":characters " + linePos.posMin + "-" + linePos.posMax;
+	}
+	,__class__: hxparse.Position
 };
 haxeparser.HaxeLexer = function(input,sourceName) {
 	hxparse.Lexer.call(this,input,sourceName);
@@ -7564,24 +7180,6 @@ hxparse.Parser_haxeparser_HaxeLexer_haxeparser_Token.prototype = {
 		}
 		return tok.elt;
 	}
-	,junk: function() {
-		this.last = this.token.elt;
-		this.token = this.token.next;
-	}
-	,curPos: function() {
-		return this.stream.curPos();
-	}
-	,parseSeparated: function(separatorFunc,f) {
-		var acc = [];
-		while(true) {
-			acc.push(f());
-			if(separatorFunc(this.peek(0))) {
-				this.last = this.token.elt;
-				this.token = this.token.next;
-			} else break;
-		}
-		return acc;
-	}
 	,parseOptional: function(f) {
 		try {
 			return f();
@@ -7600,12 +7198,6 @@ hxparse.Parser_haxeparser_HaxeLexer_haxeparser_Token.prototype = {
 				return acc;
 			} else throw(e);
 		}
-	}
-	,noMatch: function() {
-		return new hxparse.NoMatch(this.stream.curPos(),this.peek(0));
-	}
-	,unexpected: function() {
-		throw new hxparse.Unexpected(this.peek(0),this.stream.curPos());
 	}
 	,__class__: hxparse.Parser_haxeparser_HaxeLexer_haxeparser_Token
 };
@@ -7657,14 +7249,6 @@ haxeparser.HaxeParser.isPostfix = function(e,u) {
 		break;
 	case 2:case 3:case 4:
 		return false;
-	}
-};
-haxeparser.HaxeParser.isPrefix = function(u) {
-	switch(u[1]) {
-	case 0:case 1:
-		return true;
-	case 2:case 3:case 4:
-		return true;
 	}
 };
 haxeparser.HaxeParser.precedence = function(op) {
@@ -7803,10 +7387,6 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeLexer_ha
 	,doResume: null
 	,doc: null
 	,inMacro: null
-	,define: function(flag,value) {
-		var value1 = value;
-		this.defines.set(flag,value1);
-	}
 	,parse: function() {
 		return this.parseFile();
 	}
@@ -8443,19 +8023,6 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeLexer_ha
 	}
 	,getDoc: function() {
 		return "";
-	}
-	,comma: function() {
-		{
-			var _g = this.peek(0);
-			switch(_g.tok[1]) {
-			case 13:
-				this.last = this.token.elt;
-				this.token = this.token.next;
-				return null;
-			default:
-				throw new hxparse.NoMatch(this.stream.curPos(),this.peek(0));
-			}
-		}
 	}
 	,semicolon: function() {
 		if(this.last.tok == haxeparser.TokenDef.BrClose) {
@@ -10206,44 +9773,6 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeLexer_ha
 				break;
 			default:
 				return null;
-			}
-		}
-	}
-	,parseFunParamType: function() {
-		{
-			var _g = this.peek(0);
-			switch(_g.tok[1]) {
-			case 20:
-				this.last = this.token.elt;
-				this.token = this.token.next;
-				var id = this.ident();
-				{
-					var _g1 = this.peek(0);
-					switch(_g1.tok[1]) {
-					case 11:
-						this.last = this.token.elt;
-						this.token = this.token.next;
-						var t = this.parseComplexType();
-						return { name : id.name, opt : true, type : t};
-					default:
-						throw new hxparse.Unexpected(this.peek(0),this.stream.curPos());
-					}
-				}
-				break;
-			default:
-				var id1 = this.ident();
-				{
-					var _g11 = this.peek(0);
-					switch(_g11.tok[1]) {
-					case 11:
-						this.last = this.token.elt;
-						this.token = this.token.next;
-						var t1 = this.parseComplexType();
-						return { name : id1.name, opt : false, type : t1};
-					default:
-						throw new hxparse.Unexpected(this.peek(0),this.stream.curPos());
-					}
-				}
 			}
 		}
 	}
@@ -12351,7 +11880,7 @@ haxeprinter.Printer.prototype = {
 		if(this.config.empty_line_after_import) this.newline();
 	}
 	,printAbstract: function(data) {
-		haxe.Log.trace(data,{ fileName : "Printer.hx", lineNumber : 155, className : "haxeprinter.Printer", methodName : "printAbstract"});
+		console.log(data);
 	}
 	,printClass: function(type) {
 		if(this.buf.b.length > 0 && this.config.empty_line_before_type) this.newline();
@@ -12848,14 +12377,14 @@ haxeproject.HaxeProject.load = function() {
 	var path = js.Node.require("path").join("core","templates","Main.hx");
 	js.Node.require("fs").readFile(path,options,function(error,data) {
 		if(error == null) haxeproject.HaxeProject.code = data; else {
-			haxe.Log.trace(error,{ fileName : "HaxeProject.hx", lineNumber : 50, className : "haxeproject.HaxeProject", methodName : "load"});
+			console.log(error);
 			Alertify.error("Can't load template " + path);
 		}
 	});
 	path = js.Node.require("path").join("core","templates","index.html");
 	js.Node.require("fs").readFile(path,options,function(error1,data1) {
 		if(error1 == null) haxeproject.HaxeProject.indexPageCode = data1; else {
-			haxe.Log.trace(error1,{ fileName : "HaxeProject.hx", lineNumber : 66, className : "haxeproject.HaxeProject", methodName : "load"});
+			console.log(error1);
 			Alertify.error("Can't load template " + path);
 		}
 	});
@@ -12894,7 +12423,7 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 		js.Node.require("fs").writeFile(pathToMain,haxeproject.HaxeProject.code,null,function(error) {
 			if(error != null) Alertify.error("Write file error" + error);
 			js.Node.require("fs").exists(pathToMain,function(exists) {
-				if(exists) tabmanager.TabManager.openFileInNewTab(pathToMain); else haxe.Log.trace(pathToMain + " file was not generated",{ fileName : "HaxeProject.hx", lineNumber : 145, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
+				if(exists) tabmanager.TabManager.openFileInNewTab(pathToMain); else console.log(pathToMain + " file was not generated");
 			});
 		});
 		var project = new projectaccess.Project();
@@ -12966,7 +12495,7 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 				var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
 				js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
 					if(error2 != null) {
-						haxe.Log.trace(error2,{ fileName : "HaxeProject.hx", lineNumber : 232, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
+						console.log(error2);
 						Alertify.error("Generate web page error: " + error2);
 					}
 				});
@@ -12980,18 +12509,6 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 			};
 		})(openproject.OpenProject.openProject,path));
 	});
-};
-hxparse._LexEngine.Transition = function(chars) {
-	this.chars = chars;
-};
-$hxClasses["hxparse._LexEngine.Transition"] = hxparse._LexEngine.Transition;
-hxparse._LexEngine.Transition.__name__ = ["hxparse","_LexEngine","Transition"];
-hxparse._LexEngine.Transition.prototype = {
-	chars: null
-	,toString: function() {
-		return Std.string(this.chars);
-	}
-	,__class__: hxparse._LexEngine.Transition
 };
 hxparse.NoMatch = function(pos,token) {
 	this.pos = pos;
@@ -13007,78 +12524,6 @@ hxparse.NoMatch.prototype = {
 	}
 	,__class__: hxparse.NoMatch
 };
-hxparse.Parser = function(stream,ruleset) {
-	this.stream = stream;
-	this.ruleset = ruleset;
-};
-$hxClasses["hxparse.Parser"] = hxparse.Parser;
-hxparse.Parser.__name__ = ["hxparse","Parser"];
-hxparse.Parser.prototype = {
-	ruleset: null
-	,last: null
-	,stream: null
-	,token: null
-	,peek: function(n) {
-		if(this.token == null) {
-			this.token = new haxe.ds.GenericCell(this.stream.token(this.ruleset),null);
-			n--;
-		}
-		var tok = this.token;
-		while(n > 0) {
-			if(tok.next == null) tok.next = new haxe.ds.GenericCell(this.stream.token(this.ruleset),null);
-			tok = tok.next;
-			n--;
-		}
-		return tok.elt;
-	}
-	,junk: function() {
-		this.last = this.token.elt;
-		this.token = this.token.next;
-	}
-	,curPos: function() {
-		return this.stream.curPos();
-	}
-	,parseSeparated: function(separatorFunc,f) {
-		var acc = [];
-		while(true) {
-			acc.push(f());
-			if(separatorFunc(this.peek(0))) {
-				this.last = this.token.elt;
-				this.token = this.token.next;
-			} else break;
-		}
-		return acc;
-	}
-	,parseOptional: function(f) {
-		try {
-			return f();
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
-				return null;
-			} else throw(e);
-		}
-	}
-	,parseRepeat: function(f) {
-		var acc = [];
-		while(true) try {
-			acc.push(f());
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
-				return acc;
-			} else throw(e);
-		}
-	}
-	,noMatch: function() {
-		return new hxparse.NoMatch(this.stream.curPos(),this.peek(0));
-	}
-	,unexpected: function() {
-		throw new hxparse.Unexpected(this.peek(0),this.stream.curPos());
-	}
-	,__class__: hxparse.Parser
-};
-hxparse.RuleBuilderImpl = function() { };
-$hxClasses["hxparse.RuleBuilderImpl"] = hxparse.RuleBuilderImpl;
-hxparse.RuleBuilderImpl.__name__ = ["hxparse","RuleBuilderImpl"];
 hxparse.State = function() {
 	this["final"] = -1;
 	var this1;
@@ -13138,91 +12583,15 @@ js.Lib.__name__ = ["js","Lib"];
 js.Lib["eval"] = function(code) {
 	return eval(code);
 };
-js.NodeC = function() { };
-$hxClasses["js.NodeC"] = js.NodeC;
-js.NodeC.__name__ = ["js","NodeC"];
 js.Node = function() { };
 $hxClasses["js.Node"] = js.Node;
 js.Node.__name__ = ["js","Node"];
-js.Node.__properties__ = {get___dirname:"get___dirname",get___filename:"get___filename",get_zlib:"get_zlib",get_json:"get_json",get_vm:"get_vm",get_util:"get_util",get_url:"get_url",get_tls:"get_tls",get_repl:"get_repl",get_querystring:"get_querystring",get_path:"get_path",get_os:"get_os",get_net:"get_net",get_https:"get_https",get_http:"get_http",get_fs:"get_fs",get_dns:"get_dns",get_dgram:"get_dgram",get_crypto:"get_crypto",get_cluster:"get_cluster",get_child_process:"get_child_process",get_assert:"get_assert"}
-js.Node.get_assert = function() {
-	return js.Node.require("assert");
-};
-js.Node.get_child_process = function() {
-	return js.Node.require("child_process");
-};
-js.Node.get_cluster = function() {
-	return js.Node.require("cluster");
-};
-js.Node.get_crypto = function() {
-	return js.Node.require("crypto");
-};
-js.Node.get_dgram = function() {
-	return js.Node.require("dgram");
-};
-js.Node.get_dns = function() {
-	return js.Node.require("dns");
-};
-js.Node.get_fs = function() {
-	return js.Node.require("fs");
-};
-js.Node.get_http = function() {
-	return js.Node.require("http");
-};
-js.Node.get_https = function() {
-	return js.Node.require("https");
-};
-js.Node.get_net = function() {
-	return js.Node.require("net");
-};
-js.Node.get_os = function() {
-	return js.Node.require("os");
-};
-js.Node.get_path = function() {
-	return js.Node.require("path");
-};
-js.Node.get_querystring = function() {
-	return js.Node.require("querystring");
-};
-js.Node.get_repl = function() {
-	return js.Node.require("repl");
-};
-js.Node.get_tls = function() {
-	return js.Node.require("tls");
-};
-js.Node.get_url = function() {
-	return js.Node.require("url");
-};
-js.Node.get_util = function() {
-	return js.Node.require("util");
-};
-js.Node.get_vm = function() {
-	return js.Node.require("vm");
-};
-js.Node.get_zlib = function() {
-	return js.Node.require("zlib");
-};
-js.Node.get___filename = function() {
-	return __filename;
-};
-js.Node.get___dirname = function() {
-	return __dirname;
-};
-js.Node.get_json = function() {
-	return JSON;
-};
-js.Node.newSocket = function(options) {
-	return new js.Node.net.Socket(options);
-};
 js.node = {};
 js.node.Mkdirp = function() { };
 $hxClasses["js.node.Mkdirp"] = js.node.Mkdirp;
 js.node.Mkdirp.__name__ = ["js","node","Mkdirp"];
 js.node.Mkdirp.mkdirp = function(dir,mode,cb) {
 	if(cb == null) js.node.Mkdirp._mkdirp(dir,mode); else js.node.Mkdirp._mkdirp(dir,mode,cb);
-};
-js.node.Mkdirp.mkdirpSync = function(dir,mode) {
-	return js.node.Mkdirp._mkdirp.sync(dir,mode);
 };
 js.node.Mv = function() { };
 $hxClasses["js.node.Mv"] = js.node.Mv;
@@ -13243,6 +12612,11 @@ Walkdir.walk = function(path,options,onItem) {
 	var emitter;
 	if(onItem != null) emitter = Walkdir.walkdir(path,options); else emitter = Walkdir.walkdir(path,options,onItem);
 	return emitter;
+};
+Walkdir.walkSync = function(path,options,onItem) {
+	var result;
+	if(onItem != null) result = Walkdir.walkdir.sync(path,options); else result = Walkdir.walkdir.sync(path,onItem);
+	return result;
 };
 var menu = {};
 menu.BootstrapMenu = function() { };
@@ -13329,10 +12703,6 @@ menu.BootstrapMenu.addMenuToDocument = function(menu1) {
 menu.MenuItem = function() { };
 $hxClasses["menu.MenuItem"] = menu.MenuItem;
 menu.MenuItem.__name__ = ["menu","MenuItem"];
-menu.MenuItem.prototype = {
-	getElement: null
-	,__class__: menu.MenuItem
-};
 menu.MenuButtonItem = function(_menu,_text,_onClickFunction,_hotkey,_submenu) {
 	if(_submenu == null) _submenu = false;
 	if(_hotkey == null) _hotkey = "";
@@ -13529,34 +12899,6 @@ menu.Menu.prototype = {
 	}
 	,setPosition: function(_position) {
 		this.position = _position;
-	}
-	,setDisabled: function(menuItemNames) {
-		var childNodes = this.ul.childNodes;
-		var _g1 = 0;
-		var _g = childNodes.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var child;
-			child = js.Boot.__cast(childNodes[i] , Element);
-			if(child.className != "divider") {
-				var a;
-				a = js.Boot.__cast(child.firstChild , HTMLAnchorElement);
-				if(Lambda.indexOf(menuItemNames,a.getAttribute("text")) == -1) child.className = ""; else child.className = "disabled";
-			}
-		}
-	}
-	,setMenuEnabled: function(enabled) {
-		var childNodes = this.ul.childNodes;
-		var _g1 = 0;
-		var _g = childNodes.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var child;
-			child = js.Boot.__cast(childNodes[i] , Element);
-			if(child.className != "divider") {
-				if(enabled) child.className = ""; else child.className = "disabled";
-			}
-		}
 	}
 	,getSubmenu: function(name) {
 		if(!this.submenus.exists(name)) this.submenus.set(name,this.addSubmenu(name));
@@ -14205,36 +13547,6 @@ newprojectdialog.NewProjectDialog.updateListItems = function(category,item) {
 	newprojectdialog.NewProjectDialog.setListItems(newprojectdialog.NewProjectDialog.list,category.getItems(),item);
 	newprojectdialog.NewProjectDialog.checkSelectedOptions();
 };
-newprojectdialog.NewProjectDialog.createCategoryWithSubcategories = function(text,subcategories) {
-	var li;
-	var _this = window.document;
-	li = _this.createElement("li");
-	var category = newprojectdialog.NewProjectDialog.createCategory(text);
-	var a;
-	a = js.Boot.__cast(li.getElementsByTagName("a")[0] , HTMLAnchorElement);
-	a.className = "tree-toggler nav-header";
-	a.onclick = function(e) {
-		new $(li).children("ul.tree").toggle(300);
-	};
-	var ul;
-	var _this1 = window.document;
-	ul = _this1.createElement("ul");
-	ul.className = "nav nav-list tree";
-	li.appendChild(ul);
-	li.onclick = function(e1) {
-		var _g = 0;
-		while(_g < subcategories.length) {
-			var subcategory = subcategories[_g];
-			++_g;
-			ul.appendChild(newprojectdialog.NewProjectDialog.createCategory(subcategory).element);
-		}
-		e1.stopPropagation();
-		e1.preventDefault();
-		li.onclick = null;
-		new $(ul).show(300);
-	};
-	return li;
-};
 newprojectdialog.NewProjectDialog.createList = function() {
 	var select;
 	var _this = window.document;
@@ -14253,9 +13565,6 @@ newprojectdialog.NewProjectDialog.checkSelectedOptions = function() {
 		var option;
 		option = js.Boot.__cast(newprojectdialog.NewProjectDialog.list.selectedOptions[0] , HTMLOptionElement);
 	}
-};
-newprojectdialog.NewProjectDialog.updateDescription = function(category,selectedOption) {
-	newprojectdialog.NewProjectDialog.description.textContent = selectedOption;
 };
 newprojectdialog.NewProjectDialog.setListItems = function(list,items,selectedItem) {
 	var _g = 0;
@@ -14276,10 +13585,6 @@ newprojectdialog.NewProjectDialog.createListItem = function(text) {
 	option.value = text;
 	return option;
 };
-nodejs.webkit._MenuItemType = {};
-nodejs.webkit._MenuItemType.MenuItemType_Impl_ = function() { };
-$hxClasses["nodejs.webkit._MenuItemType.MenuItemType_Impl_"] = nodejs.webkit._MenuItemType.MenuItemType_Impl_;
-nodejs.webkit._MenuItemType.MenuItemType_Impl_.__name__ = ["nodejs","webkit","_MenuItemType","MenuItemType_Impl_"];
 var openflproject = {};
 openflproject.CreateOpenFLProject = function() { };
 $hxClasses["openflproject.CreateOpenFLProject"] = openflproject.CreateOpenFLProject;
@@ -14417,11 +13722,11 @@ openproject.OpenProject.openProject = function(pathToProject,project) {
 };
 openproject.OpenProject.checkIfFileExists = function(path) {
 	js.Node.require("fs").exists(path,function(exists) {
-		if(exists) openproject.OpenProject.parseProject(path); else haxe.Log.trace("previously opened project: " + path + " was not found",{ fileName : "OpenProject.hx", lineNumber : 56, className : "openproject.OpenProject", methodName : "checkIfFileExists"});
+		if(exists) openproject.OpenProject.parseProject(path); else console.log("previously opened project: " + path + " was not found");
 	});
 };
 openproject.OpenProject.parseProject = function(path) {
-	haxe.Log.trace("open: " + path,{ fileName : "OpenProject.hx", lineNumber : 64, className : "openproject.OpenProject", methodName : "parseProject"});
+	console.log("open: " + path);
 	var filename = js.Node.require("path").basename(path);
 	switch(filename) {
 	case "project.hide":
@@ -14431,7 +13736,6 @@ openproject.OpenProject.parseProject = function(path) {
 			var pathToProject = js.Node.require("path").dirname(path);
 			projectaccess.ProjectAccess.currentProject = openproject.OpenProject.parseProjectData(data);
 			projectaccess.ProjectAccess.path = pathToProject;
-			if(projectaccess.ProjectAccess.currentProject.type == 2) tabmanager.TabManager.openFileInNewTab(js.Node.require("path").join(projectaccess.ProjectAccess.path,projectaccess.ProjectAccess.currentProject.main));
 			parser.ClasspathWalker.parseProjectArguments();
 			if(projectaccess.ProjectAccess.currentProject.files == null) projectaccess.ProjectAccess.currentProject.files = []; else {
 				var _g = 0;
@@ -14490,7 +13794,7 @@ openproject.OpenProject.parseProject = function(path) {
 					var fast = new haxe.xml.Fast(xml);
 					if(fast.hasNode.resolve("project")) openproject.OpenFL.open(path); else Alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
 				} else {
-					haxe.Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 193, className : "openproject.OpenProject", methodName : "parseProject"});
+					console.log(error1);
 					Alertify.error("Can't open file: " + path + "\n" + error1);
 				}
 			});
@@ -14517,8 +13821,8 @@ openproject.OpenProject.parseProjectData = function(data) {
 	try {
 		project = tjson.TJSON.parse(data);
 	} catch( unknown ) {
-		haxe.Log.trace(unknown,{ fileName : "OpenProject.hx", lineNumber : 244, className : "openproject.OpenProject", methodName : "parseProjectData"});
-		haxe.Log.trace(data,{ fileName : "OpenProject.hx", lineNumber : 245, className : "openproject.OpenProject", methodName : "parseProjectData"});
+		console.log(unknown);
+		console.log(data);
 		project = js.Node.parse(data);
 	}
 	return project;
@@ -14536,14 +13840,10 @@ parser.ClassParser.parse = function(data,path) {
 	} catch( $e0 ) {
 		if( js.Boot.__instanceof($e0,hxparse.NoMatch) ) {
 			var e = $e0;
-			haxe.Log.trace(e.pos.format(input) + ": Unexpected " + Std.string(e.token.tok),{ fileName : "ClassParser.hx", lineNumber : 39, className : "parser.ClassParser", methodName : "parse"});
 		} else if( js.Boot.__instanceof($e0,hxparse.Unexpected) ) {
 			var e1 = $e0;
-			haxe.Log.trace(e1.pos.format(input) + ": Unexpected " + Std.string(e1.token.tok),{ fileName : "ClassParser.hx", lineNumber : 43, className : "parser.ClassParser", methodName : "parse"});
 		} else {
 		var e2 = $e0;
-		haxe.Log.trace("Unhandled parsing error: ",{ fileName : "ClassParser.hx", lineNumber : 47, className : "parser.ClassParser", methodName : "parse"});
-		haxe.Log.trace(e2,{ fileName : "ClassParser.hx", lineNumber : 48, className : "parser.ClassParser", methodName : "parse"});
 		}
 	}
 	return ast;
@@ -14816,7 +14116,7 @@ parser.ClasspathWalker.parseClasspath = function(path,std) {
 	emitter.on("end",function() {
 	});
 	emitter.on("error",function(path2,stat1) {
-		haxe.Log.trace(path2,{ fileName : "ClasspathWalker.hx", lineNumber : 302, className : "parser.ClasspathWalker", methodName : "parseClasspath"});
+		console.log(path2);
 	});
 };
 parser.ClasspathWalker.addFile = function(path) {
@@ -14844,7 +14144,7 @@ parser.ClasspathWalker.walkProjectDirectory = function(path) {
 		parser.ClasspathWalker.addFile(path1);
 	});
 	emitter.on("error",function(path2,stat1) {
-		haxe.Log.trace(path2,{ fileName : "ClasspathWalker.hx", lineNumber : 357, className : "parser.ClasspathWalker", methodName : "walkProjectDirectory"});
+		console.log(path2);
 	});
 };
 parser.OutlineHelper = function() { };
@@ -14858,8 +14158,12 @@ parser.OutlineHelper.getList = function(data,path) {
 		var rootItem = { label : mainClass};
 		rootItem.items = parsedData.treeItems;
 		rootItem.expanded = true;
+		parser.OutlineHelper.pathToLastFile = path;
 		core.OutlinePanel.clearFields();
 		core.OutlinePanel.addField(rootItem);
+		core.OutlinePanel.update();
+	} else if(parser.OutlineHelper.pathToLastFile != path) {
+		core.OutlinePanel.clearFields();
 		core.OutlinePanel.update();
 	}
 };
@@ -14904,14 +14208,32 @@ parser.OutlineHelper.parseDeclarations = function(ast) {
 		case 1:
 			var data2 = decl[2];
 			var treeItem2 = { label : data2.name};
+			var items1 = [];
+			treeItem2.items = items1;
 			treeItem2.expanded = true;
 			treeItems.push(treeItem2);
+			var _g21 = 0;
+			var _g31 = data2.data;
+			while(_g21 < _g31.length) {
+				var item1 = _g31[_g21];
+				++_g21;
+				items1.push({ label : item1.name, value : item1.pos.min});
+			}
 			break;
 		case 4:
 			var data3 = decl[2];
 			var treeItem3 = { label : data3.name};
+			var items2 = [];
+			treeItem3.items = items2;
 			treeItem3.expanded = true;
 			treeItems.push(treeItem3);
+			var _g22 = 0;
+			var _g32 = parser.OutlineHelper.getTypeDefFields(data3);
+			while(_g22 < _g32.length) {
+				var item2 = _g32[_g22];
+				++_g22;
+				items2.push({ label : item2.name, value : item2.pos});
+			}
 			break;
 		}
 	}
@@ -14990,6 +14312,73 @@ parser.OutlineHelper.getClassFields = function(type) {
 	}
 	return fields;
 };
+parser.OutlineHelper.getTypeDefFields = function(type) {
+	var typeDefFields = [];
+	{
+		var _g = type.data;
+		switch(_g[1]) {
+		case 0:
+			var p = _g[2];
+			break;
+		case 1:
+			var ret = _g[3];
+			var args = _g[2];
+			break;
+		case 2:
+			var fields = _g[2];
+			var _g1 = 0;
+			while(_g1 < fields.length) {
+				var field = fields[_g1];
+				++_g1;
+				{
+					var _g2 = field.kind;
+					switch(_g2[1]) {
+					case 1:
+						var f = _g2[2];
+						var data = field.name + "(";
+						var args1 = [];
+						var _g3 = 0;
+						var _g4 = f.args;
+						while(_g3 < _g4.length) {
+							var item = _g4[_g3];
+							++_g3;
+							args1.push(parser.OutlineHelper.getFieldNameAndType(item.name,item.type));
+						}
+						data += args1.join(", ");
+						data += ")";
+						if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
+						typeDefFields.push({ name : data, pos : field.pos.min});
+						break;
+					case 0:
+						var e = _g2[3];
+						var t = _g2[2];
+						typeDefFields.push({ name : parser.OutlineHelper.getFieldNameAndType(field.name,t), pos : field.pos.min});
+						break;
+					case 2:
+						var e1 = _g2[5];
+						var t1 = _g2[4];
+						var set = _g2[3];
+						var get = _g2[2];
+						typeDefFields.push({ name : field.name, pos : field.pos.min});
+						break;
+					}
+				}
+			}
+			break;
+		case 3:
+			var t2 = _g[2];
+			break;
+		case 4:
+			var fields1 = _g[3];
+			var p1 = _g[2];
+			break;
+		case 5:
+			var t3 = _g[2];
+			break;
+		}
+	}
+	return typeDefFields;
+};
 parser.OutlineHelper.getFieldType = function(t) {
 	var name = null;
 	if(t != null) switch(t[1]) {
@@ -15049,14 +14438,14 @@ pluginloader.PluginManager.loadPlugins = function(compile) {
 	});
 	haxe.Timer.delay(function() {
 		if(pluginloader.PluginManager.requestedPluginsData.length > 0) {
-			haxe.Log.trace("still not loaded plugins: ",{ fileName : "PluginManager.hx", lineNumber : 99, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
+			console.log("still not loaded plugins: ");
 			var _g = 0;
 			var _g1 = pluginloader.PluginManager.requestedPluginsData;
 			while(_g < _g1.length) {
 				var pluginData = _g1[_g];
 				++_g;
-				haxe.Log.trace(pluginData.name + ": can't load plugin, required plugins are not found",{ fileName : "PluginManager.hx", lineNumber : 103, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
-				haxe.Log.trace(pluginData.plugins,{ fileName : "PluginManager.hx", lineNumber : 104, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
+				console.log(pluginData.name + ": can't load plugin, required plugins are not found");
+				console.log(pluginData.plugins);
 			}
 			pluginloader.PluginManager.savePluginsMTime();
 		}
@@ -15088,7 +14477,7 @@ pluginloader.PluginManager.walk = function(pathToPlugin) {
 pluginloader.PluginManager.readDir = function(path,pathToPlugin,onLoad) {
 	var pathToFolder;
 	js.Node.require("fs").readdir(js.Node.require("path").join(path,pathToPlugin),function(error,folders) {
-		if(error != null) haxe.Log.trace(error,{ fileName : "PluginManager.hx", lineNumber : 159, className : "pluginloader.PluginManager", methodName : "readDir"}); else {
+		if(error != null) console.log(error); else {
 			var _g = 0;
 			while(_g < folders.length) {
 				var item = [folders[_g]];
@@ -15123,7 +14512,7 @@ pluginloader.PluginManager.readDir = function(path,pathToPlugin,onLoad) {
 pluginloader.PluginManager.loadPlugin = function(pathToPlugin) {
 	var pathToMain = js.Node.require("path").join(pathToPlugin,"bin","Main.js");
 	js.Node.require("fs").exists(pathToMain,function(exists) {
-		if(exists) HIDE.loadJS(null,[pathToMain]); else haxe.Log.trace(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin",{ fileName : "PluginManager.hx", lineNumber : 218, className : "pluginloader.PluginManager", methodName : "loadPlugin"});
+		if(exists) HIDE.loadJS(null,[pathToMain]); else console.log(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin");
 	});
 };
 pluginloader.PluginManager.compilePlugin = function(name,pathToPlugin,onSuccess,onFailed) {
@@ -15138,11 +14527,11 @@ pluginloader.PluginManager.startPluginCompilation = function(name,pathToPlugin,o
 	var startTime = new Date().getTime();
 	var delta;
 	var command = ["haxe","--cwd",HIDE.surroundWithQuotes(pathToPlugin),"plugin.hxml"].join(" ");
-	haxe.Log.trace(command,{ fileName : "PluginManager.hx", lineNumber : 253, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
+	console.log(command);
 	var haxeCompilerProcess = js.Node.require("child_process").exec(command,{ },function(err,stdout,stderr) {
 		if(err == null) {
 			delta = new Date().getTime() - startTime;
-			Std.string(haxe.Log.trace(name + " compilation took " + (delta == null?"null":"" + delta),{ fileName : "PluginManager.hx", lineNumber : 261, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"})) + " ms";
+			Std.string(console.log(name + " compilation took " + (delta == null?"null":"" + delta))) + " ms";
 			onSuccess(pathToPlugin);
 			pluginloader.PluginManager.pluginsMTime.set(name,Std.parseInt(Std.string(new Date().getTime())));
 		} else {
@@ -15155,69 +14544,23 @@ pluginloader.PluginManager.startPluginCompilation = function(name,pathToPlugin,o
 				textarea.value = "Plugins compile-time errors:\n";
 				window.document.body.appendChild(textarea);
 			} else textarea = js.Boot.__cast(element , HTMLTextAreaElement);
-			haxe.Log.trace(pathToPlugin + " stderr: " + stderr,{ fileName : "PluginManager.hx", lineNumber : 284, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
+			console.log(pathToPlugin + " stderr: " + stderr);
 			textarea.value += name + "\n" + stderr + "\n";
-			haxe.Log.trace("can't load " + name + " plugin, compilation failed",{ fileName : "PluginManager.hx", lineNumber : 287, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
+			console.log("can't load " + name + " plugin, compilation failed");
 			var regex = new EReg("haxelib install (.+) ","gim");
 			regex.map(stderr,function(ereg) {
-				haxe.Log.trace(ereg,{ fileName : "PluginManager.hx", lineNumber : 292, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
+				console.log(ereg);
 				return "";
 			});
 			if(onFailed != null) onFailed(stderr);
 		}
 	});
 };
-pluginloader.PluginManager.checkRequiredPluginsData = function() {
-	if(pluginloader.PluginManager.requestedPluginsData.length > 0) {
-		var pluginData;
-		var j = 0;
-		while(j < pluginloader.PluginManager.requestedPluginsData.length) {
-			pluginData = pluginloader.PluginManager.requestedPluginsData[j];
-			var pluginsLoaded;
-			if(pluginData.callOnLoadWhenAtLeastOnePluginLoaded == false) pluginsLoaded = Lambda.foreach(pluginData.plugins,function(plugin) {
-				return Lambda.has(pluginloader.PluginManager.plugins,plugin);
-			}); else pluginsLoaded = !Lambda.foreach(pluginData.plugins,function(plugin1) {
-				return !Lambda.has(pluginloader.PluginManager.plugins,plugin1);
-			});
-			if(pluginsLoaded) {
-				pluginloader.PluginManager.requestedPluginsData.splice(j,1);
-				haxe.Log.trace(pluginData.name,{ fileName : "PluginManager.hx", lineNumber : 339, className : "pluginloader.PluginManager", methodName : "checkRequiredPluginsData"});
-				pluginData.onLoaded();
-			} else j++;
-		}
-	}
-	if(Lambda.count(pluginloader.PluginManager.pathToPlugins) == pluginloader.PluginManager.plugins.length) {
-		haxe.Log.trace("all plugins loaded",{ fileName : "PluginManager.hx", lineNumber : 351, className : "pluginloader.PluginManager", methodName : "checkRequiredPluginsData"});
-		var delta = new Date().getTime() - Main.currentTime;
-		haxe.Log.trace("Loading took: " + (delta == null?"null":"" + delta) + " ms",{ fileName : "PluginManager.hx", lineNumber : 355, className : "pluginloader.PluginManager", methodName : "checkRequiredPluginsData"});
-		var options = { };
-		options.encoding = "utf8";
-		js.Node.require("fs").readFile("../.travis.yml.template",options,function(error,data) {
-			if(data != null) {
-				var updatedData = mustache.Mustache.render(data,{ plugins : pluginloader.PluginManager.pluginsTestingData});
-				js.Node.require("fs").writeFile("../.travis.yml",updatedData,"utf8",function(error1) {
-					haxe.Log.trace(".travis.yml was updated according to active plugins list",{ fileName : "PluginManager.hx", lineNumber : 367, className : "pluginloader.PluginManager", methodName : "checkRequiredPluginsData"});
-				});
-			} else haxe.Log.trace(error,{ fileName : "PluginManager.hx", lineNumber : 374, className : "pluginloader.PluginManager", methodName : "checkRequiredPluginsData"});
-		});
-		pluginloader.PluginManager.savePluginsMTime();
-	}
-};
 pluginloader.PluginManager.savePluginsMTime = function() {
 	var pathToPluginsMTime = js.Node.require("path").join("..","pluginsMTime.dat");
 	var data = haxe.Serializer.run(pluginloader.PluginManager.pluginsMTime);
 	js.Node.require("fs").writeFile(pathToPluginsMTime,data,"utf8",function(error) {
 	});
-};
-pluginloader.PluginManager.waitForDependentPluginsToBeLoaded = function(name,plugins,onLoaded,callOnLoadWhenAtLeastOnePluginLoaded) {
-	if(callOnLoadWhenAtLeastOnePluginLoaded == null) callOnLoadWhenAtLeastOnePluginLoaded = false;
-	var data = { name : name, plugins : plugins, onLoaded : onLoaded, callOnLoadWhenAtLeastOnePluginLoaded : callOnLoadWhenAtLeastOnePluginLoaded};
-	pluginloader.PluginManager.requestedPluginsData.push(data);
-	pluginloader.PluginManager.checkRequiredPluginsData();
-};
-pluginloader.PluginManager.notifyLoadingComplete = function(name) {
-	pluginloader.PluginManager.plugins.push(name);
-	pluginloader.PluginManager.checkRequiredPluginsData();
 };
 pluginloader.PluginManager.compilePlugins = function(onComplete,onFailed) {
 	var pluginCount = Lambda.count(pluginloader.PluginManager.pathToPlugins);
@@ -15286,9 +14629,7 @@ projectaccess.ProjectAccess.save = function(onComplete,sync) {
 				if(onComplete != null) onComplete();
 			});
 		},250);
-	} else haxe.Log.trace("project path is null",{ fileName : "ProjectAccess.hx", lineNumber : 61, className : "projectaccess.ProjectAccess", methodName : "save"});
-};
-projectaccess.ProjectAccess.load = function(path,onComplete) {
+	} else console.log("project path is null");
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
@@ -15807,7 +15148,7 @@ tabmanager.TabManager.openFile = function(path,onComplete) {
 	var options = { };
 	options.encoding = "utf8";
 	js.Node.require("fs").readFile(path,options,function(error,code) {
-		if(error != null) haxe.Log.trace(error,{ fileName : "TabManager.hx", lineNumber : 85, className : "tabmanager.TabManager", methodName : "openFile"}); else onComplete(code);
+		if(error != null) console.log(error); else onComplete(code);
 	});
 };
 tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
@@ -15816,7 +15157,7 @@ tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
 		var ereg = new EReg("[a-z]:\\\\","i");
 		if(ereg.match(path)) {
 			path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
-			haxe.Log.trace(path,{ fileName : "TabManager.hx", lineNumber : 105, className : "tabmanager.TabManager", methodName : "openFileInNewTab"});
+			console.log(path);
 		}
 	}
 	path = StringTools.replace(path,"\\",js.Node.require("path").sep);
@@ -15837,7 +15178,7 @@ tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
 			tabmanager.TabManager.selectDoc(path);
 			tabmanager.TabManager.checkTabsCount();
 			if(onComplete != null) onComplete();
-		} else haxe.Log.trace("tab-manager: can't load file " + path,{ fileName : "TabManager.hx", lineNumber : 153, className : "tabmanager.TabManager", methodName : "openFileInNewTab"});
+		} else console.log("tab-manager: can't load file " + path);
 	});
 };
 tabmanager.TabManager.createFileInNewTab = function(pathToFile) {
@@ -16018,7 +15359,7 @@ tabmanager.TabManager.isChanged = function(path) {
 	return !tab.doc.isClean();
 };
 tabmanager.TabManager.saveActiveFile = function(onComplete) {
-	if(tabmanager.TabManager.selectedPath != null) tabmanager.TabManager.saveDoc(tabmanager.TabManager.selectedPath,onComplete);
+	if(tabmanager.TabManager.selectedPath != null) tabmanager.TabManager.saveDoc(tabmanager.TabManager.selectedPath,onComplete); else console.log(tabmanager.TabManager.selectedPath);
 };
 tabmanager.TabManager.saveActiveFileAs = function() {
 	var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
@@ -16087,18 +15428,6 @@ tabmanager.TabMap.prototype = {
 			}
 		}
 		return index;
-	}
-	,getPrevious: function(path) {
-		var index = this.getIndex(path);
-		index--;
-		if(index < 0) index = this.tabArray.length - 1;
-		return this.tabArray[index];
-	}
-	,getNext: function(path) {
-		var index = this.getIndex(path);
-		index++;
-		if(index > this.tabArray.length - 1) index = 0;
-		return this.tabArray[index];
 	}
 	,add: function(tab) {
 		this.tabArray.push(tab);
@@ -16656,7 +15985,6 @@ nodejs.webkit.Menu = nodejs.webkit.$ui.Menu;
 nodejs.webkit.MenuItem = nodejs.webkit.$ui.MenuItem;
 nodejs.webkit.Shell = nodejs.webkit.$ui.Shell;
 HIDE.windows = [];
-byte._LittleEndianWriter.LittleEndianWriter_Impl_.LN2 = Math.log(2);
 cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
 cm.ERegPreview.markers = [];
@@ -16665,14 +15993,9 @@ core.Completion.RANGE = 500;
 core.Completion.completions = [];
 core.Completion.completionType = core.CompletionType.REGULAR;
 core.FunctionParametersHelper.widgets = [];
-core.FunctionParametersHelper.lines = [];
 core.HaxeLint.fileData = new haxe.ds.StringMap();
 core.HaxeLint.parserData = new haxe.ds.StringMap();
 core.Helper.timers = new haxe.ds.StringMap();
-core.Utils.WINDOWS = 0;
-core.Utils.LINUX = 1;
-core.Utils.MAC = 2;
-core.Utils.OTHER = 3;
 core.Hotkeys.hotkeys = new Array();
 core.Hotkeys.commandMap = new haxe.ds.StringMap();
 core.Hotkeys.spanMap = new haxe.ds.StringMap();
@@ -16702,7 +16025,6 @@ haxe.xml.Parser.escapes = (function($this) {
 	$r = h;
 	return $r;
 }(this));
-hxparse.LexEngine.MAX_CODE = 255;
 hxparse.LexEngine.EMPTY = [];
 hxparse.LexEngine.ALL_CHARS = [{ min : 0, max : 255}];
 haxeparser.HaxeLexer.keywords = (function($this) {
@@ -16754,8 +16076,6 @@ haxeparser.HaxeLexer.keywords = (function($this) {
 	return $r;
 }(this));
 haxeparser.HaxeLexer.buf = new StringBuf();
-haxeparser.HaxeLexer.ident = "_*[a-z][a-zA-Z0-9_]*|_+|_+[0-9][_a-zA-Z0-9]*";
-haxeparser.HaxeLexer.idtype = "_*[A-Z][a-zA-Z0-9_]*";
 haxeparser.HaxeLexer.tok = hxparse.Lexer.buildRuleset([{ rule : "", func : function(lexer) {
 	return haxeparser.HaxeLexer.mk(lexer,haxeparser.TokenDef.Eof);
 }},{ rule : "[\r\n\t ]+", func : function(lexer1) {
@@ -16931,7 +16251,7 @@ haxeparser.HaxeLexer.tok = hxparse.Lexer.buildRuleset([{ rule : "", func : funct
 	if(kwd != null) return haxeparser.HaxeLexer.mk(lexer61,haxeparser.TokenDef.Kwd(kwd)); else return haxeparser.HaxeLexer.mk(lexer61,haxeparser.TokenDef.Const(haxe.macro.Constant.CIdent(lexer61.current)));
 }},{ rule : "_*[A-Z][a-zA-Z0-9_]*", func : function(lexer62) {
 	return haxeparser.HaxeLexer.mk(lexer62,haxeparser.TokenDef.Const(haxe.macro.Constant.CIdent(lexer62.current)));
-}}]);
+}}],"tok");
 haxeparser.HaxeLexer.string = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "\\\\";
 	return lexer.token(haxeparser.HaxeLexer.string);
@@ -16955,7 +16275,7 @@ haxeparser.HaxeLexer.string = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", f
 }},{ rule : "[^\\\\\"]+", func : function(lexer7) {
 	if(lexer7.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer7.current;
 	return lexer7.token(haxeparser.HaxeLexer.string);
-}}]);
+}}],"string");
 haxeparser.HaxeLexer.string2 = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "\\";
 	return lexer.token(haxeparser.HaxeLexer.string2);
@@ -16976,7 +16296,7 @@ haxeparser.HaxeLexer.string2 = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", 
 }},{ rule : "[^\\\\']+", func : function(lexer6) {
 	if(lexer6.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer6.current;
 	return lexer6.token(haxeparser.HaxeLexer.string2);
-}}]);
+}}],"string2");
 haxeparser.HaxeLexer.comment = hxparse.Lexer.buildRuleset([{ rule : "*/", func : function(lexer) {
 	return new hxparse.Position(lexer.source,lexer.pos - lexer.current.length,lexer.pos).pmax;
 }},{ rule : "*", func : function(lexer1) {
@@ -16985,7 +16305,7 @@ haxeparser.HaxeLexer.comment = hxparse.Lexer.buildRuleset([{ rule : "*/", func :
 }},{ rule : "[^\\*]+", func : function(lexer2) {
 	if(lexer2.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer2.current;
 	return lexer2.token(haxeparser.HaxeLexer.comment);
-}}]);
+}}],"comment");
 haxeparser.HaxeLexer.regexp = hxparse.Lexer.buildRuleset([{ rule : "\\\\/", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "/";
 	return lexer.token(haxeparser.HaxeLexer.regexp);
@@ -17009,83 +16329,28 @@ haxeparser.HaxeLexer.regexp = hxparse.Lexer.buildRuleset([{ rule : "\\\\/", func
 }},{ rule : "[^\\\\/\r\n]+", func : function(lexer7) {
 	if(lexer7.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer7.current;
 	return lexer7.token(haxeparser.HaxeLexer.regexp);
-}}]);
+}}],"regexp");
 haxeparser.HaxeLexer.regexp_options = hxparse.Lexer.buildRuleset([{ rule : "[gimsu]*", func : function(lexer) {
 	return { pmax : new hxparse.Position(lexer.source,lexer.pos - lexer.current.length,lexer.pos).pmax, opt : lexer.current};
-}}]);
-js.NodeC.UTF8 = "utf8";
-js.NodeC.ASCII = "ascii";
-js.NodeC.BINARY = "binary";
-js.NodeC.BASE64 = "base64";
-js.NodeC.HEX = "hex";
-js.NodeC.EVENT_EVENTEMITTER_NEWLISTENER = "newListener";
-js.NodeC.EVENT_EVENTEMITTER_ERROR = "error";
-js.NodeC.EVENT_STREAM_DATA = "data";
-js.NodeC.EVENT_STREAM_END = "end";
-js.NodeC.EVENT_STREAM_ERROR = "error";
-js.NodeC.EVENT_STREAM_CLOSE = "close";
-js.NodeC.EVENT_STREAM_DRAIN = "drain";
-js.NodeC.EVENT_STREAM_CONNECT = "connect";
-js.NodeC.EVENT_STREAM_SECURE = "secure";
-js.NodeC.EVENT_STREAM_TIMEOUT = "timeout";
-js.NodeC.EVENT_STREAM_PIPE = "pipe";
-js.NodeC.EVENT_PROCESS_EXIT = "exit";
-js.NodeC.EVENT_PROCESS_UNCAUGHTEXCEPTION = "uncaughtException";
-js.NodeC.EVENT_PROCESS_SIGINT = "SIGINT";
-js.NodeC.EVENT_PROCESS_SIGUSR1 = "SIGUSR1";
-js.NodeC.EVENT_CHILDPROCESS_EXIT = "exit";
-js.NodeC.EVENT_HTTPSERVER_REQUEST = "request";
-js.NodeC.EVENT_HTTPSERVER_CONNECTION = "connection";
-js.NodeC.EVENT_HTTPSERVER_CLOSE = "close";
-js.NodeC.EVENT_HTTPSERVER_UPGRADE = "upgrade";
-js.NodeC.EVENT_HTTPSERVER_CLIENTERROR = "clientError";
-js.NodeC.EVENT_HTTPSERVERREQUEST_DATA = "data";
-js.NodeC.EVENT_HTTPSERVERREQUEST_END = "end";
-js.NodeC.EVENT_CLIENTREQUEST_RESPONSE = "response";
-js.NodeC.EVENT_CLIENTRESPONSE_DATA = "data";
-js.NodeC.EVENT_CLIENTRESPONSE_END = "end";
-js.NodeC.EVENT_NETSERVER_CONNECTION = "connection";
-js.NodeC.EVENT_NETSERVER_CLOSE = "close";
-js.NodeC.FILE_READ = "r";
-js.NodeC.FILE_READ_APPEND = "r+";
-js.NodeC.FILE_WRITE = "w";
-js.NodeC.FILE_WRITE_APPEND = "a+";
-js.NodeC.FILE_READWRITE = "a";
-js.NodeC.FILE_READWRITE_APPEND = "a+";
+}}],"regexp_options");
 menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-nodejs.webkit._MenuItemType.MenuItemType_Impl_.separator = "separator";
-nodejs.webkit._MenuItemType.MenuItemType_Impl_.checkbox = "checkbox";
-nodejs.webkit._MenuItemType.MenuItemType_Impl_.normal = "normal";
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.importsList = [];
 parser.ClassParser.classCompletions = new haxe.ds.StringMap();
 parser.ClassParser.filesList = [];
-pluginloader.PluginManager.plugins = new Array();
 pluginloader.PluginManager.pathToPlugins = new haxe.ds.StringMap();
 pluginloader.PluginManager.inactivePlugins = [];
 pluginloader.PluginManager.requestedPluginsData = new Array();
 pluginloader.PluginManager.pluginsMTime = new haxe.ds.StringMap();
 pluginloader.PluginManager.firstRun = false;
 pluginloader.PluginManager.pluginsTestingData = "  - cd plugins";
-projectaccess.Project.HAXE = 0;
-projectaccess.Project.OPENFL = 1;
-projectaccess.Project.HXML = 2;
-projectaccess.Project.FLASH = 0;
-projectaccess.Project.JAVASCRIPT = 1;
-projectaccess.Project.NEKO = 2;
-projectaccess.Project.PHP = 3;
-projectaccess.Project.CPP = 4;
-projectaccess.Project.JAVA = 5;
-projectaccess.Project.CSHARP = 6;
-projectaccess.Project.PYTHON = 7;
-projectaccess.Project.URL = 0;
-projectaccess.Project.FILE = 1;
-projectaccess.Project.COMMAND = 2;
 projectaccess.ProjectAccess.currentProject = new projectaccess.Project();
 watchers.LocaleWatcher.listenerAdded = false;
 watchers.ThemeWatcher.listenerAdded = false;
 Main.main();
 })();
+
+//# sourceMappingURL=HIDE.js.map

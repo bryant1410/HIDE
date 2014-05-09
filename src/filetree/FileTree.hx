@@ -21,11 +21,13 @@ import tabmanager.TabManager;
 import watchers.LocaleWatcher;
 import watchers.SettingsWatcher;
 import watchers.Watcher;
+import core.OutlinePanel.TreeItem;
 
 /**
  * ...
  * @author AS3Boyan
  */
+
 class FileTree
 {
 	static var lastProjectName:String;
@@ -124,18 +126,6 @@ class FileTree
 		appendToContextMenu("Show Item In Folder", function (selectedItem):Void 
 		{
 			Shell.showItemInFolder(selectedItem.value.path);
-		});
-		
-		appendToContextMenu("Open Item", function (selectedItem):Void 
-		{
-			if (selectedItem.value.type == 'file') 
-			{
-				TabManager.openFileInNewTab(selectedItem.value.path);
-			}
-			else
-			{
-				untyped new JQuery('#filetree').jqxTree('expandItem', selectedItem.element);
-			}
 		});
 		
 		appendToContextMenu("Rename...", function (selectedItem):Void 
@@ -385,7 +375,7 @@ class FileTree
 	}
 	
 	public static function load(?projectName:String, ?path:String):Void
-	{
+	{        
 		if (projectName == null)
 		{
 			projectName = lastProjectName;
@@ -395,13 +385,49 @@ class FileTree
 		{
 			path = lastProjectPath;
 		}
+            
+        var filetree:Dynamic = untyped new JQuery("#filetree");
+        
+        filetree.on('expand', function (event) 
+        {
+            var label = filetree.jqxTree('getItem', event.args.element).label;
+            var element2 = new JQuery(event.args.element);
+            var loader = false;
+            var loaderItem:Dynamic = null;
+            var children = element2.find('ul:first').children();
+            jQuery.JQueryStatic.each(children, function (index, value) 
+			{
+                var item = filetree.jqxTree('getItem', value);
+                if (item != null && item.label == "Loading...") 
+                {
+                    loaderItem = item;
+                    loader = true;
+                    untyped __js__("return false");
+                };
+            });
+           	
+            if (loader) 
+            {
+            	var items:Array<TreeItem> = loaderItem.value;
+                
+                for (i in 0...items.length)
+                {
+                	 items[i] = prepareForLazyLoading(items[i]);
+                }
+                
+                filetree.jqxTree('addTo', items, element2[0]);
+            	filetree.jqxTree('removeItem', loaderItem.element);
+            }
+        });
 		
-		readDirItems(path, function (source):Void 
-		{
-			source.expanded = true;
-			untyped new JQuery('#filetree').jqxTree( { source: [source] } );
-			attachContextMenu();
-			
+		readDirItems(path, function (source:TreeItem):Void 
+		{            
+            var source2:TreeItem = prepareForLazyLoading(source);
+            source2.expanded = true;
+            
+            untyped new JQuery('#filetree').jqxTree( { source: [source2] } );
+            attachContextMenu();
+            			
 			//var items = untyped new JQuery("#filetree").jqxTree('getItems');
 			//trace(items);
 		}, true);
@@ -422,7 +448,7 @@ class FileTree
 						case 'create', 'delete':
 							trace(changeType);
 							trace(filePath);
-							load();
+							//load();
 							
 							Node.fs.stat(filePath, function (error:NodeErr, stat:NodeStat):Void 
 							{
@@ -468,70 +494,183 @@ class FileTree
 	
 	static function readDirItems(path:String, ?onComplete:Dynamic->Void, ?root:Bool = false)
 	{		
-		var items:Array<Dynamic> = [];
-		var files:Array<Dynamic> = [];
+// 		var items:Array<Dynamic> = [];
+// 		var files:Array<Dynamic> = [];
 		
 		var options:Options = {};
-		options.no_recurse = true;
-		
-		var emitter = Walkdir.walk(path, options);
-		
-		emitter.on("file", function (pathToFile:String, stat:NodeStat):Void 
-		{
-			if (!SettingsWatcher.isItemInIgnoreList(pathToFile) && !ProjectAccess.isItemInIgnoreList(pathToFile)) 
-			{
-				files.push(createFileItem(pathToFile));
-			}
+		//options.no_recurse = true;
+        
+        var source:Dynamic = createFolderItem(path, []);
+        source.expanded = true;
+        
+        var pathToFolders:Array<String> = [];
+        var pathToFiles:Array<String> = [];
+        
+        for (pathToItem in Walkdir.walkSync(path, options))
+        {
+            var stat = Node.fs.statSync(pathToItem);
+            
+            if (stat.isDirectory())
+            {
+                pathToFolders.push(pathToItem);
+            }
+            else if(stat.isFile())
+            {
+                pathToFiles.push(pathToItem);
+            }
+        }
+        
+        var type:String = null;
+        type = "folder";
+        
+        for (pathToItem in pathToFolders)
+        {
+            var relativePath = pathToItem.substr(ProjectAccess.path.length);
+            
+            var data:Array<String> = relativePath.split("/");
+
+            var pathToFolder:String = ProjectAccess.path;
+
+            if (data[0] == "")
+            {
+                data.shift();
+                pathToFolder += "/";
+
+            }
+
+            readDir(pathToFolder, source.items, data, type);
 		}
-		);
+    
+    	type = "file";
+    
+    	for (pathToItem in pathToFiles)
+        {
+            var relativePath = pathToItem.substr(ProjectAccess.path.length);
+            
+            var data:Array<String> = relativePath.split("/");
+
+            var pathToFolder:String = ProjectAccess.path;
+
+            if (data[0] == "")
+            {
+                data.shift();
+                pathToFolder += "/";
+
+            }
+
+            readDir(pathToFolder, source.items, data, type);
+		}
+        
+        onComplete(source);
+        
+// 		var emitter = Walkdir.walk(path, options);
 		
-		var folders:Int = 0;
-		var end:Bool = false;
+// 		emitter.on("file", function (pathToFile:String, stat:NodeStat):Void 
+// 		{
+// 			if (!SettingsWatcher.isItemInIgnoreList(pathToFile) && !ProjectAccess.isItemInIgnoreList(pathToFile)) 
+// 			{
+// 				files.push(createFileItem(pathToFile));
+// 			}
+// 		}
+// 		);
 		
-		emitter.on("directory", function (pathToDirectory:String, stat:NodeStat):Void 
-		{
-			if (!SettingsWatcher.isItemInIgnoreList(pathToDirectory) && !ProjectAccess.isItemInIgnoreList(pathToDirectory)) 
-			{
-				folders++;
+// 		var folders:Int = 0;
+// 		var end:Bool = false;
+		
+// 		emitter.on("directory", function (pathToDirectory:String, stat:NodeStat):Void 
+// 		{
+// 			if (!SettingsWatcher.isItemInIgnoreList(pathToDirectory) && !ProjectAccess.isItemInIgnoreList(pathToDirectory)) 
+// 			{
+// 				folders++;
 			
-				readDirItems(pathToDirectory, function (source:Dynamic):Void 
-				{
-					folders--;
+// 				readDirItems(pathToDirectory, function (source:Dynamic):Void 
+// 				{
+// 					folders--;
 					
-					items.push(source);
+// 					items.push(source);
 					
-					if (folders == 0) 
-					{
-						items = items.concat(files);
+// 					if (folders == 0) 
+// 					{
+// 						items = items.concat(files);
 						
-						onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
-					}
-				}
-				);
-			}
-		}
-		);
+// 						onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
+// 					}
+// 				}
+// 				);
+// 			}
+// 		}
+// 		);
 		
-		emitter.on("end", function ():Void 
-		{
-			end = true;
+// 		emitter.on("end", function ():Void 
+// 		{
+// 			end = true;
 			
-			if (folders == 0) 
-			{
-				items = items.concat(files);
+// 			if (folders == 0) 
+// 			{
+// 				items = items.concat(files);
 				
-				onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
-			}
-		}
-		);
+// 				onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
+// 			}
+// 		}
+// 		);
 	}
 	
-	static function createFileItem(path:String):Dynamic
+    static function readDir(pathToFolder:String, items:Array<TreeItem>, data:Array<String>, type:String)
+    {        
+        var folder = data.shift();
+        
+        pathToFolder = Node.path.join(pathToFolder, folder);
+     	
+        if (!SettingsWatcher.isItemInIgnoreList(pathToFolder) && !ProjectAccess.isItemInIgnoreList(pathToFolder))
+        {
+        	var foundItem:TreeItem = null;
+        
+            var itemType:String = type;
+
+            for (item in items)
+            {
+                if (item.value != null && item.value.path == pathToFolder)
+                {
+                    foundItem = item;
+                    break;
+                }
+            }
+
+            if (foundItem == null)
+            {
+                if (type == "file" && data.length > 0)
+                {
+                    itemType = "folder";
+                }
+
+                var item:TreeItem = null;    
+
+                if (itemType == "folder")
+                {
+                    item = createFolderItem(pathToFolder, []);
+                }
+                else if (itemType == "file")
+                {
+                    item = createFileItem(pathToFolder);
+                }
+
+                items.push(item);
+                foundItem = item;
+            }
+
+            if (data.length > 0)
+            {
+                readDir(pathToFolder, foundItem.items, data, type);    
+            }
+        }
+    }
+    
+	static function createFileItem(path:String):TreeItem
 	{
 		var basename:String = Node.path.basename(path);
 		var extname:String = Node.path.extname(basename);
 		
-		var data:Dynamic = { label: basename, value: {path: path, type: "file"} };
+		var data:TreeItem = { label: basename, value: {path: path, type: "file"} };
 		
 		switch (extname) 
 		{
@@ -549,4 +688,39 @@ class FileTree
 		
 		return data;
 	}
+    
+    static function createFolderItem(path:String, items:Array<TreeItem>):TreeItem
+    {
+    	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"};
+    }
+        
+    static function prepareForLazyLoading(source:TreeItem)
+    {
+		var source2:TreeItem = source;
+
+        if (source.items != null)
+        {
+            source2 = {label: source.label};
+            source2.icon = source.icon;
+            source2.value = source.value;
+            source2.items = [];
+            
+            for (item in source.items)
+            {
+                 var newItem:TreeItem = {label: item.label};
+                 newItem.icon = item.icon;
+                 newItem.value = item.value;
+
+                 if	(item.items != null && item.items.length > 0)
+                 {
+                     newItem.items = [];
+                     newItem.items.push({label:"Loading...", value: item.items});
+                 }
+
+                 source2.items.push(newItem);
+            }
+        }
+
+		return source2;
+    }
 }

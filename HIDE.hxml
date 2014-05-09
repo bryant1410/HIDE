@@ -1,18 +1,20 @@
 -cp src
 -cp externs/codemirror
--cp libs/haxeparser-master/src
+-cp libs/hxparse/src
+-cp libs/haxeparser/src
 -cp libs/haxeprinter/src
 -cp libs/nodejs-std
 -cp externs/alertify
 -js ./bin/core/HIDE.js
 -main Main
 -lib jQueryExtern
--lib hxparse
 -lib tjson
 -lib mustache
 -resource libs/haxeprinter/res/config.json@config
 -D noStyle
 -D nodejs
 -D source-map-content
+-debug
+-dce full
 core.ProcessHelper
 openflproject.OpenFLTools

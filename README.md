@@ -4,7 +4,7 @@
 HIDE
 ====
 
-HIDE - plugin based IDE for Haxe programming language
+HIDE - cross platform IDE for Haxe programming language
 
 Thanks to a group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under the terms of the MIT License.
 
@@ -36,5 +36,8 @@ CodeMirror is licensed under the terms of the MIT License.
 JQuery are licensed under the terms of the MIT License.
 Bootstrap is licensed under the terms of the Apache License Version 2.0
 JQWidgets is licensed under non-commercial license(http://creativecommons.org/licenses/by-nc/3.0/)
+Completion types is from Tern which is licensed under the terms of the MIT License.
+Completion description CodeMirror addon by @angelozerr
+Code snippets CodeMirror addon by @angelozerr(with minor fixes by @AS3Boyan)
 
 jQueryExtern is released in the public domain.

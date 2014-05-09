@@ -15,18 +15,17 @@ import tabmanager.TabManager;
 class FunctionParametersHelper
 {
 	public static var widgets:Array<LineWidget> = [];
-	static var lines:Array<Int> = [];
+	static var lastPos:CodeMirror.Pos;
 	
-	public static function addWidget(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, lineNumber:Int):Void
+	public static function addWidget(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, pos:CodeMirror.Pos):Void
 	{		
-		var lineWidget:LineWidget = new LineWidget(type, name, parameters, retType, description, currentParameter, lineNumber);
+		var lineWidget:LineWidget = new LineWidget(type, name, parameters, retType, description, currentParameter, pos);
 		widgets.push(lineWidget);
-		lines.push(lineNumber);
 	}
 	
-	public static function alreadyShown(lineNumber:Int):Bool
+	public static function alreadyShown():Bool
 	{
-		return lines.indexOf(lineNumber) != -1;
+		return widgets.length > 0;
 	}
 	
 	public static function updateScroll():Void
@@ -47,7 +46,6 @@ class FunctionParametersHelper
 			Editor.editor.removeLineWidget(widget.getWidget());
 		}
 		
-		lines = [];
 		widgets = [];
 	}
 	
@@ -70,27 +68,43 @@ class FunctionParametersHelper
 	static function scanForBracket(cm:CodeMirror, cursor:CodeMirror.Pos):Void
 	{
 		//{bracketRegex: untyped __js__("/[([\\]]/")}
-		var bracketsData = cm.scanForBracket(cursor, -1, null);
-		
+        //{bracketRegex: untyped __js__("/[({}]/")}
+        var bracketsData = cm.scanForBracket(cursor, -1, null, {bracketRegex: untyped __js__("/[([\\]}]/")});
+        
+        var pos:CodeMirror.Pos = null;
+        
 		if (bracketsData != null && bracketsData.ch == "(") 
 		{
-			var range:String = cm.getRange(bracketsData.pos, cursor);
+            pos = {line:bracketsData.pos.line, ch:bracketsData.pos.ch};
+            
+            var matchedBracket:CodeMirror.Pos = cm.findMatchingBracket(pos, false, null).to;
+            
+            if (matchedBracket == null || (cursor.line <= matchedBracket.line && cursor.ch <= matchedBracket.ch))
+            {
+                var range:String = cm.getRange(bracketsData.pos, cursor);
 			
-			var pos = {line:bracketsData.pos.line, ch:bracketsData.pos.ch};
-			
-			var currentParameter:Int = range.split(",").length - 1;
-			
-			if (!FunctionParametersHelper.alreadyShown(pos.line)) 
-			{						
-				getFunctionParams(cm, pos, currentParameter);				
+                var currentParameter:Int = range.split(",").length - 1;
+                
+                if (lastPos == null || lastPos.ch != pos.ch || lastPos.line != pos.line)
+                {
+                    getFunctionParams(cm, pos, currentParameter);  
+                }
+                else if (FunctionParametersHelper.alreadyShown())
+                {
+                    widgets[0].updateParameters(currentParameter);
+                }
+                
+                lastPos = pos;
 			}
-			else 
-			{
-				widgets[0].updateParameters(currentParameter);
-			}
+            else
+            {
+                lastPos = null;
+                FunctionParametersHelper.clear();
+            }
 		}
 		else
 		{
+            lastPos = null;
 			FunctionParametersHelper.clear();
 		}
 	}
@@ -98,7 +112,7 @@ class FunctionParametersHelper
 	static function getFunctionParams(cm:CodeMirror, pos:CodeMirror.Pos, currentParameter:Int):Void
 	{
 		var word = Completion.getCurrentWord(cm, {}, {line:pos.line, ch:pos.ch - 1}).word;
-		
+        
 		Completion.getCompletion(function ()
 		{
 			var found:Bool = false;
@@ -114,7 +128,7 @@ class FunctionParametersHelper
 						var description = parseDescription(completion);
 						
 						FunctionParametersHelper.clear();
-						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor().line);
+						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor());
 						FunctionParametersHelper.updateScroll();
 						found = true;
 						break;
@@ -125,7 +139,7 @@ class FunctionParametersHelper
 			if (!found) 
 			{
 				FunctionParametersHelper.clear();
-			}
+			}  
 		}
 		, {line: pos.line, ch: pos.ch - 1});
 	}

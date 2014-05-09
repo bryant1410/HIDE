@@ -17,6 +17,10 @@ class ImportDefinition
 		{
 			var parsedData = OutlineHelper.parseDeclarations(ast);
 			trace(parsedData);
+            
+            
+            //OutlineHelper.        
+            
 		}
     }
 

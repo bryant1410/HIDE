@@ -9,6 +9,7 @@ import jQuery.JQuery;
 
 typedef TreeItem = {
 	var label:String;
+    @:optional var icon:String;
 	@:optional var items:Array<TreeItem>;
 	@:optional var expanded:Bool;
 	@:optional var value:Dynamic;

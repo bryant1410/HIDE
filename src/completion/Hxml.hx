@@ -17,7 +17,7 @@ typedef CompletionData =
 	@:optional var info:CompletionData->Dynamic;
 	@:optional var className:String;
 }
- 
+
 class Hxml
 {
 	static var completions:Array<CompletionData>;
@@ -92,6 +92,13 @@ class Hxml
 			for (item in data)
 			{
 				completions.push( { text: item, className: "CodeMirror-Tern-completion"} );
+            
+            	if (item == "-dce")
+                {
+                    completions.push( { text: item + " " + "no", className: "CodeMirror-Tern-completion"} );
+                    completions.push( { text: item + " " + "std", className: "CodeMirror-Tern-completion"} );
+                    completions.push( { text: item + " " + "full", className: "CodeMirror-Tern-completion"} );
+				}
 			}
 			
 			if (onComplete != null) 

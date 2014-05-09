@@ -41,4 +41,20 @@ class Walkdir
 		
 		return emitter;
 	}
+    
+    public static function walkSync(path:String, options:Options, ?onItem:String->NodeStat->Void):Array<String>
+    {
+        var result:Array<String>;
+        
+        if (onItem != null) 
+		{
+			result = walkdir.sync(path, options);
+		}
+		else 
+		{
+			result = walkdir.sync(path, onItem);
+		}
+        
+        return result;
+    }
 }

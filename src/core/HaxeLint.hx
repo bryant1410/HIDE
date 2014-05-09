@@ -52,6 +52,10 @@ class HaxeLint
 		
 		if (TabManager.getCurrentDocument().getMode().name == "haxe")
 		{
+            HaxeParserProvider.getClassName();
+        
+        	parser.OutlineHelper.getList(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
+            
 			var path:String = TabManager.getCurrentDocumentPath();
 			
 			if (fileData.exists(path)) 
@@ -67,6 +71,11 @@ class HaxeLint
 			Editor.editor.setOption("lint", false);
 			Editor.editor.setOption("lint", true);
 		}
+    	else
+        {
+            OutlinePanel.clearFields();
+            OutlinePanel.update();
+        }
 	}
 	
 }

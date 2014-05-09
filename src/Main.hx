@@ -158,7 +158,7 @@ class Main
 		}
 		);
         
-        ProcessHelper.checkProcessInstalled("git", [], function (installed:Bool)
+        ProcessHelper.checkProcessInstalled("git", ["--version"], function (installed:Bool)
         {
 			trace("git installed " + Std.string(installed));
         }

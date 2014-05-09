@@ -1,3 +1,4 @@
+
 package tabmanager;
 import cm.CMDoc;
 import cm.Editor;
@@ -471,6 +472,10 @@ class TabManager
 		{
 			saveDoc(selectedPath, onComplete);
 		}
+        else
+        {
+            trace(selectedPath);
+        }
 	}
 	
 	public static function saveActiveFileAs():Void

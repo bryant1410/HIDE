@@ -78,11 +78,6 @@ class OpenProject
 					ProjectAccess.currentProject = parseProjectData(data);
 					ProjectAccess.path = pathToProject;
 					
-					if (ProjectAccess.currentProject.type == Project.HXML) 
-					{
-						TabManager.openFileInNewTab(Node.path.join(ProjectAccess.path, ProjectAccess.currentProject.main));
-					}
-					
 					ClasspathWalker.parseProjectArguments();
 					
 					if (ProjectAccess.currentProject.files == null) 

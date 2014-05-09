@@ -16,15 +16,16 @@ import parser.ClassParser;
 import projectaccess.Project;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
+
 /**
  * ...
  * @author AS3Boyan
  */
-
 enum CompletionType
 {
 	REGULAR;
 	FILELIST;
+    OPENFILE;
 	CLASSLIST;
 	HXML;
 	METATAGS;
@@ -46,8 +47,8 @@ class Completion
 	static var word:EReg;
 	static var range:Int;
 	static var cur:Pos;
-	static private var end:Int;
-	static private var start:Int;
+	static var end:Int;
+	static var start:Int;
 	static var WORD:EReg = ~/[A-Z]+$/i;
 	static var RANGE = 500;
 	public static var curWord:String;
@@ -66,7 +67,7 @@ class Completion
 		
 		Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
 		{
-			if (completionType == FILELIST) 
+			if (completionType == OPENFILE) 
 			{
 				backupDocValue = TabManager.getCurrentDocument().getValue();
 			}
@@ -88,8 +89,6 @@ class Completion
 		{
 			range = RANGE;
 		}
-		
-		getCurrentWord(cm, options);
 
 		list = new Array();
 		
@@ -160,16 +159,34 @@ class Completion
 					
 					list.push(completionItem);
 				}
-
-				if (curWord == null || curWord.length == 0)
+				
+        		
+        		getCurrentWord(cm, {word: ~/[A-Z.]+$/i});
+        
+				if (curWord == null || curWord.indexOf(".") == -1)
 				{
 				    list = list.concat(SnippetsCompletion.getCompletion());
 				}
 			case METATAGS:
 				list = MetaTags.getCompletion();
 			case HXML:
-				list = Hxml.getCompletion();
+				list = Hxml.getCompletion().copy();
+        
+        		for (item in ClassParser.topLevelClassList) 
+				{
+					list.push( { text: item} );
+				}
+				
+				for (item in ClassParser.importsList) 
+				{
+					list.push( { text: item} );
+				}
 			case FILELIST:
+				for (item in ClassParser.filesList) 
+				{
+					list.push( { text: item, displayText: item} );
+				}
+            case OPENFILE:
 				for (item in ClassParser.filesList) 
 				{
 					list.push( { text: item, displayText: item, hint: openFile} );
@@ -188,11 +205,13 @@ class Completion
 				
 		}
 		
+    	getCurrentWord(cm, options);
+    
 		list = Filter.filter(list, curWord, completionType);
 		
 		switch (completionType) 
 		{
-			case FILELIST:
+			case OPENFILE:
 				for (item in list) 
 				{
 					item.text = "";
@@ -216,7 +235,7 @@ class Completion
 		}
 		
         TabManager.getCurrentDocument().setValue(backupDocValue);
-            
+        TabManager.saveActiveFile();
 		TabManager.openFileInNewTab(path);
 	}
 	
@@ -419,13 +438,22 @@ class Completion
 		}
 	}
 	
-	public static function showFileList():Void
+	public static function showFileList(?openFile:Bool = true):Void
 	{		
 		if (isEditorVisible()) 
 		{
 			Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z\.]+$/i;
-			completionType = FILELIST;
+            
+            if (openFile)
+            {
+				completionType = OPENFILE;
+			}
+            else
+            {
+                completionType = FILELIST;
+            }
+			
 			CodeMirrorStatic.showHint(Editor.editor, getHints);
 		}
 	}

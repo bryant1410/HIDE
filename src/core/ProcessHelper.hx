@@ -322,9 +322,9 @@ class ProcessHelper
 					//process not found
 				//}
 				
-				//trace(error);
-				//trace(stdout);
-				//trace(stderr);
+				trace(error);
+				trace(stdout);
+				trace(stderr);
 				installed = false;
 			}
 			

@@ -33,6 +33,14 @@ text : Array<String>,
 ?next : ChangeEvent
 }
 
+typedef TokenData = {
+start: Int,
+end: Int,
+string: String,
+type: String,
+state: Dynamic
+}
+
 typedef LineWidgetOptions = {
 	coverGutter: Bool,
 	noHScroll: Bool
@@ -111,6 +119,9 @@ function scrollIntoView(from:Pos, to:Pos):Dynamic;
 static function defineExtension(name:String, func:Dynamic):Void;
 function centerOnLine(line:Int):Void;
 function scanForBracket(pos:CodeMirror.Pos, dir:Int, ?style:Dynamic, ?config:Dynamic): { ch:String, pos:CodeMirror.Pos };
+function findMatchingBracket(pos:CodeMirror.Pos, strict:Bool, config:Dynamic):{from:CodeMirror.Pos, to:CodeMirror.Pos,
+            match: String, forward: Bool};
+
 function execCommand(command:String):Void;
 function replaceRange(replacement: String, from: Pos, to: Pos, ?origin: String):Void;
 function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
@@ -125,6 +136,7 @@ function getAllMarks():Array<MarkedText>;
 function setMarker( line : Int , ?text : String , ?className : String ) : LineHandle;
 @:overload( function( line : LineHandle ) : Void {})
 function clearMarker(line:Int) : Void;
+function getTokenAt(pos: Pos, ?precise:Bool):TokenData;
 
 function getWrapperElement() : DivElement;
 

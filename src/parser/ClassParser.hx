@@ -36,16 +36,16 @@ class ClassParser
 		}
 		catch (e:NoMatch<Dynamic>) 
 		{
-			trace(e.pos.format(input) + ": Unexpected " + e.token.tok);
+// 			trace(e.pos.format(input) + ": Unexpected " + e.token.tok);
 		}
 		catch (e:Unexpected<Dynamic>) 
 		{
-			trace(e.pos.format(input) + ": Unexpected " + e.token.tok);
+// 			trace(e.pos.format(input) + ": Unexpected " + e.token.tok);
 		} 
 		catch (e:Dynamic)
 		{			
-			trace("Unhandled parsing error: ");
-			trace(e);
+			//trace("Unhandled parsing error: ");
+			//trace(e);
 		}
 		
 		return ast;

@@ -254,7 +254,7 @@ class HaxeParserProvider
 		}
 		catch (e:NoMatch<Dynamic>) 
 		{
-			trace(e);
+			//trace(e);
 			var pos =  e.pos.getLinePosition(input);
 			
 			var info:Info = { from: {line:pos.lineMin - 1, ch:pos.posMin}, to: {line:pos.lineMax - 1, ch:pos.posMax}, message: "Parser error:\nUnexpected " + e.token.tok, severity: "warning"};
@@ -264,7 +264,7 @@ class HaxeParserProvider
 		}
 		catch (e:Unexpected<Dynamic>) 
 		{
-			trace(e);
+			//trace(e);
 			var pos =  e.pos.getLinePosition(input);
 			
 			var info:Info = { from: {line: pos.lineMin - 1, ch: pos.posMin}, to: {line:pos.lineMax - 1, ch:pos.posMax}, message: "Parser error:\nUnexpected " + e.token.tok, severity: "warning"};
@@ -274,7 +274,7 @@ class HaxeParserProvider
 		} 
 		catch (e:Dynamic)
 		{			
-			if (Reflect.hasField(e, "pos")) 
+			if (e != null && e.pos) 
 			{		
 				var cm = Editor.editor;
 				
@@ -308,7 +308,7 @@ class HaxeParserProvider
 		{			
 			if (currentPosition > path[i].pos.min && currentPosition < path[i].pos.max) 
 			{
-				trace(path[i].pack);
+				//trace(path[i].pack);
 				
 				found = true;
 				break;
@@ -371,8 +371,8 @@ class HaxeParserProvider
 			{
 				case FFun(f):
 					//trace(f);
-					trace(f.expr);
-					trace(f.params);
+					//trace(f.expr);
+					//trace(f.params);
 					info += "(";
 					
 					for (i in 0...f.args.length) 
@@ -390,16 +390,16 @@ class HaxeParserProvider
 									info += ", ";
 								}
 							case TParent(t):
-								trace(t);
+// 								trace(t);
 							case TOptional(t):
-								trace(t);
+								//trace(t);
 							case TFunction(args, ret):
-								trace(args);
-								trace(ret);
+								//trace(args);
+								//trace(ret);
 							case TExtend(p, fields):
-								trace(p, fields);
+								//trace(p, fields);
 							case TAnonymous(fields):
-								trace(fields);
+								//trace(fields);
 						}
 					}
 					
@@ -410,7 +410,7 @@ class HaxeParserProvider
 					
 			}
 			
-			trace(info);
+// 			trace(info);
 		}
 	}
 }

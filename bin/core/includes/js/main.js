@@ -17861,8 +17861,15 @@ CodeMirror.defineMIME('text/x-sh', 'shell');
 		var editor = cm.getWrapperElement().getBoundingClientRect();
 		var newTop = top + startScroll.top - curScroll.top;
 		
-		contextInfo.style.top = newTop + "px";
-		contextInfo.style.left = (left + startScroll.left - curScroll.left) + "px";
+        if (contextInfo != null)
+        {
+            contextInfo.style.top = newTop + "px";
+			contextInfo.style.left = (left + startScroll.left - curScroll.left) + "px";
+		}
+        else
+        {
+            cm.off("scroll", onScroll);
+        }
     }
   }
 
