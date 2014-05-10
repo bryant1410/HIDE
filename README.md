@@ -30,6 +30,9 @@ haxelib run HIDE
 ![Alt text](http://s13.postimg.org/9l0qcxo87/screenshot_204.png)
 3. Run nw
 
+##### Contributing
+I am always thrilled to receive pull requests, and I do my best to process them as fast as possible. Not sure if that typo is worth a pull request? Do it! I will appreciate it.
+
 ###License:
 HIDE is licensed under the terms of the MIT License.
 CodeMirror is licensed under the terms of the MIT License.

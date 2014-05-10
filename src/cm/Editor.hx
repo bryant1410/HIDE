@@ -210,6 +210,14 @@ class Editor
 		
 		editor.on("change", function (cm:CodeMirror, e:CodeMirror.ChangeEvent):Void 
 		{
+            if (e.origin == "paste" && (e.from.line - e.to.line) > 0)
+            {
+                for (line2 in e.from.line...e.to.line)
+                {
+					cm.indentLine(line2);                
+                }
+            }
+            
 			var modeName:String = TabManager.getCurrentDocument().getMode().name;
 			
 			if (modeName == "haxe") 
@@ -261,7 +269,7 @@ class Editor
 					}
 				}
 				else if (StringTools.endsWith(data, "import ")) 
-				{
+				{                    
 					Completion.showClassList(true);
 				}
 			}
@@ -276,7 +284,7 @@ class Editor
 				}
                 else if (data == "-cp ")
                 {
-                    Completion.showFileList(false);
+                    Completion.showFileList(false, true);
                 }
                 else if (data == "-dce ")
                 {
@@ -284,7 +292,7 @@ class Editor
 				}
                 else if (data == "--macro ")
                	{
-                    Completion.showClassList();
+                    Completion.showClassList(true);
                 }
 			}
 			
@@ -305,9 +313,11 @@ class Editor
 	
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
 	{
+        trace("triggerCompletion");
+        
 		var modeName:String = TabManager.getCurrentDocument().getMode().name;
 		
-		switch (modeName) 
+		switch (modeName)
 		{
 			case "haxe":
 				//HaxeParserProvider.getClassName();

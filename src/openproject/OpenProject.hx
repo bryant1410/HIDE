@@ -80,39 +80,55 @@ class OpenProject
 					
 					ClasspathWalker.parseProjectArguments();
 					
+                    var loadedFilesCount:Int = 0;
+                    var totalFilesCount:Int;
+                    
 					if (ProjectAccess.currentProject.files == null) 
 					{
 						ProjectAccess.currentProject.files = [];
 					}
 					else 
 					{
+                        totalFilesCount = ProjectAccess.currentProject.files.length;
+                        
 						for (file in ProjectAccess.currentProject.files) 
 						{
 							var fullPath:String = Node.path.join(pathToProject, file);
-							
+                            
 							Node.fs.exists(fullPath, function (exists:Bool) 
 							{
 								if (exists) 
 								{
-									TabManager.openFileInNewTab(fullPath);
+									TabManager.openFileInNewTab(fullPath, false, function ()
+                                                               {
+                                                                   loadedFilesCount++;
+                                                                   
+                                                                   if (loadedFilesCount == totalFilesCount)
+                                                                   {
+                                                                       	var activeFile = ProjectAccess.currentProject.activeFile;
+                                                                       
+                                                                        if (activeFile != null) 
+                                                                        {
+                                                                            var fullPathToActiveFile:String = Node.path.join(pathToProject, activeFile);
+                                                                            
+                                                                            Node.fs.exists(fullPathToActiveFile, function (exists:Bool)
+                                                                            {
+                                                                                if (exists) 
+                                                                                {
+                                                                                    TabManager.selectDoc(fullPathToActiveFile);
+                                                                                    cm.Editor.editor.focus();
+                                                                                }
+                                                                            }
+                                                                            );
+                                                                        }
+                                                                   }
+                                                               });
 								}
 							}
 							);
 						}
 						
-						var activeFile = ProjectAccess.currentProject.activeFile;
 						
-						if (activeFile != null) 
-						{
-							Node.fs.exists(activeFile, function (exists:Bool)
-							{
-								if (exists) 
-								{
-									TabManager.selectDoc(Node.path.join(pathToProject, activeFile));
-								}
-							}
-							);
-						}
 					}
 					
 					if (ProjectAccess.currentProject.hiddenItems == null) 

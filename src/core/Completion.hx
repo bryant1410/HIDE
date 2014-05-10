@@ -25,12 +25,13 @@ enum CompletionType
 {
 	REGULAR;
 	FILELIST;
+	PASTEFOLDER;
     OPENFILE;
 	CLASSLIST;
 	HXML;
 	METATAGS;
 }
- 
+
 typedef CompletionItem = 
 {
 	@:optional
@@ -182,14 +183,48 @@ class Completion
 					list.push( { text: item} );
 				}
 			case FILELIST:
+        		var displayText:String;
+        
 				for (item in ClassParser.filesList) 
 				{
-					list.push( { text: item, displayText: item} );
+                    displayText = item.path;
+                    
+                    if (displayText.length > 70)
+                    {
+                        displayText = "..." + displayText.substr(displayText.length - 70);
+                    }
+                    
+					list.push( { text: item.path, displayText: displayText} );
 				}
             case OPENFILE:
+        		var displayText:String;
+        
 				for (item in ClassParser.filesList) 
 				{
-					list.push( { text: item, displayText: item, hint: openFile} );
+                    displayText = item.path;
+                    
+                    if (displayText.length > 70)
+                    {
+                        displayText = "..." + displayText.substr(displayText.length - 70);
+                    }
+                    
+                    trace(displayText);
+                        
+					list.push( { text: item.path, displayText: displayText, hint: openFile} );
+				}
+            case PASTEFOLDER:
+        		var displayText:String;
+        
+        		for (item in ClassParser.filesList) 
+				{
+                    displayText = item.path;
+                    
+                    if (displayText.length > 70)
+                    {
+                        displayText = "..." + displayText.substr(displayText.length - 70);
+                    }
+                    
+					list.push( { text: item.directory, displayText: displayText} );
 				}
 			case CLASSLIST:
 				for (item in ClassParser.topLevelClassList) 
@@ -281,7 +316,7 @@ class Completion
 			//= ProjectAccess.currentProject.args.copy();
 			
 			var project = ProjectAccess.currentProject;
-			
+            
 			switch (project.type)
 			{
 				case Project.HAXE:
@@ -422,6 +457,8 @@ class Completion
 	{
 		if (isEditorVisible()) 
 		{
+            cur = Editor.editor.getCursor();
+            Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z@:]+$/i;
 			completionType = METATAGS;
 			CodeMirrorStatic.showHint(Editor.editor, null, { closeCharacters: untyped __js__("/[\\s()\\[\\]{};>,]/") } );
@@ -432,16 +469,19 @@ class Completion
 	{
 		if (isEditorVisible()) 
 		{
+            cur = Editor.editor.getCursor();
+            Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z- ]+$/i;
 			completionType = HXML;
 			CodeMirrorStatic.showHint(Editor.editor, null, { closeCharacters: untyped __js__("/[()\\[\\]{};:>,]/") } );
 		}
 	}
 	
-	public static function showFileList(?openFile:Bool = true):Void
+	public static function showFileList(?openFile:Bool = true, ?insertDirectory:Bool = false):Void
 	{		
 		if (isEditorVisible()) 
 		{
+            cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z\.]+$/i;
             
@@ -449,9 +489,15 @@ class Completion
             {
 				completionType = OPENFILE;
 			}
-            else
+            else if (insertDirectory == false)
             {
                 completionType = FILELIST;
+            }
+            else
+            {
+                completionType = PASTEFOLDER;
+                
+//                 "/[\s()\[\]{};:>,]/"
             }
 			
 			CodeMirrorStatic.showHint(Editor.editor, getHints);
@@ -462,6 +508,7 @@ class Completion
 	{
 		if (isEditorVisible()) 
 		{
+            cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z\.]+$/i;
 			completionType = CLASSLIST;

@@ -68,10 +68,10 @@ class ProjectAccess
 	}
 	
 	public static function isItemInIgnoreList(path:String):Bool
-	{
+	{        
 		var ignore:Bool = false;
-		
-		if (!ProjectAccess.currentProject.showHiddenItems) 
+        
+		if (ProjectAccess.path != null && !ProjectAccess.currentProject.showHiddenItems) 
 		{
 			var relativePath:String = Node.path.relative(ProjectAccess.path, path);
 			

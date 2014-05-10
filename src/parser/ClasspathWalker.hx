@@ -14,6 +14,7 @@ import projectaccess.Project;
 import projectaccess.ProjectAccess;
 import watchers.LocaleWatcher;
 import watchers.SettingsWatcher;
+import parser.ClassParser.FileData;
 
 /**
  * ...
@@ -25,7 +26,7 @@ class ClasspathWalker
 	public static var haxeStdFileList:Array<String>;
 	public static var haxeStdTopLevelClassList:Array<String>;
 	public static var haxeStdImports:Array<String>;
-	
+    
 	public static function load():Void 
 	{
 		haxeStdFileList = [];
@@ -128,20 +129,16 @@ class ClasspathWalker
 		
 		return pathToStd;
 	}
-	
+
 	public static function parseProjectArguments():Void 
 	{
 		ClassParser.classCompletions = new StringMap();
 		ClassParser.filesList = [];
-		
-		var relativePath:String;
-		
-		for (item in haxeStdFileList) 
-		{
-			relativePath = Node.path.relative(ProjectAccess.path, item);
-			
-			ClassParser.filesList.push(relativePath);
-		}
+            
+        for (item in haxeStdFileList) 
+        {
+            addFile(item, true);
+        }
 		
 		ClassParser.topLevelClassList = haxeStdTopLevelClassList.copy();
 		ClassParser.importsList = haxeStdImports.copy();
@@ -181,6 +178,22 @@ class ClasspathWalker
 		
 		walkProjectDirectory(ProjectAccess.path);
 	}
+        
+    static function getFileDirectory(relativePath:String):String
+	{
+        var directory:String = "";
+        
+        if (relativePath.indexOf("/") != -1)
+        {
+            directory = relativePath.substring(0, relativePath.lastIndexOf("/"));
+        }
+        else if (relativePath.indexOf("\\") != -1)
+        {
+            directory = relativePath.substring(0, relativePath.lastIndexOf("\\"));
+        }
+            
+        return directory;
+    }
 	
 	static function getClasspaths(data:Array<String>)
 	{
@@ -262,19 +275,10 @@ class ClasspathWalker
 			{
 				haxeStdFileList.push(path);
 			}
-
-			if (ProjectAccess.path != null) 
-			{
-				pathToFile = Node.path.relative(ProjectAccess.path, path);
-			}
-			else 
-			{
-				pathToFile = path;
-			}
 			
-			if (ClassParser.filesList.indexOf(pathToFile) == -1) 
+			if (getFileIndex(path) == -1) 
 			{
-				ClassParser.filesList.push(pathToFile);
+                addFile(path, std);
 			}
 			
 			if (Node.path.extname(path) == ".hx") 
@@ -304,24 +308,40 @@ class ClasspathWalker
 		);
 	}
 	
-	public static function addFile(path:String)
+	static function getFileIndex(pathToFile:String):Int
+	{
+        var index:Int = -1;
+            
+        for (i in 0...ClassParser.filesList.length)
+        {
+            if (ClassParser.filesList[i].path == pathToFile)
+            {
+                index = i;
+                break;
+            }
+        }
+            
+        return index;
+    }
+
+	public static function addFile(path:String, ?std:Bool = false)
 	{
 		if (!SettingsWatcher.isItemInIgnoreList(path) && !ProjectAccess.isItemInIgnoreList(path)) 
 		{
 			var relativePath;
 			
-			if (ProjectAccess.path != null) 
-			{
+			if (ProjectAccess.path != null && (core.Utils.os == core.Utils.WINDOWS || !std))
+			{                
 				relativePath = Node.path.relative(ProjectAccess.path, path);
 				
-				if (ClassParser.filesList.indexOf(relativePath) == -1 && ClassParser.filesList.indexOf(path) == -1) 
+				if (getFileIndex(relativePath) == -1 && getFileIndex(path) == -1) 
 				{
-					ClassParser.filesList.push(relativePath);
+					ClassParser.filesList.push({path: relativePath, directory: getFileDirectory(relativePath)});
 				}
 			}
 			else 
 			{
-				ClassParser.filesList.push(path);
+				ClassParser.filesList.push({path: path, directory: getFileDirectory(path)});
 			}
 		}
 	}
@@ -330,13 +350,26 @@ class ClasspathWalker
 	{
 		var relativePath;
 		
+        var index:Int = -1;
+        
 		if (ProjectAccess.path != null) 
 		{
 			relativePath = Node.path.relative(ProjectAccess.path, path);
-			ClassParser.filesList.remove(relativePath);
+            
+            index = getFileIndex(relativePath);
+            
+            if (index != -1)
+            {
+            	ClassParser.filesList.remove(ClassParser.filesList[index]);    
+            }
 		}
 		
-		ClassParser.filesList.remove(path);
+        index = getFileIndex(path);
+            
+        if (index != -1)
+        {
+            ClassParser.filesList.remove(ClassParser.filesList[index]);    
+        }
 	}
 	
 	static function walkProjectDirectory(path:String):Void 

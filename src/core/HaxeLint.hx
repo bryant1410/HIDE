@@ -52,7 +52,12 @@ class HaxeLint
 		
 		if (TabManager.getCurrentDocument().getMode().name == "haxe")
 		{
-            HaxeParserProvider.getClassName();
+            haxe.Timer.delay(function ()
+                             {
+                                 HaxeParserProvider.getClassName();
+                                 Editor.editor.setOption("lint", false);
+								 Editor.editor.setOption("lint", true);
+                             }, 10);
         
         	parser.OutlineHelper.getList(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
             

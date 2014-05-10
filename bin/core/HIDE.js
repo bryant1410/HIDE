@@ -1248,6 +1248,14 @@ cm.Editor.load = function() {
 	var ignoreNewLineKeywords_1 = "for ";
 	var ignoreNewLineKeywords_2 = "while";
 	cm.Editor.editor.on("change",function(cm6,e2) {
+		if(e2.origin == "paste" && e2.from.line - e2.to.line > 0) {
+			var _g12 = e2.from.line;
+			var _g3 = e2.to.line;
+			while(_g12 < _g3) {
+				var line2 = _g12++;
+				cm6.indentLine(line2);
+			}
+		}
 		var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
@@ -1258,10 +1266,10 @@ cm.Editor.load = function() {
 			if(data.charAt(cursor1.ch - 1) == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
 			} else if(data.charAt(cursor1.ch - 1) == "<") {
-				var _g3 = 0;
-				while(_g3 < basicTypes.length) {
-					var type = basicTypes[_g3];
-					++_g3;
+				var _g4 = 0;
+				while(_g4 < basicTypes.length) {
+					var type = basicTypes[_g4];
+					++_g4;
 					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor1.ch - 1),type)) {
 						core.Completion.showClassList();
 						break;
@@ -1271,7 +1279,7 @@ cm.Editor.load = function() {
 		} else if(modeName == "hxml") {
 			var cursor2 = cm6.getCursor();
 			var data1 = cm6.getLine(cursor2.line);
-			if(data1 == "-") core.Completion.showHxmlCompletion(); else if(data1 == "-cp ") core.Completion.showFileList(false); else if(data1 == "-dce ") core.Completion.showHxmlCompletion(); else if(data1 == "--macro ") core.Completion.showClassList();
+			if(data1 == "-") core.Completion.showHxmlCompletion(); else if(data1 == "-cp ") core.Completion.showFileList(false,true); else if(data1 == "-dce ") core.Completion.showHxmlCompletion(); else if(data1 == "--macro ") core.Completion.showClassList(true);
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
@@ -1282,6 +1290,7 @@ cm.Editor.load = function() {
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
+	console.log("triggerCompletion");
 	var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
 	switch(modeName) {
 	case "haxe":
@@ -1636,23 +1645,26 @@ core.CompilationOutput.load = function() {
 	output.readOnly = true;
 	new $("#output").append(output);
 };
-core.CompletionType = $hxClasses["core.CompletionType"] = { __ename__ : ["core","CompletionType"], __constructs__ : ["REGULAR","FILELIST","OPENFILE","CLASSLIST","HXML","METATAGS"] };
+core.CompletionType = $hxClasses["core.CompletionType"] = { __ename__ : ["core","CompletionType"], __constructs__ : ["REGULAR","FILELIST","PASTEFOLDER","OPENFILE","CLASSLIST","HXML","METATAGS"] };
 core.CompletionType.REGULAR = ["REGULAR",0];
 core.CompletionType.REGULAR.toString = $estr;
 core.CompletionType.REGULAR.__enum__ = core.CompletionType;
 core.CompletionType.FILELIST = ["FILELIST",1];
 core.CompletionType.FILELIST.toString = $estr;
 core.CompletionType.FILELIST.__enum__ = core.CompletionType;
-core.CompletionType.OPENFILE = ["OPENFILE",2];
+core.CompletionType.PASTEFOLDER = ["PASTEFOLDER",2];
+core.CompletionType.PASTEFOLDER.toString = $estr;
+core.CompletionType.PASTEFOLDER.__enum__ = core.CompletionType;
+core.CompletionType.OPENFILE = ["OPENFILE",3];
 core.CompletionType.OPENFILE.toString = $estr;
 core.CompletionType.OPENFILE.__enum__ = core.CompletionType;
-core.CompletionType.CLASSLIST = ["CLASSLIST",3];
+core.CompletionType.CLASSLIST = ["CLASSLIST",4];
 core.CompletionType.CLASSLIST.toString = $estr;
 core.CompletionType.CLASSLIST.__enum__ = core.CompletionType;
-core.CompletionType.HXML = ["HXML",4];
+core.CompletionType.HXML = ["HXML",5];
 core.CompletionType.HXML.toString = $estr;
 core.CompletionType.HXML.__enum__ = core.CompletionType;
-core.CompletionType.METATAGS = ["METATAGS",5];
+core.CompletionType.METATAGS = ["METATAGS",6];
 core.CompletionType.METATAGS.toString = $estr;
 core.CompletionType.METATAGS.__enum__ = core.CompletionType;
 core.Completion = function() { };
@@ -1733,10 +1745,10 @@ core.Completion.getHints = function(cm1,options) {
 		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 		break;
-	case 5:
+	case 6:
 		core.Completion.list = completion.MetaTags.getCompletion();
 		break;
-	case 4:
+	case 5:
 		var _this3 = completion.Hxml.getCompletion();
 		core.Completion.list = _this3.slice();
 		var _g11 = 0;
@@ -1755,37 +1767,56 @@ core.Completion.getHints = function(cm1,options) {
 		}
 		break;
 	case 1:
+		var displayText;
 		var _g13 = 0;
 		var _g23 = parser.ClassParser.filesList;
 		while(_g13 < _g23.length) {
 			var item2 = _g23[_g13];
 			++_g13;
-			core.Completion.list.push({ text : item2, displayText : item2});
+			displayText = item2.path;
+			if(displayText.length > 70) displayText = "..." + HxOverrides.substr(displayText,displayText.length - 70,null);
+			core.Completion.list.push({ text : item2.path, displayText : displayText});
 		}
 		break;
-	case 2:
+	case 3:
+		var displayText1;
 		var _g14 = 0;
 		var _g24 = parser.ClassParser.filesList;
 		while(_g14 < _g24.length) {
 			var item3 = _g24[_g14];
 			++_g14;
-			core.Completion.list.push({ text : item3, displayText : item3, hint : core.Completion.openFile});
+			displayText1 = item3.path;
+			if(displayText1.length > 70) displayText1 = "..." + HxOverrides.substr(displayText1,displayText1.length - 70,null);
+			console.log(displayText1);
+			core.Completion.list.push({ text : item3.path, displayText : displayText1, hint : core.Completion.openFile});
 		}
 		break;
-	case 3:
+	case 2:
+		var displayText2;
 		var _g15 = 0;
-		var _g25 = parser.ClassParser.topLevelClassList;
+		var _g25 = parser.ClassParser.filesList;
 		while(_g15 < _g25.length) {
 			var item4 = _g25[_g15];
 			++_g15;
-			core.Completion.list.push({ text : item4});
+			displayText2 = item4.path;
+			if(displayText2.length > 70) displayText2 = "..." + HxOverrides.substr(displayText2,displayText2.length - 70,null);
+			core.Completion.list.push({ text : item4.directory, displayText : displayText2});
 		}
+		break;
+	case 4:
 		var _g16 = 0;
-		var _g26 = parser.ClassParser.importsList;
+		var _g26 = parser.ClassParser.topLevelClassList;
 		while(_g16 < _g26.length) {
 			var item5 = _g26[_g16];
 			++_g16;
 			core.Completion.list.push({ text : item5});
+		}
+		var _g17 = 0;
+		var _g27 = parser.ClassParser.importsList;
+		while(_g17 < _g27.length) {
+			var item6 = _g27[_g17];
+			++_g17;
+			core.Completion.list.push({ text : item6});
 		}
 		break;
 	}
@@ -1793,13 +1824,13 @@ core.Completion.getHints = function(cm1,options) {
 	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
 	var _g3 = core.Completion.completionType;
 	switch(_g3[1]) {
-	case 2:
-		var _g17 = 0;
-		var _g27 = core.Completion.list;
-		while(_g17 < _g27.length) {
-			var item6 = _g27[_g17];
-			++_g17;
-			item6.text = "";
+	case 3:
+		var _g18 = 0;
+		var _g28 = core.Completion.list;
+		while(_g18 < _g28.length) {
+			var item7 = _g28[_g18];
+			++_g18;
+			item7.text = "";
 		}
 		break;
 	default:
@@ -1913,6 +1944,8 @@ core.Completion.showRegularCompletion = function() {
 };
 core.Completion.showMetaTagsCompletion = function() {
 	if(core.Completion.isEditorVisible()) {
+		core.Completion.cur = cm.Editor.editor.getCursor();
+		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z@:]+$","i");
 		core.Completion.completionType = core.CompletionType.METATAGS;
 		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : /[\s()\[\]{};>,]/});
@@ -1920,23 +1953,28 @@ core.Completion.showMetaTagsCompletion = function() {
 };
 core.Completion.showHxmlCompletion = function() {
 	if(core.Completion.isEditorVisible()) {
+		core.Completion.cur = cm.Editor.editor.getCursor();
+		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z- ]+$","i");
 		core.Completion.completionType = core.CompletionType.HXML;
 		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : /[()\[\]{};:>,]/});
 	}
 };
-core.Completion.showFileList = function(openFile) {
+core.Completion.showFileList = function(openFile,insertDirectory) {
+	if(insertDirectory == null) insertDirectory = false;
 	if(openFile == null) openFile = true;
 	if(core.Completion.isEditorVisible()) {
+		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z\\.]+$","i");
-		if(openFile) core.Completion.completionType = core.CompletionType.OPENFILE; else core.Completion.completionType = core.CompletionType.FILELIST;
+		if(openFile) core.Completion.completionType = core.CompletionType.OPENFILE; else if(insertDirectory == false) core.Completion.completionType = core.CompletionType.FILELIST; else core.Completion.completionType = core.CompletionType.PASTEFOLDER;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints);
 	}
 };
 core.Completion.showClassList = function(ignoreWhitespace) {
 	if(ignoreWhitespace == null) ignoreWhitespace = false;
 	if(core.Completion.isEditorVisible()) {
+		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z\\.]+$","i");
 		core.Completion.completionType = core.CompletionType.CLASSLIST;
@@ -2273,7 +2311,11 @@ core.HaxeLint.load = function() {
 core.HaxeLint.updateLinting = function() {
 	core.AnnotationRuler.clearErrorMarkers();
 	if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
-		core.HaxeParserProvider.getClassName();
+		haxe.Timer.delay(function() {
+			core.HaxeParserProvider.getClassName();
+			cm.Editor.editor.setOption("lint",false);
+			cm.Editor.editor.setOption("lint",true);
+		},10);
 		parser.OutlineHelper.getList(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
 		var path = tabmanager.TabManager.getCurrentDocumentPath();
 		if(core.HaxeLint.fileData.exists(path)) {
@@ -13737,7 +13779,10 @@ openproject.OpenProject.parseProject = function(path) {
 			projectaccess.ProjectAccess.currentProject = openproject.OpenProject.parseProjectData(data);
 			projectaccess.ProjectAccess.path = pathToProject;
 			parser.ClasspathWalker.parseProjectArguments();
+			var loadedFilesCount = 0;
+			var totalFilesCount;
 			if(projectaccess.ProjectAccess.currentProject.files == null) projectaccess.ProjectAccess.currentProject.files = []; else {
+				totalFilesCount = projectaccess.ProjectAccess.currentProject.files.length;
 				var _g = 0;
 				var _g1 = projectaccess.ProjectAccess.currentProject.files;
 				while(_g < _g1.length) {
@@ -13746,14 +13791,28 @@ openproject.OpenProject.parseProject = function(path) {
 					var fullPath = [js.Node.require("path").join(pathToProject,file)];
 					js.Node.require("fs").exists(fullPath[0],(function(fullPath) {
 						return function(exists) {
-							if(exists) tabmanager.TabManager.openFileInNewTab(fullPath[0]);
+							if(exists) tabmanager.TabManager.openFileInNewTab(fullPath[0],false,(function() {
+								return function() {
+									loadedFilesCount++;
+									if(loadedFilesCount == totalFilesCount) {
+										var activeFile = projectaccess.ProjectAccess.currentProject.activeFile;
+										if(activeFile != null) {
+											var fullPathToActiveFile = js.Node.require("path").join(pathToProject,activeFile);
+											js.Node.require("fs").exists(fullPathToActiveFile,(function() {
+												return function(exists1) {
+													if(exists1) {
+														tabmanager.TabManager.selectDoc(fullPathToActiveFile);
+														cm.Editor.editor.focus();
+													}
+												};
+											})());
+										}
+									}
+								};
+							})());
 						};
 					})(fullPath));
 				}
-				var activeFile = projectaccess.ProjectAccess.currentProject.activeFile;
-				if(activeFile != null) js.Node.require("fs").exists(activeFile,function(exists1) {
-					if(exists1) tabmanager.TabManager.selectDoc(js.Node.require("path").join(pathToProject,activeFile));
-				});
 			}
 			if(projectaccess.ProjectAccess.currentProject.hiddenItems == null) projectaccess.ProjectAccess.currentProject.hiddenItems = [];
 			if(projectaccess.ProjectAccess.currentProject.showHiddenItems == null) projectaccess.ProjectAccess.currentProject.showHiddenItems = false;
@@ -14010,14 +14069,12 @@ parser.ClasspathWalker.getHaxeStdFolder = function(path) {
 parser.ClasspathWalker.parseProjectArguments = function() {
 	parser.ClassParser.classCompletions = new haxe.ds.StringMap();
 	parser.ClassParser.filesList = [];
-	var relativePath;
 	var _g = 0;
 	var _g1 = parser.ClasspathWalker.haxeStdFileList;
 	while(_g < _g1.length) {
 		var item = _g1[_g];
 		++_g;
-		relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,item);
-		parser.ClassParser.filesList.push(relativePath);
+		parser.ClasspathWalker.addFile(item,true);
 	}
 	parser.ClassParser.topLevelClassList = parser.ClasspathWalker.haxeStdTopLevelClassList.slice();
 	parser.ClassParser.importsList = parser.ClasspathWalker.haxeStdImports.slice();
@@ -14042,6 +14099,11 @@ parser.ClasspathWalker.parseProjectArguments = function() {
 		}
 	}
 	parser.ClasspathWalker.walkProjectDirectory(projectaccess.ProjectAccess.path);
+};
+parser.ClasspathWalker.getFileDirectory = function(relativePath) {
+	var directory = "";
+	if(relativePath.indexOf("/") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("/")); else if(relativePath.indexOf("\\") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("\\"));
+	return directory;
 };
 parser.ClasspathWalker.getClasspaths = function(data) {
 	var classpaths = [];
@@ -14107,8 +14169,7 @@ parser.ClasspathWalker.parseClasspath = function(path,std) {
 	emitter.on("file",function(path1,stat) {
 		var pathToFile;
 		if(std) parser.ClasspathWalker.haxeStdFileList.push(path1);
-		if(projectaccess.ProjectAccess.path != null) pathToFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path1); else pathToFile = path1;
-		if(HxOverrides.indexOf(parser.ClassParser.filesList,pathToFile,0) == -1) parser.ClassParser.filesList.push(pathToFile);
+		if(parser.ClasspathWalker.getFileIndex(path1) == -1) parser.ClasspathWalker.addFile(path1,std);
 		if(js.Node.require("path").extname(path1) == ".hx") js.Node.require("fs").readFile(path1,options,function(error,data) {
 			if(error == null) parser.ClassParser.processFile(data,path1,std);
 		});
@@ -14119,22 +14180,39 @@ parser.ClasspathWalker.parseClasspath = function(path,std) {
 		console.log(path2);
 	});
 };
-parser.ClasspathWalker.addFile = function(path) {
+parser.ClasspathWalker.getFileIndex = function(pathToFile) {
+	var index = -1;
+	var _g1 = 0;
+	var _g = parser.ClassParser.filesList.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		if(parser.ClassParser.filesList[i].path == pathToFile) {
+			index = i;
+			break;
+		}
+	}
+	return index;
+};
+parser.ClasspathWalker.addFile = function(path,std) {
+	if(std == null) std = false;
 	if(!watchers.SettingsWatcher.isItemInIgnoreList(path) && !projectaccess.ProjectAccess.isItemInIgnoreList(path)) {
 		var relativePath;
-		if(projectaccess.ProjectAccess.path != null) {
+		if(projectaccess.ProjectAccess.path != null && (core.Utils.os == 0 || !std)) {
 			relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-			if(HxOverrides.indexOf(parser.ClassParser.filesList,relativePath,0) == -1 && HxOverrides.indexOf(parser.ClassParser.filesList,path,0) == -1) parser.ClassParser.filesList.push(relativePath);
-		} else parser.ClassParser.filesList.push(path);
+			if(parser.ClasspathWalker.getFileIndex(relativePath) == -1 && parser.ClasspathWalker.getFileIndex(path) == -1) parser.ClassParser.filesList.push({ path : relativePath, directory : parser.ClasspathWalker.getFileDirectory(relativePath)});
+		} else parser.ClassParser.filesList.push({ path : path, directory : parser.ClasspathWalker.getFileDirectory(path)});
 	}
 };
 parser.ClasspathWalker.removeFile = function(path) {
 	var relativePath;
+	var index = -1;
 	if(projectaccess.ProjectAccess.path != null) {
 		relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		HxOverrides.remove(parser.ClassParser.filesList,relativePath);
+		index = parser.ClasspathWalker.getFileIndex(relativePath);
+		if(index != -1) HxOverrides.remove(parser.ClassParser.filesList,parser.ClassParser.filesList[index]);
 	}
-	HxOverrides.remove(parser.ClassParser.filesList,path);
+	index = parser.ClasspathWalker.getFileIndex(path);
+	if(index != -1) HxOverrides.remove(parser.ClassParser.filesList,parser.ClassParser.filesList[index]);
 };
 parser.ClasspathWalker.walkProjectDirectory = function(path) {
 	var emitter = Walkdir.walk(path,{ });
@@ -14633,7 +14711,7 @@ projectaccess.ProjectAccess.save = function(onComplete,sync) {
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
-	if(!projectaccess.ProjectAccess.currentProject.showHiddenItems) {
+	if(projectaccess.ProjectAccess.path != null && !projectaccess.ProjectAccess.currentProject.showHiddenItems) {
 		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
 		if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) != -1) ignore = true;
 	}
@@ -15155,10 +15233,7 @@ tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
 	if(show == null) show = true;
 	if(core.Utils.os == 0) {
 		var ereg = new EReg("[a-z]:\\\\","i");
-		if(ereg.match(path)) {
-			path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
-			console.log(path);
-		}
+		if(ereg.match(path)) path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
 	}
 	path = StringTools.replace(path,"\\",js.Node.require("path").sep);
 	if(tabmanager.TabManager.isAlreadyOpened(path,show)) {
@@ -15175,7 +15250,7 @@ tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
 			var name = js.Node.require("path").basename(path);
 			var doc = new CodeMirror.Doc(code,mode);
 			tabmanager.TabManager.createNewTab(name,path,doc);
-			tabmanager.TabManager.selectDoc(path);
+			if(show) tabmanager.TabManager.selectDoc(path);
 			tabmanager.TabManager.checkTabsCount();
 			if(onComplete != null) onComplete();
 		} else console.log("tab-manager: can't load file " + path);

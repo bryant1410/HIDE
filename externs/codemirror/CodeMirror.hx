@@ -27,6 +27,7 @@ find : Void->Pos
 typedef LineHandle = {};
 
 typedef ChangeEvent = {
+origin : String,
 from : Pos,
 to : Pos,
 text : Array<String>,
@@ -137,7 +138,8 @@ function setMarker( line : Int , ?text : String , ?className : String ) : LineHa
 @:overload( function( line : LineHandle ) : Void {})
 function clearMarker(line:Int) : Void;
 function getTokenAt(pos: Pos, ?precise:Bool):TokenData;
-
+function indentLine(line: Int, ?dir: Dynamic): Void;
+    
 function getWrapperElement() : DivElement;
 
 function somethingSelected() : Bool;

@@ -17,12 +17,19 @@ import js.Node;
  * ...
  * @author 
  */
+
+typedef FileData =
+{
+    path: String, 
+    directory:String
+}
+
 class ClassParser
 {	
 	public static var topLevelClassList:Array<String> = [];
 	public static var importsList:Array<String> = [];
 	public static var classCompletions:StringMap<Array<String>> = new StringMap();
-	public static var filesList:Array<String> = [];
+    public static var filesList:Array<FileData> = [];
 	
 	public static function parse(data:String, path:String)
 	{

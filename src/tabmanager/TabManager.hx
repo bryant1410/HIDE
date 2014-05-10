@@ -94,7 +94,7 @@ class TabManager
 	}
 	
 	public static function openFileInNewTab(path:String, ?show:Bool = true, ?onComplete:Dynamic):Void
-	{
+	{        
 		//Fix opening same file
 		if (Utils.os == Utils.WINDOWS) 
 		{
@@ -103,7 +103,6 @@ class TabManager
 			if (ereg.match(path)) 
 			{
 				path = path.substr(0, 3).toLowerCase() + path.substr(3);
-				trace(path);
 			}
 		}
 		
@@ -116,6 +115,7 @@ class TabManager
 			{
 				onComplete();
 			}
+            
 			return;
 		}
 		
@@ -127,7 +127,7 @@ class TabManager
 				{
 					onComplete();
 				}
-				
+                
 				return;
 			}
 			
@@ -140,7 +140,10 @@ class TabManager
 				
 				createNewTab(name, path, doc);
 				
-				selectDoc(path);
+                if (show)
+                {
+                	selectDoc(path);    
+                }
 				
 				checkTabsCount();
 				

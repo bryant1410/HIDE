@@ -20,17 +20,12 @@
         ,"src/filetree/FileTree.hx"
         ,"src/core/HaxeLint.hx"
         ,"src/parser/ClasspathWalker.hx"
-        ,"libs/nodejs-std/js/node/Walkdir.hx"
-        ,"src/Main.hx"
-        ,"bin/core/config/snippets.json"
-        ,"src/parser/ClassParser.hx"
-        ,"src/core/FunctionParametersHelper.hx"
-        ,"src/core/OutlinePanel.hx"
-        ,"src/completion/Hxml.hx"
-        ,"libs/haxeparser/src/haxeparser/Data.hx"
         ,"../../../usr/lib/haxe/std/haxe/macro/Expr.hx"
+        ,"src/parser/ClassParser.hx"
+        ,"HIDE.hxml"
+        ,"src/core/FunctionParametersHelper.hx"
     ]
-    ,"activeFile" : "src/filetree/FileTree.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
