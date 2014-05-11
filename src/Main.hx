@@ -54,6 +54,7 @@ class Main
 {
 	public static var currentTime:Float;
 	public static var window:Window;
+    public static var sync:Bool;
 	
 	static function main() 
 	{        
@@ -72,6 +73,8 @@ class Main
 			//}
 		}
 		);
+        
+        sync = true;
         
 		Hotkeys.prepare();
 		PreserveWindowState.init();
@@ -111,7 +114,10 @@ class Main
 			DragAndDrop.prepare();
 			ClasspathWalker.load();
 			WelcomeScreen.load();
+            core.QuickOpen.load();
 			
+            sync = false;
+            
 			currentTime = Date.now().getTime();
 			
 			ProcessHelper.checkProcessInstalled("haxe", ["-v"], function (installed:Bool)
@@ -153,16 +159,16 @@ class Main
 				trace("lime installed " + Std.string(installed));
 			}
 			);
+            
+            ProcessHelper.checkProcessInstalled("git", ["--version"], function (installed:Bool)
+            {
+                trace("git installed " + Std.string(installed));
+            }
+            );
 						
 			window.show();
 		}
 		);
-        
-        ProcessHelper.checkProcessInstalled("git", ["--version"], function (installed:Bool)
-        {
-			trace("git installed " + Std.string(installed));
-        }
-        );
 		
 		window.on("close", function (e)
 		{

@@ -444,7 +444,14 @@ class TabManager
 	
 	public static function getCurrentDocument():CodeMirror.Doc
 	{
-		return tabMap.get(selectedPath).doc;
+        var doc:CodeMirror.Doc = null;
+        
+        if (selectedPath != null)
+        {
+            doc = tabMap.get(selectedPath).doc;
+        }
+            
+		return doc;
 	}
 	
 	public static function saveDoc(path:String, ?onComplete:Dynamic):Void

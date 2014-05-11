@@ -17,15 +17,13 @@
         ,"src/core/Completion.hx"
         ,"src/tabmanager/TabManager.hx"
         ,"src/core/HaxeParserProvider.hx"
-        ,"src/filetree/FileTree.hx"
-        ,"src/core/HaxeLint.hx"
-        ,"src/parser/ClasspathWalker.hx"
-        ,"../../../usr/lib/haxe/std/haxe/macro/Expr.hx"
-        ,"src/parser/ClassParser.hx"
-        ,"HIDE.hxml"
-        ,"src/core/FunctionParametersHelper.hx"
+        ,"src/core/QuickOpen.hx"
+        ,"bin/core/light.css"
+        ,"src/bootstrap/ListGroup.hx"
+        ,"src/Main.hx"
+        ,"libs/hxparse/src/hxparse/RuleBuilder.hx"
     ]
-    ,"activeFile" : "src/core/Completion.hx"
+    ,"activeFile" : "src/core/QuickOpen.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

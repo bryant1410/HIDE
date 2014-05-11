@@ -44,6 +44,18 @@ class ListGroup
 		listGroup.appendChild(a);
 	}
 	
+    public function clear():Void
+    {
+        //http://jsperf.com/removechildren/8
+        
+        var len = listGroup.childNodes.length;
+        
+        while (len-- > 0) 
+        {
+        	listGroup.removeChild(listGroup.lastChild);
+        };
+    }
+    
 	public function getElement():DivElement
 	{
 		return listGroup;

@@ -78,20 +78,7 @@ class Tab
 		{			
 			if (ignoreNextUpdates <= 0) 
 			{
-				Alertify.confirm(LocaleWatcher.getStringSync("File ") + path + LocaleWatcher.getStringSync(" was changed. Reload?"), function (e)
-				{
-					if (e) 
-					{
-						TabManager.openFile(path, function (code:String):Void 
-						{
-							doc.setValue(code);
-							doc.markClean();
-							setChanged(false);
-						}
-						);
-					}
-				}
-				);
+				dialogs.DialogManager.showReloadFileDialog(path, reloadFile);
 			}
 			else 
 			{
@@ -101,6 +88,18 @@ class Tab
 		);
 	}
 	
+    function reloadFile()
+    {
+        TabManager.openFile(path, 
+		function (code:String):Void 
+        {
+            doc.setValue(code);
+            doc.markClean();
+            setChanged(false);
+        }
+        );
+    }
+    
 	public function setChanged(changed:Bool):Void
 	{
 		span3.textContent = name;

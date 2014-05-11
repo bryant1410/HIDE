@@ -50,16 +50,20 @@ class HaxeLint
 	{
 		AnnotationRuler.clearErrorMarkers();
 		
-		if (TabManager.getCurrentDocument().getMode().name == "haxe")
-		{
-            haxe.Timer.delay(function ()
-                             {
-                                 HaxeParserProvider.getClassName();
-                                 Editor.editor.setOption("lint", false);
-								 Editor.editor.setOption("lint", true);
-                             }, 10);
+        var doc = TabManager.getCurrentDocument();
         
-        	parser.OutlineHelper.getList(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
+		if (doc != null && doc.getMode().name == "haxe")
+		{
+			try
+            {
+                HaxeParserProvider.getClassName();
+            }
+            catch (e:Dynamic)
+            {
+            	trace(e);
+            }
+        
+        	parser.OutlineHelper.getList(doc.getValue(), TabManager.getCurrentDocumentPath());
             
 			var path:String = TabManager.getCurrentDocumentPath();
 			

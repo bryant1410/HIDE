@@ -261,53 +261,66 @@ class ClasspathWalker
 	}
 	
 	static function parseClasspath(path:String, ?std:Bool = false):Void
-	{
-		var emitter = Walkdir.walk(path, {});
+	{        
+        if (Main.sync)
+        {
+            for (pathToFile in Walkdir.walkSync(path))
+            {
+                var stat = js.Node.fs.lstatSync(pathToFile);
+                
+                if (stat.isFile())
+                {
+               		processFile(pathToFile, std);    
+                }
+            }
+        }
+        else
+        {
+            var emitter = Walkdir.walk(path, {});
 		
-		var options:NodeFsFileOptions = { };
-		options.encoding = NodeC.UTF8;
-		
-		emitter.on("file", function (path, stat):Void 
-		{
-			var pathToFile;
-			
-			if (std) 
-			{
-				haxeStdFileList.push(path);
-			}
-			
-			if (getFileIndex(path) == -1) 
-			{
-                addFile(path, std);
-			}
-			
-			if (Node.path.extname(path) == ".hx") 
-			{
-				Node.fs.readFile(path, options, function (error:NodeErr, data:String):Void 
-				{
-					if (error == null) 
-					{
-						ClassParser.processFile(data, path, std);
-					}
-				}
-				);
-			}
-		}
-		);
-		
-		emitter.on("end", function ():Void 
-		{
-			//trace("end");
-		}
-		);
-		
-		emitter.on("error", function (path:String, stat):Void 
-		{
-			trace(path);
-		}
-		);
+            emitter.on("file", function (pathToFile, stat):Void 
+            {
+                processFile(pathToFile, std);
+            }
+            );
+
+            emitter.on("error", function (pathToFile:String, stat):Void 
+            {
+                trace(pathToFile);
+            }
+            );
+        }
 	}
 	
+    static function processFile(path:String, std:Bool)
+    {
+        if (std) 
+        {
+            haxeStdFileList.push(path);
+        }
+
+        if (getFileIndex(path) == -1) 
+        {
+            addFile(path, std);
+        }
+
+        var options:NodeFsFileOptions = { };
+       	options.encoding = NodeC.UTF8;
+            
+        if (Node.path.extname(path) == ".hx") 
+        {
+            Node.fs.readFile(path, options, function (error:NodeErr, data:String):Void 
+            {
+                if (error == null) 
+                {
+                    ClassParser.processFile(data, path, std);
+                }
+            }
+            );
+        }
+    }
+
+
 	static function getFileIndex(pathToFile:String):Int
 	{
         var index:Int = -1;
@@ -374,22 +387,36 @@ class ClasspathWalker
 	
 	static function walkProjectDirectory(path:String):Void 
 	{
-		var emitter = Walkdir.walk(path, {});
-		
-		var options:NodeFsFileOptions = { };
-		options.encoding = NodeC.UTF8;
-		
-		emitter.on("file", function (path, stat):Void 
-		{			
-			addFile(path);
-		}
-		);
-		
-		emitter.on("error", function (path:String, stat):Void 
-		{
-			trace(path);
-		}
-		);
+        if (Main.sync)
+        {
+			Walkdir.walkSync(path, {}, function (path:String, stat:js.Node.NodeStat)
+                            {
+                                if (stat.isFile())
+                                {
+                                    addFile(path);
+                                }
+                            }
+                            );
+        }
+        else
+        {
+            var emitter = Walkdir.walk(path, {});
+
+            var options:NodeFsFileOptions = { };
+            options.encoding = NodeC.UTF8;
+
+            emitter.on("file", function (path, stat):Void 
+            {			
+                addFile(path);
+            }
+            );
+
+            emitter.on("error", function (path:String, stat):Void 
+            {
+                trace(path);
+            }
+            );
+        }
 	}
 	
 }

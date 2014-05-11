@@ -186,45 +186,22 @@ class Completion
         		var displayText:String;
         
 				for (item in ClassParser.filesList) 
-				{
-                    displayText = item.path;
-                    
-                    if (displayText.length > 70)
-                    {
-                        displayText = "..." + displayText.substr(displayText.length - 70);
-                    }
-                    
-					list.push( { text: item.path, displayText: displayText} );
+				{                    
+					list.push( { text: item.path, displayText: processDisplayText(item.path)} );
 				}
             case OPENFILE:
         		var displayText:String;
         
 				for (item in ClassParser.filesList) 
-				{
-                    displayText = item.path;
-                    
-                    if (displayText.length > 70)
-                    {
-                        displayText = "..." + displayText.substr(displayText.length - 70);
-                    }
-                    
-                    trace(displayText);
-                        
-					list.push( { text: item.path, displayText: displayText, hint: openFile} );
+				{                        
+					list.push( { text: item.path, displayText: processDisplayText(item.path), hint: openFile} );
 				}
             case PASTEFOLDER:
         		var displayText:String;
         
         		for (item in ClassParser.filesList) 
 				{
-                    displayText = item.path;
-                    
-                    if (displayText.length > 70)
-                    {
-                        displayText = "..." + displayText.substr(displayText.length - 70);
-                    }
-                    
-					list.push( { text: item.directory, displayText: displayText} );
+					list.push( { text: item.directory, displayText: processDisplayText(item.path)} );
 				}
 			case CLASSLIST:
 				for (item in ClassParser.topLevelClassList) 
@@ -247,6 +224,8 @@ class Completion
 		switch (completionType) 
 		{
 			case OPENFILE:
+                QuickOpen.show(list);
+                
 				for (item in list) 
 				{
 					item.text = "";
@@ -274,6 +253,16 @@ class Completion
 		TabManager.openFileInNewTab(path);
 	}
 	
+    static function processDisplayText(displayText:String):String
+    {
+        if (displayText.length > 70)
+        {
+            displayText = displayText.substr(0, 35) + " ... " + displayText.substr(displayText.length - 35);
+        }
+            
+        return displayText;
+    }
+    
 	public static function getCurrentWord(cm:CodeMirror, ?options:Dynamic, ?pos:Pos):{word:String, from:CodeMirror.Pos, to:CodeMirror.Pos}
 	{
 		if (options != null && options.word != null)
@@ -310,6 +299,8 @@ class Completion
 	
 	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos)
 	{
+        trace("getCompletion");
+        
 		if (ProjectAccess.path != null) 
 		{
 			var projectArguments:Array<String> = [];
@@ -341,6 +332,8 @@ class Completion
 	
 	static function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos):Void 
 	{
+        trace("processArguments");
+        
 		projectArguments.push("--no-output");
 		projectArguments.push("--display");
 		
@@ -400,23 +393,7 @@ class Completion
 							if (item.hasNode.t)
 							{
 								completion.t = item.node.t.innerData;
-								//var type = item.node.t.innerData;
-								//switch (type) 
-								//{
-									//case "Float", "Int":
-										//completion.type = "number";
-									//case "Bool":
-										//completion.type = "bool";
-									//case "String":
-										//completion.type = "string";
-									//default:
-										//completion.type = "fn()";
-								//}
 							}
-							//else 
-							//{
-								//completion.type = "fn()";
-							//}
 							
 							completions.push(completion);
 						}
@@ -471,7 +448,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
             Editor.regenerateCompletionOnDot = false;
-			WORD = ~/[A-Z- ]+$/i;
+			WORD = ~/[A-Z- \.\\\/]+$/i;
 			completionType = HXML;
 			CodeMirrorStatic.showHint(Editor.editor, null, { closeCharacters: untyped __js__("/[()\\[\\]{};:>,]/") } );
 		}
@@ -483,7 +460,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = false;
-			WORD = ~/[A-Z\.]+$/i;
+			WORD = ~/[A-Z-\.\\\/]+$/i;
             
             if (openFile)
             {

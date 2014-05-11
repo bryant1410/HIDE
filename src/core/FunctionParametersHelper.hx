@@ -69,7 +69,7 @@ class FunctionParametersHelper
 	{
 		//{bracketRegex: untyped __js__("/[([\\]]/")}
         //{bracketRegex: untyped __js__("/[({}]/")}
-        var bracketsData = cm.scanForBracket(cursor, -1, null, {bracketRegex: untyped __js__("/[([\\]}]/")});
+        var bracketsData = cm.scanForBracket(cursor, -1, null, {bracketRegex: untyped __js__("/[([\\]]/")});
         
         var pos:CodeMirror.Pos = null;
         

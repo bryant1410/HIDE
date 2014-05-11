@@ -1,7 +1,6 @@
 package core;
 import haxe.Timer;
 import js.Browser;
-import js.html.Node;
 import nodejs.webkit.Window;
 
 //Ported to Haxe from https://github.com/rogerwang/node-webkit/wiki/Preserve-window-state-between-sessions
@@ -22,7 +21,7 @@ class PreserveWindowState
 	static var window:Window = Window.get();
 	
 	public static function init():Void
-	{                
+	{
 		initWindowState();
 
 		window.on('maximize', function ():Void
@@ -64,15 +63,15 @@ class PreserveWindowState
 				// on MacOS you can resize maximized window, so it's no longer maximized
 				if (isMaximizationEvent) 
 				{
-						// first resize after maximization event should be ignored
-						isMaximizationEvent = false;
+					// first resize after maximization event should be ignored
+					isMaximizationEvent = false;
 				} 
 				else 
 				{
-						if (currWinMode == 'maximized') 
-						{
-								currWinMode = 'normal';
-						}
+					if (currWinMode == 'maximized') 
+					{
+						currWinMode = 'normal';
+					}
 				}
 				
 				resizeTimeout.stop();

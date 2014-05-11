@@ -11,34 +11,25 @@ class Filter
 	{
 		var list:Array<Hxml.CompletionData> = [];
 		
-		if (completionType == FILELIST) 
-		{
-			var shortPaths = [];
-			var longPaths = [];
-			
-			for (item in completions)
-			{
-				if (item.text.split("\\").length - 1 < 3 && item.text.split("/").length - 1 < 3) 
-				{
-					shortPaths.push(item);
-				}
-				else 
-				{
-					longPaths.push(item);
-				}
-			}
-			
-			completions = [];
-			
-			for (item in shortPaths) 
-			{
-				completions.push(item);
-			}
-			
-			for (item in longPaths) 
-			{
-				completions.push(item);
-			}
+		if (completionType == OPENFILE) 
+		{            
+            completions.sort(function(a:Hxml.CompletionData, b:Hxml.CompletionData):Int
+            {
+                var aCount:Int;
+                var bCount:Int;
+                
+                var aHaxeFile:Bool = StringTools.endsWith(a.text, ".hx");
+                var bHaxeFile:Bool = StringTools.endsWith(b.text, ".hx");
+                
+                if (aHaxeFile && !bHaxeFile) return -1;
+                if (!aHaxeFile && bHaxeFile) return 1;
+                
+                aCount = a.text.split("\\").length + a.text.split("/").length;
+                bCount = b.text.split("\\").length + b.text.split("/").length;
+                if (aCount < bCount) return -1;
+                if (aCount > bCount) return 1;
+                return 0;
+            } );
 		}
 		
 		if (word != null) 

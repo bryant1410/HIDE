@@ -1,5 +1,7 @@
 package dialogs;
 
+import watchers.LocaleWatcher;
+
 /**
  * ...
  * @author AS3Boyan
@@ -11,6 +13,7 @@ class DialogManager
 	static var projectOptionsDialog:ProjectOptionsDialog;
 	static var browseDirectoryWithDownloadButtonDialog:BrowseDirectoryWithDownloadButtonDialog;
 	static var installHaxelibDialog:InstallHaxelibDialog;
+    static var reloadFileDialogs:Array<String>;
 	
 	public static function load():Void
 	{
@@ -19,6 +22,8 @@ class DialogManager
 		haxelibManagerDialog = new HaxelibManagerDialog();
 		projectOptionsDialog = new ProjectOptionsDialog();
 		installHaxelibDialog = new InstallHaxelibDialog();
+        
+        reloadFileDialogs = [];
 	}
 	
 	public static function showBrowseFolderDialog(title:String, onComplete:String->Void, ?defaultValue:String = "", ?downloadButtonText:String, ?downloadButtonURL:String):Void
@@ -54,6 +59,25 @@ class DialogManager
 		installHaxelibDialog.show();
 	}
 	
+    public static function showReloadFileDialog(path:String, onConfirm:Dynamic)
+    {
+        if (reloadFileDialogs.indexOf(path) == -1)
+        {            
+            Alertify.confirm(LocaleWatcher.getStringSync("File ") + path + LocaleWatcher.getStringSync(" was changed. Reload?"), function (e)
+            {
+                if (e) 
+                {
+                    onConfirm();
+                }
+                    
+                reloadFileDialogs.remove(path);
+            }
+            );
+            
+            reloadFileDialogs.push(path);
+        }
+    }
+    
 	public static function hide():Void 
 	{
 		browseDirectoryDialog.hide();

@@ -228,6 +228,7 @@ class OpenProject
 		if (ProjectAccess.path != null) 
 		{
 			ProjectAccess.save(updateProjectData);
+            tabmanager.TabManager.closeAll();
 		}
 		else 
 		{
