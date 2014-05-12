@@ -2009,6 +2009,10 @@ License: http://jqwidgets.com/license/
     if (!updated && op.selectionChanged) updateSelection(cm);
     if (!updated && op.startHeight != cm.doc.height) updateScrollbars(cm);
 
+    // Abort mouse wheel delta measurement, when scrolling explicitly
+    if (display.wheelStartX != null && (op.scrollTop != null || op.scrollLeft != null || op.scrollToPos))
+      display.wheelStartX = display.wheelStartY = null;
+
     // Propagate the scroll position to the actual DOM scroller
     if (op.scrollTop != null && display.scroller.scrollTop != op.scrollTop) {
       var top = Math.max(0, Math.min(display.scroller.scrollHeight - display.scroller.clientHeight, op.scrollTop));
@@ -2222,7 +2226,8 @@ License: http://jqwidgets.com/license/
 
   function viewCuttingPoint(cm, oldN, newN, dir) {
     var index = findViewIndex(cm, oldN), diff, view = cm.display.view;
-    if (!sawCollapsedSpans) return {index: index, lineN: newN};
+    if (!sawCollapsedSpans || newN == cm.doc.first + cm.doc.size)
+      return {index: index, lineN: newN};
     for (var i = 0, n = cm.display.viewFrom; i < index; i++)
       n += view[i].size;
     if (n != oldN) {
@@ -2434,7 +2439,7 @@ License: http://jqwidgets.com/license/
         var pos = posFromMouse(cm, e);
         if (!pos || clickInGutter(cm, e) || eventInWidget(cm.display, e)) return;
         e_preventDefault(e);
-        var word = findWordAt(cm.doc, pos);
+        var word = findWordAt(cm, pos);
         extendSelection(cm.doc, word.anchor, word.head);
       }));
     else
@@ -2706,7 +2711,7 @@ License: http://jqwidgets.com/license/
       start = posFromMouse(cm, e, true, true);
       ourIndex = -1;
     } else if (type == "double") {
-      var word = findWordAt(doc, start);
+      var word = findWordAt(cm, start);
       if (cm.display.shift || doc.extend)
         ourRange = extendRange(doc, ourRange, word.anchor, word.head);
       else
@@ -2752,13 +2757,15 @@ License: http://jqwidgets.com/license/
             ranges.push(new Range(Pos(line, leftPos), Pos(line, findColumn(text, right, tabSize))));
         }
         if (!ranges.length) ranges.push(new Range(start, start));
-        setSelection(doc, normalizeSelection(startSel.ranges.slice(0, ourIndex).concat(ranges), ourIndex), sel_mouse);
+        setSelection(doc, normalizeSelection(startSel.ranges.slice(0, ourIndex).concat(ranges), ourIndex),
+                     {origin: "*mouse", scroll: false});
+        cm.scrollIntoView(pos);
       } else {
         var oldRange = ourRange;
         var anchor = oldRange.anchor, head = pos;
         if (type != "single") {
           if (type == "double")
-            var range = findWordAt(doc, pos);
+            var range = findWordAt(cm, pos);
           else
             var range = new Range(Pos(pos.line, 0), clipPos(doc, Pos(pos.line + 1, 0)));
           if (cmp(range.anchor, anchor) > 0) {
@@ -3846,10 +3853,11 @@ License: http://jqwidgets.com/license/
     else if (unit == "column") moveOnce(true);
     else if (unit == "word" || unit == "group") {
       var sawType = null, group = unit == "group";
+      var helper = doc.cm && doc.cm.getHelper(pos, "wordChars");
       for (var first = true;; first = false) {
         if (dir < 0 && !moveOnce(!first)) break;
         var cur = lineObj.text.charAt(ch) || "\n";
-        var type = isWordChar(cur) ? "w"
+        var type = isWordChar(cur, helper) ? "w"
           : group && cur == "\n" ? "n"
           : !group || /\s/.test(cur) ? null
           : "p";
@@ -3889,13 +3897,15 @@ License: http://jqwidgets.com/license/
   }
 
   // Find the word at the given position (as returned by coordsChar).
-  function findWordAt(doc, pos) {
-    var line = getLine(doc, pos.line).text;
+  function findWordAt(cm, pos) {
+    var doc = cm.doc, line = getLine(doc, pos.line).text;
     var start = pos.ch, end = pos.ch;
     if (line) {
+      var helper = cm.getHelper(pos, "wordChars");
       if ((pos.xRel < 0 || end == line.length) && start) --start; else ++end;
       var startChar = line.charAt(start);
-      var check = isWordChar(startChar) ? isWordChar
+      var check = isWordChar(startChar, helper)
+        ? function(ch) { return isWordChar(ch, helper); }
         : /\s/.test(startChar) ? function(ch) {return /\s/.test(ch);}
         : function(ch) {return !/\s/.test(ch) && !isWordChar(ch);};
       while (start > 0 && check(line.charAt(start - 1))) --start;
@@ -4700,13 +4710,25 @@ License: http://jqwidgets.com/license/
     },
     transposeChars: function(cm) {
       runInOp(cm, function() {
-        var ranges = cm.listSelections();
+        var ranges = cm.listSelections(), newSel = [];
         for (var i = 0; i < ranges.length; i++) {
           var cur = ranges[i].head, line = getLine(cm.doc, cur.line).text;
-          if (cur.ch > 0 && cur.ch < line.length - 1)
-            cm.replaceRange(line.charAt(cur.ch) + line.charAt(cur.ch - 1),
-                            Pos(cur.line, cur.ch - 1), Pos(cur.line, cur.ch + 1));
+          if (line) {
+            if (cur.ch == line.length) cur = new Pos(cur.line, cur.ch - 1);
+            if (cur.ch > 0) {
+              cur = new Pos(cur.line, cur.ch + 1);
+              cm.replaceRange(line.charAt(cur.ch - 1) + line.charAt(cur.ch - 2),
+                              Pos(cur.line, cur.ch - 2), cur, "+transpose");
+            } else if (cur.line > cm.doc.first) {
+              var prev = getLine(cm.doc, cur.line - 1).text;
+              if (prev)
+                cm.replaceRange(line.charAt(0) + "\n" + prev.charAt(prev.length - 1),
+                                Pos(cur.line - 1, prev.length - 1), Pos(cur.line, 1), "+transpose");
+            }
+          }
+          newSel.push(new Range(cur, cur));
         }
+        cm.setSelections(newSel);
       });
     },
     newlineAndIndent: function(cm) {
@@ -7136,10 +7158,15 @@ License: http://jqwidgets.com/license/
   }
 
   var nonASCIISingleCaseWordChar = /[\u00df\u3040-\u309f\u30a0-\u30ff\u3400-\u4db5\u4e00-\u9fcc\uac00-\ud7af]/;
-  var isWordChar = CodeMirror.isWordChar = function(ch) {
+  var isWordCharBasic = CodeMirror.isWordChar = function(ch) {
     return /\w/.test(ch) || ch > "\x80" &&
       (ch.toUpperCase() != ch.toLowerCase() || nonASCIISingleCaseWordChar.test(ch));
   };
+  function isWordChar(ch, helper) {
+    if (!helper) return isWordCharBasic(ch);
+    if (helper.source.indexOf("\\w") > -1 && isWordCharBasic(ch)) return true;
+    return helper.test(ch);
+  }
 
   function isEmpty(obj) {
     for (var n in obj) if (obj.hasOwnProperty(n) && obj[n]) return false;
@@ -9417,6 +9444,7 @@ License: http://jqwidgets.com/license/
         actionArgs: { insertAt: 'charAfter' }},
     { keys: ['A'], type: 'action', action: 'enterInsertMode', isEdit: true,
         actionArgs: { insertAt: 'eol' }},
+    { keys: ['A'], type: 'action', action: 'enterInsertMode', isEdit: true, actionArgs: { insertAt: 'endOfSelectedArea' }, context: 'visual' },
     { keys: ['i'], type: 'action', action: 'enterInsertMode', isEdit: true,
         actionArgs: { insertAt: 'inplace' }},
     { keys: ['I'], type: 'action', action: 'enterInsertMode', isEdit: true,
@@ -9443,6 +9471,8 @@ License: http://jqwidgets.com/license/
     { keys: ['R'], type: 'action', action: 'enterInsertMode', isEdit: true,
         actionArgs: { replace: true }},
     { keys: ['u'], type: 'action', action: 'undo' },
+    { keys: ['u'], type: 'action', action: 'changeCase', actionArgs: {toLower: true}, context: 'visual', isEdit: true },
+    { keys: ['U'],type: 'action', action: 'changeCase', actionArgs: {toLower: false}, context: 'visual', isEdit: true },
     { keys: ['<C-r>'], type: 'action', action: 'redo' },
     { keys: ['m', 'character'], type: 'action', action: 'setMark' },
     { keys: ['"', 'character'], type: 'action', action: 'setRegister' },
@@ -11058,6 +11088,12 @@ License: http://jqwidgets.com/license/
           cm.setCursor(offsetCursor(cm.getCursor(), 0, 1));
         } else if (insertAt == 'firstNonBlank') {
           cm.setCursor(motions.moveToFirstNonWhiteSpaceCharacter(cm));
+        } else if (insertAt == 'endOfSelectedArea') {
+          var selectionEnd = cm.getCursor('head');
+          var selectionStart = cm.getCursor('anchor');
+          selectionEnd = cursorIsBefore(selectionStart, selectionEnd) ? Pos(selectionEnd.line, selectionEnd.ch+1) : (selectionEnd.line < selectionStart.line ? Pos(selectionStart.line, 0) : selectionEnd);
+          cm.setCursor(selectionEnd);
+          exitVisualMode(cm);
         }
         cm.setOption('keyMap', 'vim-insert');
         cm.setOption('disableInput', false);
@@ -11195,7 +11231,7 @@ License: http://jqwidgets.com/license/
         }
         this.enterInsertMode(cm, { repeat: actionArgs.repeat }, vim);
       },
-      paste: function(cm, actionArgs) {
+      paste: function(cm, actionArgs, vim) {
         var cur = copyCursor(cm.getCursor());
         var register = vimGlobalState.registerController.getRegister(
             actionArgs.registerName);
@@ -11236,7 +11272,9 @@ License: http://jqwidgets.com/license/
         }
         var linewise = register.linewise;
         if (linewise) {
-          if (actionArgs.after) {
+          if(vim.visualMode) {
+            text = vim.visualLine ? text.slice(0, -1) : '\n' + text.slice(0, text.length - 1) + '\n';
+          } else if (actionArgs.after) {
             // Move the newline at the end to the start instead, and paste just
             // before the newline character of the line we are on right now.
             text = '\n' + text.slice(0, text.length - 1);
@@ -11247,24 +11285,35 @@ License: http://jqwidgets.com/license/
         } else {
           cur.ch += actionArgs.after ? 1 : 0;
         }
-        cm.replaceRange(text, cur);
-        // Now fine tune the cursor to where we want it.
         var curPosFinal;
         var idx;
-        if (linewise && actionArgs.after) {
-          curPosFinal = Pos(
-            cur.line + 1,
-            findFirstNonWhiteSpaceCharacter(cm.getLine(cur.line + 1)));
-        } else if (linewise && !actionArgs.after) {
-          curPosFinal = Pos(
-            cur.line,
-            findFirstNonWhiteSpaceCharacter(cm.getLine(cur.line)));
-        } else if (!linewise && actionArgs.after) {
-          idx = cm.indexFromPos(cur);
-          curPosFinal = cm.posFromIndex(idx + text.length - 1);
+        if (vim.visualMode) {
+          var selectedArea = getSelectedAreaRange(cm, vim);
+          var selectionStart = selectedArea[0];
+          var selectionEnd = selectedArea[1];
+          // push the previously selected text to unnamed register
+          vimGlobalState.registerController.unnamedRegister.setText(cm.getRange(selectionStart, selectionEnd));
+          cm.replaceRange(text, selectionStart, selectionEnd);
+          curPosFinal = cm.posFromIndex(cm.indexFromPos(selectionStart) + text.length - 1);
+          if(linewise)curPosFinal.ch=0;
         } else {
-          idx = cm.indexFromPos(cur);
-          curPosFinal = cm.posFromIndex(idx + text.length);
+          cm.replaceRange(text, cur);
+          // Now fine tune the cursor to where we want it.
+          if (linewise && actionArgs.after) {
+            curPosFinal = Pos(
+              cur.line + 1,
+              findFirstNonWhiteSpaceCharacter(cm.getLine(cur.line + 1)));
+          } else if (linewise && !actionArgs.after) {
+            curPosFinal = Pos(
+              cur.line,
+              findFirstNonWhiteSpaceCharacter(cm.getLine(cur.line)));
+          } else if (!linewise && actionArgs.after) {
+            idx = cm.indexFromPos(cur);
+            curPosFinal = cm.posFromIndex(idx + text.length - 1);
+          } else {
+            idx = cm.indexFromPos(cur);
+            curPosFinal = cm.posFromIndex(idx + text.length);
+          }
         }
         cm.setCursor(curPosFinal);
       },
@@ -11358,6 +11407,15 @@ License: http://jqwidgets.com/license/
           repeat = vim.lastEditInputState.repeatOverride || repeat;
         }
         repeatLastEdit(cm, vim, repeat, false /** repeatForInsert */);
+      },
+      changeCase: function(cm, actionArgs, vim) {
+        var selectedAreaRange = getSelectedAreaRange(cm, vim);
+        var selectionStart = selectedAreaRange[0];
+        var selectionEnd = selectedAreaRange[1];
+        var toLower = actionArgs.toLower;
+        var text = cm.getRange(selectionStart, selectionEnd);
+        cm.replaceRange(toLower ? text.toLowerCase() : text.toUpperCase(), selectionStart, selectionEnd);
+        cm.setCursor(selectionStart);
       }
     };
 
@@ -11439,6 +11497,29 @@ License: http://jqwidgets.com/license/
     }
     function escapeRegex(s) {
       return s.replace(/([.?*+$\[\]\/\\(){}|\-])/g, '\\$1');
+    }
+    function getSelectedAreaRange(cm, vim) {
+      var selectionStart = cm.getCursor('anchor');
+      var selectionEnd = cm.getCursor('head');
+      var lastSelection = vim.lastSelection;
+      if (!vim.visualMode) {
+        var line = lastSelection.curEnd.line - lastSelection.curStart.line;
+        var ch = line ? lastSelection.curEnd.ch : lastSelection.curEnd.ch - lastSelection.curStart.ch;
+        selectionEnd = {line: selectionEnd.line + line, ch: line ? selectionEnd.ch : ch + selectionEnd.ch};
+        if (lastSelection.visualLine) {
+          return [{line: selectionStart.line, ch: 0}, {line: selectionEnd.line, ch: lineLength(cm, selectionEnd.line)}];
+        }
+      } else {
+        if (cursorIsBefore(selectionEnd, selectionStart)) {
+          var tmp = selectionStart;
+          selectionStart = selectionEnd;
+          selectionEnd = tmp;
+        } else {
+          selectionEnd = cm.clipPos(Pos(selectionEnd.line, selectionEnd.ch+1));
+        }
+        exitVisualMode(cm);
+      }
+      return [selectionStart, selectionEnd];
     }
 
     function exitVisualMode(cm) {
@@ -13347,28 +13428,35 @@ License: http://jqwidgets.com/license/
   var HINT_ELEMENT_CLASS        = "CodeMirror-hint";
   var ACTIVE_HINT_ELEMENT_CLASS = "CodeMirror-hint-active";
 
+  // This is the old interface, kept around for now to stay
+  // backwards-compatible.
   CodeMirror.showHint = function(cm, getHints, options) {
-    // We want a single cursor position.
-    if (cm.listSelections().length > 1 || cm.somethingSelected()) return;
-    if (getHints == null) {
-      if (options && options.async) return;
-      else getHints = CodeMirror.hint.auto;
-    }
-
-    if (cm.state.completionActive) cm.state.completionActive.close();
-
-    var completion = cm.state.completionActive = new Completion(cm, getHints, options || {});
-    CodeMirror.signal(cm, "startCompletion", cm);
-    if (completion.options.async)
-      getHints(cm, function(hints) { completion.showHints(hints); }, completion.options);
-    else
-      return completion.showHints(getHints(cm, completion.options));
+    if (!getHints) return cm.showHint(options);
+    if (options && options.async) getHints.async = true;
+    var newOpts = {hint: getHints};
+    if (options) for (var prop in options) newOpts[prop] = options[prop];
+    return cm.showHint(newOpts);
   };
 
-  function Completion(cm, getHints, options) {
+  CodeMirror.defineExtension("showHint", function(options) {
+    // We want a single cursor position.
+    if (this.listSelections().length > 1 || this.somethingSelected()) return;
+
+    if (this.state.completionActive) this.state.completionActive.close();
+    var completion = this.state.completionActive = new Completion(this, options);
+    var getHints = completion.options.hint;
+    if (!getHints) return;
+
+    CodeMirror.signal(this, "startCompletion", this);
+    if (getHints.async)
+      getHints(this, function(hints) { completion.showHints(hints); }, completion.options);
+    else
+      return completion.showHints(getHints(this, completion.options));
+  });
+
+  function Completion(cm, options) {
     this.cm = cm;
-    this.getHints = getHints;
-    this.options = options;
+    this.options = this.buildOptions(options);
     this.widget = this.onClose = null;
   }
 
@@ -13398,7 +13486,7 @@ License: http://jqwidgets.com/license/
     showHints: function(data) {
       if (!data || !data.list.length || !this.active()) return this.close();
 
-      if (this.options.completeSingle != false && data.list.length == 1)
+      if (this.options.completionSingle && data.list.length == 1)
         this.pick(data, 0);
       else
         this.showWidget(data);
@@ -13409,7 +13497,7 @@ License: http://jqwidgets.com/license/
       CodeMirror.signal(data, "shown");
 
       var debounce = 0, completion = this, finished;
-      var closeOn = this.options.closeCharacters || /[\s()\[\]{};:>,]/;
+      var closeOn = this.options.closeCharacters;
       var startPos = this.cm.getCursor(), startLen = this.cm.getLine(startPos.line).length;
 
       var requestAnimationFrame = window.requestAnimationFrame || function(fn) {
@@ -13428,10 +13516,11 @@ License: http://jqwidgets.com/license/
       function update() {
         if (finished) return;
         CodeMirror.signal(data, "update");
-        if (completion.options.async)
-          completion.getHints(completion.cm, finishUpdate, completion.options);
+        var getHints = completion.options.hint;
+        if (getHints.async)
+          getHints(completion.cm, finishUpdate, completion.options);
         else
-          finishUpdate(completion.getHints(completion.cm, completion.options));
+          finishUpdate(getHints(completion.cm, completion.options));
       }
       function finishUpdate(data_) {
         data = data_;
@@ -13462,6 +13551,17 @@ License: http://jqwidgets.com/license/
       }
       this.cm.on("cursorActivity", activity);
       this.onClose = done;
+    },
+
+    buildOptions: function(options) {
+      var editor = this.cm.options.hintOptions;
+      var out = {};
+      for (var prop in defaultOptions) out[prop] = defaultOptions[prop];
+      if (editor) for (var prop in editor)
+        if (editor[prop] !== undefined) out[prop] = editor[prop];
+      if (options) for (var prop in options)
+        if (options[prop] !== undefined) out[prop] = options[prop];
+      return out;
     }
   };
 
@@ -13470,7 +13570,7 @@ License: http://jqwidgets.com/license/
     else return completion.text;
   }
 
-  function buildKeyMap(options, handle) {
+  function buildKeyMap(completion, handle) {
     var baseMap = {
       Up: function() {handle.moveFocus(-1);},
       Down: function() {handle.moveFocus(1);},
@@ -13482,7 +13582,8 @@ License: http://jqwidgets.com/license/
       Tab: handle.pick,
       Esc: handle.close
     };
-    var ourMap = options.customKeys ? {} : baseMap;
+    var custom = completion.options.customKeys;
+    var ourMap = custom ? {} : baseMap;
     function addBinding(key, val) {
       var bound;
       if (typeof val != "string")
@@ -13494,12 +13595,13 @@ License: http://jqwidgets.com/license/
         bound = val;
       ourMap[key] = bound;
     }
-    if (options.customKeys)
-      for (var key in options.customKeys) if (options.customKeys.hasOwnProperty(key))
-        addBinding(key, options.customKeys[key]);
-    if (options.extraKeys)
-      for (var key in options.extraKeys) if (options.extraKeys.hasOwnProperty(key))
-        addBinding(key, options.extraKeys[key]);
+    if (custom)
+      for (var key in custom) if (custom.hasOwnProperty(key))
+        addBinding(key, custom[key]);
+    var extra = completion.options.extraKeys;
+    if (extra)
+      for (var key in extra) if (extra.hasOwnProperty(key))
+        addBinding(key, extra[key]);
     return ourMap;
   }
 
@@ -13513,11 +13615,11 @@ License: http://jqwidgets.com/license/
   function Widget(completion, data) {
     this.completion = completion;
     this.data = data;
-    var widget = this, cm = completion.cm, options = completion.options;
+    var widget = this, cm = completion.cm;
 
     var hints = this.hints = document.createElement("ul");
     hints.className = "CodeMirror-hints";
-    this.selectedHint = options.getDefaultSelection ? options.getDefaultSelection(cm,options,data) : 0;
+    this.selectedHint = data.selectedHint || 0;
 
     var completions = data.list;
     for (var i = 0; i < completions.length; ++i) {
@@ -13530,14 +13632,14 @@ License: http://jqwidgets.com/license/
       elt.hintId = i;
     }
 
-    var pos = cm.cursorCoords(options.alignWithWord !== false ? data.from : null);
+    var pos = cm.cursorCoords(completion.options.alignWithWord ? data.from : null);
     var left = pos.left, top = pos.bottom, below = true;
     hints.style.left = left + "px";
     hints.style.top = top + "px";
     // If we're at the edge of the screen, then we want the menu to appear on the left of the cursor.
     var winW = window.innerWidth || Math.max(document.body.offsetWidth, document.documentElement.offsetWidth);
     var winH = window.innerHeight || Math.max(document.body.offsetHeight, document.documentElement.offsetHeight);
-    (options.container || document.body).appendChild(hints);
+    (completion.options.container || document.body).appendChild(hints);
     var box = hints.getBoundingClientRect(), overlapY = box.bottom - winH;
     if (overlapY > 0) {
       var height = box.bottom - box.top, curTop = box.top - (pos.bottom - pos.top);
@@ -13564,7 +13666,7 @@ License: http://jqwidgets.com/license/
       hints.style.left = (left = pos.left - overlapX) + "px";
     }
 
-    cm.addKeyMap(this.keyMap = buildKeyMap(options, {
+    cm.addKeyMap(this.keyMap = buildKeyMap(completion, {
       moveFocus: function(n, avoidWrap) { widget.changeActive(widget.selectedHint + n, avoidWrap); },
       setFocus: function(n) { widget.changeActive(n); },
       menuSize: function() { return widget.screenAmount(); },
@@ -13574,7 +13676,7 @@ License: http://jqwidgets.com/license/
       data: data
     }));
 
-    if (options.closeOnUnfocus !== false) {
+    if (completion.options.closeOnUnfocus) {
       var closingOnBlur;
       cm.on("blur", this.onBlur = function() { closingOnBlur = setTimeout(function() { completion.close(); }, 100); });
       cm.on("focus", this.onFocus = function() { clearTimeout(closingOnBlur); });
@@ -13600,7 +13702,7 @@ License: http://jqwidgets.com/license/
       var t = getHintElement(hints, e.target || e.srcElement);
       if (t && t.hintId != null) {
         widget.changeActive(t.hintId);
-        if (options.completeOnSingleClick) widget.pick();
+        if (completion.options.completeOnSingleClick) widget.pick();
       }
     });
 
@@ -13620,7 +13722,7 @@ License: http://jqwidgets.com/license/
       this.completion.cm.removeKeyMap(this.keyMap);
 
       var cm = this.completion.cm;
-      if (this.completion.options.closeOnUnfocus !== false) {
+      if (this.completion.options.closeOnUnfocus) {
         cm.off("blur", this.onBlur);
         cm.off("focus", this.onFocus);
       }
@@ -13684,6 +13786,20 @@ License: http://jqwidgets.com/license/
   });
 
   CodeMirror.commands.autocomplete = CodeMirror.showHint;
+
+  var defaultOptions = {
+    hint: CodeMirror.hint.auto,
+    completionSingle: true,
+    alignWithWord: true,
+    closeCharacters: /[\s()\[\]{};:>,]/,
+    closeOnUnfocus: true,
+    completeOnSignleClick: false,
+    container: null,
+    customKeys: null,
+    extraKeys: null
+  };
+
+  CodeMirror.defineOption("hintOptions", null);
 });
 ;(function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -13953,10 +14069,14 @@ License: http://jqwidgets.com/license/
   "use strict";
 
   function doFold(cm, pos, options, force) {
-    var finder = options && (options.call ? options : options.rangeFinder);
-    if (!finder) finder = CodeMirror.fold.auto;
+    if (options && options.call) {
+      var finder = options;
+      options = null;
+    } else {
+      var finder = getOption(cm, options, "rangeFinder");
+    }
     if (typeof pos == "number") pos = CodeMirror.Pos(pos, 0);
-    var minSize = options && options.minFoldSize || 0;
+    var minSize = getOption(cm, options, "minFoldSize");
 
     function getRange(allowFolded) {
       var range = finder(cm, pos);
@@ -13973,13 +14093,13 @@ License: http://jqwidgets.com/license/
     }
 
     var range = getRange(true);
-    if (options && options.scanUp) while (!range && pos.line > cm.firstLine()) {
+    if (getOption(cm, options, "scanUp")) while (!range && pos.line > cm.firstLine()) {
       pos = CodeMirror.Pos(pos.line - 1, 0);
       range = getRange(false);
     }
     if (!range || range.cleared || force === "unfold") return;
 
-    var myWidget = makeWidget(options);
+    var myWidget = makeWidget(cm, options);
     CodeMirror.on(myWidget, "mousedown", function(e) {
       myRange.clear();
       CodeMirror.e_preventDefault(e);
@@ -13995,8 +14115,8 @@ License: http://jqwidgets.com/license/
     CodeMirror.signal(cm, "fold", cm, range.from, range.to);
   }
 
-  function makeWidget(options) {
-    var widget = (options && options.widget) || "\u2194";
+  function makeWidget(cm, options) {
+    var widget = getOption(cm, options, "widget");
     if (typeof widget == "string") {
       var text = document.createTextNode(widget);
       widget = document.createElement("span");
@@ -14061,6 +14181,24 @@ License: http://jqwidgets.com/license/
       if (cur) return cur;
     }
   });
+
+  var defaultOptions = {
+    rangeFinder: CodeMirror.fold.auto,
+    widget: "\u2194",
+    minFoldSize: 0,
+    scanUp: false
+  };
+
+  CodeMirror.defineOption("foldOptions", null);
+
+  function getOption(cm, options, name) {
+    if (options && options[name] !== undefined)
+      return options[name];
+    var editorOptions = cm.options.foldOptions;
+    if (editorOptions && editorOptions[name] !== undefined)
+      return editorOptions[name];
+    return defaultOptions[name];
+  }
 });
 ;(function(mod) {
   if (typeof exports == "object" && typeof module == "object") // CommonJS
@@ -14493,8 +14631,9 @@ CodeMirror.registerGlobalHelper("fold", "comment", function(mode) {
           cm.addOverlay(state.overlay = makeOverlay(line.slice(start, end), re, state.style));
         return;
       }
-      if (cm.getCursor("head").line != cm.getCursor("anchor").line) return;
-      var selection = cm.getSelections()[0].replace(/^\s+|\s+$/g, "");
+      var from = cm.getCursor("from"), to = cm.getCursor("to");
+      if (from.line != to.line) return;
+      var selection = cm.getRange(from, to).replace(/^\s+|\s+$/g, "");
       if (selection.length >= state.minChars)
         cm.addOverlay(state.overlay = makeOverlay(selection, false, state.style));
     });
@@ -15677,6 +15816,8 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   };
 });
 
+CodeMirror.registerHelper("wordChars", "javascript", /[\\w$]/);
+
 CodeMirror.defineMIME("text/javascript", "javascript");
 CodeMirror.defineMIME("text/ecmascript", "javascript");
 CodeMirror.defineMIME("application/javascript", "javascript");
@@ -15744,7 +15885,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
       if (/[\d.]/.test(stream.peek())) {
         stream.eatWhile(/[\w.%]/);
         return ret("number", "unit");
-      } else if (stream.match(/^[^-]+-/)) {
+      } else if (stream.match(/^\w+-/)) {
         return ret("meta", "meta");
       }
     } else if (/[,+>*\/]/.test(ch)) {
@@ -17115,7 +17256,7 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
   function htmlBlock(stream, state) {
     var style = htmlMode.token(stream, state.htmlState);
-    if ((htmlFound && !state.htmlState.tagName && !state.htmlState.context) ||
+    if ((htmlFound && state.htmlState.tagStart === null && !state.htmlState.context) ||
         (state.md_inside && stream.current().indexOf(">") > -1)) {
       state.f = inlineNormal;
       state.block = blockNormal;
@@ -17615,8 +17756,7 @@ CodeMirror.defineMode("markdown", function(cmCfg, modeCfg) {
 
         if (forceBlankLine) {
           state.prevLineHasContent = false;
-          blankLine(state);
-          return this.token(stream, state);
+          return blankLine(state);
         } else {
           state.prevLineHasContent = state.thisLineHasContent;
           state.thisLineHasContent = true;

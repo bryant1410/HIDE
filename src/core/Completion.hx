@@ -65,15 +65,6 @@ class Completion
 		
 		CodeMirror.registerHelper("hint", "haxe", getHints);
 		CodeMirror.registerHelper("hint", "hxml", getHints);
-		
-		Editor.editor.on("startCompletion", function (cm:CodeMirror):Void 
-		{
-			if (completionType == OPENFILE) 
-			{
-				backupDocValue = TabManager.getCurrentDocument().getValue();
-			}
-		}
-		);
 	}
 	
 	static function getHints(cm:CodeMirror, options)
@@ -173,28 +164,22 @@ class Completion
 			case HXML:
 				list = Hxml.getCompletion().copy();
         
-        		for (item in ClassParser.topLevelClassList) 
-				{
-					list.push( { text: item} );
-				}
-				
-				for (item in ClassParser.importsList) 
-				{
-					list.push( { text: item} );
-				}
+        		for (list2 in [ClassParser.topLevelClassList, ClassParser.importsList, ClassParser.haxeStdTopLevelClassList, ClassParser.haxeStdImports])
+                {
+                	for (item in list2) 
+                    {
+                        list.push( { text: item} );
+                    }
+                }
 			case FILELIST:
         		var displayText:String;
         
-				for (item in ClassParser.filesList) 
-				{                    
-					list.push( { text: item.path, displayText: processDisplayText(item.path)} );
-				}
-            case OPENFILE:
-        		var displayText:String;
-        
-				for (item in ClassParser.filesList) 
-				{                        
-					list.push( { text: item.path, displayText: processDisplayText(item.path), hint: openFile} );
+				for (list2 in [ClassParser.filesList, ClassParser.haxeStdFileList])
+                {
+                    for (item in list2) 
+                    {                    
+                        list.push( { text: item.path, displayText: processDisplayText(item.path)} );
+                    }
 				}
             case PASTEFOLDER:
         		var displayText:String;
@@ -204,15 +189,13 @@ class Completion
 					list.push( { text: item.directory, displayText: processDisplayText(item.path)} );
 				}
 			case CLASSLIST:
-				for (item in ClassParser.topLevelClassList) 
-				{
-					list.push( { text: item} );
-				}
-				
-				for (item in ClassParser.importsList) 
-				{
-					list.push( { text: item} );
-				}
+				for (list2 in [ClassParser.topLevelClassList, ClassParser.importsList, ClassParser.haxeStdTopLevelClassList, ClassParser.haxeStdImports])
+                {
+                	for (item in list2) 
+                    {
+                        list.push( { text: item} );
+                    }
+                }
 			default:
 				
 		}
@@ -221,36 +204,9 @@ class Completion
     
 		list = Filter.filter(list, curWord, completionType);
 		
-		switch (completionType) 
-		{
-			case OPENFILE:
-                QuickOpen.show(list);
-                
-				for (item in list) 
-				{
-					item.text = "";
-				}
-			default:
-				
-		}
-		
 		var data:Dynamic = { list: list, from: { line:cur.line, ch:start }, to: { line:cur.line, ch:end } };
 		CodeMirrorStatic.attachContextInfo(Editor.editor, data);
 		return data;
-	}
-	
-	static function openFile(cm:CodeMirror, data:Dynamic, completion:CompletionData)
-	{		
-		var path = completion.displayText;
-		
-		if (ProjectAccess.path != null) 
-		{
-			path = Node.path.resolve(ProjectAccess.path, path);
-		}
-		
-        TabManager.getCurrentDocument().setValue(backupDocValue);
-        TabManager.saveActiveFile();
-		TabManager.openFileInNewTab(path);
 	}
 	
     static function processDisplayText(displayText:String):String
@@ -456,28 +412,40 @@ class Completion
 	
 	public static function showFileList(?openFile:Bool = true, ?insertDirectory:Bool = false):Void
 	{		
-		if (isEditorVisible()) 
+        if (openFile)
+        {
+            completionType = OPENFILE;
+            
+            var displayText:String;
+			
+            var completionList:Array<CompletionData> = [];
+            
+            for (list2 in [ClassParser.filesList, ClassParser.haxeStdFileList])
+            {
+                for (item in list2) 
+                {                    
+                    completionList.push( { text: item.path, displayText: processDisplayText(item.path)} );
+                }
+            }
+            
+            QuickOpen.show(completionList);
+        }
+        else if (isEditorVisible()) 
 		{
             cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z-\.\\\/]+$/i;
             
-            if (openFile)
-            {
-				completionType = OPENFILE;
-			}
-            else if (insertDirectory == false)
+            if (insertDirectory == false)
             {
                 completionType = FILELIST;
             }
             else
             {
                 completionType = PASTEFOLDER;
-                
-//                 "/[\s()\[\]{};:>,]/"
             }
-			
-			CodeMirrorStatic.showHint(Editor.editor, getHints);
+                
+            CodeMirrorStatic.showHint(Editor.editor, getHints);
 		}
 	}
 	
@@ -489,6 +457,9 @@ class Completion
 			Editor.regenerateCompletionOnDot = false;
 			WORD = ~/[A-Z\.]+$/i;
 			completionType = CLASSLIST;
+            
+//             default closeCharacters value
+//             "/[\s()\[\]{};:>,]/"
 			
 			var closeCharacters = untyped __js__("/[\\s()\\[\\]{};>,]/");
 			

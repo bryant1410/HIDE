@@ -16,14 +16,12 @@
         ,"src/cm/Editor.hx"
         ,"src/core/Completion.hx"
         ,"src/tabmanager/TabManager.hx"
-        ,"src/core/HaxeParserProvider.hx"
         ,"src/core/QuickOpen.hx"
         ,"bin/core/light.css"
         ,"src/bootstrap/ListGroup.hx"
         ,"src/Main.hx"
-        ,"libs/hxparse/src/hxparse/RuleBuilder.hx"
     ]
-    ,"activeFile" : "src/core/QuickOpen.hx"
+    ,"activeFile" : "src/Main.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

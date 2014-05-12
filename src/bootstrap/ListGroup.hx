@@ -41,6 +41,7 @@ class ListGroup
 		p.textContent = description;
 		a.appendChild(p);
 		
+        items.push(a);
 		listGroup.appendChild(a);
 	}
 	
@@ -54,6 +55,13 @@ class ListGroup
         {
         	listGroup.removeChild(listGroup.lastChild);
         };
+        
+        items = [];
+    }
+    
+    public function getItems():Array<AnchorElement>
+    {
+        return items;
     }
     
 	public function getElement():DivElement

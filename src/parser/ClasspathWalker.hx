@@ -23,16 +23,9 @@ import parser.ClassParser.FileData;
 class ClasspathWalker
 {
 	public static var pathToHaxeStd:String;
-	public static var haxeStdFileList:Array<String>;
-	public static var haxeStdTopLevelClassList:Array<String>;
-	public static var haxeStdImports:Array<String>;
     
 	public static function load():Void 
-	{
-		haxeStdFileList = [];
-		haxeStdTopLevelClassList = [];
-		haxeStdImports = [];
-		
+	{		
 		var localStorage2 = Browser.getLocalStorage();
 		
 		var paths:Array<String> = [Node.process.env.HAXEPATH, Node.process.env.HAXE_STD_PATH, Node.process.env.HAXE_HOME];
@@ -134,14 +127,9 @@ class ClasspathWalker
 	{
 		ClassParser.classCompletions = new StringMap();
 		ClassParser.filesList = [];
-            
-        for (item in haxeStdFileList) 
-        {
-            addFile(item, true);
-        }
 		
-		ClassParser.topLevelClassList = haxeStdTopLevelClassList.copy();
-		ClassParser.importsList = haxeStdImports.copy();
+		ClassParser.topLevelClassList = [];
+		ClassParser.importsList = [];
 		
 		if (ProjectAccess.path != null) 
 		{
@@ -294,15 +282,7 @@ class ClasspathWalker
 	
     static function processFile(path:String, std:Bool)
     {
-        if (std) 
-        {
-            haxeStdFileList.push(path);
-        }
-
-        if (getFileIndex(path) == -1) 
-        {
-            addFile(path, std);
-        }
+        addFile(path, std);
 
         var options:NodeFsFileOptions = { };
        	options.encoding = NodeC.UTF8;
@@ -320,14 +300,13 @@ class ClasspathWalker
         }
     }
 
-
-	static function getFileIndex(pathToFile:String):Int
+	static function getFileIndex(pathToFile:String, list:Array<FileData>):Int
 	{
         var index:Int = -1;
             
-        for (i in 0...ClassParser.filesList.length)
+        for (i in 0...list.length)
         {
-            if (ClassParser.filesList[i].path == pathToFile)
+            if (list[i].path == pathToFile)
             {
                 index = i;
                 break;
@@ -339,23 +318,33 @@ class ClasspathWalker
 
 	public static function addFile(path:String, ?std:Bool = false)
 	{
+        var relativePath:String;
+        var list:Array<FileData>;
+        
 		if (!SettingsWatcher.isItemInIgnoreList(path) && !ProjectAccess.isItemInIgnoreList(path)) 
-		{
-			var relativePath;
-			
-			if (ProjectAccess.path != null && (core.Utils.os == core.Utils.WINDOWS || !std))
-			{                
-				relativePath = Node.path.relative(ProjectAccess.path, path);
-				
-				if (getFileIndex(relativePath) == -1 && getFileIndex(path) == -1) 
-				{
-					ClassParser.filesList.push({path: relativePath, directory: getFileDirectory(relativePath)});
-				}
-			}
-			else 
-			{
-				ClassParser.filesList.push({path: path, directory: getFileDirectory(path)});
-			}
+		{            
+            if (std)
+            {
+                list = ClassParser.haxeStdFileList;
+            }
+            else
+            {
+                list = ClassParser.filesList;
+            }
+                
+            if (ProjectAccess.path != null && (core.Utils.os == core.Utils.WINDOWS || !std))
+            {
+                relativePath = Node.path.relative(ProjectAccess.path, path);
+
+                if (getFileIndex(relativePath, list) == -1)
+                {
+                    list.push({path: relativePath, directory: getFileDirectory(relativePath)});
+                }
+            }
+            else if (getFileIndex(path, list) == -1)
+            {
+                list.push({path: path, directory: getFileDirectory(path)});
+            }            
 		}
 	}
 	
@@ -365,23 +354,26 @@ class ClasspathWalker
 		
         var index:Int = -1;
         
-		if (ProjectAccess.path != null) 
-		{
-			relativePath = Node.path.relative(ProjectAccess.path, path);
-            
-            index = getFileIndex(relativePath);
-            
+        for (list in [ClassParser.haxeStdFileList, ClassParser.filesList])
+        {
+			if (ProjectAccess.path != null) 
+            {
+                relativePath = Node.path.relative(ProjectAccess.path, path);
+
+                index = getFileIndex(relativePath, list);
+
+                if (index != -1)
+                {
+                    list.remove(list[index]);    
+                }
+            }
+
+            index = getFileIndex(path, list);
+
             if (index != -1)
             {
-            	ClassParser.filesList.remove(ClassParser.filesList[index]);    
+                list.remove(list[index]);    
             }
-		}
-		
-        index = getFileIndex(path);
-            
-        if (index != -1)
-        {
-            ClassParser.filesList.remove(ClassParser.filesList[index]);    
         }
 	}
 	

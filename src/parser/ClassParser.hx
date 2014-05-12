@@ -26,9 +26,15 @@ typedef FileData =
 
 class ClassParser
 {	
+    public static var haxeStdTopLevelClassList:Array<String> = [];
 	public static var topLevelClassList:Array<String> = [];
+    
+    public static var haxeStdImports:Array<String> = [];
 	public static var importsList:Array<String> = [];
+    
 	public static var classCompletions:StringMap<Array<String>> = new StringMap();
+    
+    public static var haxeStdFileList:Array<FileData> = [];
     public static var filesList:Array<FileData> = [];
 	
 	public static function parse(data:String, path:String)
@@ -184,28 +190,38 @@ class ClassParser
 	
 	static function addClassName(name:String, std:Bool):Void 
 	{
+        var list:Array<String>;
+        
 		if (name.indexOf(".") == -1) 
 		{
 			if (std) 
 			{
-				ClasspathWalker.haxeStdTopLevelClassList.push(name);
+                list = haxeStdTopLevelClassList;
 			}
-			
-			if (topLevelClassList.indexOf(name) == -1)
+            else
+            {
+                list = topLevelClassList;
+            }
+            
+			if (list.indexOf(name) == -1)
 			{
-				topLevelClassList.push(name);
+				list.push(name);
 			}
 		}
 		else 
 		{
 			if (std) 
 			{
-				ClasspathWalker.haxeStdImports.push(name);
+				list = haxeStdImports;
 			}
+            else
+            {
+                list = importsList;
+            }
 			
-			if (importsList.indexOf(name) == -1)
+			if (list.indexOf(name) == -1)
 			{
-				importsList.push(name);
+				list.push(name);
 			}
 		}
 	}
