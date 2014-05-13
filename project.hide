@@ -17,9 +17,11 @@
         ,"src/core/Completion.hx"
         ,"src/tabmanager/TabManager.hx"
         ,"src/core/QuickOpen.hx"
-        ,"bin/core/light.css"
         ,"src/bootstrap/ListGroup.hx"
         ,"src/Main.hx"
+        ,"src/menu/Menu.hx"
+        ,"bin/core/index.html"
+        ,"bin/core/dark.css"
     ]
     ,"activeFile" : "src/Main.hx"
     ,"openFLTarget" : null

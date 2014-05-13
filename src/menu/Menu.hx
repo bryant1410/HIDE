@@ -40,8 +40,7 @@ class MenuButtonItem implements MenuItem
 		var menuItem:String = _menu + "->" + _text;
 		
 		var span:SpanElement = Browser.document.createSpanElement();
-		span.style.color = "silver";
-		span.style.float = "right";
+        span.className = "hotkey";
 		
 		if (!_submenu) 
 		{

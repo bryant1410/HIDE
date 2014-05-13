@@ -12819,8 +12819,7 @@ menu.MenuButtonItem = function(_menu,_text,_onClickFunction,_hotkey,_submenu) {
 	var span;
 	var _this = window.document;
 	span = _this.createElement("span");
-	span.style.color = "silver";
-	span.style["float"] = "right";
+	span.className = "hotkey";
 	if(!_submenu) core.Hotkeys.add(menuItem,hotkeyText,span,_onClickFunction);
 	var _this1 = window.document;
 	this.li = _this1.createElement("li");
