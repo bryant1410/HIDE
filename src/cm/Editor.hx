@@ -380,7 +380,7 @@ class Editor
 	
 	public static function resize():Void 
 	{
-		var height = Browser.window.innerHeight - 50 - new JQuery("ul.tabs").height() - new JQuery("#tabs1").height() - 5;
+		var height = Browser.window.innerHeight - 34 - new JQuery("ul.tabs").height() - new JQuery("#tabs1").height() - 5;
 		new JQuery(".CodeMirror").css("height", Std.string(Std.int(height)) + "px");
 	}
 	

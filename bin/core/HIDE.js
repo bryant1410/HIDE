@@ -1350,7 +1350,7 @@ cm.Editor.walk = function(object) {
 	}
 };
 cm.Editor.resize = function() {
-	var height = window.innerHeight - 50 - new $("ul.tabs").height() - new $("#tabs1").height() - 5;
+	var height = window.innerHeight - 34 - new $("ul.tabs").height() - new $("#tabs1").height() - 5;
 	new $(".CodeMirror").css("height",Std.string(height | 0) + "px");
 };
 cm.Editor.loadTheme = function() {
@@ -3390,7 +3390,7 @@ core.QuickOpen.load = function() {
 };
 core.QuickOpen.show = function(list) {
 	core.QuickOpen.activeItemIndex = 0;
-	core.QuickOpen.fileList = list;
+	core.QuickOpen.fileList = completion.Filter.filter(list,core.QuickOpen.input.value,core.CompletionType.OPENFILE);
 	core.QuickOpen.currentList = core.QuickOpen.fileList;
 	core.QuickOpen.update();
 	core.QuickOpen.input.value = "";
@@ -3408,8 +3408,11 @@ core.QuickOpen.onKeyUp = function(e) {
 	}
 };
 core.QuickOpen.onInput = function(e) {
-	core.QuickOpen.currentList = completion.Filter.filter(core.QuickOpen.fileList,core.QuickOpen.input.value,core.CompletionType.OPENFILE);
-	core.QuickOpen.update();
+	core.QuickOpen.activeItemIndex = 0;
+	core.Helper.debounce("openfilecompletion",function() {
+		core.QuickOpen.currentList = completion.Filter.filter(core.QuickOpen.fileList,core.QuickOpen.input.value,null);
+		core.QuickOpen.update();
+	},50);
 };
 core.QuickOpen.onKeyDown = function(e) {
 	var _g = e.keyCode;

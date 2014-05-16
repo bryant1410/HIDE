@@ -3,3 +3,33 @@
     color: silver;
     float: right;
 }
+
+.nav>li>a 
+{
+    position: relative;
+    display: block;
+    padding: 5px 10px;
+}
+
+.navbar
+{
+    min-height: 0;
+}
+
+.navbar-brand
+{
+    padding: 5px;
+    line-height: 1;
+}
+
+.navbar-default
+{
+    font-family:"Ubuntu";
+    font-size:15px;
+    border:0px;
+/*     background-color: #acaeae; */
+}
+
+.navbar-inverse .navbar-nav>li>a, .navbar-inverse .navbar-text {
+/* 	color: #ffffff; */
+}

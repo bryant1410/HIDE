@@ -15,15 +15,12 @@
         ,"src/parser/OutlineHelper.hx"
         ,"src/cm/Editor.hx"
         ,"src/core/Completion.hx"
-        ,"src/tabmanager/TabManager.hx"
         ,"src/core/QuickOpen.hx"
-        ,"src/bootstrap/ListGroup.hx"
-        ,"src/Main.hx"
-        ,"src/menu/Menu.hx"
-        ,"bin/core/index.html"
         ,"bin/core/dark.css"
+        ,"bin/core/config/settings.json"
+        ,"bin/core/light.css"
     ]
-    ,"activeFile" : "src/Main.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

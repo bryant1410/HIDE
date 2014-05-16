@@ -60,7 +60,7 @@ class QuickOpen
     {
         activeItemIndex = 0;
         
-        fileList = list;
+        fileList = completion.Filter.filter(list, input.value, Completion.CompletionType.OPENFILE);
         
 		currentList = fileList;
         
@@ -86,8 +86,13 @@ class QuickOpen
 
 	static function onInput(e)
 	{
-		currentList = completion.Filter.filter(fileList, input.value, Completion.CompletionType.OPENFILE);
-        update();
+        activeItemIndex = 0;
+        
+        core.Helper.debounce("openfilecompletion", function ()
+                          	{
+                            	currentList = completion.Filter.filter(fileList, input.value, null);
+        						update();    
+                            }, 50);
     }
     
     static function onKeyDown(e)
