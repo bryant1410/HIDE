@@ -74,7 +74,7 @@ class Editor
 						
 						if (Completion.getCompletionType() == CompletionType.REGULAR && completionActive != null && completionActive.widget != null) 
 						{
-                            trace("complete");
+                            trace("pick");
 							completionActive.widget.pick();
 						}
 					}
@@ -230,7 +230,7 @@ class Editor
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
 				
-                if (data.charAt(cursor.ch - 1) == "." && ~/[^a-z]/i.match(data.charAt(cursor.ch)))
+                if (data.charAt(cursor.ch - 1) == ".")
                 {
                     triggerCompletion(Editor.editor, true);
                 }

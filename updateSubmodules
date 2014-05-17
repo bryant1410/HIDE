@@ -11,4 +11,5 @@ cd ../..
 cd js/alertify.js
 git pull origin 0.3
 cd ../..
+grunt concat cssmin
 

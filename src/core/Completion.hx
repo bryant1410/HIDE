@@ -382,7 +382,7 @@ class Completion
 			Editor.regenerateCompletionOnDot = true;
 			WORD = ~/[A-Z]+$/i;
 			completionType = REGULAR;
-			CodeMirrorStatic.showHint(Editor.editor, getHints, { completeSingle: false } );
+			CodeMirrorStatic.showHint(Editor.editor, getHints, { completionSingle: false } );
 		}
 	}
 	
@@ -415,20 +415,7 @@ class Completion
 	{		
         if (openFile)
         {
-            completionType = OPENFILE;
-            
-//             var displayText:String;
-			
-//             var completionList:Array<CompletionData> = [];
-            
-//             for (list2 in [, ClassParser.haxeStdFileList])
-//             {
-//                 for (item in list2) 
-//                 {                    
-//                     completionList.push( { text: item.path, displayText: processDisplayText(item.path)} );
-//                 }
-//             }
-            
+            completionType = OPENFILE;            
             QuickOpen.show(ClassParser.filesList.copy().concat(ClassParser.haxeStdFileList));
         }
         else if (isEditorVisible()) 

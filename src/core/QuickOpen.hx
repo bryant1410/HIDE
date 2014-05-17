@@ -170,6 +170,7 @@ class QuickOpen
 				}
             //Enter
             case 13:
+                e.preventDefault();
                 listGroup.getItems()[activeItemIndex].click();
         }
     }

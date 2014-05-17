@@ -1172,7 +1172,7 @@ cm.Editor.load = function() {
 			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
 				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && completionActive != null && completionActive.widget != null) {
-					console.log("complete");
+					console.log("pick");
 					completionActive.widget.pick();
 				}
 			}
@@ -1274,7 +1274,7 @@ cm.Editor.load = function() {
 			},100);
 			var cursor1 = cm6.getCursor();
 			var data = cm6.getLine(cursor1.line);
-			if(data.charAt(cursor1.ch - 1) == "." && new EReg("[^a-z]","i").match(data.charAt(cursor1.ch))) cm.Editor.triggerCompletion(cm.Editor.editor,true);
+			if(data.charAt(cursor1.ch - 1) == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true);
 			if(data.charAt(cursor1.ch - 1) == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
 			} else if(data.charAt(cursor1.ch - 1) == "<") {
@@ -1997,7 +1997,7 @@ core.Completion.showRegularCompletion = function() {
 		cm.Editor.regenerateCompletionOnDot = true;
 		core.Completion.WORD = new EReg("[A-Z]+$","i");
 		core.Completion.completionType = core.CompletionType.REGULAR;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ completeSingle : false});
+		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ completionSingle : false});
 	}
 };
 core.Completion.showMetaTagsCompletion = function() {
@@ -3162,7 +3162,11 @@ core.MenuCommands.add = function() {
 		return cm.Editor.editor.execCommand("replace");
 	});
 	menu.BootstrapMenu.getMenu("Navigate",4).addMenuItem("Go to Line",2,core.GoToLine.show,"Ctrl-G");
-	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Open File",3,core.Completion.showFileList,"Ctrl-Shift-O");
+	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Open File",3,function() {
+		haxe.Timer.delay(function() {
+			core.Completion.showFileList();
+		},10);
+	},"Ctrl-Shift-O");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,cm.Editor.triggerCompletion,"Ctrl-Space");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment",5,function() {
@@ -3528,6 +3532,7 @@ core.QuickOpen.onKeyDown = function(e) {
 		}
 		break;
 	case 13:
+		e.preventDefault();
 		core.QuickOpen.listGroup.getItems()[core.QuickOpen.activeItemIndex].click();
 		break;
 	}

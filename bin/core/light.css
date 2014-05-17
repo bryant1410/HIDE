@@ -84,3 +84,9 @@
     border-bottom-width: 0; */
 }
 
+#welcomeScreen 
+{
+    background-color: #505050;
+    box-shadow: none;
+}
+

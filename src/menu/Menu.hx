@@ -66,8 +66,8 @@ class MenuButtonItem implements MenuItem
 		
 		if (_onClickFunction != null) 
 		{
-			a.onclick = function (e)
-			{
+			a.onclick = function (e:js.html.MouseEvent)
+			{                
 				if (li.className != "disabled")
 				{
 					_onClickFunction();
