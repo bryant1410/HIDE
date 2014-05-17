@@ -1169,12 +1169,12 @@ cm.Editor.load = function() {
 	options.extraKeys = { '.' : (function($this) {
 		var $r;
 		var passAndHint = function(cm1) {
-			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
-				if(completionActive != null && completionActive.widget != null) completionActive.widget.pick();
-				setTimeout(function() {
-					cm.Editor.triggerCompletion(cm1,true);
-				},100);
+				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && completionActive != null && completionActive.widget != null) {
+					console.log("complete");
+					completionActive.widget.pick();
+				}
 			}
 			return CodeMirror.Pass;
 		};
@@ -1182,10 +1182,10 @@ cm.Editor.load = function() {
 		return $r;
 	}(this)), ';' : (function($this) {
 		var $r;
-		var passAndHint1 = function(cm2) {
+		var passAndHint1 = function(cm1) {
 			var cursor = cm.Editor.editor.getCursor();
 			var ch = cm.Editor.editor.getRange(cursor,{ line : cursor.line, ch : cursor.ch + 1});
-			if(ch == ";") cm2.execCommand("goCharRight"); else {
+			if(ch == ";") cm1.execCommand("goCharRight"); else {
 				return CodeMirror.Pass;
 			}
 		};
@@ -1258,9 +1258,6 @@ cm.Editor.load = function() {
 	});
 	var timer = null;
 	var basicTypes = ["Array","Map","StringMap"];
-	var ignoreNewLineKeywords_0 = "function";
-	var ignoreNewLineKeywords_1 = "for ";
-	var ignoreNewLineKeywords_2 = "while";
 	cm.Editor.editor.on("change",function(cm6,e2) {
 		if(e2.origin == "paste" && e2.from.line - e2.to.line > 0) {
 			var _g12 = e2.from.line;
@@ -1277,6 +1274,7 @@ cm.Editor.load = function() {
 			},100);
 			var cursor1 = cm6.getCursor();
 			var data = cm6.getLine(cursor1.line);
+			if(data.charAt(cursor1.ch - 1) == "." && new EReg("[^a-z]","i").match(data.charAt(cursor1.ch))) cm.Editor.triggerCompletion(cm.Editor.editor,true);
 			if(data.charAt(cursor1.ch - 1) == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
 			} else if(data.charAt(cursor1.ch - 1) == "<") {
@@ -1428,19 +1426,6 @@ $hxClasses["completion.Filter"] = completion.Filter;
 completion.Filter.__name__ = ["completion","Filter"];
 completion.Filter.filter = function(completions,word,completionType) {
 	var list = [];
-	if(completionType == core.CompletionType.OPENFILE) completions.sort(function(a,b) {
-		var aCount;
-		var bCount;
-		var aHaxeFile = StringTools.endsWith(a.text,".hx");
-		var bHaxeFile = StringTools.endsWith(b.text,".hx");
-		if(aHaxeFile && !bHaxeFile) return -1;
-		if(!aHaxeFile && bHaxeFile) return 1;
-		aCount = a.text.split("\\").length + a.text.split("/").length;
-		bCount = b.text.split("\\").length + b.text.split("/").length;
-		if(aCount < bCount) return -1;
-		if(aCount > bCount) return 1;
-		return 0;
-	});
 	if(word != null) {
 		var filtered_results = [];
 		var sorted_results = [];
@@ -1450,20 +1435,21 @@ completion.Filter.filter = function(completions,word,completionType) {
 			var completion = completions[_g];
 			++_g;
 			var n = completion.text.toLowerCase();
-			var b1 = true;
+			var b = true;
 			var _g2 = 0;
 			var _g1 = word.length;
 			while(_g2 < _g1) {
 				var j = _g2++;
 				if(n.indexOf(word.charAt(j)) == -1) {
-					b1 = false;
+					b = false;
 					break;
 				}
 			}
-			if(b1) filtered_results.push(completion);
+			if(b) filtered_results.push(completion);
 		}
 		var results = [];
 		var filtered_results2 = [];
+		var filtered_results3 = [];
 		var exactResults = [];
 		var _g11 = 0;
 		var _g3 = filtered_results.length;
@@ -1471,7 +1457,7 @@ completion.Filter.filter = function(completions,word,completionType) {
 			var i = _g11++;
 			var str = filtered_results[i].text.toLowerCase();
 			var index = str.indexOf(word);
-			if(word == str) exactResults.push(filtered_results[i]); else if(index == 0) sorted_results.push(filtered_results[i]); else if(index != -1) filtered_results2.push(filtered_results[i]); else results.push(filtered_results[i]);
+			if(word == str) exactResults.push(filtered_results[i]); else if(index == 0) sorted_results.push(filtered_results[i]); else if(index == str.length) filtered_results3.push(filtered_results[i]); else if(index != -1) filtered_results2.push(filtered_results[i]); else results.push(filtered_results[i]);
 		}
 		var _g4 = 0;
 		while(_g4 < exactResults.length) {
@@ -1492,12 +1478,108 @@ completion.Filter.filter = function(completions,word,completionType) {
 			list.push(completion3);
 		}
 		var _g7 = 0;
-		while(_g7 < results.length) {
-			var completion4 = results[_g7];
+		while(_g7 < filtered_results3.length) {
+			var completion4 = filtered_results3[_g7];
 			++_g7;
 			list.push(completion4);
 		}
+		var _g8 = 0;
+		while(_g8 < results.length) {
+			var completion5 = results[_g8];
+			++_g8;
+			list.push(completion5);
+		}
 	} else list = completions;
+	return list;
+};
+completion.Filter.sortFileList = function(list) {
+	list.sort(function(a,b) {
+		var aCount;
+		var bCount;
+		var aHaxeFile = StringTools.endsWith(a.filename,".hx");
+		var bHaxeFile = StringTools.endsWith(b.filename,".hx");
+		if(aHaxeFile && !bHaxeFile) return -1;
+		if(!aHaxeFile && bHaxeFile) return 1;
+		aCount = a.path.split("\\").length + a.path.split("/").length;
+		bCount = b.path.split("\\").length + b.path.split("/").length;
+		if(aCount < bCount) return -1;
+		if(aCount > bCount) return 1;
+		return 0;
+	});
+	return list;
+};
+completion.Filter.filterFiles = function(fileList,word) {
+	var list = [];
+	var filtered_results = [];
+	var sorted_results = [];
+	word = word.toLowerCase();
+	var _g = 0;
+	while(_g < fileList.length) {
+		var completion = fileList[_g];
+		++_g;
+		var n = completion.path.toLowerCase();
+		var b = true;
+		var _g2 = 0;
+		var _g1 = word.length;
+		while(_g2 < _g1) {
+			var j = _g2++;
+			if(n.indexOf(word.charAt(j)) == -1) {
+				b = false;
+				break;
+			}
+		}
+		if(b) filtered_results.push(completion);
+	}
+	var results = [];
+	var filtered_results2 = [];
+	var filtered_results3 = [];
+	var exactResults = [];
+	var filenameResults = [];
+	var _g11 = 0;
+	var _g3 = filtered_results.length;
+	while(_g11 < _g3) {
+		var i = _g11++;
+		var path = filtered_results[i].path.toLowerCase();
+		var filename = filtered_results[i].filename.toLowerCase();
+		var index = path.indexOf(word);
+		if(word == filename) filenameResults.push(filtered_results[i]); else if(StringTools.startsWith(filename,word)) filenameResults.push(filtered_results[i]); else if(word == path) exactResults.push(filtered_results[i]); else if(index == 0) sorted_results.push(filtered_results[i]); else if(index == path.length) filtered_results3.push(filtered_results[i]); else if(index != -1) filtered_results2.push(filtered_results[i]); else results.push(filtered_results[i]);
+	}
+	var _g4 = 0;
+	while(_g4 < filenameResults.length) {
+		var completion1 = filenameResults[_g4];
+		++_g4;
+		list.push(completion1);
+	}
+	var _g5 = 0;
+	while(_g5 < exactResults.length) {
+		var completion2 = exactResults[_g5];
+		++_g5;
+		list.push(completion2);
+	}
+	var _g6 = 0;
+	while(_g6 < sorted_results.length) {
+		var completion3 = sorted_results[_g6];
+		++_g6;
+		list.push(completion3);
+	}
+	var _g7 = 0;
+	while(_g7 < filtered_results2.length) {
+		var completion4 = filtered_results2[_g7];
+		++_g7;
+		list.push(completion4);
+	}
+	var _g8 = 0;
+	while(_g8 < filtered_results3.length) {
+		var completion5 = filtered_results3[_g8];
+		++_g8;
+		list.push(completion5);
+	}
+	var _g9 = 0;
+	while(_g9 < results.length) {
+		var completion6 = results[_g9];
+		++_g9;
+		list.push(completion6);
+	}
 	return list;
 };
 completion.Hxml = function() { };
@@ -1627,7 +1709,10 @@ core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
 	div = _this1.createElement("div");
 	div.className = "errorMarker";
 	var lineCount = tabmanager.TabManager.getCurrentDocument().lineCount();
-	div.style.top = Std.string(line / lineCount * 100) + "%";
+	var targetLine = line / lineCount * 100;
+	while(HxOverrides.indexOf(core.AnnotationRuler.positions,targetLine,0) != -1) targetLine++;
+	div.style.top = (targetLine == null?"null":"" + targetLine) + "%";
+	core.AnnotationRuler.positions.push(targetLine);
 	div.setAttribute("data-toggle","tooltip");
 	div.setAttribute("data-placement","left");
 	div.title = "Line: " + (line == null?"null":"" + line) + ":" + message;
@@ -1637,6 +1722,7 @@ core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
 };
 core.AnnotationRuler.clearErrorMarkers = function() {
 	new $("#annotationRuler").children().remove();
+	core.AnnotationRuler.positions = [];
 };
 core.CompilationOutput = function() { };
 $hxClasses["core.CompilationOutput"] = core.CompilationOutput;
@@ -1937,21 +2023,7 @@ core.Completion.showFileList = function(openFile,insertDirectory) {
 	if(openFile == null) openFile = true;
 	if(openFile) {
 		core.Completion.completionType = core.CompletionType.OPENFILE;
-		var displayText;
-		var completionList = [];
-		var _g = 0;
-		var _g1 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-		while(_g < _g1.length) {
-			var list2 = _g1[_g];
-			++_g;
-			var _g2 = 0;
-			while(_g2 < list2.length) {
-				var item = list2[_g2];
-				++_g2;
-				completionList.push({ text : item.path, displayText : core.Completion.processDisplayText(item.path)});
-			}
-		}
-		core.QuickOpen.show(completionList);
+		core.QuickOpen.show(parser.ClassParser.filesList.slice().concat(parser.ClassParser.haxeStdFileList));
 	} else if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
@@ -3390,10 +3462,10 @@ core.QuickOpen.load = function() {
 };
 core.QuickOpen.show = function(list) {
 	core.QuickOpen.activeItemIndex = 0;
-	core.QuickOpen.fileList = completion.Filter.filter(list,core.QuickOpen.input.value,core.CompletionType.OPENFILE);
+	core.QuickOpen.fileList = completion.Filter.sortFileList(list);
 	core.QuickOpen.currentList = core.QuickOpen.fileList;
-	core.QuickOpen.update();
 	core.QuickOpen.input.value = "";
+	core.QuickOpen.update();
 	core.QuickOpen.panel.style.display = "";
 	core.QuickOpen.input.focus();
 	core.QuickOpen.registerListeners();
@@ -3410,22 +3482,48 @@ core.QuickOpen.onKeyUp = function(e) {
 core.QuickOpen.onInput = function(e) {
 	core.QuickOpen.activeItemIndex = 0;
 	core.Helper.debounce("openfilecompletion",function() {
-		core.QuickOpen.currentList = completion.Filter.filter(core.QuickOpen.fileList,core.QuickOpen.input.value,null);
+		core.QuickOpen.currentList = completion.Filter.filterFiles(core.QuickOpen.fileList,core.QuickOpen.input.value);
 		core.QuickOpen.update();
-	},50);
+	},100);
 };
 core.QuickOpen.onKeyDown = function(e) {
 	var _g = e.keyCode;
 	switch(_g) {
 	case 38:
-		if(core.QuickOpen.activeItemIndex > 0) {
-			core.QuickOpen.activeItemIndex--;
+		e.preventDefault();
+		core.QuickOpen.activeItemIndex--;
+		if(core.QuickOpen.activeItemIndex < 0) core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
+		core.QuickOpen.makeSureActiveItemVisible();
+		break;
+	case 40:
+		e.preventDefault();
+		core.QuickOpen.activeItemIndex++;
+		if(core.QuickOpen.activeItemIndex >= core.QuickOpen.currentList.length) core.QuickOpen.activeItemIndex = 0;
+		core.QuickOpen.makeSureActiveItemVisible();
+		break;
+	case 33:
+		e.preventDefault();
+		core.QuickOpen.activeItemIndex += -5;
+		if(core.QuickOpen.activeItemIndex < 0) core.QuickOpen.activeItemIndex = 0;
+		core.QuickOpen.makeSureActiveItemVisible();
+		break;
+	case 34:
+		e.preventDefault();
+		core.QuickOpen.activeItemIndex += 5;
+		if(core.QuickOpen.activeItemIndex >= core.QuickOpen.currentList.length) core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
+		core.QuickOpen.makeSureActiveItemVisible();
+		break;
+	case 35:
+		if(!e.shiftKey) {
+			e.preventDefault();
+			core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
 			core.QuickOpen.makeSureActiveItemVisible();
 		}
 		break;
-	case 40:
-		if(core.QuickOpen.activeItemIndex < core.QuickOpen.fileList.length - 1) {
-			core.QuickOpen.activeItemIndex++;
+	case 36:
+		if(!e.shiftKey) {
+			e.preventDefault();
+			core.QuickOpen.activeItemIndex = 0;
 			core.QuickOpen.makeSureActiveItemVisible();
 		}
 		break;
@@ -3452,6 +3550,7 @@ core.QuickOpen.unregisterListeners = function() {
 core.QuickOpen.hide = function() {
 	core.QuickOpen.panel.style.display = "none";
 	core.QuickOpen.unregisterListeners();
+	if(tabmanager.TabManager.selectedPath != null) cm.Editor.editor.focus();
 };
 core.QuickOpen.update = function() {
 	core.QuickOpen.listGroup.clear();
@@ -3460,11 +3559,11 @@ core.QuickOpen.update = function() {
 	while(_g < _g1.length) {
 		var item = _g1[_g];
 		++_g;
-		core.QuickOpen.listGroup.addItem(js.Node.require("path").basename(item.text),item.displayText,(function(f,a1) {
+		core.QuickOpen.listGroup.addItem(item.filename,item.displayText,(function(f,a1) {
 			return function() {
 				return f(a1);
 			};
-		})(core.QuickOpen.openFile,item.text));
+		})(core.QuickOpen.openFile,item.path));
 	}
 	core.QuickOpen.makeSureActiveItemVisible();
 };
@@ -3479,8 +3578,10 @@ core.QuickOpen.makeSureActiveItemVisible = function() {
 		} else if(!items[i].classList.contains("active")) items[i].classList.add("active");
 	}
 	var container = core.QuickOpen.listGroup.getElement();
-	var node = items[core.QuickOpen.activeItemIndex];
-	if(node.offsetTop < container.scrollTop) container.scrollTop = node.offsetTop - 150; else if(node.offsetTop + node.offsetHeight > container.scrollTop + container.clientHeight) container.scrollTop = node.offsetTop + node.offsetHeight - container.clientHeight + 3;
+	if(core.QuickOpen.activeItemIndex > 0) {
+		var node = items[core.QuickOpen.activeItemIndex];
+		if(node.offsetTop - node.offsetHeight < container.scrollTop) container.scrollTop = node.offsetTop - 48; else if(node.offsetTop > container.scrollTop + container.clientHeight) container.scrollTop = node.offsetTop - container.clientHeight;
+	} else container.scrollTop = 0;
 };
 core.QuickOpen.openFile = function(path) {
 	if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
@@ -14272,8 +14373,8 @@ parser.ClasspathWalker.addFile = function(path,std) {
 		if(std) list = parser.ClassParser.haxeStdFileList; else list = parser.ClassParser.filesList;
 		if(projectaccess.ProjectAccess.path != null && (core.Utils.os == 0 || !std)) {
 			relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-			if(parser.ClasspathWalker.getFileIndex(relativePath,list) == -1) list.push({ path : relativePath, directory : parser.ClasspathWalker.getFileDirectory(relativePath)});
-		} else if(parser.ClasspathWalker.getFileIndex(path,list) == -1) list.push({ path : path, directory : parser.ClasspathWalker.getFileDirectory(path)});
+			if(parser.ClasspathWalker.getFileIndex(relativePath,list) == -1) list.push({ path : relativePath, directory : parser.ClasspathWalker.getFileDirectory(relativePath), displayText : core.Completion.processDisplayText(relativePath), filename : js.Node.require("path").basename(relativePath)});
+		} else if(parser.ClasspathWalker.getFileIndex(path,list) == -1) list.push({ path : path, directory : parser.ClasspathWalker.getFileDirectory(path), displayText : core.Completion.processDisplayText(path), filename : js.Node.require("path").basename(path)});
 	}
 };
 parser.ClasspathWalker.removeFile = function(path) {
@@ -15500,6 +15601,7 @@ tabmanager.TabManager.selectDoc = function(path) {
 	core.HaxeLint.updateLinting();
 	var completionActive = cm.Editor.editor.state.completionActive;
 	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
+	cm.Editor.editor.focus();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;
@@ -16042,6 +16144,11 @@ $hxClasses["watchers.ThemeWatcher"] = watchers.ThemeWatcher;
 watchers.ThemeWatcher.__name__ = ["watchers","ThemeWatcher"];
 watchers.ThemeWatcher.load = function() {
 	watchers.ThemeWatcher.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
+	js.Node.require("fs").exists(watchers.ThemeWatcher.pathToTheme,function(exists) {
+		if(exists) watchers.ThemeWatcher.continueLoading(); else Alertify.log("File " + watchers.ThemeWatcher.pathToTheme + " for theme " + watchers.SettingsWatcher.settings.theme + " was not found. CSS files in core folder: [" + watchers.ThemeWatcher.getListOfCSSFiles().join(",") + "]","",10000);
+	});
+};
+watchers.ThemeWatcher.continueLoading = function() {
 	watchers.ThemeWatcher.updateTheme();
 	if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
 	watchers.ThemeWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
@@ -16053,6 +16160,17 @@ watchers.ThemeWatcher.load = function() {
 		});
 		watchers.ThemeWatcher.listenerAdded = true;
 	}
+};
+watchers.ThemeWatcher.getListOfCSSFiles = function() {
+	var files = [];
+	var _g = 0;
+	var _g1 = js.Node.require("fs").readdirSync("core");
+	while(_g < _g1.length) {
+		var item = _g1[_g];
+		++_g;
+		if(js.Node.require("path").extname(item) == ".css") files.push(js.Node.require("path").basename(item));
+	}
+	return files;
 };
 watchers.ThemeWatcher.updateTheme = function() {
 	new $("#theme").attr("href",watchers.SettingsWatcher.settings.theme);
@@ -16150,6 +16268,7 @@ HIDE.windows = [];
 cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
 cm.ERegPreview.markers = [];
+core.AnnotationRuler.positions = [];
 core.Completion.WORD = new EReg("[A-Z]+$","i");
 core.Completion.RANGE = 500;
 core.Completion.completions = [];

@@ -31,6 +31,7 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import sys.FileSystem;
 #end
+    
 /**
  * ...
  * @author AS3Boyan
@@ -67,16 +68,15 @@ class Editor
 			"." : 
 				function passAndHint(cm) 
 				{
-					if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
+					if (TabManager.getCurrentDocument().getMode().name == "haxe") 
 					{
 						var completionActive = editor.state.completionActive;
 						
-						if (completionActive != null && completionActive.widget != null) 
+						if (Completion.getCompletionType() == CompletionType.REGULAR && completionActive != null && completionActive.widget != null) 
 						{
+                            trace("complete");
 							completionActive.widget.pick();
 						}
-
-						untyped setTimeout(function() { triggerCompletion(cm, true); }, 100);
 					}
 					
 					untyped __js__("return CodeMirror.Pass");
@@ -206,7 +206,7 @@ class Editor
 		
 		var basicTypes = ["Array", "Map", "StringMap"];
 		
-		var ignoreNewLineKeywords = ["function", "for ", "while"];
+// 		var ignoreNewLineKeywords = ["function", "for ", "while"];
 		
 		editor.on("change", function (cm:CodeMirror, e:CodeMirror.ChangeEvent):Void 
 		{
@@ -230,6 +230,11 @@ class Editor
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
 				
+                if (data.charAt(cursor.ch - 1) == "." && ~/[^a-z]/i.match(data.charAt(cursor.ch)))
+                {
+                    triggerCompletion(Editor.editor, true);
+                }
+                
 				//if (StringTools.endsWith(e.text[0], ";")) 
 				//{
 					//var insertNewLine:Bool = true;

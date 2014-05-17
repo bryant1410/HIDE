@@ -209,7 +209,7 @@ class Completion
 		return data;
 	}
 	
-    static function processDisplayText(displayText:String):String
+    public static function processDisplayText(displayText:String):String
     {
         if (displayText.length > 70)
         {
@@ -369,7 +369,7 @@ class Completion
 		);
 	}
 	
-	static function isEditorVisible():Bool
+	public static function isEditorVisible():Bool
 	{
 		var editor = cast(Browser.document.getElementById("editor"), DivElement);
 		return editor.style.display != "none";
@@ -410,25 +410,26 @@ class Completion
 		}
 	}
 	
+//     Quick Open/Show File List for Hxml completion
 	public static function showFileList(?openFile:Bool = true, ?insertDirectory:Bool = false):Void
 	{		
         if (openFile)
         {
             completionType = OPENFILE;
             
-            var displayText:String;
+//             var displayText:String;
 			
-            var completionList:Array<CompletionData> = [];
+//             var completionList:Array<CompletionData> = [];
             
-            for (list2 in [ClassParser.filesList, ClassParser.haxeStdFileList])
-            {
-                for (item in list2) 
-                {                    
-                    completionList.push( { text: item.path, displayText: processDisplayText(item.path)} );
-                }
-            }
+//             for (list2 in [, ClassParser.haxeStdFileList])
+//             {
+//                 for (item in list2) 
+//                 {                    
+//                     completionList.push( { text: item.path, displayText: processDisplayText(item.path)} );
+//                 }
+//             }
             
-            QuickOpen.show(completionList);
+            QuickOpen.show(ClassParser.filesList.copy().concat(ClassParser.haxeStdFileList));
         }
         else if (isEditorVisible()) 
 		{
@@ -449,6 +450,7 @@ class Completion
 		}
 	}
 	
+//     Shows list of all classes available for project, used to provide imports completion("import |"), triggered on ":" symbol
 	public static function showClassList(?ignoreWhitespace:Bool = false):Void
 	{
 		if (isEditorVisible()) 

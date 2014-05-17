@@ -21,7 +21,9 @@ import js.Node;
 typedef FileData =
 {
     path: String, 
-    directory:String
+    directory:String,
+    filename: String,
+    displayText: String
 }
 
 class ClassParser

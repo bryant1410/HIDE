@@ -24,9 +24,9 @@ class QuickOpen
     
     static var activeItemIndex:Int;
     
-    static var fileList:Array<completion.Hxml.CompletionData>;
+    static var fileList:Array<parser.ClassParser.FileData>;
     
-    static var currentList:Array<completion.Hxml.CompletionData>;
+    static var currentList:Array<parser.ClassParser.FileData>;
     
     public static function load()
     {        
@@ -56,17 +56,18 @@ class QuickOpen
         new JQuery(js.Browser.document.body).append(panel);
     }
     
-    public static function show(list:Array<completion.Hxml.CompletionData>)
-    {
+    public static function show(list:Array<parser.ClassParser.FileData>)
+    {        
         activeItemIndex = 0;
         
-        fileList = completion.Filter.filter(list, input.value, Completion.CompletionType.OPENFILE);
+        fileList = completion.Filter.sortFileList(list);
         
 		currentList = fileList;
-        
-        update();
     
         input.value = "";
+        
+        update();
+        
         panel.style.display = "";
         input.focus();
     	
@@ -90,29 +91,84 @@ class QuickOpen
         
         core.Helper.debounce("openfilecompletion", function ()
                           	{
-                            	currentList = completion.Filter.filter(fileList, input.value, null);
+                            	currentList = completion.Filter.filterFiles(fileList, input.value);
         						update();    
-                            }, 50);
+                            }, 100);
     }
     
-    static function onKeyDown(e)
-    {        
+    static function onKeyDown(e:js.html.KeyboardEvent)
+    {
         switch (e.keyCode)
         {
 			//up
-			case 38:
-                if (activeItemIndex > 0)
+			case 38:                
+                e.preventDefault();
+                
+                activeItemIndex--;
+                
+                if (activeItemIndex < 0)
                 {
-					activeItemIndex--;
-                	makeSureActiveItemVisible();
+                	activeItemIndex = currentList.length - 1;
         		}
+                
+                makeSureActiveItemVisible();
             //down
 			case 40:
-                if (activeItemIndex < fileList.length - 1)
+                e.preventDefault();
+                
+                activeItemIndex++;
+                
+                if (activeItemIndex >= currentList.length)
                 {
-                	activeItemIndex++;
-                    makeSureActiveItemVisible();
+                	activeItemIndex = 0;
                 }
+                    
+                makeSureActiveItemVisible();
+            //Page Up
+            case 33:
+                e.preventDefault();
+                
+                activeItemIndex += -5;
+                
+                if (activeItemIndex < 0)
+                {
+                	activeItemIndex = 0;
+        		}
+                
+                makeSureActiveItemVisible();
+            //Page Down
+            case 34:
+                e.preventDefault();
+                
+                activeItemIndex += 5;
+                
+                if (activeItemIndex >= currentList.length)
+                {
+                	activeItemIndex = currentList.length - 1;
+                }
+                    
+                makeSureActiveItemVisible();
+                
+           	//End
+            case 35:
+                if (!e.shiftKey)
+                {
+                	e.preventDefault();
+                
+                    activeItemIndex = currentList.length - 1;
+
+                    makeSureActiveItemVisible();
+        		}
+            //Home
+            case 36:
+                if (!e.shiftKey)
+                {
+                    e.preventDefault();
+                    activeItemIndex = 0;
+
+                    makeSureActiveItemVisible();
+				}
+            //Enter
             case 13:
                 listGroup.getItems()[activeItemIndex].click();
         }
@@ -143,6 +199,11 @@ class QuickOpen
     {
         panel.style.display = "none";
         unregisterListeners();
+                
+        if (tabmanager.TabManager.selectedPath != null)
+        {
+        	cm.Editor.editor.focus();
+        }
     }
     
     static function update()
@@ -151,7 +212,7 @@ class QuickOpen
         
         for (item in currentList)
         {
-        	listGroup.addItem(js.Node.path.basename(item.text), item.displayText, openFile.bind(item.text));
+        	listGroup.addItem(item.filename, item.displayText, openFile.bind(item.path));
 		}
     
     	makeSureActiveItemVisible();
@@ -180,16 +241,23 @@ class QuickOpen
         }
 		
 		var container = listGroup.getElement();
-
-		var node = items[activeItemIndex];
-
-		if (node.offsetTop < container.scrollTop)
+                
+        if (activeItemIndex > 0)
         {
-        	container.scrollTop = node.offsetTop - 150;   
+        	var node = items[activeItemIndex];
+
+            if (node.offsetTop - node.offsetHeight < container.scrollTop)
+            {
+                container.scrollTop = node.offsetTop - 48;
+            }
+            else if (node.offsetTop > container.scrollTop + container.clientHeight)
+            {
+                container.scrollTop = node.offsetTop - container.clientHeight;  
+            }	
         }
-      	else if (node.offsetTop + node.offsetHeight > container.scrollTop + container.clientHeight)
+        else
         {
-          	container.scrollTop = node.offsetTop + node.offsetHeight - container.clientHeight + 3;  
+        	container.scrollTop = 0;
         }
     }
 

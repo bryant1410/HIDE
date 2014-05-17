@@ -338,12 +338,12 @@ class ClasspathWalker
 
                 if (getFileIndex(relativePath, list) == -1)
                 {
-                    list.push({path: relativePath, directory: getFileDirectory(relativePath)});
+                    list.push({path: relativePath, directory: getFileDirectory(relativePath), displayText: core.Completion.processDisplayText(relativePath), filename: js.Node.path.basename(relativePath)});
                 }
             }
             else if (getFileIndex(path, list) == -1)
             {
-                list.push({path: path, directory: getFileDirectory(path)});
+                list.push({path: path, directory: getFileDirectory(path), displayText: core.Completion.processDisplayText(path), filename: js.Node.path.basename(path)});
             }            
 		}
 	}

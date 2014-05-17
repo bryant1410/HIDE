@@ -11,16 +11,9 @@
 
     ]
     ,"files" : [
-         "src/core/ImportDefinition.hx"
-        ,"src/parser/OutlineHelper.hx"
-        ,"src/cm/Editor.hx"
-        ,"src/core/Completion.hx"
-        ,"src/core/QuickOpen.hx"
-        ,"bin/core/dark.css"
-        ,"bin/core/config/settings.json"
-        ,"bin/core/light.css"
+
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/completion/Filter.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

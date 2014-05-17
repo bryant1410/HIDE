@@ -435,6 +435,8 @@ class TabManager
         {
             completionActive.widget.close();
         }
+        
+       	Editor.editor.focus();
 	}
 	
 	public static function getCurrentDocumentPath():String

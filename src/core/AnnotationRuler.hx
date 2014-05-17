@@ -12,6 +12,8 @@ import tabmanager.TabManager;
  */
 class AnnotationRuler
 {
+    static var positions:Array<Float> = [];
+    
 	public static function addErrorMarker(pathToFile:String, line:Int, ch:Int, message:String):Void 
 	{
 		var a:AnchorElement = Browser.document.createAnchorElement();
@@ -30,8 +32,17 @@ class AnnotationRuler
 		
 		var lineCount = TabManager.getCurrentDocument().lineCount();
 		
-		div.style.top = Std.string(line / lineCount * 100) + "%";
+        var targetLine:Float = line / lineCount * 100;
+        
+        while (positions.indexOf(targetLine) != -1)
+        {
+            targetLine++;
+        }
+        
+		div.style.top = Std.string(targetLine) + "%";
 		
+        positions.push(targetLine);
+        
 		div.setAttribute("data-toggle", "tooltip");
 		div.setAttribute("data-placement", "left");
 		div.title = "Line: " + Std.string(line) + ":" + message;
@@ -46,5 +57,6 @@ class AnnotationRuler
 	public static function clearErrorMarkers():Void 
 	{
 		new JQuery("#annotationRuler").children().remove();
+        positions = [];
 	}
 }
