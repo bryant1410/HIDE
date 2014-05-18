@@ -74,7 +74,6 @@ class Editor
 						
 						if (Completion.getCompletionType() == CompletionType.REGULAR && completionActive != null && completionActive.widget != null) 
 						{
-                            trace("pick");
 							completionActive.widget.pick();
 						}
 					}
@@ -161,8 +160,8 @@ class Editor
 			  
 		  }
 		
-		trace(Editor.editor);
-		  
+// 		trace(Editor.editor);
+		
 		Node.fs.writeFileSync(Node.path.join("core", "bindings.txt"), value, NodeC.UTF8);
 		
 		Browser.window.addEventListener("resize", function (e)
@@ -331,7 +330,7 @@ class Editor
 				{
 					TabManager.saveActiveFile(function ():Void 
 					{
-						Completion.getCompletion(Completion.showRegularCompletion);
+						Completion.showRegularCompletion();
 					});
 				}
 			case "hxml":

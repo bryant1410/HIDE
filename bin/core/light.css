@@ -19,7 +19,7 @@
 
 .navbar-inverse .navbar-brand, .navbar-inverse .navbar-brand:hover
 {
-	color: #343434;   
+	color: #343434;
 }
 
 .navbar-default
@@ -80,8 +80,12 @@
 .navbar-inverse .navbar-nav>li>a:focus, .navbar-inverse .navbar-nav>li>a:hover {
 	color: #383838;
 	background-color: #ffffff;
-/*     border: 1px solid #e7e7e7;
-    border-bottom-width: 0; */
+/*     border-left: 1px solid #e7e7e7; 
+    border-right:  1px solid #e7e7e7; */
+/*     border-left:  */
+/*     border-left:  */
+/*     border: 1px solid #e7e7e7; */
+/*     border-bottom-width: 0; */
 }
 
 #welcomeScreen 
@@ -90,3 +94,7 @@
     box-shadow: none;
 }
 
+.navbar-nav>li>.dropdown-menu 
+{
+	margin-top: -1px;
+}

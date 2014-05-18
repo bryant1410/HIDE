@@ -1,5 +1,6 @@
 package ;
 
+import core.QuickOpen;
 import core.AnnotationRuler;
 import core.ProcessHelper;
 import core.RecentProjectsList;
@@ -114,7 +115,7 @@ class Main
 			DragAndDrop.prepare();
 			ClasspathWalker.load();
 			WelcomeScreen.load();
-            core.QuickOpen.load();
+            QuickOpen.load();
 			
             sync = false;
             

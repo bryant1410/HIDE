@@ -503,57 +503,6 @@ class FileTree
         source.items = readDir2(path);
         
         onComplete(source);
-        
-// 		var emitter = Walkdir.walk(path, options);
-		
-// 		emitter.on("file", function (pathToFile:String, stat:NodeStat):Void 
-// 		{
-// 			if (!SettingsWatcher.isItemInIgnoreList(pathToFile) && !ProjectAccess.isItemInIgnoreList(pathToFile)) 
-// 			{
-// 				files.push(createFileItem(pathToFile));
-// 			}
-// 		}
-// 		);
-		
-// 		var folders:Int = 0;
-// 		var end:Bool = false;
-		
-// 		emitter.on("directory", function (pathToDirectory:String, stat:NodeStat):Void 
-// 		{
-// 			if (!SettingsWatcher.isItemInIgnoreList(pathToDirectory) && !ProjectAccess.isItemInIgnoreList(pathToDirectory)) 
-// 			{
-// 				folders++;
-			
-// 				readDirItems(pathToDirectory, function (source:Dynamic):Void 
-// 				{
-// 					folders--;
-					
-// 					items.push(source);
-					
-// 					if (folders == 0) 
-// 					{
-// 						items = items.concat(files);
-						
-// 						onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
-// 					}
-// 				}
-// 				);
-// 			}
-// 		}
-// 		);
-		
-// 		emitter.on("end", function ():Void 
-// 		{
-// 			end = true;
-			
-// 			if (folders == 0) 
-// 			{
-// 				items = items.concat(files);
-				
-// 				onComplete({label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"});
-// 			}
-// 		}
-// 		);
 	}
 	
     static function readDir2(path:String):Array<TreeItem>
@@ -595,20 +544,6 @@ class FileTree
         	 item.items = [];
         	 item.items.push({label:"Loading...", value: pathToItem});
              items.push(item);
-//             var relativePath = pathToItem.substr(ProjectAccess.path.length);
-            
-//             var data:Array<String> = relativePath.split("/");
-
-//             var pathToFolder:String = ProjectAccess.path;
-
-//             if (data[0] == "")
-//             {
-//                 data.shift();
-//                 pathToFolder += "/";
-
-//             }
-
-//             readDir(pathToFolder, source.items, data, type);
 		}
     	
     	type = "file";
@@ -617,74 +552,10 @@ class FileTree
         {
              item = createFileItem(pathToItem);
              items.push(item);
-//             var relativePath = pathToItem.substr(ProjectAccess.path.length);
-            
-//             var data:Array<String> = relativePath.split("/");
-
-//             var pathToFolder:String = ProjectAccess.path;
-
-//             if (data[0] == "")
-//             {
-//                 data.shift();
-//                 pathToFolder += "/";
-
-//             }
-
-//             readDir(pathToFolder, source.items, data, type);
 		}
 
 		return items;
 	}
-        
-//     static function readDir(pathToFolder:String, items:Array<TreeItem>, data:Array<String>, type:String)
-//     {        
-//         var folder = data.shift();
-        
-//         pathToFolder = Node.path.join(pathToFolder, folder);
-     	
-//         if (!SettingsWatcher.isItemInIgnoreList(pathToFolder) && !ProjectAccess.isItemInIgnoreList(pathToFolder))
-//         {
-//         	var foundItem:TreeItem = null;
-        
-//             var itemType:String = type;
-
-//             for (item in items)
-//             {
-//                 if (item.value != null && item.value.path == pathToFolder)
-//                 {
-//                     foundItem = item;
-//                     break;
-//                 }
-//             }
-
-//             if (foundItem == null)
-//             {
-//                 if (type == "file" && data.length > 0)
-//                 {
-//                     itemType = "folder";
-//                 }
-
-//                 var item:TreeItem = null;    
-
-//                 if (itemType == "folder")
-//                 {
-//                     item = createFolderItem(pathToFolder, []);
-//                 }
-//                 else if (itemType == "file")
-//                 {
-//                     item = createFileItem(pathToFolder);
-//                 }
-
-//                 items.push(item);
-//                 foundItem = item;
-//             }
-
-//             if (data.length > 0)
-//             {
-//                 readDir(pathToFolder, foundItem.items, data, type);    
-//             }
-//         }
-//     }
     
 	static function createFileItem(path:String):TreeItem
 	{
@@ -714,34 +585,4 @@ class FileTree
     {
     	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"};
     }
-        
-//     static function prepareForLazyLoading(source:TreeItem)
-//     {
-// 		var source2:TreeItem = source;
-
-//         if (source.items != null)
-//         {
-//             source2 = {label: source.label};
-//             source2.icon = source.icon;
-//             source2.value = source.value;
-//             source2.items = [];
-            
-//             for (item in source.items)
-//             {
-//                  var newItem:TreeItem = {label: item.label};
-//                  newItem.icon = item.icon;
-//                  newItem.value = item.value;
-
-//                  if	(item.items != null && item.items.length > 0)
-//                  {
-//                      newItem.items = [];
-//                      newItem.items.push({label:"Loading...", value: item.items});
-//                  }
-
-//                  source2.items.push(newItem);
-//             }
-//         }
-
-// 		return source2;
-//     }
 }

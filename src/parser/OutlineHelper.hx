@@ -60,7 +60,7 @@ class OutlineHelper
 		for (decl in ast.decls) switch (decl) 
 		{
 			case EImport(sl, mode):
-				fileImports.concat(parseImports(sl, mode));
+				fileImports = fileImports.concat(parseImports(sl, mode));
 			case EUsing(path): 
 			case EAbstract(data):
 				var treeItem: TreeItem = { label: data.name };
@@ -128,13 +128,18 @@ class OutlineHelper
 			case IAll:
 				fileImports.push(fullImportName);
 				
-				for (item in ClassParser.importsList) 
-				{
-					if (item.indexOf(fullImportName) == 0) 
-					{
-						fileImports.push(item);
-					}
-				}
+                for (list in [ClassParser.importsList, ClassParser.haxeStdImports])
+                {
+              		for (item in list) 
+                    {
+                        if (item.indexOf(fullImportName) == 0) 
+                        {
+                            fileImports.push(item);
+                        }
+                    }    
+                }
+                
+				
 		}
 		
 		return fileImports;

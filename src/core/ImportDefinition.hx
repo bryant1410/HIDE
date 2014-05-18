@@ -1,8 +1,8 @@
 package core;
-
+import CodeMirror.TokenData;
 import parser.ClassParser;
 import parser.OutlineHelper;
-
+import completion.Hxml.CompletionData;
 
 /**
 * @author AS3Boyan
@@ -13,15 +13,199 @@ class ImportDefinition
     {
         var ast = ClassParser.parse(data, path);
         
-        if (ast != null) 
-		{
-			var parsedData = OutlineHelper.parseDeclarations(ast);
-			trace(parsedData);
+        var cm = cm.Editor.editor;
+        var token = cm.getTokenAt(cm.getCursor());
+
+        var fileImports:Array<String> = [];
+        
+        var mode:String = null;
+        
+        var selectedText:String = null;
+        
+        var from:CodeMirror.Pos = null;
+        var to:CodeMirror.Pos = null;
+        
+        if (cm.somethingSelected())
+        {
+            selectedText = cm.getSelection();
             
+            if (selectedText.indexOf(".") != -1)
+            {
+                mode = "selection";
+                
+                var selection = cm.listSelections()[0];
+                
+                from = selection.anchor;
+                to = selection.head;
+                
+                cm.setSelection(to);
+            }
+        }
+        else if (token.type != null && token.string != "")
+        {
+			mode = "token";
+        }
             
-            //OutlineHelper.        
-			            
-		}
+        if (mode != null)
+        {
+            if (ast != null) 
+            {
+                fileImports = OutlineHelper.parseDeclarations(ast).fileImports;	            
+            }
+            else
+            {
+                trace("haxeparser is unable to parse this file. Falling back to regex parsing.");
+                
+                var value = tabmanager.TabManager.getCurrentDocument().getValue();
+
+                //Regex for parsing imports ported from haxe-sublime-bundle
+                //https://github.com/clemos/haxe-sublime-bundle/blob/master/HaxeHelper.py#L21
+                var ereg = ~/^[ \t]*import ([a-z0-9._*]+);$/gim;
+
+                ereg.map(value, function (ereg)
+                        {
+                            fileImports.push(ereg.matched(1));
+                            return "";
+                        });
+            }
+			
+            switch (mode)
+            {
+                case "token":
+                    checkImport(fileImports, token);
+                case "selection":
+                    var found:Bool = false;
+                    
+                    for (list in [ClassParser.importsList,  ClassParser.haxeStdImports])
+                    {
+                    	if (list.indexOf(selectedText) != -1)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+            
+            		if (fileImports.indexOf(selectedText) == -1)
+                    {
+                        if (found)
+                        {
+                            importClass(cm, selectedText, from, to);
+                        }
+                        else
+                        {
+                            Completion.showImportDefinition([selectedText], from, to);
+                        }
+                    }
+                    else
+                    {
+                        updateImport(cm, selectedText.split(".").pop(), from, to);
+                    }
+                    
+                default:
+
+            }
+        }
+        else
+        {
+            Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
+        }
+    }
+    
+    static function checkImport(fileImports:Array<String>, token:TokenData)
+    {
+        var searchPattern = "." + token.string;
+
+        var foundImports:Array<String> = [];
+        var foundAtTopLevel:Bool = false;
+        var alreadyImported:Array<String> = [];
+        
+        for (list in [ClassParser.importsList,  ClassParser.haxeStdImports])
+        {
+            for (item in list)
+            {
+                if (StringTools.endsWith(item, searchPattern))
+                {
+                    if (fileImports.indexOf(item) == -1)
+                    {
+                        foundImports.push(item);
+                    }
+                    else
+                    {
+                        alreadyImported.push(item);
+                    }
+                }
+            }
+        }
+
+        for (list in [ClassParser.topLevelClassList, ClassParser.haxeStdTopLevelClassList])
+        {	
+            if (list.indexOf(token.string) != -1)
+            {
+                foundAtTopLevel = true;
+                break;
+            }
+        }
+
+        if (foundAtTopLevel)
+        {
+            Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level");
+        }
+        else if (foundImports.length > 0)
+        {
+            Completion.showImportDefinition(foundImports);
+        }
+        else
+        {
+            var info = "Unable to find additional imports for '" + token.string + "'.";
+
+            if (alreadyImported.length > 0)
+            {
+                info += " Already imported:\n" + Std.string(alreadyImported);
+            }
+
+            Alertify.log(info);
+        }
+    }
+        
+    public static function importClassHint(from:CodeMirror.Pos, to:CodeMirror.Pos, cm:CodeMirror, data:Dynamic, completion:CompletionData)
+	{
+        importClass(cm, completion.text, from, to);
+    }
+        
+    static function importClass(cm:CodeMirror, text:String, from:CodeMirror.Pos, to:CodeMirror.Pos)
+	{
+        var ereg = ~/package [^;]*;$/m;
+        
+        var value = tabmanager.TabManager.getCurrentDocument().getValue();
+        
+        if (from != null && to != null)
+       	{
+            updateImport(cm, text, from, to);
+        }
+            
+        var matchedPos;
+        var pos:CodeMirror.Pos;
+
+        if (ereg.match(value))
+        {
+            matchedPos = ereg.matchedPos();
+            pos = cm.posFromIndex(matchedPos.pos + matchedPos.len);
+            pos.ch = 0;
+            pos.line++;
+        }
+        else
+        {
+            pos = cm.posFromIndex(0);
+        }
+
+        cm.replaceRange("import " + text + ";\n", pos, pos);
+        
+        Alertify.success(text + " definition successfully imported");
+    }
+
+	static function updateImport(cm:CodeMirror, text:String, from:CodeMirror.Pos, to:CodeMirror.Pos)
+	{
+        cm.replaceRange(text.split(".").pop(), from, to);
     }
 
 }

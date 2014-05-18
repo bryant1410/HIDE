@@ -36,15 +36,22 @@ class ERegPreview
 		
 		if (foundEreg != null) 
 		{
-			var ereg = new EReg(foundEreg, foundEregOptions);
-			ereg.map(cm.getValue(), function (matchedEreg:EReg):String 
-			{
-				var pos = cm.posFromIndex(matchedEreg.matchedPos().pos);
-				var pos2 = cm.posFromIndex(matchedEreg.matchedPos().pos + matchedEreg.matchedPos().len);
-				markers.push(cm.markText(pos, pos2, {className: "showRegex"}));
-				return "";
-			}
-			);
+			try
+            {
+                var ereg = new EReg(foundEreg, foundEregOptions);
+                ereg.map(cm.getValue(), function (matchedEreg:EReg):String 
+                {
+                    var pos = cm.posFromIndex(matchedEreg.matchedPos().pos);
+                    var pos2 = cm.posFromIndex(matchedEreg.matchedPos().pos + matchedEreg.matchedPos().len);
+                    markers.push(cm.markText(pos, pos2, {className: "showRegex"}));
+                    return "";
+                }
+                );
+            }
+            catch (unknown:Dynamic)
+            {
+                trace(unknown);
+            }
 		}
 	}
 }

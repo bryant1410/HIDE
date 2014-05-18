@@ -1,4 +1,5 @@
 package watchers;
+import js.Node;
 import haxe.Timer;
 import jQuery.JQuery;
 import js.node.Watchr;
@@ -16,9 +17,9 @@ class ThemeWatcher
 	
 	public static function load() 
 	{		
-        pathToTheme = js.Node.path.join("core", SettingsWatcher.settings.theme);
+        pathToTheme = Node.path.join("core", SettingsWatcher.settings.theme);
         
-        js.Node.fs.exists(pathToTheme, function (exists:Bool)
+        Node.fs.exists(pathToTheme, function (exists:Bool)
                          {
                              if (exists)
                              {
@@ -64,11 +65,11 @@ class ThemeWatcher
     {
         var files:Array<String> = [];
         
-        for (item in js.Node.fs.readdirSync("core"))
+        for (item in Node.fs.readdirSync("core"))
         {
-            if (js.Node.path.extname(item) == ".css")
+            if (Node.path.extname(item) == ".css")
             {
-                files.push(js.Node.path.basename(item));
+                files.push(Node.path.basename(item));
             }
         }
         

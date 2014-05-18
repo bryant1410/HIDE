@@ -9,7 +9,6 @@ typedef ShowHintOptions = {
 	@:optional var closeCharacters:Dynamic;
 	@:optional var completeSingle:Bool;
 	@:optional var alignWithWord:Bool;
-    @:optional var completionSingle:Bool;
 }
  
 @:native("CodeMirror")

@@ -1140,7 +1140,7 @@ cm.ERegPreview.update = function(cm1) {
 		marker.clear();
 	}
 	cm.ERegPreview.markers = [];
-	if(foundEreg != null) {
+	if(foundEreg != null) try {
 		var ereg1 = new EReg(foundEreg,foundEregOptions);
 		ereg1.map(cm1.getValue(),function(matchedEreg) {
 			var pos = cm1.posFromIndex(matchedEreg.matchedPos().pos);
@@ -1148,6 +1148,8 @@ cm.ERegPreview.update = function(cm1) {
 			cm.ERegPreview.markers.push(cm1.markText(pos,pos2,{ className : "showRegex"}));
 			return "";
 		});
+	} catch( unknown ) {
+		console.log(unknown);
 	}
 };
 cm.Editor = function() { };
@@ -1171,10 +1173,7 @@ cm.Editor.load = function() {
 		var passAndHint = function(cm1) {
 			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
-				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && completionActive != null && completionActive.widget != null) {
-					console.log("pick");
-					completionActive.widget.pick();
-				}
+				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && completionActive != null && completionActive.widget != null) completionActive.widget.pick();
 			}
 			return CodeMirror.Pass;
 		};
@@ -1233,7 +1232,6 @@ cm.Editor.load = function() {
 		++_g2;
 		if(key1 != "auto" && key1 != "nofallthrough") value += "  \"Ctrl-K " + key1 + "\": \"" + Std.string(Reflect.field(mapK,key1)) + "\",\n";
 	}
-	console.log(cm.Editor.editor);
 	js.Node.require("fs").writeFileSync(js.Node.require("path").join("core","bindings.txt"),value,"utf8");
 	window.addEventListener("resize",function(e1) {
 		core.Helper.debounce("resize",function() {
@@ -1307,7 +1305,7 @@ cm.Editor.triggerCompletion = function(cm1,dot) {
 	switch(modeName) {
 	case "haxe":
 		if(!dot || cm.Editor.regenerateCompletionOnDot || dot && !cm1.state.completionActive) tabmanager.TabManager.saveActiveFile(function() {
-			core.Completion.getCompletion(core.Completion.showRegularCompletion);
+			core.Completion.showRegularCompletion();
 		});
 		break;
 	case "hxml":
@@ -1764,8 +1762,10 @@ core.Completion.registerHelper = function() {
 	completion.Hxml.load();
 	completion.MetaTags.load();
 	completion.SnippetsCompletion.load();
-	CodeMirror.registerHelper("hint","haxe",core.Completion.getHints);
-	CodeMirror.registerHelper("hint","hxml",core.Completion.getHints);
+	core.Completion.completionActive = false;
+	cm.Editor.editor.on("endCompletion",function() {
+		core.Completion.completionActive = false;
+	});
 };
 core.Completion.getHints = function(cm1,options) {
 	core.Completion.word = null;
@@ -1830,7 +1830,21 @@ core.Completion.getHints = function(cm1,options) {
 			core.Completion.list.push(completionItem);
 		}
 		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
-		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
+		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
+			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
+			var _g11 = 0;
+			var _g21 = [parser.ClassParser.topLevelClassList,parser.ClassParser.haxeStdTopLevelClassList];
+			while(_g11 < _g21.length) {
+				var list2 = _g21[_g11];
+				++_g11;
+				var _g3 = 0;
+				while(_g3 < list2.length) {
+					var item = list2[_g3];
+					++_g3;
+					core.Completion.list.push({ text : item});
+				}
+			}
+		}
 		break;
 	case 6:
 		core.Completion.list = completion.MetaTags.getCompletion();
@@ -1838,23 +1852,8 @@ core.Completion.getHints = function(cm1,options) {
 	case 5:
 		var _this3 = completion.Hxml.getCompletion();
 		core.Completion.list = _this3.slice();
-		var _g11 = 0;
-		var _g21 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g11 < _g21.length) {
-			var list2 = _g21[_g11];
-			++_g11;
-			var _g3 = 0;
-			while(_g3 < list2.length) {
-				var item = list2[_g3];
-				++_g3;
-				core.Completion.list.push({ text : item});
-			}
-		}
-		break;
-	case 1:
-		var displayText;
 		var _g12 = 0;
-		var _g22 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+		var _g22 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
 		while(_g12 < _g22.length) {
 			var list21 = _g22[_g12];
 			++_g12;
@@ -1862,31 +1861,46 @@ core.Completion.getHints = function(cm1,options) {
 			while(_g31 < list21.length) {
 				var item1 = list21[_g31];
 				++_g31;
-				core.Completion.list.push({ text : item1.path, displayText : core.Completion.processDisplayText(item1.path)});
+				core.Completion.list.push({ text : item1});
+			}
+		}
+		break;
+	case 1:
+		var displayText;
+		var _g13 = 0;
+		var _g23 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+		while(_g13 < _g23.length) {
+			var list22 = _g23[_g13];
+			++_g13;
+			var _g32 = 0;
+			while(_g32 < list22.length) {
+				var item2 = list22[_g32];
+				++_g32;
+				core.Completion.list.push({ text : item2.path, displayText : core.Completion.processDisplayText(item2.path)});
 			}
 		}
 		break;
 	case 2:
 		var displayText1;
-		var _g13 = 0;
-		var _g23 = parser.ClassParser.filesList;
-		while(_g13 < _g23.length) {
-			var item2 = _g23[_g13];
-			++_g13;
-			core.Completion.list.push({ text : item2.directory, displayText : core.Completion.processDisplayText(item2.path)});
+		var _g14 = 0;
+		var _g24 = parser.ClassParser.filesList;
+		while(_g14 < _g24.length) {
+			var item3 = _g24[_g14];
+			++_g14;
+			core.Completion.list.push({ text : item3.directory, displayText : core.Completion.processDisplayText(item3.path)});
 		}
 		break;
 	case 4:
-		var _g14 = 0;
-		var _g24 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g14 < _g24.length) {
-			var list22 = _g24[_g14];
-			++_g14;
-			var _g32 = 0;
-			while(_g32 < list22.length) {
-				var item3 = list22[_g32];
-				++_g32;
-				core.Completion.list.push({ text : item3});
+		var _g15 = 0;
+		var _g25 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+		while(_g15 < _g25.length) {
+			var list23 = _g25[_g15];
+			++_g15;
+			var _g33 = 0;
+			while(_g33 < list23.length) {
+				var item4 = list23[_g33];
+				++_g33;
+				core.Completion.list.push({ text : item4});
 			}
 		}
 		break;
@@ -1915,7 +1929,6 @@ core.Completion.getCurrentWord = function(cm,options,pos) {
 	return { word : core.Completion.curWord, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
 };
 core.Completion.getCompletion = function(onComplete,_pos) {
-	console.log("getCompletion");
 	if(projectaccess.ProjectAccess.path != null) {
 		var projectArguments = [];
 		var project = projectaccess.ProjectAccess.currentProject;
@@ -1987,6 +2000,14 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
 		onComplete();
 	});
 };
+core.Completion.getHintAsync = function(cm,c) {
+	if(core.Completion.completionActive) c(core.Completion.getHints(cm)); else {
+		core.Completion.getCompletion(function() {
+			c(core.Completion.getHints(cm));
+		});
+		core.Completion.completionActive = true;
+	}
+};
 core.Completion.isEditorVisible = function() {
 	var editor;
 	editor = js.Boot.__cast(window.document.getElementById("editor") , HTMLDivElement);
@@ -1997,7 +2018,9 @@ core.Completion.showRegularCompletion = function() {
 		cm.Editor.regenerateCompletionOnDot = true;
 		core.Completion.WORD = new EReg("[A-Z]+$","i");
 		core.Completion.completionType = core.CompletionType.REGULAR;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ completionSingle : false});
+		var hint = core.Completion.getHintAsync;
+		hint.async = true;
+		cm.Editor.editor.showHint({ hint : hint, completeSingle : false});
 	}
 };
 core.Completion.showMetaTagsCompletion = function() {
@@ -2006,7 +2029,7 @@ core.Completion.showMetaTagsCompletion = function() {
 		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z@:]+$","i");
 		core.Completion.completionType = core.CompletionType.METATAGS;
-		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : /[\s()\[\]{};>,]/});
+		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[\s()\[\]{};>,]/});
 	}
 };
 core.Completion.showHxmlCompletion = function() {
@@ -2015,7 +2038,7 @@ core.Completion.showHxmlCompletion = function() {
 		cm.Editor.regenerateCompletionOnDot = false;
 		core.Completion.WORD = new EReg("[A-Z- \\.\\\\/]+$","i");
 		core.Completion.completionType = core.CompletionType.HXML;
-		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : /[()\[\]{};:>,]/});
+		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[()\[\]{};:>,]/});
 	}
 };
 core.Completion.showFileList = function(openFile,insertDirectory) {
@@ -2041,8 +2064,32 @@ core.Completion.showClassList = function(ignoreWhitespace) {
 		core.Completion.completionType = core.CompletionType.CLASSLIST;
 		var closeCharacters = /[\s()\[\]{};>,]/;
 		if(ignoreWhitespace) closeCharacters = /[()\[\]{};>,]/;
-		CodeMirror.showHint(cm.Editor.editor,null,{ closeCharacters : closeCharacters});
+		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : closeCharacters});
 	}
+};
+core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
+	var cm1 = cm.Editor.editor;
+	CodeMirror.showHint(cm1,function() {
+		var completions = [];
+		var completion;
+		var _g = 0;
+		while(_g < importsSuggestions.length) {
+			var item = importsSuggestions[_g];
+			++_g;
+			completion = { };
+			completion.text = item;
+			completion.displayText = "import " + item;
+			completion.hint = (function(f,a1,to1) {
+				return function(cm1,a2,a3) {
+					return f(a1,to1,cm1,a2,a3);
+				};
+			})(core.ImportDefinition.importClassHint,from,to);
+			completions.push(completion);
+		}
+		var pos = cm1.getCursor();
+		var data = { list : completions, from : pos, to : pos};
+		return data;
+	},{ completeSingle : false});
 };
 core.Completion.getCompletionType = function() {
 	return core.Completion.completionType;
@@ -2939,10 +2986,112 @@ $hxClasses["core.ImportDefinition"] = core.ImportDefinition;
 core.ImportDefinition.__name__ = ["core","ImportDefinition"];
 core.ImportDefinition.searchImport = function(data,path) {
 	var ast = parser.ClassParser.parse(data,path);
-	if(ast != null) {
-		var parsedData = parser.OutlineHelper.parseDeclarations(ast);
-		console.log(parsedData);
+	var cm1 = cm.Editor.editor;
+	var token = cm1.getTokenAt(cm1.getCursor());
+	var fileImports = [];
+	var mode = null;
+	var selectedText = null;
+	var from = null;
+	var to = null;
+	if(cm1.somethingSelected()) {
+		selectedText = cm1.getSelection();
+		if(selectedText.indexOf(".") != -1) {
+			mode = "selection";
+			var selection = cm1.listSelections()[0];
+			from = selection.anchor;
+			to = selection.head;
+			cm1.setSelection(to);
+		}
+	} else if(token.type != null && token.string != "") mode = "token";
+	if(mode != null) {
+		if(ast != null) fileImports = parser.OutlineHelper.parseDeclarations(ast).fileImports; else {
+			console.log("haxeparser is unable to parse this file. Falling back to regex parsing.");
+			var value = tabmanager.TabManager.getCurrentDocument().getValue();
+			var ereg = new EReg("^[ \t]*import ([a-z0-9._*]+);$","gim");
+			ereg.map(value,function(ereg1) {
+				fileImports.push(ereg1.matched(1));
+				return "";
+			});
+		}
+		switch(mode) {
+		case "token":
+			core.ImportDefinition.checkImport(fileImports,token);
+			break;
+		case "selection":
+			var found = false;
+			var _g = 0;
+			var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+			while(_g < _g1.length) {
+				var list = _g1[_g];
+				++_g;
+				if(HxOverrides.indexOf(list,selectedText,0) != -1) {
+					found = true;
+					break;
+				}
+			}
+			if(HxOverrides.indexOf(fileImports,selectedText,0) == -1) {
+				if(found) core.ImportDefinition.importClass(cm1,selectedText,from,to); else core.Completion.showImportDefinition([selectedText],from,to);
+			} else core.ImportDefinition.updateImport(cm1,selectedText.split(".").pop(),from,to);
+			break;
+		default:
+		}
+	} else Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
+};
+core.ImportDefinition.checkImport = function(fileImports,token) {
+	var searchPattern = "." + token.string;
+	var foundImports = [];
+	var foundAtTopLevel = false;
+	var alreadyImported = [];
+	var _g = 0;
+	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+	while(_g < _g1.length) {
+		var list = _g1[_g];
+		++_g;
+		var _g2 = 0;
+		while(_g2 < list.length) {
+			var item = list[_g2];
+			++_g2;
+			if(StringTools.endsWith(item,searchPattern)) {
+				if(HxOverrides.indexOf(fileImports,item,0) == -1) foundImports.push(item); else alreadyImported.push(item);
+			}
+		}
 	}
+	var _g3 = 0;
+	var _g11 = [parser.ClassParser.topLevelClassList,parser.ClassParser.haxeStdTopLevelClassList];
+	while(_g3 < _g11.length) {
+		var list1 = _g11[_g3];
+		++_g3;
+		if(HxOverrides.indexOf(list1,token.string,0) != -1) {
+			foundAtTopLevel = true;
+			break;
+		}
+	}
+	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) core.Completion.showImportDefinition(foundImports); else {
+		var info = "Unable to find additional imports for '" + token.string + "'.";
+		if(alreadyImported.length > 0) info += " Already imported:\n" + Std.string(alreadyImported);
+		Alertify.log(info);
+	}
+};
+core.ImportDefinition.importClassHint = function(from,to,cm,data,completion) {
+	core.ImportDefinition.importClass(cm,completion.text,from,to);
+};
+core.ImportDefinition.importClass = function(cm,text,from,to) {
+	var ereg = new EReg("package [^;]*;$","m");
+	var value = tabmanager.TabManager.getCurrentDocument().getValue();
+	if(from != null && to != null) core.ImportDefinition.updateImport(cm,text,from,to);
+	var matchedPos;
+	var pos;
+	if(ereg.match(value)) {
+		matchedPos = ereg.matchedPos();
+		pos = cm.posFromIndex(matchedPos.pos + matchedPos.len);
+		pos.ch = 0;
+		pos.line++;
+	} else pos = cm.posFromIndex(0);
+	cm.replaceRange("import " + text + ";\n",pos,pos);
+	Alertify.success(text + " definition successfully imported");
+};
+core.ImportDefinition.updateImport = function(cm,text,from,to) {
+	cm.replaceRange(text.split(".").pop(),from,to);
 };
 core.LineWidget = function(type,name,parameters,retType,description,currentParameter,pos) {
 	var _this = window.document;
@@ -3173,7 +3322,8 @@ core.MenuCommands.add = function() {
 		return cm.Editor.editor.execCommand("toggleComment");
 	},"Ctrl-Q");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition",6,function() {
-		core.ImportDefinition.searchImport(tabmanager.TabManager.getCurrentDocument().getValue(),tabmanager.TabManager.getCurrentDocumentPath());
+		var selectedPath = tabmanager.TabManager.getCurrentDocumentPath();
+		if(selectedPath != null) core.ImportDefinition.searchImport(tabmanager.TabManager.getCurrentDocument().getValue(),selectedPath);
 	},"Ctrl-Shift-1");
 	menu.BootstrapMenu.getMenu("Project",80).addMenuItem("Run",1,core.RunProject.runProject,"F5");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core.RunProject.buildProject,"F8");
@@ -12996,6 +13146,7 @@ menu.Submenu = function(_parentMenu,_name) {
 	a2.setAttribute("localeString",this.name);
 	a2.textContent = this.name;
 	a2.onclick = function(event) {
+		new $("li.menu-item.dropdown.dropdown-submenu.open").removeClass("open");
 		event.preventDefault();
 		event.stopPropagation();
 		if(_g.ul.childElementCount > 0) {
@@ -14446,7 +14597,7 @@ parser.OutlineHelper.parseDeclarations = function(ast) {
 		case 3:
 			var mode = decl[3];
 			var sl = decl[2];
-			fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
+			fileImports = fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
 			break;
 		case 5:
 			var path = decl[2];
@@ -14527,11 +14678,16 @@ parser.OutlineHelper.parseImports = function(sl,mode) {
 	case 2:
 		fileImports.push(fullImportName);
 		var _g1 = 0;
-		var _g11 = parser.ClassParser.importsList;
+		var _g11 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
 		while(_g1 < _g11.length) {
-			var item1 = _g11[_g1];
+			var list = _g11[_g1];
 			++_g1;
-			if(item1.indexOf(fullImportName) == 0) fileImports.push(item1);
+			var _g2 = 0;
+			while(_g2 < list.length) {
+				var item1 = list[_g2];
+				++_g2;
+				if(item1.indexOf(fullImportName) == 0) fileImports.push(item1);
+			}
 		}
 		break;
 	}

@@ -69,7 +69,7 @@ class MenuButtonItem implements MenuItem
 			a.onclick = function (e:js.html.MouseEvent)
 			{                
 				if (li.className != "disabled")
-				{
+				{                    
 					_onClickFunction();
 				}
 			};
@@ -136,6 +136,8 @@ class Submenu
 		a2.textContent = name;
 		a2.onclick = function (event:MouseEvent)
 		{
+            new jQuery.JQuery("li.menu-item.dropdown.dropdown-submenu.open").removeClass("open");
+            
 			// Avoid following the href location when clicking
 			event.preventDefault(); 
 			// Avoid having the menu to close when clicking

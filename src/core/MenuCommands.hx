@@ -177,7 +177,12 @@ class MenuCommands
 		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
 		BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition", 6, function ():Void
 		{
-			ImportDefinition.searchImport(TabManager.getCurrentDocument().getValue(), TabManager.getCurrentDocumentPath());
+            var selectedPath = TabManager.getCurrentDocumentPath();
+            
+            if (selectedPath != null)
+            {
+            	ImportDefinition.searchImport(TabManager.getCurrentDocument().getValue(), selectedPath);   
+            }
 		}, "Ctrl-Shift-1");
 		
 		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");

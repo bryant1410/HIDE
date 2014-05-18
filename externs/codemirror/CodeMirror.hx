@@ -139,6 +139,8 @@ function setMarker( line : Int , ?text : String , ?className : String ) : LineHa
 function clearMarker(line:Int) : Void;
 function getTokenAt(pos: Pos, ?precise:Bool):TokenData;
 function indentLine(line: Int, ?dir: Dynamic): Void;
+function showHint(options:Dynamic):Void;
+function listSelections():Array<{anchor:Pos, head:Pos}>;
     
 function getWrapperElement() : DivElement;
 
