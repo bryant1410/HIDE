@@ -1173,7 +1173,8 @@ cm.Editor.load = function() {
 		var passAndHint = function(cm1) {
 			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
-				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && completionActive != null && completionActive.widget != null) completionActive.widget.pick();
+				var completionType = core.Completion.getCompletionType();
+				if((completionType == core.CompletionType.REGULAR || completionType == core.CompletionType.CLASSLIST) && completionActive != null && completionActive.widget != null) completionActive.widget.pick();
 			}
 			return CodeMirror.Pass;
 		};
@@ -1832,17 +1833,13 @@ core.Completion.getHints = function(cm1,options) {
 		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
 			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
+			var classList = core.Completion.getClassList();
 			var _g11 = 0;
-			var _g21 = [parser.ClassParser.topLevelClassList,parser.ClassParser.haxeStdTopLevelClassList];
+			var _g21 = classList.topLevelClassList;
 			while(_g11 < _g21.length) {
-				var list2 = _g21[_g11];
+				var item = _g21[_g11];
 				++_g11;
-				var _g3 = 0;
-				while(_g3 < list2.length) {
-					var item = list2[_g3];
-					++_g3;
-					core.Completion.list.push({ text : item});
-				}
+				core.Completion.list.push({ text : item});
 			}
 		}
 		break;
@@ -1855,12 +1852,12 @@ core.Completion.getHints = function(cm1,options) {
 		var _g12 = 0;
 		var _g22 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
 		while(_g12 < _g22.length) {
-			var list21 = _g22[_g12];
+			var list2 = _g22[_g12];
 			++_g12;
-			var _g31 = 0;
-			while(_g31 < list21.length) {
-				var item1 = list21[_g31];
-				++_g31;
+			var _g3 = 0;
+			while(_g3 < list2.length) {
+				var item1 = list2[_g3];
+				++_g3;
 				core.Completion.list.push({ text : item1});
 			}
 		}
@@ -1870,12 +1867,12 @@ core.Completion.getHints = function(cm1,options) {
 		var _g13 = 0;
 		var _g23 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
 		while(_g13 < _g23.length) {
-			var list22 = _g23[_g13];
+			var list21 = _g23[_g13];
 			++_g13;
-			var _g32 = 0;
-			while(_g32 < list22.length) {
-				var item2 = list22[_g32];
-				++_g32;
+			var _g31 = 0;
+			while(_g31 < list21.length) {
+				var item2 = list21[_g31];
+				++_g31;
 				core.Completion.list.push({ text : item2.path, displayText : core.Completion.processDisplayText(item2.path)});
 			}
 		}
@@ -1891,15 +1888,16 @@ core.Completion.getHints = function(cm1,options) {
 		}
 		break;
 	case 4:
+		var classList1 = core.Completion.getClassList();
 		var _g15 = 0;
-		var _g25 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+		var _g25 = [classList1.topLevelClassList,classList1.importsList];
 		while(_g15 < _g25.length) {
-			var list23 = _g25[_g15];
+			var list22 = _g25[_g15];
 			++_g15;
-			var _g33 = 0;
-			while(_g33 < list23.length) {
-				var item4 = list23[_g33];
-				++_g33;
+			var _g32 = 0;
+			while(_g32 < list22.length) {
+				var item4 = list22[_g32];
+				++_g32;
 				core.Completion.list.push({ text : item4});
 			}
 		}
@@ -2059,7 +2057,7 @@ core.Completion.showClassList = function(ignoreWhitespace) {
 	if(ignoreWhitespace == null) ignoreWhitespace = false;
 	if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
-		cm.Editor.regenerateCompletionOnDot = false;
+		cm.Editor.regenerateCompletionOnDot = true;
 		core.Completion.WORD = new EReg("[A-Z\\.]+$","i");
 		core.Completion.completionType = core.CompletionType.CLASSLIST;
 		var closeCharacters = /[\s()\[\]{};>,]/;
@@ -2090,6 +2088,55 @@ core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
 		var data = { list : completions, from : pos, to : pos};
 		return data;
 	},{ completeSingle : false});
+};
+core.Completion.getClassList = function() {
+	var value = tabmanager.TabManager.getCurrentDocument().getValue();
+	var filePackage = parser.RegexParser.getFilePackage(value);
+	var fileImports = parser.RegexParser.getFileImportsList(value);
+	var topLevelClassList = [];
+	var importsList = [];
+	var relativeImport;
+	var _g = 0;
+	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+	while(_g < _g1.length) {
+		var list2 = _g1[_g];
+		++_g;
+		var _g2 = 0;
+		while(_g2 < list2.length) {
+			var item = list2[_g2];
+			++_g2;
+			if(HxOverrides.indexOf(fileImports,item,0) != -1) {
+				relativeImport = item.split(".").pop();
+				topLevelClassList.push(relativeImport);
+			} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage)) {
+				relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
+				if(relativeImport.indexOf(".") == -1) topLevelClassList.push(relativeImport); else importsList.push(relativeImport);
+			} else {
+				relativeImport = item;
+				importsList.push(relativeImport);
+			}
+		}
+	}
+	var _g3 = 0;
+	var _g11 = [parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.topLevelClassList];
+	while(_g3 < _g11.length) {
+		var list21 = _g11[_g3];
+		++_g3;
+		var _g21 = 0;
+		while(_g21 < list21.length) {
+			var item1 = list21[_g21];
+			++_g21;
+			topLevelClassList.push(item1);
+		}
+	}
+	var _g4 = 0;
+	while(_g4 < fileImports.length) {
+		var item2 = fileImports[_g4];
+		++_g4;
+		relativeImport = item2.split(".").pop();
+		if(HxOverrides.indexOf(topLevelClassList,relativeImport,0) == -1) topLevelClassList.push(relativeImport);
+	}
+	return { topLevelClassList : topLevelClassList, importsList : importsList};
 };
 core.Completion.getCompletionType = function() {
 	return core.Completion.completionType;
@@ -3007,11 +3054,7 @@ core.ImportDefinition.searchImport = function(data,path) {
 		if(ast != null) fileImports = parser.OutlineHelper.parseDeclarations(ast).fileImports; else {
 			console.log("haxeparser is unable to parse this file. Falling back to regex parsing.");
 			var value = tabmanager.TabManager.getCurrentDocument().getValue();
-			var ereg = new EReg("^[ \t]*import ([a-z0-9._*]+);$","gim");
-			ereg.map(value,function(ereg1) {
-				fileImports.push(ereg1.matched(1));
-				return "";
-			});
+			fileImports = parser.RegexParser.getFileImportsList(value);
 		}
 		switch(mode) {
 		case "token":
@@ -3076,14 +3119,12 @@ core.ImportDefinition.importClassHint = function(from,to,cm,data,completion) {
 	core.ImportDefinition.importClass(cm,completion.text,from,to);
 };
 core.ImportDefinition.importClass = function(cm,text,from,to) {
-	var ereg = new EReg("package [^;]*;$","m");
 	var value = tabmanager.TabManager.getCurrentDocument().getValue();
+	var filePackage = parser.RegexParser.getFilePackage(value);
 	if(from != null && to != null) core.ImportDefinition.updateImport(cm,text,from,to);
-	var matchedPos;
 	var pos;
-	if(ereg.match(value)) {
-		matchedPos = ereg.matchedPos();
-		pos = cm.posFromIndex(matchedPos.pos + matchedPos.len);
+	if(filePackage.filePackage != null) {
+		pos = cm.posFromIndex(filePackage.pos);
 		pos.ch = 0;
 		pos.line++;
 	} else pos = cm.posFromIndex(0);
@@ -14834,6 +14875,24 @@ parser.OutlineHelper.getFieldNameAndType = function(name,type) {
 	var fieldType = parser.OutlineHelper.getFieldType(type);
 	if(fieldType != null) nameAndType += ":" + fieldType;
 	return nameAndType;
+};
+parser.RegexParser = function() { };
+$hxClasses["parser.RegexParser"] = parser.RegexParser;
+parser.RegexParser.__name__ = ["parser","RegexParser"];
+parser.RegexParser.getFileImportsList = function(data) {
+	var fileImports = [];
+	var ereg = new EReg("^[ \t]*import ([a-z0-9._*]+);$","gim");
+	ereg.map(data,function(ereg1) {
+		fileImports.push(ereg1.matched(1));
+		return "";
+	});
+	return fileImports;
+};
+parser.RegexParser.getFilePackage = function(data) {
+	var filePackage = null;
+	var ereg = new EReg("package ([^;]*);$","m");
+	if(ereg.match(data)) filePackage = StringTools.trim(ereg.matched(1));
+	return { filePackage : filePackage, pos : ereg.matchedPos().pos};
 };
 var pluginloader = {};
 pluginloader.PluginManager = function() { };

@@ -71,8 +71,9 @@ class Editor
 					if (TabManager.getCurrentDocument().getMode().name == "haxe") 
 					{
 						var completionActive = editor.state.completionActive;
-						
-						if (Completion.getCompletionType() == CompletionType.REGULAR && completionActive != null && completionActive.widget != null) 
+						var completionType = Completion.getCompletionType();
+                        
+						if ((completionType == CompletionType.REGULAR || completionType == CompletionType.CLASSLIST) && completionActive != null && completionActive.widget != null) 
 						{
 							completionActive.widget.pick();
 						}

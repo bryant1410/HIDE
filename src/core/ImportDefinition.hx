@@ -1,4 +1,5 @@
 package core;
+import parser.RegexParser;
 import CodeMirror.TokenData;
 import parser.ClassParser;
 import parser.OutlineHelper;
@@ -58,15 +59,7 @@ class ImportDefinition
                 
                 var value = tabmanager.TabManager.getCurrentDocument().getValue();
 
-                //Regex for parsing imports ported from haxe-sublime-bundle
-                //https://github.com/clemos/haxe-sublime-bundle/blob/master/HaxeHelper.py#L21
-                var ereg = ~/^[ \t]*import ([a-z0-9._*]+);$/gim;
-
-                ereg.map(value, function (ereg)
-                        {
-                            fileImports.push(ereg.matched(1));
-                            return "";
-                        });
+                fileImports = RegexParser.getFileImportsList(value);
             }
 			
             switch (mode)
@@ -174,22 +167,20 @@ class ImportDefinition
         
     static function importClass(cm:CodeMirror, text:String, from:CodeMirror.Pos, to:CodeMirror.Pos)
 	{
-        var ereg = ~/package [^;]*;$/m;
-        
         var value = tabmanager.TabManager.getCurrentDocument().getValue();
+        
+        var filePackage = RegexParser.getFilePackage(value);
         
         if (from != null && to != null)
        	{
             updateImport(cm, text, from, to);
         }
-            
-        var matchedPos;
+        
         var pos:CodeMirror.Pos;
 
-        if (ereg.match(value))
+        if (filePackage.filePackage != null)
         {
-            matchedPos = ereg.matchedPos();
-            pos = cm.posFromIndex(matchedPos.pos + matchedPos.len);
+            pos = cm.posFromIndex(filePackage.pos);
             pos.ch = 0;
             pos.line++;
         }

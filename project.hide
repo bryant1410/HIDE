@@ -13,7 +13,7 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "src/Main.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

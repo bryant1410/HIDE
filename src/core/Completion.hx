@@ -1,4 +1,5 @@
 package core;
+import parser.RegexParser;
 import cm.Editor;
 import CodeMirror;
 import completion.Filter;
@@ -163,12 +164,11 @@ class Completion
 				{
 				    list = list.concat(SnippetsCompletion.getCompletion());
                     
-                    for (list2 in [ClassParser.topLevelClassList, ClassParser.haxeStdTopLevelClassList])
+                    var classList = getClassList();
+                    
+                    for (item in classList.topLevelClassList)
                     {
-                    	for (item in list2)
-                        {
-                            list.push({ text: item});
-                        }
+                    	list.push( {text: item} );     
                     }
 				}
 			case METATAGS:
@@ -201,13 +201,16 @@ class Completion
 					list.push( { text: item.directory, displayText: processDisplayText(item.path)} );
 				}
 			case CLASSLIST:
-				for (list2 in [ClassParser.topLevelClassList, ClassParser.importsList, ClassParser.haxeStdTopLevelClassList, ClassParser.haxeStdImports])
+				var classList = getClassList();
+				
+				for (list2 in [classList.topLevelClassList, classList.importsList])
                 {
-                	for (item in list2) 
+                	for (item in list2)
                     {
-                        list.push( { text: item} );
-                    }
+                        list.push( {text: item} );
+                    }   
                 }
+
 			default:
 				
 		}
@@ -428,7 +431,7 @@ class Completion
 			CodeMirrorStatic.showHint(Editor.editor, getHints, { closeCharacters: untyped __js__("/[\\s()\\[\\]{};>,]/") } );
 		}
 	}
-	
+        
 	public static function showHxmlCompletion():Void
 	{
 		if (isEditorVisible()) 
@@ -474,7 +477,7 @@ class Completion
 		if (isEditorVisible()) 
 		{
             cur = Editor.editor.getCursor();
-			Editor.regenerateCompletionOnDot = false;
+			Editor.regenerateCompletionOnDot = true;
 			WORD = ~/[A-Z\.]+$/i;
 			completionType = CLASSLIST;
             
@@ -523,7 +526,72 @@ class Completion
             }
         , {completeSingle: false});
     }
+	
+    public static function getClassList()
+    {
+        var value = tabmanager.TabManager.getCurrentDocument().getValue();
 
+        var filePackage = RegexParser.getFilePackage(value);
+        var fileImports = RegexParser.getFileImportsList(value);
+
+        var topLevelClassList:Array<String> = [];
+        var importsList:Array<String> = [];
+        
+        var relativeImport:String;
+
+        for (list2 in [ClassParser.importsList, ClassParser.haxeStdImports])
+        {
+            for (item in list2) 
+            {
+                if (fileImports.indexOf(item) != -1)
+                {
+                    relativeImport = item.split(".").pop();
+                    topLevelClassList.push(relativeImport);
+                }
+                else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage))
+                {
+                    relativeImport = item.substr(filePackage.filePackage.length + 1);
+                    
+                    if (relativeImport.indexOf(".") == -1)
+                    {
+                    	topLevelClassList.push(relativeImport);
+                    }
+                    else
+                    {
+                        importsList.push(relativeImport);
+                    }
+                }
+                else
+                {
+                    relativeImport = item;
+                    importsList.push(relativeImport);
+                }
+            }
+        }
+
+        for (list2 in [ClassParser.haxeStdTopLevelClassList, ClassParser.topLevelClassList])
+        {
+            for (item in list2) 
+            {
+
+                topLevelClassList.push(item);
+            }
+        }
+            
+       	for (item in fileImports)
+        {
+			relativeImport = item.split(".").pop();
+
+			if (topLevelClassList.indexOf(relativeImport) == -1)
+            {
+                topLevelClassList.push(relativeImport);
+            }
+		}
+            
+        return {topLevelClassList: topLevelClassList, importsList: importsList};
+    }
+
+        
 	public static function getCompletionType()
     {
         return completionType;
