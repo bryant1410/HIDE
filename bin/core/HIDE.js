@@ -2095,7 +2095,18 @@ core.Completion.getClassList = function() {
 	var fileImports = parser.RegexParser.getFileImportsList(value);
 	var topLevelClassList = [];
 	var importsList = [];
-	var relativeImport;
+	var relativeImport = null;
+	var parentPackages = [];
+	if(filePackage.filePackage != null && filePackage.filePackage != "") {
+		var packages = filePackage.filePackage.split(".");
+		var parentPackage;
+		while(packages.length > 0) {
+			parentPackage = packages.join(".");
+			packages.pop();
+			parentPackages.push(parentPackage);
+		}
+	}
+	var found;
 	var _g = 0;
 	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
 	while(_g < _g1.length) {
@@ -2105,23 +2116,34 @@ core.Completion.getClassList = function() {
 		while(_g2 < list2.length) {
 			var item = list2[_g2];
 			++_g2;
-			if(HxOverrides.indexOf(fileImports,item,0) != -1) {
+			found = false;
+			var _g3 = 0;
+			while(_g3 < parentPackages.length) {
+				var parentPackage1 = parentPackages[_g3];
+				++_g3;
+				if(StringTools.startsWith(item,parentPackage1 + ".") && item.indexOf(".",parentPackage1.length + 1) == -1) {
+					relativeImport = HxOverrides.substr(item,parentPackage1.length + 1,null);
+					found = true;
+					break;
+				}
+			}
+			if(found) topLevelClassList.push(relativeImport); else if(HxOverrides.indexOf(fileImports,item,0) != -1) {
 				relativeImport = item.split(".").pop();
 				topLevelClassList.push(relativeImport);
-			} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage)) {
+			} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
 				relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-				if(relativeImport.indexOf(".") == -1) topLevelClassList.push(relativeImport); else importsList.push(relativeImport);
+				importsList.push(relativeImport);
 			} else {
 				relativeImport = item;
 				importsList.push(relativeImport);
 			}
 		}
 	}
-	var _g3 = 0;
+	var _g4 = 0;
 	var _g11 = [parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.topLevelClassList];
-	while(_g3 < _g11.length) {
-		var list21 = _g11[_g3];
-		++_g3;
+	while(_g4 < _g11.length) {
+		var list21 = _g11[_g4];
+		++_g4;
 		var _g21 = 0;
 		while(_g21 < list21.length) {
 			var item1 = list21[_g21];
@@ -2129,10 +2151,10 @@ core.Completion.getClassList = function() {
 			topLevelClassList.push(item1);
 		}
 	}
-	var _g4 = 0;
-	while(_g4 < fileImports.length) {
-		var item2 = fileImports[_g4];
-		++_g4;
+	var _g5 = 0;
+	while(_g5 < fileImports.length) {
+		var item2 = fileImports[_g5];
+		++_g5;
 		relativeImport = item2.split(".").pop();
 		if(HxOverrides.indexOf(topLevelClassList,relativeImport,0) == -1) topLevelClassList.push(relativeImport);
 	}
@@ -14134,9 +14156,12 @@ openproject.OpenProject.checkIfFileExists = function(path) {
 };
 openproject.OpenProject.parseProject = function(path) {
 	console.log("open: " + path);
+	openproject.OpenProject.closeProject(true);
 	var filename = js.Node.require("path").basename(path);
 	switch(filename) {
 	case "project.hide":
+		core.OutlinePanel.clearFields();
+		core.OutlinePanel.update();
 		var options = { };
 		options.encoding = "utf8";
 		js.Node.require("fs").readFile(path,options,function(error,data) {
@@ -14192,6 +14217,8 @@ openproject.OpenProject.parseProject = function(path) {
 		var extension = js.Node.require("path").extname(filename);
 		switch(extension) {
 		case ".hxml":
+			core.OutlinePanel.clearFields();
+			core.OutlinePanel.update();
 			var pathToProject1 = js.Node.require("path").dirname(path);
 			var project = new projectaccess.Project();
 			var pos = pathToProject1.lastIndexOf(js.Node.require("path").sep);
@@ -14210,6 +14237,8 @@ openproject.OpenProject.parseProject = function(path) {
 			core.RecentProjectsList.add(pathToProjectHide);
 			break;
 		case ".lime":case ".xml":
+			core.OutlinePanel.clearFields();
+			core.OutlinePanel.update();
 			var options1 = { };
 			options1.encoding = "utf8";
 			js.Node.require("fs").readFile(path,options1,function(error1,data1) {
@@ -14232,9 +14261,10 @@ openproject.OpenProject.searchForLastProject = function() {
 	var pathToLastProject = js.Browser.getLocalStorage().getItem("pathToLastProject");
 	if(pathToLastProject != null) openproject.OpenProject.openProject(pathToLastProject);
 };
-openproject.OpenProject.closeProject = function() {
+openproject.OpenProject.closeProject = function(sync) {
+	if(sync == null) sync = false;
 	if(projectaccess.ProjectAccess.path != null) {
-		projectaccess.ProjectAccess.save(openproject.OpenProject.updateProjectData);
+		projectaccess.ProjectAccess.save(openproject.OpenProject.updateProjectData,sync);
 		tabmanager.TabManager.closeAll();
 	} else openproject.OpenProject.updateProjectData();
 };
@@ -15742,6 +15772,8 @@ tabmanager.TabManager.removeTab = function(path,switchToTab) {
 		new $("#editor").hide(0);
 		if(projectaccess.ProjectAccess.path != null) core.WelcomeScreen.hide(); else core.WelcomeScreen.show();
 		tabmanager.TabManager.selectedPath = null;
+		core.OutlinePanel.clearFields();
+		core.OutlinePanel.update();
 	}
 	if(projectaccess.ProjectAccess.path != null) {
 		var pathToDocument = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);

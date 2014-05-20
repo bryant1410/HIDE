@@ -537,29 +537,56 @@ class Completion
         var topLevelClassList:Array<String> = [];
         var importsList:Array<String> = [];
         
-        var relativeImport:String;
+        var relativeImport:String = null;
 
+        var parentPackages:Array<String> = [];
+        
+        if (filePackage.filePackage != null && filePackage.filePackage != "")
+        {
+            var packages = filePackage.filePackage.split(".");
+//             packages.pop();
+
+            var parentPackage:String;
+
+            while (packages.length > 0)
+            {
+                parentPackage = packages.join(".");
+                packages.pop();
+                parentPackages.push(parentPackage);
+            }
+        }
+        
+        var found:Bool;
+            
         for (list2 in [ClassParser.importsList, ClassParser.haxeStdImports])
         {
             for (item in list2) 
             {
-                if (fileImports.indexOf(item) != -1)
+                found = false;
+                
+                for (parentPackage in parentPackages)
+                {
+                	if (StringTools.startsWith(item, parentPackage + ".") && item.indexOf(".", parentPackage.length + 1) == -1)
+                    {
+                        relativeImport = item.substr(parentPackage.length + 1);
+                        found = true;
+                        break;
+                    }
+                }
+                
+            	if (found)
+                {
+                    topLevelClassList.push(relativeImport);
+                }
+                else if (fileImports.indexOf(item) != -1)
                 {
                     relativeImport = item.split(".").pop();
                     topLevelClassList.push(relativeImport);
                 }
-                else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage))
+                else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage + "."))
                 {
                     relativeImport = item.substr(filePackage.filePackage.length + 1);
-                    
-                    if (relativeImport.indexOf(".") == -1)
-                    {
-                    	topLevelClassList.push(relativeImport);
-                    }
-                    else
-                    {
-                        importsList.push(relativeImport);
-                    }
+                    importsList.push(relativeImport);
                 }
                 else
                 {

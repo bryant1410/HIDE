@@ -1,4 +1,5 @@
 package openproject;
+import core.OutlinePanel;
 import core.FileDialog;
 import core.RecentProjectsList;
 import core.Splitter;
@@ -63,14 +64,19 @@ class OpenProject
 	{	
 		trace("open: " + path);
 		
+        closeProject(true);
+        
 		var filename:String = Node.path.basename(path);
 			
 		switch (filename) 
 		{
 			case "project.hide":
+                OutlinePanel.clearFields();
+                OutlinePanel.update();
+                
 				var options:NodeFsFileOptions = { };
 				options.encoding = NodeC.UTF8;
-				
+                
 				Node.fs.readFile(path, options, function (error:js.Node.NodeErr, data:String):Void
 				{
 					var pathToProject:String = js.Node.path.dirname(path);
@@ -156,6 +162,9 @@ class OpenProject
 				switch (extension) 
 				{
 					case ".hxml":
+                        OutlinePanel.clearFields();
+                        OutlinePanel.update();
+                        
 						var pathToProject:String = js.Node.path.dirname(path);
 						
 						var project:Project = new Project();
@@ -180,6 +189,9 @@ class OpenProject
 						Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
 						RecentProjectsList.add(pathToProjectHide);
 					case ".lime", ".xml":
+                        OutlinePanel.clearFields();
+                		OutlinePanel.update();
+                        
 						var options:NodeFsFileOptions = { };
 						options.encoding = NodeC.UTF8;
 						
@@ -223,11 +235,11 @@ class OpenProject
 		}
 	}
 	
-	public static function closeProject():Void
+	public static function closeProject(?sync:Bool = false):Void
 	{
 		if (ProjectAccess.path != null) 
 		{
-			ProjectAccess.save(updateProjectData);
+			ProjectAccess.save(updateProjectData, sync);
             tabmanager.TabManager.closeAll();
 		}
 		else 

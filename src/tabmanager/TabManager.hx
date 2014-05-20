@@ -1,5 +1,6 @@
 
 package tabmanager;
+import core.OutlinePanel;
 import cm.CMDoc;
 import cm.Editor;
 import core.FileDialog;
@@ -318,6 +319,9 @@ class TabManager
 			}
 			
 			selectedPath = null;
+            
+            OutlinePanel.clearFields();
+            OutlinePanel.update();
 		}
 		
 		

@@ -11,7 +11,7 @@
 
     ]
     ,"files" : [
-
+         "src/core/Completion.hx"
     ]
     ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
