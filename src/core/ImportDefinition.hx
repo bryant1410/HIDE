@@ -1,4 +1,5 @@
 package core;
+import core.Completion.TopLevelImport;
 import parser.RegexParser;
 import CodeMirror.TokenData;
 import parser.ClassParser;
@@ -17,7 +18,8 @@ class ImportDefinition
         var cm = cm.Editor.editor;
         var token = cm.getTokenAt(cm.getCursor());
 
-        var fileImports:Array<String> = [];
+//         var fileImports:Array<String> = [];
+        var topLevelClassList:Array<TopLevelImport> = [];
         
         var mode:String = null;
         
@@ -49,27 +51,30 @@ class ImportDefinition
             
         if (mode != null)
         {
-            if (ast != null) 
-            {
-                fileImports = OutlineHelper.parseDeclarations(ast).fileImports;	            
-            }
-            else
-            {
-                trace("haxeparser is unable to parse this file. Falling back to regex parsing.");
+//             if (ast != null) 
+//             {
+//                 fileImports = OutlineHelper.parseDeclarations(ast).fileImports;	            
+//             }
+//             else
+//             {
+//                 trace("haxeparser is unable to parse this file. Falling back to regex parsing.");
                 
-                var value = tabmanager.TabManager.getCurrentDocument().getValue();
-
-                fileImports = RegexParser.getFileImportsList(value);
-            }
-			
+//                 var value = tabmanager.TabManager.getCurrentDocument().getValue();
+                
+//                 fileImports = RegexParser.getFileImportsList(value);
+//             }
+            
+            topLevelClassList = core.Completion.getClassList().topLevelClassList;
+            
             switch (mode)
             {
                 case "token":
-                    checkImport(fileImports, token);
+                    checkImport(topLevelClassList, token);
                 case "selection":
                     var found:Bool = false;
+                    var alreadyAdded:Bool = false;
                     
-                    for (list in [ClassParser.importsList,  ClassParser.haxeStdImports])
+                    for (list in [ClassParser.importsList, ClassParser.haxeStdImports])
                     {
                     	if (list.indexOf(selectedText) != -1)
                         {
@@ -77,8 +82,17 @@ class ImportDefinition
                             break;
                         }
                     }
+            		
+            		for (topLevelClass in topLevelClassList)
+                    {
+                        if (topLevelClass.fullName == selectedText)
+                        {
+                            alreadyAdded = true;
+                            break;
+                        }
+                    }
             
-            		if (fileImports.indexOf(selectedText) == -1)
+            		if (!alreadyAdded)
                     {
                         if (found)
                         {
@@ -104,7 +118,7 @@ class ImportDefinition
         }
     }
     
-    static function checkImport(fileImports:Array<String>, token:TokenData)
+    static function checkImport(topLevelClassList:Array<TopLevelImport>, token:TokenData)
     {
         var searchPattern = "." + token.string;
 
@@ -112,31 +126,48 @@ class ImportDefinition
         var foundAtTopLevel:Bool = false;
         var alreadyImported:Array<String> = [];
         
-        for (list in [ClassParser.importsList,  ClassParser.haxeStdImports])
+        for (topLevelClass in topLevelClassList)
         {
-            for (item in list)
-            {
-                if (StringTools.endsWith(item, searchPattern))
-                {
-                    if (fileImports.indexOf(item) == -1)
-                    {
-                        foundImports.push(item);
-                    }
-                    else
-                    {
-                        alreadyImported.push(item);
-                    }
-                }
-            }
-        }
-
-        for (list in [ClassParser.topLevelClassList, ClassParser.haxeStdTopLevelClassList])
-        {	
-            if (list.indexOf(token.string) != -1)
+            if (topLevelClass.name == token.string)     
             {
                 foundAtTopLevel = true;
+                alreadyImported.push(topLevelClass.fullName);
                 break;
             }
+        }
+        
+		if (!foundAtTopLevel)
+        {
+			var found:Bool = false;
+        
+            for (list in [ClassParser.importsList,  ClassParser.haxeStdImports])
+            {
+                for (item in list)
+                {
+                    if (StringTools.endsWith(item, searchPattern))
+                    {
+                        trace(item);
+
+                        for (topLevelClass in topLevelClassList)
+                        {
+                            if (topLevelClass.fullName == item)     
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found)
+                        {
+                            foundImports.push(item);
+                        }
+                        else
+                        {
+                            alreadyImported.push(item);
+                        }
+                    }
+                }
+            }            
         }
 
         if (foundAtTopLevel)

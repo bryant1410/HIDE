@@ -27,7 +27,7 @@ typedef FileData =
 }
 
 class ClassParser
-{	
+{
     public static var haxeStdTopLevelClassList:Array<String> = [];
 	public static var topLevelClassList:Array<String> = [];
     
@@ -70,12 +70,34 @@ class ClassParser
 	{
 		var ast = parse(data, path);
 		
+        var mainClass = Node.path.basename(path, ".hx");
+        
 		if (ast != null) 
 		{
-			parseDeclarations(ast, Node.path.basename(path, ".hx"), std);
+			parseDeclarations(ast, mainClass, std);
 		}
 		else 
 		{
+            var filePackage = RegexParser.getFilePackage(data);
+            var typeDeclarations = RegexParser.getTypeDeclarations(data);
+            
+            var packages;
+            
+            if (filePackage.filePackage != null)
+            {
+                packages = filePackage.filePackage.split(".");
+            }
+            else
+            {
+                packages = [];
+            }
+            
+            for (item in typeDeclarations)
+            {                 
+                var className:String = resolveClassName(packages, mainClass, item.name);
+                addClassName(className, std);
+			}
+            
 			//trace("ast for " + path + " is null");
 		}
 	}

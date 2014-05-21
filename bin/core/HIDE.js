@@ -1839,7 +1839,7 @@ core.Completion.getHints = function(cm1,options) {
 			while(_g11 < _g21.length) {
 				var item = _g21[_g11];
 				++_g11;
-				core.Completion.list.push({ text : item});
+				core.Completion.list.push({ text : item.name});
 			}
 		}
 		break;
@@ -1890,16 +1890,18 @@ core.Completion.getHints = function(cm1,options) {
 	case 4:
 		var classList1 = core.Completion.getClassList();
 		var _g15 = 0;
-		var _g25 = [classList1.topLevelClassList,classList1.importsList];
+		var _g25 = classList1.topLevelClassList;
 		while(_g15 < _g25.length) {
-			var list22 = _g25[_g15];
+			var item4 = _g25[_g15];
 			++_g15;
-			var _g32 = 0;
-			while(_g32 < list22.length) {
-				var item4 = list22[_g32];
-				++_g32;
-				core.Completion.list.push({ text : item4});
-			}
+			core.Completion.list.push({ text : item4.name});
+		}
+		var _g16 = 0;
+		var _g26 = classList1.importsList;
+		while(_g16 < _g26.length) {
+			var item5 = _g26[_g16];
+			++_g16;
+			core.Completion.list.push({ text : item5});
 		}
 		break;
 	default:
@@ -2123,19 +2125,22 @@ core.Completion.getClassList = function() {
 				++_g3;
 				if(StringTools.startsWith(item,parentPackage1 + ".") && item.indexOf(".",parentPackage1.length + 1) == -1) {
 					relativeImport = HxOverrides.substr(item,parentPackage1.length + 1,null);
+					topLevelClassList.push({ name : relativeImport, fullName : item});
 					found = true;
 					break;
 				}
 			}
-			if(found) topLevelClassList.push(relativeImport); else if(HxOverrides.indexOf(fileImports,item,0) != -1) {
-				relativeImport = item.split(".").pop();
-				topLevelClassList.push(relativeImport);
-			} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
-				relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-				importsList.push(relativeImport);
-			} else {
-				relativeImport = item;
-				importsList.push(relativeImport);
+			if(!found) {
+				if(HxOverrides.indexOf(fileImports,item,0) != -1) {
+					relativeImport = item.split(".").pop();
+					topLevelClassList.push({ name : relativeImport, fullName : item});
+				} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
+					relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
+					importsList.push(relativeImport);
+				} else {
+					relativeImport = item;
+					importsList.push(relativeImport);
+				}
 			}
 		}
 	}
@@ -2148,15 +2153,25 @@ core.Completion.getClassList = function() {
 		while(_g21 < list21.length) {
 			var item1 = list21[_g21];
 			++_g21;
-			topLevelClassList.push(item1);
+			topLevelClassList.push({ name : item1});
 		}
 	}
 	var _g5 = 0;
 	while(_g5 < fileImports.length) {
 		var item2 = fileImports[_g5];
 		++_g5;
+		found = false;
 		relativeImport = item2.split(".").pop();
-		if(HxOverrides.indexOf(topLevelClassList,relativeImport,0) == -1) topLevelClassList.push(relativeImport);
+		var _g12 = 0;
+		while(_g12 < topLevelClassList.length) {
+			var topLevelItem = topLevelClassList[_g12];
+			++_g12;
+			if(topLevelItem.name == relativeImport) {
+				found = true;
+				break;
+			}
+		}
+		if(!found) topLevelClassList.push({ name : relativeImport, fullName : item2});
 	}
 	return { topLevelClassList : topLevelClassList, importsList : importsList};
 };
@@ -3057,7 +3072,7 @@ core.ImportDefinition.searchImport = function(data,path) {
 	var ast = parser.ClassParser.parse(data,path);
 	var cm1 = cm.Editor.editor;
 	var token = cm1.getTokenAt(cm1.getCursor());
-	var fileImports = [];
+	var topLevelClassList = [];
 	var mode = null;
 	var selectedText = null;
 	var from = null;
@@ -3073,17 +3088,14 @@ core.ImportDefinition.searchImport = function(data,path) {
 		}
 	} else if(token.type != null && token.string != "") mode = "token";
 	if(mode != null) {
-		if(ast != null) fileImports = parser.OutlineHelper.parseDeclarations(ast).fileImports; else {
-			console.log("haxeparser is unable to parse this file. Falling back to regex parsing.");
-			var value = tabmanager.TabManager.getCurrentDocument().getValue();
-			fileImports = parser.RegexParser.getFileImportsList(value);
-		}
+		topLevelClassList = core.Completion.getClassList().topLevelClassList;
 		switch(mode) {
 		case "token":
-			core.ImportDefinition.checkImport(fileImports,token);
+			core.ImportDefinition.checkImport(topLevelClassList,token);
 			break;
 		case "selection":
 			var found = false;
+			var alreadyAdded = false;
 			var _g = 0;
 			var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
 			while(_g < _g1.length) {
@@ -3094,7 +3106,16 @@ core.ImportDefinition.searchImport = function(data,path) {
 					break;
 				}
 			}
-			if(HxOverrides.indexOf(fileImports,selectedText,0) == -1) {
+			var _g2 = 0;
+			while(_g2 < topLevelClassList.length) {
+				var topLevelClass = topLevelClassList[_g2];
+				++_g2;
+				if(topLevelClass.fullName == selectedText) {
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if(!alreadyAdded) {
 				if(found) core.ImportDefinition.importClass(cm1,selectedText,from,to); else core.Completion.showImportDefinition([selectedText],from,to);
 			} else core.ImportDefinition.updateImport(cm1,selectedText.split(".").pop(),from,to);
 			break;
@@ -3102,33 +3123,46 @@ core.ImportDefinition.searchImport = function(data,path) {
 		}
 	} else Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
 };
-core.ImportDefinition.checkImport = function(fileImports,token) {
+core.ImportDefinition.checkImport = function(topLevelClassList,token) {
 	var searchPattern = "." + token.string;
 	var foundImports = [];
 	var foundAtTopLevel = false;
 	var alreadyImported = [];
 	var _g = 0;
-	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-	while(_g < _g1.length) {
-		var list = _g1[_g];
+	while(_g < topLevelClassList.length) {
+		var topLevelClass = topLevelClassList[_g];
 		++_g;
-		var _g2 = 0;
-		while(_g2 < list.length) {
-			var item = list[_g2];
-			++_g2;
-			if(StringTools.endsWith(item,searchPattern)) {
-				if(HxOverrides.indexOf(fileImports,item,0) == -1) foundImports.push(item); else alreadyImported.push(item);
-			}
+		if(topLevelClass.name == token.string) {
+			foundAtTopLevel = true;
+			alreadyImported.push(topLevelClass.fullName);
+			break;
 		}
 	}
-	var _g3 = 0;
-	var _g11 = [parser.ClassParser.topLevelClassList,parser.ClassParser.haxeStdTopLevelClassList];
-	while(_g3 < _g11.length) {
-		var list1 = _g11[_g3];
-		++_g3;
-		if(HxOverrides.indexOf(list1,token.string,0) != -1) {
-			foundAtTopLevel = true;
-			break;
+	if(!foundAtTopLevel) {
+		var found = false;
+		var _g1 = 0;
+		var _g11 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+		while(_g1 < _g11.length) {
+			var list = _g11[_g1];
+			++_g1;
+			var _g2 = 0;
+			while(_g2 < list.length) {
+				var item = list[_g2];
+				++_g2;
+				if(StringTools.endsWith(item,searchPattern)) {
+					console.log(item);
+					var _g3 = 0;
+					while(_g3 < topLevelClassList.length) {
+						var topLevelClass1 = topLevelClassList[_g3];
+						++_g3;
+						if(topLevelClass1.fullName == item) {
+							found = true;
+							break;
+						}
+					}
+					if(!found) foundImports.push(item); else alreadyImported.push(item);
+				}
+			}
 		}
 	}
 	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) core.Completion.showImportDefinition(foundImports); else {
@@ -14307,7 +14341,19 @@ parser.ClassParser.parse = function(data,path) {
 };
 parser.ClassParser.processFile = function(data,path,std) {
 	var ast = parser.ClassParser.parse(data,path);
-	if(ast != null) parser.ClassParser.parseDeclarations(ast,js.Node.require("path").basename(path,".hx"),std); else {
+	var mainClass = js.Node.require("path").basename(path,".hx");
+	if(ast != null) parser.ClassParser.parseDeclarations(ast,mainClass,std); else {
+		var filePackage = parser.RegexParser.getFilePackage(data);
+		var typeDeclarations = parser.RegexParser.getTypeDeclarations(data);
+		var packages;
+		if(filePackage.filePackage != null) packages = filePackage.filePackage.split("."); else packages = [];
+		var _g = 0;
+		while(_g < typeDeclarations.length) {
+			var item = typeDeclarations[_g];
+			++_g;
+			var className = parser.ClassParser.resolveClassName(packages,mainClass,item.name);
+			parser.ClassParser.addClassName(className,std);
+		}
 	}
 };
 parser.ClassParser.parseDeclarations = function(ast,mainClass,std) {
@@ -14920,9 +14966,23 @@ parser.RegexParser.getFileImportsList = function(data) {
 };
 parser.RegexParser.getFilePackage = function(data) {
 	var filePackage = null;
+	var pos = null;
 	var ereg = new EReg("package ([^;]*);$","m");
-	if(ereg.match(data)) filePackage = StringTools.trim(ereg.matched(1));
-	return { filePackage : filePackage, pos : ereg.matchedPos().pos};
+	if(ereg.match(data)) {
+		filePackage = StringTools.trim(ereg.matched(1));
+		pos = ereg.matchedPos().pos;
+	}
+	return { filePackage : filePackage, pos : pos};
+};
+parser.RegexParser.getTypeDeclarations = function(data) {
+	var typeDeclarations = [];
+	var ereg = new EReg("(class|typedef|enum|typedef|abstract) +([A-Z][a-zA-Z0-9_]*) *(<[a-zA-Z0-9_,]+>)?","gm");
+	ereg.map(data,function(ereg2) {
+		var typeDeclaration = { type : ereg2.matched(1), name : ereg2.matched(2)};
+		typeDeclarations.push(typeDeclaration);
+		return "";
+	});
+	return typeDeclarations;
 };
 var pluginloader = {};
 pluginloader.PluginManager = function() { };

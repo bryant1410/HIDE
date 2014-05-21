@@ -11,9 +11,9 @@
 
     ]
     ,"files" : [
-         "src/core/Completion.hx"
+         "src/parser/RegexParser.hx"
     ]
-    ,"activeFile" : "src/core/Completion.hx"
+    ,"activeFile" : "src/parser/RegexParser.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

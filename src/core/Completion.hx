@@ -41,6 +41,12 @@ typedef CompletionItem =
 	var t:String;
 	var n:String;
 }
+    
+typedef TopLevelImport =
+{
+    name:String,
+    ?fullName:String
+}
  
 class Completion
 {
@@ -168,7 +174,7 @@ class Completion
                     
                     for (item in classList.topLevelClassList)
                     {
-                    	list.push( {text: item} );     
+                    	list.push( {text: item.name} );     
                     }
 				}
 			case METATAGS:
@@ -202,13 +208,15 @@ class Completion
 				}
 			case CLASSLIST:
 				var classList = getClassList();
-				
-				for (list2 in [classList.topLevelClassList, classList.importsList])
+                     
+                for (item in classList.topLevelClassList)
                 {
-                	for (item in list2)
-                    {
-                        list.push( {text: item} );
-                    }   
+                    list.push( {text: item.name} );
+                }
+                    
+                for (item in classList.importsList)
+                {
+                    list.push( {text: item} );
                 }
 
 			default:
@@ -534,7 +542,7 @@ class Completion
         var filePackage = RegexParser.getFilePackage(value);
         var fileImports = RegexParser.getFileImportsList(value);
 
-        var topLevelClassList:Array<String> = [];
+        var topLevelClassList:Array<TopLevelImport> = [];
         var importsList:Array<String> = [];
         
         var relativeImport:String = null;
@@ -544,7 +552,6 @@ class Completion
         if (filePackage.filePackage != null && filePackage.filePackage != "")
         {
             var packages = filePackage.filePackage.split(".");
-//             packages.pop();
 
             var parentPackage:String;
 
@@ -569,30 +576,31 @@ class Completion
                 	if (StringTools.startsWith(item, parentPackage + ".") && item.indexOf(".", parentPackage.length + 1) == -1)
                     {
                         relativeImport = item.substr(parentPackage.length + 1);
+                        topLevelClassList.push({name: relativeImport, fullName: item});
                         found = true;
                         break;
                     }
                 }
                 
-            	if (found)
+            	if (!found)
                 {
-                    topLevelClassList.push(relativeImport);
+                    if (fileImports.indexOf(item) != -1)
+                    {
+                        relativeImport = item.split(".").pop();
+                        topLevelClassList.push({name: relativeImport, fullName: item});
+                    }
+                    else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage + "."))
+                    {
+                        relativeImport = item.substr(filePackage.filePackage.length + 1);
+                        importsList.push(relativeImport);
+                    }
+                    else
+                    {
+                        relativeImport = item;
+                        importsList.push(relativeImport);
+                    }
                 }
-                else if (fileImports.indexOf(item) != -1)
-                {
-                    relativeImport = item.split(".").pop();
-                    topLevelClassList.push(relativeImport);
-                }
-                else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage + "."))
-                {
-                    relativeImport = item.substr(filePackage.filePackage.length + 1);
-                    importsList.push(relativeImport);
-                }
-                else
-                {
-                    relativeImport = item;
-                    importsList.push(relativeImport);
-                }
+                
             }
         }
 
@@ -601,17 +609,28 @@ class Completion
             for (item in list2) 
             {
 
-                topLevelClassList.push(item);
+                topLevelClassList.push({name: item});
             }
         }
             
        	for (item in fileImports)
         {
+            found = false;
+             
 			relativeImport = item.split(".").pop();
-
-			if (topLevelClassList.indexOf(relativeImport) == -1)
+			
+			for (topLevelItem in topLevelClassList)
             {
-                topLevelClassList.push(relativeImport);
+                if (topLevelItem.name == relativeImport)
+                {
+                    found = true;
+                    break;
+                }
+			}
+
+			if (!found)
+            {
+                topLevelClassList.push({name: relativeImport, fullName: item});
             }
 		}
             
