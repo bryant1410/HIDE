@@ -1,4 +1,5 @@
 package core;
+import completion.Hxml.CompletionData;
 import parser.RegexParser;
 import cm.Editor;
 import CodeMirror;
@@ -47,7 +48,7 @@ typedef TopLevelImport =
     name:String,
     ?fullName:String
 }
- 
+
 class Completion
 {
 	static var list:Array<CompletionData>;
@@ -94,7 +95,7 @@ class Completion
 		}
 
 		list = new Array();
-		
+
 		switch (completionType) 
 		{
 			case REGULAR:
@@ -229,8 +230,42 @@ class Completion
 		
 		var data:Dynamic = { list: list, from: { line:cur.line, ch:start }, to: { line:cur.line, ch:end } };
 		CodeMirrorStatic.attachContextInfo(Editor.editor, data);
+
+		switch (completionType)
+        {
+        	case REGULAR, CLASSLIST:
+                CodeMirrorStatic.on(data, "pick", searchForImport);
+            default:
+        }
+
 		return data;
 	}
+        
+    static function searchForImport(completion:CompletionData)
+    {
+        var cm = Editor.editor;
+        
+        var cursor = cm.getCursor();
+        var curLine:String = cm.getLine(cursor.line);
+        
+        var word = ~/[A-Z\.]+$/i;
+        
+        var importStart = cursor.ch;
+        var importEnd = importStart;
+        
+        while (importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
+        
+        if (importStart != importEnd) 
+		{
+            var fullImport = curLine.substring(importStart, importEnd);
+            
+            if (fullImport.indexOf(".") != -1)
+            {
+                var topLevelClassList = core.Completion.getClassList().topLevelClassList;
+                ImportDefinition.searchImportByText(topLevelClassList, fullImport, {line: cursor.line, ch:importStart}, {line: cursor.line, ch:importEnd}, false);
+            }
+		}
+    }
 	
     public static function processDisplayText(displayText:String):String
     {

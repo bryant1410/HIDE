@@ -1,4 +1,5 @@
 package core;
+import cm.Editor;
 import core.Completion.TopLevelImport;
 import parser.RegexParser;
 import CodeMirror.TokenData;
@@ -71,43 +72,7 @@ class ImportDefinition
                 case "token":
                     checkImport(topLevelClassList, token);
                 case "selection":
-                    var found:Bool = false;
-                    var alreadyAdded:Bool = false;
-                    
-                    for (list in [ClassParser.importsList, ClassParser.haxeStdImports])
-                    {
-                    	if (list.indexOf(selectedText) != -1)
-                        {
-                            found = true;
-                            break;
-                        }
-                    }
-            		
-            		for (topLevelClass in topLevelClassList)
-                    {
-                        if (topLevelClass.fullName == selectedText)
-                        {
-                            alreadyAdded = true;
-                            break;
-                        }
-                    }
-            
-            		if (!alreadyAdded)
-                    {
-                        if (found)
-                        {
-                            importClass(cm, selectedText, from, to);
-                        }
-                        else
-                        {
-                            Completion.showImportDefinition([selectedText], from, to);
-                        }
-                    }
-                    else
-                    {
-                        updateImport(cm, selectedText.split(".").pop(), from, to);
-                    }
-                    
+                    searchImportByText(topLevelClassList, selectedText, from, to);
                 default:
 
             }
@@ -117,6 +82,49 @@ class ImportDefinition
             Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
         }
     }
+    
+    public static function searchImportByText(topLevelClassList:Array<TopLevelImport>, text:String, from:CodeMirror.Pos, to:CodeMirror.Pos, ?suggestImport:Bool = true)
+    {
+        var cm = Editor.editor;
+        
+        var found:Bool = false;
+        var alreadyAdded:Bool = false;
+
+        for (list in [ClassParser.importsList, ClassParser.haxeStdImports])
+        {
+            if (list.indexOf(text) != -1)
+            {
+                found = true;
+                break;
+            }
+        }
+
+        for (topLevelClass in topLevelClassList)
+        {
+            if (topLevelClass.fullName == text)
+            {
+                alreadyAdded = true;
+                break;
+            }
+        }
+
+        if (!alreadyAdded)
+        {
+            if (found)
+            {
+                importClass(cm, text, from, to);
+            }
+            else if (suggestImport)
+            {
+                Completion.showImportDefinition([text], from, to);
+            }
+        }
+        else
+        {
+            updateImport(cm, text.split(".").pop(), from, to);
+        }
+    }
+
     
     static function checkImport(topLevelClassList:Array<TopLevelImport>, token:TokenData)
     {

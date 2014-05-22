@@ -1910,7 +1910,30 @@ core.Completion.getHints = function(cm1,options) {
 	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
 	var data = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
 	CodeMirror.attachContextInfo(cm.Editor.editor,data);
+	var _g4 = core.Completion.completionType;
+	switch(_g4[1]) {
+	case 0:case 4:
+		CodeMirror.on(data,"pick",core.Completion.searchForImport);
+		break;
+	default:
+	}
 	return data;
+};
+core.Completion.searchForImport = function(completion) {
+	var cm1 = cm.Editor.editor;
+	var cursor = cm1.getCursor();
+	var curLine = cm1.getLine(cursor.line);
+	var word = new EReg("[A-Z\\.]+$","i");
+	var importStart = cursor.ch;
+	var importEnd = importStart;
+	while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
+	if(importStart != importEnd) {
+		var fullImport = curLine.substring(importStart,importEnd);
+		if(fullImport.indexOf(".") != -1) {
+			var topLevelClassList = core.Completion.getClassList().topLevelClassList;
+			core.ImportDefinition.searchImportByText(topLevelClassList,fullImport,{ line : cursor.line, ch : importStart},{ line : cursor.line, ch : importEnd},false);
+		}
+	}
 };
 core.Completion.processDisplayText = function(displayText) {
 	if(displayText.length > 70) displayText = HxOverrides.substr(displayText,0,35) + " ... " + HxOverrides.substr(displayText,displayText.length - 35,null);
@@ -3094,34 +3117,39 @@ core.ImportDefinition.searchImport = function(data,path) {
 			core.ImportDefinition.checkImport(topLevelClassList,token);
 			break;
 		case "selection":
-			var found = false;
-			var alreadyAdded = false;
-			var _g = 0;
-			var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-			while(_g < _g1.length) {
-				var list = _g1[_g];
-				++_g;
-				if(HxOverrides.indexOf(list,selectedText,0) != -1) {
-					found = true;
-					break;
-				}
-			}
-			var _g2 = 0;
-			while(_g2 < topLevelClassList.length) {
-				var topLevelClass = topLevelClassList[_g2];
-				++_g2;
-				if(topLevelClass.fullName == selectedText) {
-					alreadyAdded = true;
-					break;
-				}
-			}
-			if(!alreadyAdded) {
-				if(found) core.ImportDefinition.importClass(cm1,selectedText,from,to); else core.Completion.showImportDefinition([selectedText],from,to);
-			} else core.ImportDefinition.updateImport(cm1,selectedText.split(".").pop(),from,to);
+			core.ImportDefinition.searchImportByText(topLevelClassList,selectedText,from,to);
 			break;
 		default:
 		}
 	} else Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
+};
+core.ImportDefinition.searchImportByText = function(topLevelClassList,text,from,to,suggestImport) {
+	if(suggestImport == null) suggestImport = true;
+	var cm1 = cm.Editor.editor;
+	var found = false;
+	var alreadyAdded = false;
+	var _g = 0;
+	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+	while(_g < _g1.length) {
+		var list = _g1[_g];
+		++_g;
+		if(HxOverrides.indexOf(list,text,0) != -1) {
+			found = true;
+			break;
+		}
+	}
+	var _g2 = 0;
+	while(_g2 < topLevelClassList.length) {
+		var topLevelClass = topLevelClassList[_g2];
+		++_g2;
+		if(topLevelClass.fullName == text) {
+			alreadyAdded = true;
+			break;
+		}
+	}
+	if(!alreadyAdded) {
+		if(found) core.ImportDefinition.importClass(cm1,text,from,to); else if(suggestImport) core.Completion.showImportDefinition([text],from,to);
+	} else core.ImportDefinition.updateImport(cm1,text.split(".").pop(),from,to);
 };
 core.ImportDefinition.checkImport = function(topLevelClassList,token) {
 	var searchPattern = "." + token.string;

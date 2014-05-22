@@ -11,7 +11,7 @@
 
     ]
     ,"files" : [
-         "src/parser/RegexParser.hx"
+
     ]
     ,"activeFile" : "src/parser/RegexParser.hx"
     ,"openFLTarget" : null
