@@ -6,11 +6,14 @@
 * FIX: added additional checks for process stdout and stderr parsing to fix parsing issues
 * FIX: create directory recursively for new project using "mkdirp" node module(which will create folders recursively, if some of them doesn't exists)
 * FIX: code editor zoom(using Alt and View menu) will call refresh on code editor(should fix issues with cursor)
+* FIX: various fixes affecting completion(Hxml, regular completion)
+* FIX: catch exceptions on EReg preview parsing errors
 * CHANGED: do not change file using Navigation->Open File(completionItem.text = "", completionItem.displayText = "path/to/file")
 * CHANGED: scroll to bottom output textarea
 * CHANGED: Hxml completion: show completion on "-" only if it's at beginning of line
 * CHANGED: do not wrap file tree context menu items
 * CHANGED: do not save file for function parameters hint
+* CHANGED: close documents on project switch(and open project documents)
 * ADDED: install missing haxelib dialog
 * ADDED: annotation ruler(with very basic style)
 * ADDED: basic outline panel
@@ -18,6 +21,12 @@
 * ADDED: Python target support
 * ADDED: Code Completion description
 * ADDED: Improved function parameters hinting(show active parameter).
+* ADDED: Configurable code snippets
+* ADDED: File tree lazy loading
+* ADDED: Show top level classes in top level completion
+* ADDED: Dark theme
+* ADDED: Cappuccino menu theme
+* ADDED: Autoimport(Ctrl-Shift-1 or Cmd-Shift-1 on Mac)
 
 0.3.8
 -----------
