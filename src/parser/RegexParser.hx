@@ -54,6 +54,50 @@ class RegexParser
             
        	return typeDeclarations;
     }
+    
+    public static function getFunctionDeclarations(data:String)
+    {
+        var functionDeclarations:Array<{name:String, ?params:Array<String>}> = [];
+        
+        var eregFunction = ~/function +([^;\.\(\) ]*)/i;
+        var eregFunctionParameters = ~/function +[a-zA-Z0-9_]+ *\(([^\)]*)/m;
+        var eregParam = ~/(= *"*[^"]*")/m;
+        
+        eregFunction.map(data, function (ereg2:EReg)
+                        {
+                            var name:String = ereg2.matched(1);
+                            
+                            if (name != "new")
+                            {
+                                functionDeclarations.push({name: name});
+                            }
+                            
+                            return "";
+                        });
+        
+        eregFunctionParameters.map(data, function (ereg2:EReg)
+                                  {
+                                      trace(ereg2.matched(1));
+                                      return "";
+                                  });
+        
+        return functionDeclarations;
+    }
+
+    public static function getVariableDeclarations(data:String)
+    {
+        var variableDeclarations:Array<String> = [];
+        
+        var eregVariables = ~/var +([^:;\( )]*)/i;
+        
+        eregVariables.map(data, function(ereg2:EReg)
+                         {
+                             variableDeclarations.push(ereg2.matched(1));
+                             return ""; 
+                         });
+        
+        return eregVariables;
+    }
 
 
 }
