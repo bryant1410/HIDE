@@ -1,6 +1,6 @@
 {
 	//Path to theme(relative to "HIDE/core")
-	"theme": "light.css",
+	"theme": "metrodark.css",
 	
 	//Path to locale(relative to "HIDE/core/locale")
 	"locale": "en.json",

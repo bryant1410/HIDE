@@ -14,8 +14,12 @@
          "src/openproject/OpenFL.hx"
         ,"src/openflproject/OpenFLProject.hx"
         ,"src/filetree/FileTree.hx"
+        ,"src/kha/KhaProject.hx"
+        ,"src/newprojectdialog/NewProjectDialog.hx"
+        ,"bin/core/config/settings.json"
+        ,"bin/core/metrodark.css"
     ]
-    ,"activeFile" : "src/filetree/FileTree.hx"
+    ,"activeFile" : "bin/core/metrodark.css"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
