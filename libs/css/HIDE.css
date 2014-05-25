@@ -631,7 +631,7 @@ opacity: 0.7; }
 }
 .CodeMirror-Tern-completion-map:before {
   content: "M";
-  background: ##118A4E;
+  background: #118A4E;
 }
 .CodeMirror-Tern-completion-number:before {
   content: "1";

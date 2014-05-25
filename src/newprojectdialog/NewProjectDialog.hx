@@ -26,6 +26,16 @@ import watchers.LocaleWatcher;
  * ...
  * @author AS3Boyan
  */
+typedef ProjectData = {
+    projectName:String,
+    projectCompany:String,
+    projectURL:String,
+    projectPackage:String,
+    projectLocation:String,
+    projectLicense:String,
+    createDirectory:Bool
+}
+
 class NewProjectDialog
 {
 	static var modalDialog:ModalDialog;

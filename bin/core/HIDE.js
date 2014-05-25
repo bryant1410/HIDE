@@ -312,6 +312,7 @@ Main.main = function() {
 		projectaccess.ProjectAccess.registerSaveOnCloseListener();
 		haxeproject.HaxeProject.load();
 		openflproject.OpenFLProject.load();
+		kha.KhaProject.load();
 		core.CompilationOutput.load();
 		core.RecentProjectsList.load();
 		openproject.OpenProject.searchForLastProject();
@@ -4581,7 +4582,7 @@ filetree.FileTree.init = function() {
 					var pathToFolder = js.Node.require("path").join(path1,dirname);
 					js.Node.require("fs").mkdir(pathToFolder,null,function(error) {
 						if(error == null) {
-							new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder, icon : "includes/images/folder.png"}},selectedItem1.element);
+							new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}, icon : "includes/images/folder.png"},selectedItem1.element);
 							filetree.FileTree.attachContextMenu();
 						} else Alertify.error(error);
 					});
@@ -13120,6 +13121,13 @@ Walkdir.walkSync = function(path,options,onItem) {
 	if(options != null) result = Walkdir.walkdir.sync(path,options,onItem); else result = Walkdir.walkdir.sync(path,onItem);
 	return result;
 };
+var kha = {};
+kha.KhaProject = function() { };
+$hxClasses["kha.KhaProject"] = kha.KhaProject;
+kha.KhaProject.__name__ = ["kha","KhaProject"];
+kha.KhaProject.load = function() {
+	newprojectdialog.NewProjectDialog.getCategory("Kha",3).addItem("Empty project",null,false,false);
+};
 var menu = {};
 menu.BootstrapMenu = function() { };
 $hxClasses["menu.BootstrapMenu"] = menu.BootstrapMenu;
@@ -14120,9 +14128,9 @@ openflproject.OpenFLProject.createOpenFLProject = function(data,sample) {
 	var params;
 	if(!sample) {
 		var str = "";
-		if(data.projectPackage != "") str = Std.string(data.projectPackage) + ".";
-		params = ["openfl:project","\"" + str + Std.string(data.projectName) + "\""];
-		if(data.projectCompany != "") params.push("\"" + Std.string(data.projectCompany) + "\"");
+		if(data.projectPackage != "") str = data.projectPackage + ".";
+		params = ["openfl:project","\"" + str + data.projectName + "\""];
+		if(data.projectCompany != "") params.push("\"" + data.projectCompany + "\"");
 	} else params = [data.projectName];
 	openflproject.CreateOpenFLProject.createOpenFLProject(params,data.projectLocation,function() {
 		var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);

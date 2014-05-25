@@ -93,7 +93,7 @@ class FileTree
 						{
 							if (error == null) 
 							{
-								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFolder, icon: "includes/images/folder.png"} }, selectedItem.element);
+								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFolder}, icon: "includes/images/folder.png" }, selectedItem.element);
 								attachContextMenu();
 							}
 							else 

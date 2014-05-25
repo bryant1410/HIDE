@@ -1,4 +1,5 @@
 package ;
+import kha.KhaProject;
 
 import core.QuickOpen;
 import core.AnnotationRuler;
@@ -107,6 +108,7 @@ class Main
 			
 			HaxeProject.load();
 			OpenFLProject.load();
+            KhaProject.load();
 			
 			CompilationOutput.load();
 			

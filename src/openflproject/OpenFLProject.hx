@@ -37,7 +37,7 @@ class OpenFLProject
 		
 		for (sample in samples)
 		{
-			NewProjectDialog.getCategory("OpenFL").getCategory("Samples").addItem(sample, function (data:Dynamic):Void
+			NewProjectDialog.getCategory("OpenFL").getCategory("Samples").addItem(sample, function (data:ProjectData):Void
 			{
 				//data.projectName = sample;
 				createOpenFLProject(data, true);
@@ -46,7 +46,7 @@ class OpenFLProject
 		}
 	}
 	
-	public static function createOpenFLProject(data:Dynamic, sample:Bool = false):Void
+	public static function createOpenFLProject(data:ProjectData, sample:Bool = false):Void
 	{	
 		var params:Array<String>;
 		
@@ -82,7 +82,7 @@ class OpenFLProject
 		);
 	}
 	
-	public static function createOpenFLExtension(data:Dynamic):Void
+	public static function createOpenFLExtension(data:ProjectData):Void
 	{
 		CreateOpenFLProject.createOpenFLProject(["extension", data.projectName], data.projectLocation, function ()
 		{
@@ -91,7 +91,7 @@ class OpenFLProject
 		);
 	}
 	
-	private static function createProject(data:Dynamic):Void
+	private static function createProject(data:ProjectData):Void
 	{
 		var pathToProject:String = js.Node.path.join(data.projectLocation, data.projectName);
 			
