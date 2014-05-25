@@ -167,7 +167,10 @@ class Completion
         		
         		getCurrentWord(cm, {word: ~/[A-Z.]+$/i});
         
+        		var className = "CodeMirror-Tern-completion";	
+        
 				if (curWord == null || curWord.indexOf(".") == -1)
+                    
 				{
 				    list = list.concat(SnippetsCompletion.getCompletion());
                     
@@ -175,7 +178,9 @@ class Completion
                     
                     for (item in classList.topLevelClassList)
                     {
-                    	list.push( {text: item.name} );     
+                        var completion:CompletionData = {text: item.name };
+                        completion.className = className + " CodeMirror-Tern-completion-class";
+                    	list.push(completion);     
                     }
 				}
 			case METATAGS:
@@ -210,14 +215,20 @@ class Completion
 			case CLASSLIST:
 				var classList = getClassList();
                      
+				var className = "CodeMirror-Tern-completion";
+
                 for (item in classList.topLevelClassList)
                 {
-                    list.push( {text: item.name} );
+                    var completion:CompletionData = {text: item.name };
+                    completion.className = className + " CodeMirror-Tern-completion-class";
+                    list.push(completion);
                 }
                     
                 for (item in classList.importsList)
                 {
-                    list.push( {text: item} );
+                    var completion:CompletionData = {text: item};
+                    completion.className = className + " CodeMirror-Tern-completion-class";
+                    list.push(completion);
                 }
 
 			default:

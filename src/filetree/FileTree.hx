@@ -448,7 +448,7 @@ class FileTree
 				{					
 					switch (changeType) 
 					{
-						case 'create', 'delete':
+						case 'create':
 							trace(changeType);
 							trace(filePath);
 							//load();
@@ -481,6 +481,11 @@ class FileTree
 								}
 							}
 							);
+                        case 'delete':
+                            if (Node.path.extname(filePath) != "")
+                            {
+                            	ClasspathWalker.removeFile(filePath);
+                    		}
 						default:
 							
 					}

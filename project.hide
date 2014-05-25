@@ -11,9 +11,10 @@
 
     ]
     ,"files" : [
-
+         "src/core/Completion.hx"
+        ,"libs/css/HIDE.css"
     ]
-    ,"activeFile" : "src/parser/RegexParser.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

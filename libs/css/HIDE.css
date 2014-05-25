@@ -661,6 +661,16 @@ opacity: 0.7; }
   background: #536F79;
 }
 
+.CodeMirror-Tern-completion-import:before {
+  content: "I";
+  background: #536F79;
+}
+
+.CodeMirror-Tern-completion-class:before {
+  content: "C";
+  background: #536F79;
+}
+
 #quickOpen
 {
     position: fixed;

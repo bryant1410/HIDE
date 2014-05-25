@@ -1831,6 +1831,7 @@ core.Completion.getHints = function(cm1,options) {
 			core.Completion.list.push(completionItem);
 		}
 		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
+		var className = "CodeMirror-Tern-completion";
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
 			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 			var classList = core.Completion.getClassList();
@@ -1839,7 +1840,9 @@ core.Completion.getHints = function(cm1,options) {
 			while(_g11 < _g21.length) {
 				var item = _g21[_g11];
 				++_g11;
-				core.Completion.list.push({ text : item.name});
+				var completion1 = { text : item.name};
+				completion1.className = className + " CodeMirror-Tern-completion-class";
+				core.Completion.list.push(completion1);
 			}
 		}
 		break;
@@ -1889,19 +1892,24 @@ core.Completion.getHints = function(cm1,options) {
 		break;
 	case 4:
 		var classList1 = core.Completion.getClassList();
+		var className1 = "CodeMirror-Tern-completion";
 		var _g15 = 0;
 		var _g25 = classList1.topLevelClassList;
 		while(_g15 < _g25.length) {
 			var item4 = _g25[_g15];
 			++_g15;
-			core.Completion.list.push({ text : item4.name});
+			var completion2 = { text : item4.name};
+			completion2.className = className1 + " CodeMirror-Tern-completion-class";
+			core.Completion.list.push(completion2);
 		}
 		var _g16 = 0;
 		var _g26 = classList1.importsList;
 		while(_g16 < _g26.length) {
 			var item5 = _g26[_g16];
 			++_g16;
-			core.Completion.list.push({ text : item5});
+			var completion3 = { text : item5};
+			completion3.className = className1 + " CodeMirror-Tern-completion-class";
+			core.Completion.list.push(completion3);
 		}
 		break;
 	default:
@@ -4764,7 +4772,7 @@ filetree.FileTree.load = function(projectName,path) {
 	}
 	var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
 		switch(changeType) {
-		case "create":case "delete":
+		case "create":
 			console.log(changeType);
 			console.log(filePath);
 			js.Node.require("fs").stat(filePath,function(error,stat) {
@@ -4777,6 +4785,9 @@ filetree.FileTree.load = function(projectName,path) {
 					}
 				} else console.log(error);
 			});
+			break;
+		case "delete":
+			if(js.Node.require("path").extname(filePath) != "") parser.ClasspathWalker.removeFile(filePath);
 			break;
 		default:
 		}
