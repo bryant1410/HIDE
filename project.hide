@@ -11,13 +11,11 @@
 
     ]
     ,"files" : [
-         "src/openproject/OpenFL.hx"
-        ,"src/openflproject/OpenFLProject.hx"
-        ,"src/filetree/FileTree.hx"
+         "src/openflproject/OpenFLProject.hx"
         ,"src/kha/KhaProject.hx"
-        ,"src/newprojectdialog/NewProjectDialog.hx"
         ,"bin/core/config/settings.json"
         ,"bin/core/metrodark.css"
+        ,"libs/hxparse/src/hxparse/RuleBuilder.hx"
     ]
     ,"activeFile" : "bin/core/metrodark.css"
     ,"openFLTarget" : null

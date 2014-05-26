@@ -99,6 +99,96 @@
 	margin-top: -1px;
 }
 
+ul.tabs li
+{
+    border-radius: 0; 
+    color: #FFFFFF;
+    background-color: #3E3E42;
+    border: none;
+    position: static;
+}
+
+ul.tabs li.selected
+{
+	color: #FFFFFF;
+    background-color: #007ACC;
+}
+
+ul.tabs li:hover
+{
+    color: #FFFFFF;
+    background-color: #1C97EA;
+}
+
+#editor
+{
+    background-color: #343838;
+}
+
+.CodeMirror
+{
+    border-color: #343838;
+}
+
+/* Output tab styling */
+#outputTextArea
+{
+    border: none;
+    color: #FFFFFF;
+    background-color: #252526;
+}
+
+/* Annotation ruler styling */
+#annotationRuler
+{
+    background-color: #3E3E42;
+}
+
+.errorMarker
+{
+    background-color: #007ACC;
+}
+
+/* Function parameters hint */
+.lint-error 
+{
+    background: #252526;
+    color: #FFFFFF;
+    padding: 2px 5px;
+    font-weight: 700;
+    font-size: small;
+    opacity: .7;
+}
+
+.selectedParameter
+{
+    color: #FFFFFF;
+	background-color: #3E3E42;
+}
+
+/* Results tab */
+#errors>a
+{
+    color: #FFFFFF;
+	background-color: #252526;
+    border-color: #35353A;
+}
+
+/* Search toolbar */
+.CodeMirror-dialog {
+  background: #252526;
+  color: #FFFFFF;
+}
+
+.CodeMirror-dialog-top {
+  border-bottom: 1px solid #35353A;
+}
+
+.CodeMirror-dialog-bottom 
+{
+  border-top: 1px solid #35353A;
+}
+
 .jqx-rc-tl
 {
     -moz-border-radius-topleft: 0px;
