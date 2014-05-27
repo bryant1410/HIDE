@@ -15014,7 +15014,7 @@ parser.RegexParser.getFileImportsList = function(data) {
 parser.RegexParser.getFilePackage = function(data) {
 	var filePackage = null;
 	var pos = null;
-	var ereg = new EReg("package ([^;]*);$","m");
+	var ereg = new EReg("package *([^;]*);$","m");
 	if(ereg.match(data)) {
 		filePackage = StringTools.trim(ereg.matched(1));
 		pos = ereg.matchedPos().pos;

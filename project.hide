@@ -13,11 +13,12 @@
     ,"files" : [
          "src/openflproject/OpenFLProject.hx"
         ,"src/kha/KhaProject.hx"
-        ,"bin/core/config/settings.json"
-        ,"bin/core/metrodark.css"
-        ,"libs/hxparse/src/hxparse/RuleBuilder.hx"
+        ,"src/cm/Editor.hx"
+        ,"src/core/ImportDefinition.hx"
+        ,"src/core/Completion.hx"
+        ,"src/parser/RegexParser.hx"
     ]
-    ,"activeFile" : "bin/core/metrodark.css"
+    ,"activeFile" : "src/parser/RegexParser.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

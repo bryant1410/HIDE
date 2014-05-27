@@ -28,7 +28,7 @@ class RegexParser
         var filePackage:String = null;
         var pos:Int = null;
         
-        var ereg = ~/package ([^;]*);$/m;
+        var ereg = ~/package *([^;]*);$/m;
         
         if (ereg.match(data))
         {

@@ -77,7 +77,7 @@ module.exports = function(grunt) {
 			{
 				'bin/core/includes/css/main.css': 
 					[
-					'libs/css/*',
+					'libs/css/*.css',
 					'!libs/css/HIDE.css',
 					'libs/js/CodeMirror/lib/codemirror.css',
 					'libs/js/CodeMirror/theme/*',

@@ -441,6 +441,12 @@ class Editor
 			var eConst = EConst(CString(theme.split(".").shift()));
 			result.push( { expr: eConst, pos: p } );
 		}
+        
+//         for (theme in sys.FileSystem.readDirectory(Sys.getCwd() + "libs/css/theme"))
+// 		{
+// 			var eConst = EConst(CString(theme.split(".").shift()));
+// 			result.push( { expr: eConst, pos: p } );
+// 		}
 		
 		return { expr: EArrayDecl(result), pos: p };
     }
