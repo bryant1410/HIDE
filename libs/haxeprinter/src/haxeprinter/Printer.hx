@@ -66,7 +66,7 @@ class Printer
 	}
 
 
-	public function printAST(ast:{pack:Array<String>, decls:Array<TypeDef>})
+	public function printAST(ast:{pack:Array<String>, decls:Array<TypeDecl>})
 	{
 		indentLevel = 0;
 		indent = '';
@@ -76,7 +76,7 @@ class Printer
 		lineLen = 0;
 
 		printPackage(ast.pack);
-		for (type in ast.decls) printType(type);
+		for (type in ast.decls) printType(type.decl);
 
 		return buf.toString();
 	}

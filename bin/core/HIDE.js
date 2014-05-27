@@ -1195,15 +1195,40 @@ cm.Editor.load = function() {
 	}(this)), '=' : (function($this) {
 		var $r;
 		var passAndHint2 = function(cm2) {
-			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
-				var completionActive1 = cm.Editor.editor.state.completionActive;
+			var mode = tabmanager.TabManager.getCurrentDocument().getMode().name;
+			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe") {
+				var completionActive1 = cm2.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
-			}
+			} else if(mode == "xml") cm.Xml.completeIfInTag(cm2);
 			return CodeMirror.Pass;
 		};
 		$r = passAndHint2;
 		return $r;
-	}(this))};
+	}(this)), '<' : (function($this) {
+		var $r;
+		var passAndHint3 = function(cm21) {
+			cm.Xml.completeAfter(cm21);
+			return CodeMirror.Pass;
+		};
+		$r = passAndHint3;
+		return $r;
+	}(this)), '/' : (function($this) {
+		var $r;
+		var passAndHint4 = function(cm22) {
+			cm.Xml.completeIfAfterLt(cm22);
+			return CodeMirror.Pass;
+		};
+		$r = passAndHint4;
+		return $r;
+	}(this)), ' ' : (function($this) {
+		var $r;
+		var passAndHint5 = function(cm23) {
+			cm.Xml.completeIfInTag(cm23);
+			return CodeMirror.Pass;
+		};
+		$r = passAndHint5;
+		return $r;
+	}(this)), 'Ctrl-J' : "toMatchingTag"};
 	cm.Editor.editor = CodeMirror.fromTextArea(window.document.getElementById("code"),options);
 	cm.Editor.editor.on("keypress",function(cm3,e) {
 		if(e.shiftKey) {
@@ -1299,6 +1324,7 @@ cm.Editor.load = function() {
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
 	};
+	cm.Xml.generateXmlCompletion();
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -1312,6 +1338,9 @@ cm.Editor.triggerCompletion = function(cm1,dot) {
 		break;
 	case "hxml":
 		core.Completion.showHxmlCompletion();
+		break;
+	case "xml":
+		cm1.showHint({ completeSingle : false});
 		break;
 	default:
 	}
@@ -1381,6 +1410,38 @@ cm.Editor.loadThemes = function(themes,onComplete) {
 cm.Editor.setTheme = function(theme) {
 	cm.Editor.editor.setOption("theme",theme);
 	js.Browser.getLocalStorage().setItem("theme",theme);
+};
+cm.Xml = function() { };
+$hxClasses["cm.Xml"] = cm.Xml;
+cm.Xml.__name__ = ["cm","Xml"];
+cm.Xml.generateXmlCompletion = function() {
+	var dummy = { attrs : { color : ["red","green","blue","purple","white","black","yellow"], size : ["large","medium","small"], description : null}, children : []};
+	cm.Xml.tags = { '!top' : ["top"], '!attrs' : { id : null}, top : { attrs : { lang : ["en","de","fr","nl"], freeform : null}, children : ["animal","plant"]}, animal : { attrs : { name : null, isduck : ["yes","no"]}, children : ["wings","feet","body","head","tail"]}, plant : { attrs : { name : null}, children : ["leaves","stem","flowers"]}, wings : dummy, feet : dummy, body : dummy, head : dummy, tail : dummy, leaves : dummy, stem : dummy, flowers : dummy};
+	cm.Editor.editor.setOption("hintOptions",{ schemaInfo : cm.Xml.tags});
+};
+cm.Xml.completeAfter = function(cm,pred) {
+	console.log("completeAfter");
+	var cur = cm.getCursor();
+	if(pred == null || pred() != null) haxe.Timer.delay(function() {
+		if(cm.state.completionActive == null) cm.showHint({ completeSingle : false});
+	},100);
+	return CodeMirror.Pass;
+};
+cm.Xml.completeIfAfterLt = function(cm1) {
+	console.log("completeIfAfterLt");
+	return cm.Xml.completeAfter(cm1,function() {
+		var cur = cm1.getCursor();
+		return cm1.getRange({ line : cur.line, ch : cur.ch - 1},cur) == "<";
+	});
+};
+cm.Xml.completeIfInTag = function(cm1) {
+	console.log("completeIfInTag");
+	return cm.Xml.completeAfter(cm1,function() {
+		var tok = cm1.getTokenAt(cm1.getCursor());
+		if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+		var inner = CodeMirror.innerMode(cm1.getMode(),tok.state).state;
+		return inner.tagName;
+	});
 };
 cm.Zoom = function() { };
 $hxClasses["cm.Zoom"] = cm.Zoom;
@@ -2800,33 +2861,36 @@ core.HaxeParserProvider.getClassName = function() {
 			while(_g < _g1.length) {
 				var decl = _g1[_g];
 				++_g;
-				switch(decl[1]) {
-				case 3:
-					var mode = decl[3];
-					var sl = decl[2];
-					core.HaxeParserProvider.currentClass = null;
-					if(core.HaxeParserProvider.processImport(sl,mode,pos)) throw "__break__";
-					break;
-				case 5:
-					var path1 = decl[2];
-					core.HaxeParserProvider.currentClass = null;
-					break;
-				case 2:
-					var data1 = decl[2];
-					core.HaxeParserProvider.currentClass = null;
-					break;
-				case 0:
-					var data2 = decl[2];
-					if(core.HaxeParserProvider.processClass(data2,pos)) throw "__break__";
-					break;
-				case 1:
-					var data3 = decl[2];
-					core.HaxeParserProvider.currentClass = null;
-					break;
-				case 4:
-					var data4 = decl[2];
-					core.HaxeParserProvider.currentClass = null;
-					break;
+				{
+					var _g2 = decl.decl;
+					switch(_g2[1]) {
+					case 3:
+						var mode = _g2[3];
+						var sl = _g2[2];
+						core.HaxeParserProvider.currentClass = null;
+						if(core.HaxeParserProvider.processImport(sl,mode,pos)) throw "__break__";
+						break;
+					case 5:
+						var path1 = _g2[2];
+						core.HaxeParserProvider.currentClass = null;
+						break;
+					case 2:
+						var data1 = _g2[2];
+						core.HaxeParserProvider.currentClass = null;
+						break;
+					case 0:
+						var data2 = _g2[2];
+						if(core.HaxeParserProvider.processClass(data2,pos)) throw "__break__";
+						break;
+					case 1:
+						var data3 = _g2[2];
+						core.HaxeParserProvider.currentClass = null;
+						break;
+					case 4:
+						var data4 = _g2[2];
+						core.HaxeParserProvider.currentClass = null;
+						break;
+					}
 				}
 			}
 		} catch( e ) { if( e != "__break__" ) throw e; }
@@ -3451,7 +3515,9 @@ core.MenuCommands.add = function() {
 		},10);
 	},"Ctrl-Shift-O");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
-	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,cm.Editor.triggerCompletion,"Ctrl-Space");
+	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,function() {
+		return cm.Editor.triggerCompletion(cm.Editor.editor);
+	},"Ctrl-Space");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment",5,function() {
 		return cm.Editor.editor.execCommand("toggleComment");
 	},"Ctrl-Q");
@@ -3604,7 +3670,8 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 				if(args.length > 3) {
 					var relativePath = args[0];
 					var fullPath = [js.Node.require("path").join(projectaccess.ProjectAccess.path,relativePath)];
-					var data = [];
+					if(!core.HaxeLint.fileData.exists(fullPath[0])) core.HaxeLint.fileData.set(fullPath[0],[]);
+					var data = core.HaxeLint.fileData.get(fullPath[0]);
 					core.HaxeLint.fileData.set(fullPath[0],data);
 					var lineNumber = [Std.parseInt(args[1]) - 1];
 					var charsData = null;
@@ -8611,7 +8678,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeLexer_ha
 	,parseTypeDecls: function(pack,acc) {
 		try {
 			var v = this.parseTypeDecl();
-			var l = this.parseTypeDecls(pack,haxeparser.HaxeParser.aadd(acc,v.decl));
+			var l = this.parseTypeDecls(pack,haxeparser.HaxeParser.aadd(acc,v));
 			return l;
 		} catch( _ ) {
 			if( js.Boot.__instanceof(_,hxparse.NoMatch) ) {
@@ -12295,7 +12362,7 @@ haxeprinter.Printer.prototype = {
 		while(_g < _g1.length) {
 			var type = _g1[_g];
 			++_g;
-			this.printType(type);
+			this.printType(type.decl);
 		}
 		return this.buf.b;
 	}
@@ -14409,35 +14476,38 @@ parser.ClassParser.parseDeclarations = function(ast,mainClass,std) {
 	while(_g < _g1.length) {
 		var decl = _g1[_g];
 		++_g;
-		switch(decl[1]) {
-		case 3:
-			var mode = decl[3];
-			var sl = decl[2];
-			break;
-		case 5:
-			var path = decl[2];
-			break;
-		case 2:
-			var data = decl[2];
-			var className = parser.ClassParser.resolveClassName(ast.pack,mainClass,data.name);
-			parser.ClassParser.addClassName(className,std);
-			break;
-		case 0:
-			var data1 = decl[2];
-			var className1 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data1.name);
-			parser.ClassParser.processClass(className1,data1);
-			parser.ClassParser.addClassName(className1,std);
-			break;
-		case 1:
-			var data2 = decl[2];
-			var className2 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data2.name);
-			parser.ClassParser.addClassName(className2,std);
-			break;
-		case 4:
-			var data3 = decl[2];
-			var className3 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data3.name);
-			parser.ClassParser.addClassName(className3,std);
-			break;
+		{
+			var _g2 = decl.decl;
+			switch(_g2[1]) {
+			case 3:
+				var mode = _g2[3];
+				var sl = _g2[2];
+				break;
+			case 5:
+				var path = _g2[2];
+				break;
+			case 2:
+				var data = _g2[2];
+				var className = parser.ClassParser.resolveClassName(ast.pack,mainClass,data.name);
+				parser.ClassParser.addClassName(className,std);
+				break;
+			case 0:
+				var data1 = _g2[2];
+				var className1 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data1.name);
+				parser.ClassParser.processClass(className1,data1);
+				parser.ClassParser.addClassName(className1,std);
+				break;
+			case 1:
+				var data2 = _g2[2];
+				var className2 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data2.name);
+				parser.ClassParser.addClassName(className2,std);
+				break;
+			case 4:
+				var data3 = _g2[2];
+				var className3 = parser.ClassParser.resolveClassName(ast.pack,mainClass,data3.name);
+				parser.ClassParser.addClassName(className3,std);
+				break;
+			}
 		}
 	}
 };
@@ -14757,66 +14827,69 @@ parser.OutlineHelper.parseDeclarations = function(ast) {
 	while(_g < _g1.length) {
 		var decl = _g1[_g];
 		++_g;
-		switch(decl[1]) {
-		case 3:
-			var mode = decl[3];
-			var sl = decl[2];
-			fileImports = fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
-			break;
-		case 5:
-			var path = decl[2];
-			break;
-		case 2:
-			var data = decl[2];
-			var treeItem = { label : data.name};
-			treeItem.expanded = true;
-			treeItems.push(treeItem);
-			break;
-		case 0:
-			var data1 = decl[2];
-			var treeItem1 = { label : data1.name};
-			var items = [];
-			treeItem1.items = items;
-			treeItem1.expanded = true;
-			var _g2 = 0;
-			var _g3 = parser.OutlineHelper.getClassFields(data1);
-			while(_g2 < _g3.length) {
-				var item = _g3[_g2];
-				++_g2;
-				items.push({ label : item.name, value : item.pos});
+		{
+			var _g2 = decl.decl;
+			switch(_g2[1]) {
+			case 3:
+				var mode = _g2[3];
+				var sl = _g2[2];
+				fileImports = fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
+				break;
+			case 5:
+				var path = _g2[2];
+				break;
+			case 2:
+				var data = _g2[2];
+				var treeItem = { label : data.name};
+				treeItem.expanded = true;
+				treeItems.push(treeItem);
+				break;
+			case 0:
+				var data1 = _g2[2];
+				var treeItem1 = { label : data1.name};
+				var items = [];
+				treeItem1.items = items;
+				treeItem1.expanded = true;
+				var _g3 = 0;
+				var _g4 = parser.OutlineHelper.getClassFields(data1);
+				while(_g3 < _g4.length) {
+					var item = _g4[_g3];
+					++_g3;
+					items.push({ label : item.name, value : item.pos});
+				}
+				treeItems.push(treeItem1);
+				break;
+			case 1:
+				var data2 = _g2[2];
+				var treeItem2 = { label : data2.name};
+				var items1 = [];
+				treeItem2.items = items1;
+				treeItem2.expanded = true;
+				treeItems.push(treeItem2);
+				var _g31 = 0;
+				var _g41 = data2.data;
+				while(_g31 < _g41.length) {
+					var item1 = _g41[_g31];
+					++_g31;
+					items1.push({ label : item1.name, value : item1.pos.min});
+				}
+				break;
+			case 4:
+				var data3 = _g2[2];
+				var treeItem3 = { label : data3.name};
+				var items2 = [];
+				treeItem3.items = items2;
+				treeItem3.expanded = true;
+				treeItems.push(treeItem3);
+				var _g32 = 0;
+				var _g42 = parser.OutlineHelper.getTypeDefFields(data3);
+				while(_g32 < _g42.length) {
+					var item2 = _g42[_g32];
+					++_g32;
+					items2.push({ label : item2.name, value : item2.pos});
+				}
+				break;
 			}
-			treeItems.push(treeItem1);
-			break;
-		case 1:
-			var data2 = decl[2];
-			var treeItem2 = { label : data2.name};
-			var items1 = [];
-			treeItem2.items = items1;
-			treeItem2.expanded = true;
-			treeItems.push(treeItem2);
-			var _g21 = 0;
-			var _g31 = data2.data;
-			while(_g21 < _g31.length) {
-				var item1 = _g31[_g21];
-				++_g21;
-				items1.push({ label : item1.name, value : item1.pos.min});
-			}
-			break;
-		case 4:
-			var data3 = decl[2];
-			var treeItem3 = { label : data3.name};
-			var items2 = [];
-			treeItem3.items = items2;
-			treeItem3.expanded = true;
-			treeItems.push(treeItem3);
-			var _g22 = 0;
-			var _g32 = parser.OutlineHelper.getTypeDefFields(data3);
-			while(_g22 < _g32.length) {
-				var item2 = _g32[_g22];
-				++_g22;
-				items2.push({ label : item2.name, value : item2.pos});
-			}
-			break;
 		}
 	}
 	return { fileImports : fileImports, treeItems : treeItems};

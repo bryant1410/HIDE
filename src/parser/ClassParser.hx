@@ -1,4 +1,5 @@
 package parser;
+import haxeparser.Data.TypeDecl;
 import byte.ByteData;
 import cm.Editor;
 import haxe.ds.StringMap.StringMap;
@@ -102,9 +103,9 @@ class ClassParser
 		}
 	}
 	
-	static function parseDeclarations(ast:{decls:Array<TypeDef>, pack:Array<String>}, mainClass:String, std:Bool) 
+	static function parseDeclarations(ast:{decls:Array<TypeDecl>, pack:Array<String>}, mainClass:String, std:Bool) 
 	{		
-		for (decl in ast.decls) switch (decl) 
+		for (decl in ast.decls) switch (decl.decl) 
 		{
 			case EImport(sl, mode): 
 			case EUsing(path): 

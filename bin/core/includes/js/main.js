@@ -474,6 +474,10 @@ License: http://jqwidgets.com/license/
 
   // SCROLLBARS
 
+  function hScrollbarTakesSpace(cm) {
+    return cm.display.scroller.clientHeight - cm.display.wrapper.clientHeight < scrollerCutOff - 3;
+  }
+
   // Prepare DOM reads needed to update the scrollbars. Done in one
   // shot to minimize update/measure roundtrips.
   function measureForScrollbars(cm) {
@@ -482,6 +486,7 @@ License: http://jqwidgets.com/license/
       clientHeight: scroll.clientHeight,
       barHeight: cm.display.scrollbarV.clientHeight,
       scrollWidth: scroll.scrollWidth, clientWidth: scroll.clientWidth,
+      hScrollbarTakesSpace: hScrollbarTakesSpace(cm),
       barWidth: cm.display.scrollbarH.clientWidth,
       docHeight: Math.round(cm.doc.height + paddingVert(cm.display))
     };
@@ -491,13 +496,17 @@ License: http://jqwidgets.com/license/
   // content.
   function updateScrollbars(cm, measure) {
     if (!measure) measure = measureForScrollbars(cm);
-    var d = cm.display;
+    var d = cm.display, sWidth = scrollbarWidth(d.measure);
     var scrollHeight = measure.docHeight + scrollerCutOff;
     var needsH = measure.scrollWidth > measure.clientWidth;
+    if (needsH && measure.scrollWidth <= measure.clientWidth + 1 &&
+        sWidth > 0 && !measure.hScrollbarTakesSpace)
+      needsH = false; // (Issue #2562)
     var needsV = scrollHeight > measure.clientHeight;
+
     if (needsV) {
       d.scrollbarV.style.display = "block";
-      d.scrollbarV.style.bottom = needsH ? scrollbarWidth(d.measure) + "px" : "0";
+      d.scrollbarV.style.bottom = needsH ? sWidth + "px" : "0";
       // A bug in IE8 can cause this value to be negative, so guard it.
       d.scrollbarV.firstChild.style.height =
         Math.max(0, scrollHeight - measure.clientHeight + (measure.barHeight || d.scrollbarV.clientHeight)) + "px";
@@ -507,7 +516,7 @@ License: http://jqwidgets.com/license/
     }
     if (needsH) {
       d.scrollbarH.style.display = "block";
-      d.scrollbarH.style.right = needsV ? scrollbarWidth(d.measure) + "px" : "0";
+      d.scrollbarH.style.right = needsV ? sWidth + "px" : "0";
       d.scrollbarH.firstChild.style.width =
         (measure.scrollWidth - measure.clientWidth + (measure.barWidth || d.scrollbarH.clientWidth)) + "px";
     } else {
@@ -516,16 +525,16 @@ License: http://jqwidgets.com/license/
     }
     if (needsH && needsV) {
       d.scrollbarFiller.style.display = "block";
-      d.scrollbarFiller.style.height = d.scrollbarFiller.style.width = scrollbarWidth(d.measure) + "px";
+      d.scrollbarFiller.style.height = d.scrollbarFiller.style.width = sWidth + "px";
     } else d.scrollbarFiller.style.display = "";
     if (needsH && cm.options.coverGutterNextToScrollbar && cm.options.fixedGutter) {
       d.gutterFiller.style.display = "block";
-      d.gutterFiller.style.height = scrollbarWidth(d.measure) + "px";
+      d.gutterFiller.style.height = sWidth + "px";
       d.gutterFiller.style.width = d.gutters.offsetWidth + "px";
     } else d.gutterFiller.style.display = "";
 
     if (!cm.state.checkedOverlayScrollbar && measure.clientHeight > 0) {
-      if (scrollbarWidth(d.measure) === 0) {
+      if (sWidth === 0) {
         var w = mac && !mac_geMountainLion ? "12px" : "18px";
         d.scrollbarV.style.minWidth = d.scrollbarH.style.minHeight = w;
         var barMouseDown = function(e) {
@@ -640,6 +649,10 @@ License: http://jqwidgets.com/license/
       updateScrollbars(cm, barMeasure);
       if (webkit && cm.options.lineWrapping)
         checkForWebkitWidthBug(cm, barMeasure); // (Issue #2420)
+      if (webkit && barMeasure.scrollWidth > barMeasure.clientWidth &&
+          barMeasure.scrollWidth < barMeasure.clientWidth + 1 &&
+          !hScrollbarTakesSpace(cm))
+        updateScrollbars(cm); // (Issue #2562)
       if (first && cm.options.lineWrapping && oldWidth != cm.display.scroller.clientWidth) {
         forced = true;
         continue;
@@ -1357,7 +1370,7 @@ License: http://jqwidgets.com/license/
 
   // Draws a cursor for the given range
   function drawSelectionCursor(cm, range, output) {
-    var pos = cursorCoords(cm, range.head, "div");
+    var pos = cursorCoords(cm, range.head, "div", null, null, !cm.options.singleCursorHeightPerLine);
 
     var cursor = output.appendChild(elt("div", "\u00a0", "CodeMirror-cursor"));
     cursor.style.left = pos.left + "px";
@@ -1639,7 +1652,7 @@ License: http://jqwidgets.com/license/
 
   // Given a prepared measurement object, measures the position of an
   // actual character (or fetches it from the cache).
-  function measureCharPrepared(cm, prepared, ch, bias) {
+  function measureCharPrepared(cm, prepared, ch, bias, varHeight) {
     if (prepared.before) ch = -1;
     var key = ch + (bias || ""), found;
     if (prepared.cache.hasOwnProperty(key)) {
@@ -1654,9 +1667,9 @@ License: http://jqwidgets.com/license/
       found = measureCharInner(cm, prepared, ch, bias);
       if (!found.bogus) prepared.cache[key] = found;
     }
-    var copy = {left: found.left, right: found.right, top: found.top, bottom: found.bottom};
-    if (!cm.options.singleCursorHeightPerLine) { copy.rtop = found.rtop; copy.rbottom = found.rbottom; }
-    return copy;
+    return {left: found.left, right: found.right,
+            top: varHeight ? found.rtop : found.top,
+            bottom: varHeight ? found.rbottom : found.bottom};
   }
 
   var nullRect = {left: 0, right: 0, top: 0, bottom: 0};
@@ -1819,13 +1832,12 @@ License: http://jqwidgets.com/license/
   // Returns a box for a given cursor position, which may have an
   // 'other' property containing the position of the secondary cursor
   // on a bidi boundary.
-  function cursorCoords(cm, pos, context, lineObj, preparedMeasure) {
+  function cursorCoords(cm, pos, context, lineObj, preparedMeasure, varHeight) {
     lineObj = lineObj || getLine(cm.doc, pos.line);
     if (!preparedMeasure) preparedMeasure = prepareMeasureForLine(cm, lineObj);
     function get(ch, right) {
-      var m = measureCharPrepared(cm, preparedMeasure, ch, right ? "right" : "left");
+      var m = measureCharPrepared(cm, preparedMeasure, ch, right ? "right" : "left", varHeight);
       if (right) m.left = m.right; else m.right = m.left;
-      if (!cm.options.singleCursorHeightPerLine) { m.top = m.rtop; m.bottom = m.rbottom; }
       return intoCoordSystem(cm, lineObj, m, context);
     }
     function getBidi(ch, partPos) {
@@ -3796,12 +3808,12 @@ License: http://jqwidgets.com/license/
   // Utility for applying a change to a line by handle or number,
   // returning the number and optionally registering the line as
   // changed.
-  function changeLine(cm, handle, changeType, op) {
-    var no = handle, line = handle, doc = cm.doc;
+  function changeLine(doc, handle, changeType, op) {
+    var no = handle, line = handle;
     if (typeof handle == "number") line = getLine(doc, clipLine(doc, handle));
     else no = lineNo(handle);
     if (no == null) return null;
-    if (op(line, no)) regLineChange(cm, no, changeType);
+    if (op(line, no) && doc.cm) regLineChange(doc.cm, no, changeType);
     return line;
   }
 
@@ -4116,7 +4128,7 @@ License: http://jqwidgets.com/license/
     defaultCharWidth: function() { return charWidth(this.display); },
 
     setGutterMarker: methodOp(function(line, gutterID, value) {
-      return changeLine(this, line, "gutter", function(line) {
+      return changeLine(this.doc, line, "gutter", function(line) {
         var markers = line.gutterMarkers || (line.gutterMarkers = {});
         markers[gutterID] = value;
         if (!value && isEmpty(markers)) line.gutterMarkers = null;
@@ -4133,32 +4145,6 @@ License: http://jqwidgets.com/license/
           if (isEmpty(line.gutterMarkers)) line.gutterMarkers = null;
         }
         ++i;
-      });
-    }),
-
-    addLineClass: methodOp(function(handle, where, cls) {
-      return changeLine(this, handle, "class", function(line) {
-        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
-        if (!line[prop]) line[prop] = cls;
-        else if (new RegExp("(?:^|\\s)" + cls + "(?:$|\\s)").test(line[prop])) return false;
-        else line[prop] += " " + cls;
-        return true;
-      });
-    }),
-
-    removeLineClass: methodOp(function(handle, where, cls) {
-      return changeLine(this, handle, "class", function(line) {
-        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
-        var cur = line[prop];
-        if (!cur) return false;
-        else if (cls == null) line[prop] = null;
-        else {
-          var found = cur.match(new RegExp("(?:^|\\s+)" + cls + "(?:$|\\s+)"));
-          if (!found) return false;
-          var end = found.index + found[0].length;
-          line[prop] = cur.slice(0, found.index) + (!found.index || end == cur.length ? "" : " ") + cur.slice(end) || null;
-        }
-        return true;
       });
     }),
 
@@ -5630,7 +5616,7 @@ License: http://jqwidgets.com/license/
   function addLineWidget(cm, handle, node, options) {
     var widget = new LineWidget(cm, node, options);
     if (widget.noHScroll) cm.display.alignWidgets = true;
-    changeLine(cm, handle, "widget", function(line) {
+    changeLine(cm.doc, handle, "widget", function(line) {
       var widgets = line.widgets || (line.widgets = []);
       if (widget.insertAt == null) widgets.push(widget);
       else widgets.splice(Math.min(widgets.length - 1, Math.max(0, widget.insertAt)), 0, widget);
@@ -6434,6 +6420,31 @@ License: http://jqwidgets.com/license/
       hist.done = copyHistoryArray(histData.done.slice(0), null, true);
       hist.undone = copyHistoryArray(histData.undone.slice(0), null, true);
     },
+
+    addLineClass: docMethodOp(function(handle, where, cls) {
+      return changeLine(this, handle, "class", function(line) {
+        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
+        if (!line[prop]) line[prop] = cls;
+        else if (new RegExp("(?:^|\\s)" + cls + "(?:$|\\s)").test(line[prop])) return false;
+        else line[prop] += " " + cls;
+        return true;
+      });
+    }),
+    removeLineClass: docMethodOp(function(handle, where, cls) {
+      return changeLine(this, handle, "class", function(line) {
+        var prop = where == "text" ? "textClass" : where == "background" ? "bgClass" : "wrapClass";
+        var cur = line[prop];
+        if (!cur) return false;
+        else if (cls == null) line[prop] = null;
+        else {
+          var found = cur.match(new RegExp("(?:^|\\s+)" + cls + "(?:$|\\s+)"));
+          if (!found) return false;
+          var end = found.index + found[0].length;
+          line[prop] = cur.slice(0, found.index) + (!found.index || end == cur.length ? "" : " ") + cur.slice(end) || null;
+        }
+        return true;
+      });
+    }),
 
     markText: function(from, to, options) {
       return markText(this, clipPos(this, from), clipPos(this, to), options, "range");
@@ -9826,7 +9837,8 @@ License: http://jqwidgets.com/license/
           visualMode: false,
           // If we are in visual line mode. No effect if visualMode is false.
           visualLine: false,
-          lastSelection: null
+          lastSelection: null,
+          lastPastedText: null
         };
       }
       return cm.state.vim;
@@ -11216,9 +11228,20 @@ License: http://jqwidgets.com/license/
             : curStart);
       },
       reselectLastSelection: function(cm, _actionArgs, vim) {
-        if (vim.lastSelection) {
-          var lastSelection = vim.lastSelection;
-          cm.setSelection(lastSelection.curStart, lastSelection.curEnd);
+        var lastSelection = vim.lastSelection;
+        if (lastSelection) {
+          var curStart = lastSelection.curStartMark.find();
+          var curEnd = lastSelection.curEndMark.find();
+          cm.setSelection(curStart, curEnd);
+          if (vim.visualMode) {
+            updateLastSelection(cm, vim);
+            var selectionStart = cm.getCursor('anchor');
+            var selectionEnd = cm.getCursor('head');
+            updateMark(cm, vim, '<', cursorIsBefore(selectionStart, selectionEnd) ? selectionStart
+            : selectionEnd);
+            updateMark(cm, vim, '>', cursorIsBefore(selectionStart, selectionEnd) ? selectionEnd
+            : selectionStart);
+          }
           if (lastSelection.visualLine) {
             vim.visualMode = true;
             vim.visualLine = true;
@@ -11332,12 +11355,19 @@ License: http://jqwidgets.com/license/
         var curPosFinal;
         var idx;
         if (vim.visualMode) {
+          //  save the pasted text for reselection if the need arises
+          vim.lastPastedText = text;
+          var lastSelectionCurEnd;
           var selectedArea = getSelectedAreaRange(cm, vim);
           var selectionStart = selectedArea[0];
           var selectionEnd = selectedArea[1];
+          // save the curEnd marker before it get cleared due to cm.replaceRange.
+          if (vim.lastSelection) lastSelectionCurEnd = vim.lastSelection.curEndMark.find();
           // push the previously selected text to unnamed register
           vimGlobalState.registerController.unnamedRegister.setText(cm.getRange(selectionStart, selectionEnd));
           cm.replaceRange(text, selectionStart, selectionEnd);
+          // restore the the curEnd marker
+          if(lastSelectionCurEnd) vim.lastSelection.curEndMark = cm.setBookmark(lastSelectionCurEnd);
           curPosFinal = cm.posFromIndex(cm.indexFromPos(selectionStart) + text.length - 1);
           if(linewise)curPosFinal.ch=0;
         } else {
@@ -11456,9 +11486,13 @@ License: http://jqwidgets.com/license/
         var selectedAreaRange = getSelectedAreaRange(cm, vim);
         var selectionStart = selectedAreaRange[0];
         var selectionEnd = selectedAreaRange[1];
+        // save the curEnd marker to avoid its removal due to cm.replaceRange
+        var lastSelectionCurEnd = vim.lastSelection.curEndMark.find();
         var toLower = actionArgs.toLower;
         var text = cm.getRange(selectionStart, selectionEnd);
         cm.replaceRange(toLower ? text.toLowerCase() : text.toUpperCase(), selectionStart, selectionEnd);
+        // restore the last selection curEnd marker
+        vim.lastSelection.curEndMark = cm.setBookmark(lastSelectionCurEnd);
         cm.setCursor(selectionStart);
       }
     };
@@ -11547,8 +11581,10 @@ License: http://jqwidgets.com/license/
       var selectionEnd = cm.getCursor('head');
       var lastSelection = vim.lastSelection;
       if (!vim.visualMode) {
-        var line = lastSelection.curEnd.line - lastSelection.curStart.line;
-        var ch = line ? lastSelection.curEnd.ch : lastSelection.curEnd.ch - lastSelection.curStart.ch;
+        var lastSelectionCurStart = vim.lastSelection.curStartMark.find();
+        var lastSelectionCurEnd = vim.lastSelection.curEndMark.find();
+        var line = lastSelectionCurEnd.line - lastSelectionCurStart.line;
+        var ch = line ? lastSelectionCurEnd.ch : lastSelectionCurEnd.ch - lastSelectionCurStart.ch;
         selectionEnd = {line: selectionEnd.line + line, ch: line ? selectionEnd.ch : ch + selectionEnd.ch};
         if (lastSelection.visualLine) {
           return [{line: selectionStart.line, ch: 0}, {line: selectionEnd.line, ch: lineLength(cm, selectionEnd.line)}];
@@ -11565,18 +11601,32 @@ License: http://jqwidgets.com/license/
       }
       return [selectionStart, selectionEnd];
     }
+    function updateLastSelection(cm, vim) {
+      // We need the vim mark '<' to get the selection in case of yank and put
+      var selectionStart =  vim.marks['<'].find() || cm.getCursor('anchor');
+      var selectionEnd =  vim.marks['>'].find() ||cm.getCursor('head');
+      // To accommodate the effect lastPastedText in the last selection
+      if (vim.lastPastedText) {
+        selectionEnd = cm.posFromIndex(cm.indexFromPos(selectionStart) + vim.lastPastedText.length-1);
+        vim.lastPastedText = null;
+      }
+      // can't use selection state here because yank has already reset its cursor
+      // Also, Bookmarks make the visual selections robust to edit operations
+      vim.lastSelection = {'curStartMark': cm.setBookmark(selectionStart), 'curEndMark': cm.setBookmark(selectionEnd), 'visualMode': vim.visualMode, 'visualLine': vim.visualLine};
+      if (cursorIsBefore(selectionEnd, selectionStart)) {
+        vim.lastSelection.curStartMark = cm.setBookmark(selectionEnd);
+        vim.lastSelection.curEndMark = cm.setBookmark(selectionStart);
+      }
+    }
 
     function exitVisualMode(cm) {
       cm.off('mousedown', exitVisualMode);
       var vim = cm.state.vim;
-      // can't use selection state here because yank has already reset its cursor
-      vim.lastSelection = {'curStart': vim.marks['<'].find(),
-        'curEnd': vim.marks['>'].find(), 'visualMode': vim.visualMode,
-        'visualLine': vim.visualLine};
-      vim.visualMode = false;
-      vim.visualLine = false;
       var selectionStart = cm.getCursor('anchor');
       var selectionEnd = cm.getCursor('head');
+      updateLastSelection(cm, vim);
+      vim.visualMode = false;
+      vim.visualLine = false;
       if (!cursorEqual(selectionStart, selectionEnd)) {
         // Clear the selection and set the cursor only if the selection has not
         // already been cleared. Otherwise we risk moving the cursor somewhere
@@ -13863,6 +13913,102 @@ License: http://jqwidgets.com/license/
   else // Plain browser env
     mod(CodeMirror);
 })(function(CodeMirror) {
+  "use strict";
+
+  var Pos = CodeMirror.Pos;
+
+  function getHints(cm, options) {
+    var tags = options && options.schemaInfo;
+    var quote = (options && options.quoteChar) || '"';
+    if (!tags) return;
+    var cur = cm.getCursor(), token = cm.getTokenAt(cur);
+    var inner = CodeMirror.innerMode(cm.getMode(), token.state);
+    if (inner.mode.name != "xml") return;
+    var result = [], replaceToken = false, prefix;
+    var tag = /\btag\b/.test(token.type), tagName = tag && /^\w/.test(token.string), tagStart;
+    if (tagName) {
+      var before = cm.getLine(cur.line).slice(Math.max(0, token.start - 2), token.start);
+      var tagType = /<\/$/.test(before) ? "close" : /<$/.test(before) ? "open" : null;
+      if (tagType) tagStart = token.start - (tagType == "close" ? 2 : 1);
+    } else if (tag && token.string == "<") {
+      tagType = "open";
+    } else if (tag && token.string == "</") {
+      tagType = "close";
+    }
+    if (!tag && !inner.state.tagName || tagType) {
+      if (tagName)
+        prefix = token.string;
+      replaceToken = tagType;
+      var cx = inner.state.context, curTag = cx && tags[cx.tagName];
+      var childList = cx ? curTag && curTag.children : tags["!top"];
+      if (childList && tagType != "close") {
+        for (var i = 0; i < childList.length; ++i) if (!prefix || childList[i].lastIndexOf(prefix, 0) == 0)
+          result.push("<" + childList[i]);
+      } else if (tagType != "close") {
+        for (var name in tags)
+          if (tags.hasOwnProperty(name) && name != "!top" && name != "!attrs" && (!prefix || name.lastIndexOf(prefix, 0) == 0))
+            result.push("<" + name);
+      }
+      if (cx && (!prefix || tagType == "close" && cx.tagName.lastIndexOf(prefix, 0) == 0))
+        result.push("</" + cx.tagName + ">");
+    } else {
+      // Attribute completion
+      var curTag = tags[inner.state.tagName], attrs = curTag && curTag.attrs;
+      var globalAttrs = tags["!attrs"];
+      if (!attrs && !globalAttrs) return;
+      if (!attrs) {
+        attrs = globalAttrs;
+      } else if (globalAttrs) { // Combine tag-local and global attributes
+        var set = {};
+        for (var nm in globalAttrs) if (globalAttrs.hasOwnProperty(nm)) set[nm] = globalAttrs[nm];
+        for (var nm in attrs) if (attrs.hasOwnProperty(nm)) set[nm] = attrs[nm];
+        attrs = set;
+      }
+      if (token.type == "string" || token.string == "=") { // A value
+        var before = cm.getRange(Pos(cur.line, Math.max(0, cur.ch - 60)),
+                                 Pos(cur.line, token.type == "string" ? token.start : token.end));
+        var atName = before.match(/([^\s\u00a0=<>\"\']+)=$/), atValues;
+        if (!atName || !attrs.hasOwnProperty(atName[1]) || !(atValues = attrs[atName[1]])) return;
+        if (typeof atValues == 'function') atValues = atValues.call(this, cm); // Functions can be used to supply values for autocomplete widget
+        if (token.type == "string") {
+          prefix = token.string;
+          if (/['"]/.test(token.string.charAt(0))) {
+            quote = token.string.charAt(0);
+            prefix = token.string.slice(1);
+          }
+          replaceToken = true;
+        }
+        for (var i = 0; i < atValues.length; ++i) if (!prefix || atValues[i].lastIndexOf(prefix, 0) == 0)
+          result.push(quote + atValues[i] + quote);
+      } else { // An attribute name
+        if (token.type == "attribute") {
+          prefix = token.string;
+          replaceToken = true;
+        }
+        for (var attr in attrs) if (attrs.hasOwnProperty(attr) && (!prefix || attr.lastIndexOf(prefix, 0) == 0))
+          result.push(attr);
+      }
+    }
+    return {
+      list: result,
+      from: replaceToken ? Pos(cur.line, tagStart == null ? token.start : tagStart) : cur,
+      to: replaceToken ? Pos(cur.line, token.end) : cur
+    };
+  }
+
+  CodeMirror.registerHelper("hint", "xml", getHints);
+});
+;// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
   var ie_lt8 = /MSIE \d/.test(navigator.userAgent) &&
     (document.documentMode == null || document.documentMode < 8);
 
@@ -14114,6 +14260,213 @@ License: http://jqwidgets.com/license/
       });
     };
   }
+});
+;// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+/**
+ * Tag-closer extension for CodeMirror.
+ *
+ * This extension adds an "autoCloseTags" option that can be set to
+ * either true to get the default behavior, or an object to further
+ * configure its behavior.
+ *
+ * These are supported options:
+ *
+ * `whenClosing` (default true)
+ *   Whether to autoclose when the '/' of a closing tag is typed.
+ * `whenOpening` (default true)
+ *   Whether to autoclose the tag when the final '>' of an opening
+ *   tag is typed.
+ * `dontCloseTags` (default is empty tags for HTML, none for XML)
+ *   An array of tag names that should not be autoclosed.
+ * `indentTags` (default is block tags for HTML, none for XML)
+ *   An array of tag names that should, when opened, cause a
+ *   blank line to be added inside the tag, and the blank line and
+ *   closing line to be indented.
+ *
+ * See demos/closetag.html for a usage example.
+ */
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"), require("../fold/xml-fold"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror", "../fold/xml-fold"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+  CodeMirror.defineOption("autoCloseTags", false, function(cm, val, old) {
+    if (old != CodeMirror.Init && old)
+      cm.removeKeyMap("autoCloseTags");
+    if (!val) return;
+    var map = {name: "autoCloseTags"};
+    if (typeof val != "object" || val.whenClosing)
+      map["'/'"] = function(cm) { return autoCloseSlash(cm); };
+    if (typeof val != "object" || val.whenOpening)
+      map["'>'"] = function(cm) { return autoCloseGT(cm); };
+    cm.addKeyMap(map);
+  });
+
+  var htmlDontClose = ["area", "base", "br", "col", "command", "embed", "hr", "img", "input", "keygen", "link", "meta", "param",
+                       "source", "track", "wbr"];
+  var htmlIndent = ["applet", "blockquote", "body", "button", "div", "dl", "fieldset", "form", "frameset", "h1", "h2", "h3", "h4",
+                    "h5", "h6", "head", "html", "iframe", "layer", "legend", "object", "ol", "p", "select", "table", "ul"];
+
+  function autoCloseGT(cm) {
+    if (cm.getOption("disableInput")) return CodeMirror.Pass;
+    var ranges = cm.listSelections(), replacements = [];
+    for (var i = 0; i < ranges.length; i++) {
+      if (!ranges[i].empty()) return CodeMirror.Pass;
+      var pos = ranges[i].head, tok = cm.getTokenAt(pos);
+      var inner = CodeMirror.innerMode(cm.getMode(), tok.state), state = inner.state;
+      if (inner.mode.name != "xml" || !state.tagName) return CodeMirror.Pass;
+
+      var opt = cm.getOption("autoCloseTags"), html = inner.mode.configuration == "html";
+      var dontCloseTags = (typeof opt == "object" && opt.dontCloseTags) || (html && htmlDontClose);
+      var indentTags = (typeof opt == "object" && opt.indentTags) || (html && htmlIndent);
+
+      var tagName = state.tagName;
+      if (tok.end > pos.ch) tagName = tagName.slice(0, tagName.length - tok.end + pos.ch);
+      var lowerTagName = tagName.toLowerCase();
+      // Don't process the '>' at the end of an end-tag or self-closing tag
+      if (!tagName ||
+          tok.type == "string" && (tok.end != pos.ch || !/[\"\']/.test(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1) ||
+          tok.type == "tag" && state.type == "closeTag" ||
+          tok.string.indexOf("/") == (tok.string.length - 1) || // match something like <someTagName />
+          dontCloseTags && indexOf(dontCloseTags, lowerTagName) > -1 ||
+          closingTagExists(cm, tagName, pos, state, true))
+        return CodeMirror.Pass;
+
+      var indent = indentTags && indexOf(indentTags, lowerTagName) > -1;
+      replacements[i] = {indent: indent,
+                         text: ">" + (indent ? "\n\n" : "") + "</" + tagName + ">",
+                         newPos: indent ? CodeMirror.Pos(pos.line + 1, 0) : CodeMirror.Pos(pos.line, pos.ch + 1)};
+    }
+
+    for (var i = ranges.length - 1; i >= 0; i--) {
+      var info = replacements[i];
+      cm.replaceRange(info.text, ranges[i].head, ranges[i].anchor, "+insert");
+      var sel = cm.listSelections().slice(0);
+      sel[i] = {head: info.newPos, anchor: info.newPos};
+      cm.setSelections(sel);
+      if (info.indent) {
+        cm.indentLine(info.newPos.line, null, true);
+        cm.indentLine(info.newPos.line + 1, null, true);
+      }
+    }
+  }
+
+  function autoCloseSlash(cm) {
+    if (cm.getOption("disableInput")) return CodeMirror.Pass;
+    var ranges = cm.listSelections(), replacements = [];
+    for (var i = 0; i < ranges.length; i++) {
+      if (!ranges[i].empty()) return CodeMirror.Pass;
+      var pos = ranges[i].head, tok = cm.getTokenAt(pos);
+      var inner = CodeMirror.innerMode(cm.getMode(), tok.state), state = inner.state;
+      if (tok.type == "string" || tok.string.charAt(0) != "<" ||
+          tok.start != pos.ch - 1 || inner.mode.name != "xml" ||
+          !state.context || !state.context.tagName ||
+          closingTagExists(cm, state.context.tagName, pos, state))
+        return CodeMirror.Pass;
+      replacements[i] = "/" + state.context.tagName + ">";
+    }
+    cm.replaceSelections(replacements);
+  }
+
+  function indexOf(collection, elt) {
+    if (collection.indexOf) return collection.indexOf(elt);
+    for (var i = 0, e = collection.length; i < e; ++i)
+      if (collection[i] == elt) return i;
+    return -1;
+  }
+
+  // If xml-fold is loaded, we use its functionality to try and verify
+  // whether a given tag is actually unclosed.
+  function closingTagExists(cm, tagName, pos, state, newTag) {
+    if (!CodeMirror.scanForClosingTag) return false;
+    var end = Math.min(cm.lastLine() + 1, pos.line + 500);
+    var nextClose = CodeMirror.scanForClosingTag(cm, pos, null, end);
+    if (!nextClose || nextClose.tag != tagName) return false;
+    var cx = state.context;
+    // If the immediate wrapping context contains onCx instances of
+    // the same tag, a closing tag only exists if there are at least
+    // that many closing tags of that type following.
+    for (var onCx = newTag ? 1 : 0; cx && cx.tagName == tagName; cx = cx.prev) ++onCx;
+    pos = nextClose.to;
+    for (var i = 1; i < onCx; i++) {
+      var next = CodeMirror.scanForClosingTag(cm, pos, null, end);
+      if (!next || next.tag != tagName) return false;
+      pos = next.to;
+    }
+    return true;
+  }
+});
+;// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"), require("../fold/xml-fold"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror", "../fold/xml-fold"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+  "use strict";
+
+  CodeMirror.defineOption("matchTags", false, function(cm, val, old) {
+    if (old && old != CodeMirror.Init) {
+      cm.off("cursorActivity", doMatchTags);
+      cm.off("viewportChange", maybeUpdateMatch);
+      clear(cm);
+    }
+    if (val) {
+      cm.state.matchBothTags = typeof val == "object" && val.bothTags;
+      cm.on("cursorActivity", doMatchTags);
+      cm.on("viewportChange", maybeUpdateMatch);
+      doMatchTags(cm);
+    }
+  });
+
+  function clear(cm) {
+    if (cm.state.tagHit) cm.state.tagHit.clear();
+    if (cm.state.tagOther) cm.state.tagOther.clear();
+    cm.state.tagHit = cm.state.tagOther = null;
+  }
+
+  function doMatchTags(cm) {
+    cm.state.failedTagMatch = false;
+    cm.operation(function() {
+      clear(cm);
+      if (cm.somethingSelected()) return;
+      var cur = cm.getCursor(), range = cm.getViewport();
+      range.from = Math.min(range.from, cur.line); range.to = Math.max(cur.line + 1, range.to);
+      var match = CodeMirror.findMatchingTag(cm, cur, range);
+      if (!match) return;
+      if (cm.state.matchBothTags) {
+        var hit = match.at == "open" ? match.open : match.close;
+        if (hit) cm.state.tagHit = cm.markText(hit.from, hit.to, {className: "CodeMirror-matchingtag"});
+      }
+      var other = match.at == "close" ? match.open : match.close;
+      if (other)
+        cm.state.tagOther = cm.markText(other.from, other.to, {className: "CodeMirror-matchingtag"});
+      else
+        cm.state.failedTagMatch = true;
+    });
+  }
+
+  function maybeUpdateMatch(cm) {
+    if (cm.state.failedTagMatch) doMatchTags(cm);
+  }
+
+  CodeMirror.commands.toMatchingTag = function(cm) {
+    var found = CodeMirror.findMatchingTag(cm, cm.getCursor());
+    if (found) {
+      var other = found.at == "close" ? found.open : found.close;
+      if (other) cm.extendSelection(other.to, other.from);
+    }
+  };
 });
 ;// CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
@@ -14559,6 +14912,187 @@ CodeMirror.registerGlobalHelper("fold", "comment", function(mode) {
 ;// CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(require("../../lib/codemirror"));
+  else if (typeof define == "function" && define.amd) // AMD
+    define(["../../lib/codemirror"], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+  "use strict";
+
+  var Pos = CodeMirror.Pos;
+  function cmp(a, b) { return a.line - b.line || a.ch - b.ch; }
+
+  var nameStartChar = "A-Z_a-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u02FF\\u0370-\\u037D\\u037F-\\u1FFF\\u200C-\\u200D\\u2070-\\u218F\\u2C00-\\u2FEF\\u3001-\\uD7FF\\uF900-\\uFDCF\\uFDF0-\\uFFFD";
+  var nameChar = nameStartChar + "\-\:\.0-9\\u00B7\\u0300-\\u036F\\u203F-\\u2040";
+  var xmlTagStart = new RegExp("<(/?)([" + nameStartChar + "][" + nameChar + "]*)", "g");
+
+  function Iter(cm, line, ch, range) {
+    this.line = line; this.ch = ch;
+    this.cm = cm; this.text = cm.getLine(line);
+    this.min = range ? range.from : cm.firstLine();
+    this.max = range ? range.to - 1 : cm.lastLine();
+  }
+
+  function tagAt(iter, ch) {
+    var type = iter.cm.getTokenTypeAt(Pos(iter.line, ch));
+    return type && /\btag\b/.test(type);
+  }
+
+  function nextLine(iter) {
+    if (iter.line >= iter.max) return;
+    iter.ch = 0;
+    iter.text = iter.cm.getLine(++iter.line);
+    return true;
+  }
+  function prevLine(iter) {
+    if (iter.line <= iter.min) return;
+    iter.text = iter.cm.getLine(--iter.line);
+    iter.ch = iter.text.length;
+    return true;
+  }
+
+  function toTagEnd(iter) {
+    for (;;) {
+      var gt = iter.text.indexOf(">", iter.ch);
+      if (gt == -1) { if (nextLine(iter)) continue; else return; }
+      if (!tagAt(iter, gt + 1)) { iter.ch = gt + 1; continue; }
+      var lastSlash = iter.text.lastIndexOf("/", gt);
+      var selfClose = lastSlash > -1 && !/\S/.test(iter.text.slice(lastSlash + 1, gt));
+      iter.ch = gt + 1;
+      return selfClose ? "selfClose" : "regular";
+    }
+  }
+  function toTagStart(iter) {
+    for (;;) {
+      var lt = iter.ch ? iter.text.lastIndexOf("<", iter.ch - 1) : -1;
+      if (lt == -1) { if (prevLine(iter)) continue; else return; }
+      if (!tagAt(iter, lt + 1)) { iter.ch = lt; continue; }
+      xmlTagStart.lastIndex = lt;
+      iter.ch = lt;
+      var match = xmlTagStart.exec(iter.text);
+      if (match && match.index == lt) return match;
+    }
+  }
+
+  function toNextTag(iter) {
+    for (;;) {
+      xmlTagStart.lastIndex = iter.ch;
+      var found = xmlTagStart.exec(iter.text);
+      if (!found) { if (nextLine(iter)) continue; else return; }
+      if (!tagAt(iter, found.index + 1)) { iter.ch = found.index + 1; continue; }
+      iter.ch = found.index + found[0].length;
+      return found;
+    }
+  }
+  function toPrevTag(iter) {
+    for (;;) {
+      var gt = iter.ch ? iter.text.lastIndexOf(">", iter.ch - 1) : -1;
+      if (gt == -1) { if (prevLine(iter)) continue; else return; }
+      if (!tagAt(iter, gt + 1)) { iter.ch = gt; continue; }
+      var lastSlash = iter.text.lastIndexOf("/", gt);
+      var selfClose = lastSlash > -1 && !/\S/.test(iter.text.slice(lastSlash + 1, gt));
+      iter.ch = gt + 1;
+      return selfClose ? "selfClose" : "regular";
+    }
+  }
+
+  function findMatchingClose(iter, tag) {
+    var stack = [];
+    for (;;) {
+      var next = toNextTag(iter), end, startLine = iter.line, startCh = iter.ch - (next ? next[0].length : 0);
+      if (!next || !(end = toTagEnd(iter))) return;
+      if (end == "selfClose") continue;
+      if (next[1]) { // closing tag
+        for (var i = stack.length - 1; i >= 0; --i) if (stack[i] == next[2]) {
+          stack.length = i;
+          break;
+        }
+        if (i < 0 && (!tag || tag == next[2])) return {
+          tag: next[2],
+          from: Pos(startLine, startCh),
+          to: Pos(iter.line, iter.ch)
+        };
+      } else { // opening tag
+        stack.push(next[2]);
+      }
+    }
+  }
+  function findMatchingOpen(iter, tag) {
+    var stack = [];
+    for (;;) {
+      var prev = toPrevTag(iter);
+      if (!prev) return;
+      if (prev == "selfClose") { toTagStart(iter); continue; }
+      var endLine = iter.line, endCh = iter.ch;
+      var start = toTagStart(iter);
+      if (!start) return;
+      if (start[1]) { // closing tag
+        stack.push(start[2]);
+      } else { // opening tag
+        for (var i = stack.length - 1; i >= 0; --i) if (stack[i] == start[2]) {
+          stack.length = i;
+          break;
+        }
+        if (i < 0 && (!tag || tag == start[2])) return {
+          tag: start[2],
+          from: Pos(iter.line, iter.ch),
+          to: Pos(endLine, endCh)
+        };
+      }
+    }
+  }
+
+  CodeMirror.registerHelper("fold", "xml", function(cm, start) {
+    var iter = new Iter(cm, start.line, 0);
+    for (;;) {
+      var openTag = toNextTag(iter), end;
+      if (!openTag || iter.line != start.line || !(end = toTagEnd(iter))) return;
+      if (!openTag[1] && end != "selfClose") {
+        var start = Pos(iter.line, iter.ch);
+        var close = findMatchingClose(iter, openTag[2]);
+        return close && {from: start, to: close.from};
+      }
+    }
+  });
+  CodeMirror.findMatchingTag = function(cm, pos, range) {
+    var iter = new Iter(cm, pos.line, pos.ch, range);
+    if (iter.text.indexOf(">") == -1 && iter.text.indexOf("<") == -1) return;
+    var end = toTagEnd(iter), to = end && Pos(iter.line, iter.ch);
+    var start = end && toTagStart(iter);
+    if (!end || end == "selfClose" || !start || cmp(iter, pos) > 0) return;
+    var here = {from: Pos(iter.line, iter.ch), to: to, tag: start[2]};
+
+    if (start[1]) { // closing tag
+      return {open: findMatchingOpen(iter, start[2]), close: here, at: "close"};
+    } else { // opening tag
+      iter = new Iter(cm, to.line, to.ch, range);
+      return {open: here, close: findMatchingClose(iter, start[2]), at: "open"};
+    }
+  };
+
+  CodeMirror.findEnclosingTag = function(cm, pos, range) {
+    var iter = new Iter(cm, pos.line, pos.ch, range);
+    for (;;) {
+      var open = findMatchingOpen(iter);
+      if (!open) break;
+      var forward = new Iter(cm, pos.line, pos.ch, range);
+      var close = findMatchingClose(forward, open.tag);
+      if (close) return {open: open, close: close};
+    }
+  };
+
+  // Used by addon/edit/closetag.js
+  CodeMirror.scanForClosingTag = function(cm, pos, name, end) {
+    var iter = new Iter(cm, pos.line, pos.ch, end ? {from: 0, to: end} : null);
+    return findMatchingClose(iter, name);
+  };
+});
+;// CodeMirror, copyright (c) by Marijn Haverbeke and others
+// Distributed under an MIT license: http://codemirror.net/LICENSE
+
 // Because sometimes you need to style the cursor's line.
 //
 // Adds an option 'styleActiveLine' which, when enabled, gives the
@@ -14607,7 +15141,9 @@ CodeMirror.registerGlobalHelper("fold", "comment", function(mode) {
   function updateActiveLines(cm, ranges) {
     var active = [];
     for (var i = 0; i < ranges.length; i++) {
-      var line = cm.getLineHandleVisualStart(ranges[i].head.line);
+      var range = ranges[i];
+      if (!range.empty()) continue;
+      var line = cm.getLineHandleVisualStart(range.head.line);
       if (active[active.length - 1] != line) active.push(line);
     }
     if (sameArray(cm.state.activeLines, active)) return;

@@ -97,24 +97,50 @@ class Editor
 					}
 				},
            	"=":
-				function passAndHint(cm:CodeMirror) 
+				function passAndHint(cm2:CodeMirror) 
 				{
-					if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
+                    var mode = TabManager.getCurrentDocument().getMode().name;
+                    
+					if (Completion.getCompletionType() == CompletionType.REGULAR && mode == "haxe") 
 					{
-						var completionActive = editor.state.completionActive;
+						var completionActive = cm2.state.completionActive;
 						
 						if (completionActive != null && completionActive.widget != null) 
 						{
 							completionActive.widget.pick();
 						}
 					}
+                    else if (mode == "xml")
+                    {
+                        cm.Xml.completeIfInTag(cm2);
+                    }
 					
 					untyped __js__("return CodeMirror.Pass");
 				},
+            "<":
+            	function passAndHint(cm2:CodeMirror)
+            	{
+                    cm.Xml.completeAfter(cm2);
+                    untyped __js__("return CodeMirror.Pass");
+                },
+            	
+            "/":
+            	function passAndHint(cm2:CodeMirror)
+            	{
+                    cm.Xml.completeIfAfterLt(cm2);
+                    untyped __js__("return CodeMirror.Pass");
+                },
+            " ":
+                function passAndHint(cm2:CodeMirror)
+            	{
+                    cm.Xml.completeIfInTag(cm2);
+                    untyped __js__("return CodeMirror.Pass");
+                },
+            "Ctrl-J": "toMatchingTag"
 		}
 		
 		editor = CodeMirror.fromTextArea(Browser.document.getElementById("code"), options);
-		
+        
 		editor.on("keypress", function (cm:CodeMirror, e:KeyboardEvent):Void 
 		{
 			if (e.shiftKey) 
@@ -314,6 +340,8 @@ class Editor
 		{
 			untyped __js__(" var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ");
 		};
+		
+		cm.Xml.generateXmlCompletion();
 	}
 	
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
@@ -336,6 +364,8 @@ class Editor
 				}
 			case "hxml":
 				Completion.showHxmlCompletion();
+        	case "xml":
+        		cm.showHint({completeSingle: false});
 			default:
 				
 		}

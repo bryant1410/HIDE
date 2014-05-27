@@ -1,4 +1,5 @@
 package parser;
+import haxeparser.Data.TypeDecl;
 import core.OutlinePanel;
 import haxe.macro.Expr;
 import haxe.macro.Expr.Field;
@@ -51,13 +52,13 @@ class OutlineHelper
         }
 	}
 	
-	public static function parseDeclarations(ast:{decls:Array<TypeDef>, pack:Array<String>}) 
+	public static function parseDeclarations(ast:{decls:Array<TypeDecl>, pack:Array<String>}) 
 	{		
 		var fileImports = [];
 		
 		var treeItems:Array<TreeItem> = [];
 		
-		for (decl in ast.decls) switch (decl) 
+		for (decl in ast.decls) switch (decl.decl) 
 		{
 			case EImport(sl, mode):
 				fileImports = fileImports.concat(parseImports(sl, mode));

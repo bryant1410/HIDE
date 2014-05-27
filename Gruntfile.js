@@ -18,7 +18,7 @@ module.exports = function(grunt) {
 		{
 			separator: ';',
 		},
-		
+        
 		js:
 		{
 			src: [
@@ -37,12 +37,16 @@ module.exports = function(grunt) {
 			'libs/js/CodeMirror/keymap/sublime.js',
 			'libs/js/CodeMirror/keymap/vim.js',
 			'libs/js/CodeMirror/addon/hint/show-hint.js',
+			'libs/js/CodeMirror/addon/hint/xml-hint.js',
 			'libs/js/CodeMirror/addon/edit/matchbrackets.js',
 			'libs/js/CodeMirror/addon/edit/closebrackets.js',
+			'libs/js/CodeMirror/addon/edit/closetag.js',
+			'libs/js/CodeMirror/addon/edit/matchtags.js',
 			'libs/js/CodeMirror/addon/fold/foldcode.js',
 			'libs/js/CodeMirror/addon/fold/foldgutter.js',
 			'libs/js/CodeMirror/addon/fold/brace-fold.js',
 			'libs/js/CodeMirror/addon/fold/comment-fold.js',
+			'libs/js/CodeMirror/addon/fold/xml-fold.js',
 			'libs/js/CodeMirror/addon/selection/active-line.js',
 			'libs/js/CodeMirror/addon/search/match-highlighter.js',
 			'libs/js/CodeMirror/mode/haxe/haxe.js',

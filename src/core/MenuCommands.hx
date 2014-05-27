@@ -173,7 +173,7 @@ class MenuCommands
                                                                           }, 10);
                                                       }, "Ctrl-Shift-O");
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
-		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion, "Ctrl-Space");
+		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion.bind(Editor.editor), "Ctrl-Space");
 		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
 		BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition", 6, function ():Void
 		{

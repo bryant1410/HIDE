@@ -11,14 +11,13 @@
 
     ]
     ,"files" : [
-         "src/openflproject/OpenFLProject.hx"
-        ,"src/kha/KhaProject.hx"
-        ,"src/cm/Editor.hx"
-        ,"src/core/ImportDefinition.hx"
+         "src/cm/Editor.hx"
         ,"src/core/Completion.hx"
-        ,"src/parser/RegexParser.hx"
+        ,"libs/js/CodeMirror/addon/hint/xml-hint.js"
+        ,"src/cm/Xml.hx"
+        ,"../HIDEProjects/OpenFLProject3/project.xml"
     ]
-    ,"activeFile" : "src/parser/RegexParser.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

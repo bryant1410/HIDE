@@ -72,7 +72,7 @@ typedef DocHistory = {
 
 static var keyMap:Dynamic;
 public var gutters:Array<String>;
-public var state:Dynamic;
+public var state:{completionActive:Dynamic};
 
 public static var prototype:Dynamic;
 

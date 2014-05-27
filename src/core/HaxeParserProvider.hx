@@ -204,8 +204,8 @@ class HaxeParserProvider
 		if (ast != null) 
 		{
 			var classPackage:Array<String> = ast.pack;
-	
-			for (decl in ast.decls) switch (decl) 
+			
+			for (decl in ast.decls) switch (decl.decl) 
 			{
 				case EImport(sl, mode): 
 					currentClass = null;

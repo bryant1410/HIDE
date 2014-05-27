@@ -119,8 +119,13 @@ class ProcessHelper
 						var relativePath:String = args[0];
 						var fullPath:String = Node.path.join(ProjectAccess.path, relativePath);
 						
-						var data:Array<HaxeLint.Info> = [];
-						
+                        if (!HaxeLint.fileData.exists(fullPath))
+                        {
+                        	HaxeLint.fileData.set(fullPath, []);    
+                        }
+                        
+                        var data:Array<HaxeLint.Info> = HaxeLint.fileData.get(fullPath);
+                        
 						HaxeLint.fileData.set(fullPath, data);
 						
 						var lineNumber:Int = Std.parseInt(args[1]) - 1;
