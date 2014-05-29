@@ -1,5 +1,6 @@
 
 package tabmanager;
+import cm.Xml;
 import core.OutlinePanel;
 import cm.CMDoc;
 import cm.Editor;
@@ -439,8 +440,13 @@ class TabManager
         {
             completionActive.widget.close();
         }
-        
+            
        	Editor.editor.focus();
+
+		if (Node.path.extname(selectedPath) == ".xml")
+        {
+            Xml.generateXmlCompletion();
+		}
 	}
 	
 	public static function getCurrentDocumentPath():String

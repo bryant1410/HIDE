@@ -695,12 +695,41 @@ Xml.prototype = {
 		if(this.nodeType != Xml.Element) throw "bad nodeType";
 		return this._attributes.exists(att);
 	}
+	,attributes: function() {
+		if(this.nodeType != Xml.Element) throw "bad nodeType";
+		return this._attributes.keys();
+	}
 	,iterator: function() {
 		if(this._children == null) throw "bad nodetype";
 		return { cur : 0, x : this._children, hasNext : function() {
 			return this.cur < this.x.length;
 		}, next : function() {
 			return this.x[this.cur++];
+		}};
+	}
+	,elements: function() {
+		if(this._children == null) throw "bad nodetype";
+		return { cur : 0, x : this._children, hasNext : function() {
+			var k = this.cur;
+			var l = this.x.length;
+			while(k < l) {
+				if(this.x[k].nodeType == Xml.Element) break;
+				k += 1;
+			}
+			this.cur = k;
+			return k < l;
+		}, next : function() {
+			var k1 = this.cur;
+			var l1 = this.x.length;
+			while(k1 < l1) {
+				var n = this.x[k1];
+				k1 += 1;
+				if(n.nodeType == Xml.Element) {
+					this.cur = k1;
+					return n;
+				}
+			}
+			return null;
 		}};
 	}
 	,elementsNamed: function(name) {
@@ -1204,7 +1233,7 @@ cm.Editor.load = function() {
 		};
 		$r = passAndHint2;
 		return $r;
-	}(this)), '<' : (function($this) {
+	}(this)), '\'<\'' : (function($this) {
 		var $r;
 		var passAndHint3 = function(cm21) {
 			cm.Xml.completeAfter(cm21);
@@ -1212,7 +1241,7 @@ cm.Editor.load = function() {
 		};
 		$r = passAndHint3;
 		return $r;
-	}(this)), '/' : (function($this) {
+	}(this)), '\'/\'' : (function($this) {
 		var $r;
 		var passAndHint4 = function(cm22) {
 			cm.Xml.completeIfAfterLt(cm22);
@@ -1220,7 +1249,7 @@ cm.Editor.load = function() {
 		};
 		$r = passAndHint4;
 		return $r;
-	}(this)), ' ' : (function($this) {
+	}(this)), '\' \'' : (function($this) {
 		var $r;
 		var passAndHint5 = function(cm23) {
 			cm.Xml.completeIfInTag(cm23);
@@ -1324,7 +1353,6 @@ cm.Editor.load = function() {
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
 	};
-	cm.Xml.generateXmlCompletion();
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -1415,12 +1443,32 @@ cm.Xml = function() { };
 $hxClasses["cm.Xml"] = cm.Xml;
 cm.Xml.__name__ = ["cm","Xml"];
 cm.Xml.generateXmlCompletion = function() {
-	var dummy = { attrs : { color : ["red","green","blue","purple","white","black","yellow"], size : ["large","medium","small"], description : null}, children : []};
-	cm.Xml.tags = { '!top' : ["top"], '!attrs' : { id : null}, top : { attrs : { lang : ["en","de","fr","nl"], freeform : null}, children : ["animal","plant"]}, animal : { attrs : { name : null, isduck : ["yes","no"]}, children : ["wings","feet","body","head","tail"]}, plant : { attrs : { name : null}, children : ["leaves","stem","flowers"]}, wings : dummy, feet : dummy, body : dummy, head : dummy, tail : dummy, leaves : dummy, stem : dummy, flowers : dummy};
-	cm.Editor.editor.setOption("hintOptions",{ schemaInfo : cm.Xml.tags});
+	var data = tabmanager.TabManager.getCurrentDocument().getValue();
+	var xml = haxe.xml.Parser.parse(data);
+	var fast = new haxe.xml.Fast(xml);
+	var tags = { '!attrs' : { }};
+	cm.Xml.walkThroughElements(tags,fast);
+	cm.Editor.editor.setOption("hintOptions",{ schemaInfo : tags});
+};
+cm.Xml.walkThroughElements = function(tags,fast) {
+	var $it0 = fast.get_elements();
+	while( $it0.hasNext() ) {
+		var element = $it0.next();
+		if(Reflect.field(tags,element.get_name()) == null) Reflect.setField(tags,element.get_name(),{ attrs : { }});
+		var attrs = Reflect.field(tags,element.get_name()).attrs;
+		var $it1 = element.x.attributes();
+		while( $it1.hasNext() ) {
+			var attribute = $it1.next();
+			if(Reflect.field(attrs,attribute) == null) attrs[attribute] = [];
+			var values = Reflect.field(attrs,attribute);
+			var value = element.att.resolve(attribute);
+			if(HxOverrides.indexOf(values,value,0) == -1) values.push(value);
+		}
+		Reflect.setField(tags,element.get_name(),{ attrs : attrs});
+		cm.Xml.walkThroughElements(tags,element);
+	}
 };
 cm.Xml.completeAfter = function(cm,pred) {
-	console.log("completeAfter");
 	var cur = cm.getCursor();
 	if(pred == null || pred() != null) haxe.Timer.delay(function() {
 		if(cm.state.completionActive == null) cm.showHint({ completeSingle : false});
@@ -1428,14 +1476,12 @@ cm.Xml.completeAfter = function(cm,pred) {
 	return CodeMirror.Pass;
 };
 cm.Xml.completeIfAfterLt = function(cm1) {
-	console.log("completeIfAfterLt");
 	return cm.Xml.completeAfter(cm1,function() {
 		var cur = cm1.getCursor();
 		return cm1.getRange({ line : cur.line, ch : cur.ch - 1},cur) == "<";
 	});
 };
 cm.Xml.completeIfInTag = function(cm1) {
-	console.log("completeIfInTag");
 	return cm.Xml.completeAfter(cm1,function() {
 		var tok = cm1.getTokenAt(cm1.getCursor());
 		if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
@@ -6426,8 +6472,16 @@ haxe.xml.Fast.prototype = {
 		}
 		return s.b;
 	}
+	,get_elements: function() {
+		var it = this.x.elements();
+		return { hasNext : $bind(it,it.hasNext), next : function() {
+			var x = it.next();
+			if(x == null) return null;
+			return new haxe.xml.Fast(x);
+		}};
+	}
 	,__class__: haxe.xml.Fast
-	,__properties__: {get_innerHTML:"get_innerHTML",get_innerData:"get_innerData",get_name:"get_name"}
+	,__properties__: {get_elements:"get_elements",get_innerHTML:"get_innerHTML",get_innerData:"get_innerData",get_name:"get_name"}
 };
 haxe.xml.Parser = function() { };
 $hxClasses["haxe.xml.Parser"] = haxe.xml.Parser;
@@ -16034,6 +16088,7 @@ tabmanager.TabManager.selectDoc = function(path) {
 	var completionActive = cm.Editor.editor.state.completionActive;
 	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
 	cm.Editor.editor.focus();
+	if(js.Node.require("path").extname(tabmanager.TabManager.selectedPath) == ".xml") cm.Xml.generateXmlCompletion();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;

@@ -11,13 +11,14 @@
 
     ]
     ,"files" : [
-         "src/cm/Editor.hx"
-        ,"src/core/Completion.hx"
-        ,"libs/js/CodeMirror/addon/hint/xml-hint.js"
+         "src/core/Completion.hx"
         ,"src/cm/Xml.hx"
         ,"../HIDEProjects/OpenFLProject3/project.xml"
+        ,"src/Main.hx"
+        ,"src/cm/Editor.hx"
+        ,"src/tabmanager/TabManager.hx"
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "../HIDEProjects/OpenFLProject3/project.xml"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

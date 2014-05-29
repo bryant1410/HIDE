@@ -1,4 +1,7 @@
 package cm;
+import haxe.xml.Fast;
+import haxe.xml.Parser;
+import tabmanager.TabManager;
 import haxe.Timer;
 
 /**
@@ -10,51 +13,92 @@ class Xml
     
     public static function generateXmlCompletion()
     {
-        var dummy = {
-        attrs: {
-          color: ["red", "green", "blue", "purple", "white", "black", "yellow"],
-          size: ["large", "medium", "small"],
-          description: null
-        },
-        children: []
-    };
+        var data = TabManager.getCurrentDocument().getValue();
+        
+        var xml = Parser.parse(data);
+        var fast = new Fast(xml);
+        
+        var tags:Dynamic = {"!attrs": {}};
+        
+        walkThroughElements(tags, fast);
+        
+//         var dummy = {
+//         attrs: {
+//           color: ["red", "green", "blue", "purple", "white", "black", "yellow"],
+//           size: ["large", "medium", "small"],
+//           description: null
+//         },
+//         children: []
+//     };
         
 //         var a = untyped __js__("class");
         
-        tags = {
-        "!top": ["top"],
-        "!attrs": {
-          id: null
-//           a: ["A", "B", "C"]
-        },
-        top: {
-          attrs: {
-            lang: ["en", "de", "fr", "nl"],
-            freeform: null
-          },
-          children: ["animal", "plant"]
-        },
-        animal: {
-          attrs: {
-            name: null,
-            isduck: ["yes", "no"]
-          },
-          children: ["wings", "feet", "body", "head", "tail"]
-        },
-        plant: {
-          attrs: {name: null},
-          children: ["leaves", "stem", "flowers"]
-        },
-        wings: dummy, feet: dummy, body: dummy, head: dummy, tail: dummy,
-        leaves: dummy, stem: dummy, flowers: dummy
-      };
+//         tags = {
+//         "!top": ["top"],
+//         "!attrs": {
+//           id: null
+// //           a: ["A", "B", "C"]
+//         },
+//         top: {
+//           attrs: {
+//             lang: ["en", "de", "fr", "nl"],
+//             freeform: null
+//           },
+//           children: ["animal", "plant"]
+//         },
+//         animal: {
+//           attrs: {
+//             name: null,
+//             isduck: ["yes", "no"]
+//           },
+//           children: ["wings", "feet", "body", "head", "tail"]
+//         },
+//         plant: {
+//           attrs: {name: null},
+//           children: ["leaves", "stem", "flowers"]
+//         },
+//         wings: dummy, feet: dummy, body: dummy, head: dummy, tail: dummy,
+//         leaves: dummy, stem: dummy, flowers: dummy
+//       };
         
       cm.Editor.editor.setOption("hintOptions", {schemaInfo: tags});
 	}
     
+    static function walkThroughElements(tags:Dynamic, fast:Fast)
+    {
+        for (element in fast.elements)
+        {
+            if (Reflect.field(tags, element.name) == null)
+            {
+                Reflect.setField(tags, element.name, {attrs: {}});
+            }
+             
+            var attrs:Dynamic = Reflect.field(tags, element.name).attrs;
+        
+            for (attribute in element.x.attributes())
+            {
+                if (Reflect.field(attrs, attribute) == null)
+                {
+                    Reflect.setField(attrs, attribute, []);
+                }
+
+        		var values:Array<String> = Reflect.field(attrs, attribute);
+        		var value = element.att.resolve(attribute);
+        		
+        		if (values.indexOf(value) == -1)
+                {
+                    values.push(value);
+                }
+            }
+             
+            Reflect.setField(tags, element.name, {attrs: attrs});
+        	walkThroughElements(tags, element);
+        }
+    }
+
+    
 	public static function completeAfter(cm:CodeMirror, ?pred:Dynamic) 
     {
-        trace("completeAfter");
         var cur = cm.getCursor();
         if (pred == null || pred() != null)
         {
@@ -72,7 +116,6 @@ class Xml
     
     public static function completeIfAfterLt(cm:CodeMirror) 
     {
-        trace("completeIfAfterLt");
         return completeAfter(cm, function() {
           var cur = cm.getCursor();
             return cm.getRange({line: cur.line, ch: cur.ch - 1}, cur) == "<";
@@ -81,7 +124,6 @@ class Xml
     
 	public static function completeIfInTag(cm:CodeMirror) 
     {
-        trace("completeIfInTag");
         return completeAfter(cm, function() {
           var tok = cm.getTokenAt(cm.getCursor());
           if (tok.type == "string" && (!~/['"]/.match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;

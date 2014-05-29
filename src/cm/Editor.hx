@@ -117,20 +117,20 @@ class Editor
 					
 					untyped __js__("return CodeMirror.Pass");
 				},
-            "<":
+            "\\\'<\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{
                     cm.Xml.completeAfter(cm2);
                     untyped __js__("return CodeMirror.Pass");
                 },
             	
-            "/":
+            "\\\'/\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{
                     cm.Xml.completeIfAfterLt(cm2);
                     untyped __js__("return CodeMirror.Pass");
                 },
-            " ":
+            "\\\' \\\'":
                 function passAndHint(cm2:CodeMirror)
             	{
                     cm.Xml.completeIfInTag(cm2);
@@ -340,8 +340,6 @@ class Editor
 		{
 			untyped __js__(" var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ");
 		};
-		
-		cm.Xml.generateXmlCompletion();
 	}
 	
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
