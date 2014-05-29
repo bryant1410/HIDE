@@ -11,14 +11,9 @@
 
     ]
     ,"files" : [
-         "src/core/Completion.hx"
-        ,"src/cm/Xml.hx"
-        ,"../HIDEProjects/OpenFLProject3/project.xml"
-        ,"src/Main.hx"
-        ,"src/cm/Editor.hx"
-        ,"src/tabmanager/TabManager.hx"
+
     ]
-    ,"activeFile" : "../HIDEProjects/OpenFLProject3/project.xml"
+    ,"activeFile" : "src/cm/Xml.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

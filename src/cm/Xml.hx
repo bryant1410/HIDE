@@ -1,4 +1,5 @@
 package cm;
+import parser.ClassParser;
 import haxe.xml.Fast;
 import haxe.xml.Parser;
 import tabmanager.TabManager;
@@ -77,12 +78,26 @@ class Xml
         
             for (attribute in element.x.attributes())
             {
+                var values:Array<String>;
+                 
                 if (Reflect.field(attrs, attribute) == null)
                 {
-                    Reflect.setField(attrs, attribute, []);
+                    values = [];
+                    Reflect.setField(attrs, attribute, values);
+                    
+                    if (attribute == "path")
+                    {
+						for (item in ClassParser.filesList)
+                        {
+                            values.push(item.path);
+                        }
+                    }
+                }
+        		else
+               	{
+                    values = Reflect.field(attrs, attribute);
                 }
 
-        		var values:Array<String> = Reflect.field(attrs, attribute);
         		var value = element.att.resolve(attribute);
         		
         		if (values.indexOf(value) == -1)

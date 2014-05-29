@@ -101,7 +101,7 @@ class Editor
 				{
                     var mode = TabManager.getCurrentDocument().getMode().name;
                     
-					if (Completion.getCompletionType() == CompletionType.REGULAR && mode == "haxe") 
+					if (Completion.getCompletionType() == CompletionType.REGULAR && mode == "haxe" || mode == "xml")
 					{
 						var completionActive = cm2.state.completionActive;
 						
@@ -109,11 +109,12 @@ class Editor
 						{
 							completionActive.widget.pick();
 						}
+                        
+                        if (mode == "xml")
+                        {
+                            cm.Xml.completeIfInTag(cm2);
+                        }
 					}
-                    else if (mode == "xml")
-                    {
-                        cm.Xml.completeIfInTag(cm2);
-                    }
 					
 					untyped __js__("return CodeMirror.Pass");
 				},

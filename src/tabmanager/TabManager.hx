@@ -442,11 +442,6 @@ class TabManager
         }
             
        	Editor.editor.focus();
-
-		if (Node.path.extname(selectedPath) == ".xml")
-        {
-            Xml.generateXmlCompletion();
-		}
 	}
 	
 	public static function getCurrentDocumentPath():String

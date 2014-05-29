@@ -1,4 +1,5 @@
 package core;
+import cm.Xml;
 import cm.Editor;
 import haxe.ds.StringMap.StringMap;
 import tabmanager.TabManager;
@@ -52,33 +53,46 @@ class HaxeLint
 		
         var doc = TabManager.getCurrentDocument();
         
-		if (doc != null && doc.getMode().name == "haxe")
+		if (doc != null)
 		{
-			try
+            if (doc.getMode().name == "haxe")
             {
-                HaxeParserProvider.getClassName();
-            }
-            catch (e:Dynamic)
+               	try
+                {
+                    HaxeParserProvider.getClassName();
+                }
+                catch (e:Dynamic)
+                {
+                    trace(e);
+                }
+
+                parser.OutlineHelper.getList(doc.getValue(), TabManager.getCurrentDocumentPath());
+
+                var path:String = TabManager.getCurrentDocumentPath();
+
+                if (fileData.exists(path)) 
+                {
+                    var data:Array<Info> = fileData.get(path);
+
+                    for (item in data) 
+                    {
+                        AnnotationRuler.addErrorMarker(path, item.from.line, item.from.ch, item.message);
+                    }
+                }
+
+                Editor.editor.setOption("lint", false);
+                Editor.editor.setOption("lint", true); 
+            }       
+            else if (doc.getMode().name == "xml")
             {
-            	trace(e);
+                Xml.generateXmlCompletion();
             }
-        
-        	parser.OutlineHelper.getList(doc.getValue(), TabManager.getCurrentDocumentPath());
-            
-			var path:String = TabManager.getCurrentDocumentPath();
+        	else
+           	{
+                OutlinePanel.clearFields();
+            	OutlinePanel.update();
+            }
 			
-			if (fileData.exists(path)) 
-			{
-				var data:Array<Info> = fileData.get(path);
-				
-				for (item in data) 
-				{
-					AnnotationRuler.addErrorMarker(path, item.from.line, item.from.ch, item.message);
-				}
-			}
-			
-			Editor.editor.setOption("lint", false);
-			Editor.editor.setOption("lint", true);
 		}
     	else
         {

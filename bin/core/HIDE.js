@@ -1225,10 +1225,11 @@ cm.Editor.load = function() {
 		var $r;
 		var passAndHint2 = function(cm2) {
 			var mode = tabmanager.TabManager.getCurrentDocument().getMode().name;
-			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe") {
+			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe" || mode == "xml") {
 				var completionActive1 = cm2.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
-			} else if(mode == "xml") cm.Xml.completeIfInTag(cm2);
+				if(mode == "xml") cm.Xml.completeIfInTag(cm2);
+			}
 			return CodeMirror.Pass;
 		};
 		$r = passAndHint2;
@@ -1459,8 +1460,20 @@ cm.Xml.walkThroughElements = function(tags,fast) {
 		var $it1 = element.x.attributes();
 		while( $it1.hasNext() ) {
 			var attribute = $it1.next();
-			if(Reflect.field(attrs,attribute) == null) attrs[attribute] = [];
-			var values = Reflect.field(attrs,attribute);
+			var values;
+			if(Reflect.field(attrs,attribute) == null) {
+				values = [];
+				attrs[attribute] = values;
+				if(attribute == "path") {
+					var _g = 0;
+					var _g1 = parser.ClassParser.filesList;
+					while(_g < _g1.length) {
+						var item = _g1[_g];
+						++_g;
+						values.push(item.path);
+					}
+				}
+			} else values = Reflect.field(attrs,attribute);
 			var value = element.att.resolve(attribute);
 			if(HxOverrides.indexOf(values,value,0) == -1) values.push(value);
 		}
@@ -2642,25 +2655,30 @@ core.HaxeLint.load = function() {
 core.HaxeLint.updateLinting = function() {
 	core.AnnotationRuler.clearErrorMarkers();
 	var doc = tabmanager.TabManager.getCurrentDocument();
-	if(doc != null && doc.getMode().name == "haxe") {
-		try {
-			core.HaxeParserProvider.getClassName();
-		} catch( e ) {
-			console.log(e);
-		}
-		parser.OutlineHelper.getList(doc.getValue(),tabmanager.TabManager.getCurrentDocumentPath());
-		var path = tabmanager.TabManager.getCurrentDocumentPath();
-		if(core.HaxeLint.fileData.exists(path)) {
-			var data = core.HaxeLint.fileData.get(path);
-			var _g = 0;
-			while(_g < data.length) {
-				var item = data[_g];
-				++_g;
-				core.AnnotationRuler.addErrorMarker(path,item.from.line,item.from.ch,item.message);
+	if(doc != null) {
+		if(doc.getMode().name == "haxe") {
+			try {
+				core.HaxeParserProvider.getClassName();
+			} catch( e ) {
+				console.log(e);
 			}
+			parser.OutlineHelper.getList(doc.getValue(),tabmanager.TabManager.getCurrentDocumentPath());
+			var path = tabmanager.TabManager.getCurrentDocumentPath();
+			if(core.HaxeLint.fileData.exists(path)) {
+				var data = core.HaxeLint.fileData.get(path);
+				var _g = 0;
+				while(_g < data.length) {
+					var item = data[_g];
+					++_g;
+					core.AnnotationRuler.addErrorMarker(path,item.from.line,item.from.ch,item.message);
+				}
+			}
+			cm.Editor.editor.setOption("lint",false);
+			cm.Editor.editor.setOption("lint",true);
+		} else if(doc.getMode().name == "xml") cm.Xml.generateXmlCompletion(); else {
+			core.OutlinePanel.clearFields();
+			core.OutlinePanel.update();
 		}
-		cm.Editor.editor.setOption("lint",false);
-		cm.Editor.editor.setOption("lint",true);
 	} else {
 		core.OutlinePanel.clearFields();
 		core.OutlinePanel.update();
@@ -16088,7 +16106,6 @@ tabmanager.TabManager.selectDoc = function(path) {
 	var completionActive = cm.Editor.editor.state.completionActive;
 	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
 	cm.Editor.editor.focus();
-	if(js.Node.require("path").extname(tabmanager.TabManager.selectedPath) == ".xml") cm.Xml.generateXmlCompletion();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;
