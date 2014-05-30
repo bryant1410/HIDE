@@ -1228,9 +1228,17 @@ cm.Editor.load = function() {
 			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe" || mode == "xml") {
 				var completionActive1 = cm2.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
-				if(mode == "xml") cm.Xml.completeIfInTag(cm2);
+				if(mode == "xml") {
+					var cur = cm2.getCursor();
+					cm2.replaceRange("=\"\"",cur,cur);
+					cm2.execCommand("goCharLeft");
+					cm.Xml.completeIfInTag(cm2);
+				} else {
+					return CodeMirror.Pass;
+				}
+			} else {
+				return CodeMirror.Pass;
 			}
-			return CodeMirror.Pass;
 		};
 		$r = passAndHint2;
 		return $r;
@@ -1445,11 +1453,18 @@ $hxClasses["cm.Xml"] = cm.Xml;
 cm.Xml.__name__ = ["cm","Xml"];
 cm.Xml.generateXmlCompletion = function() {
 	var data = tabmanager.TabManager.getCurrentDocument().getValue();
-	var xml = haxe.xml.Parser.parse(data);
-	var fast = new haxe.xml.Fast(xml);
+	var xml = null;
+	try {
+		xml = haxe.xml.Parser.parse(data);
+	} catch( unknown ) {
+		console.log(unknown);
+	}
 	var tags = { '!attrs' : { }};
-	cm.Xml.walkThroughElements(tags,fast);
-	cm.Editor.editor.setOption("hintOptions",{ schemaInfo : tags});
+	if(xml != null) {
+		var fast = new haxe.xml.Fast(xml);
+		cm.Xml.walkThroughElements(tags,fast);
+		cm.Editor.editor.setOption("hintOptions",{ schemaInfo : tags});
+	}
 };
 cm.Xml.walkThroughElements = function(tags,fast) {
 	var $it0 = fast.get_elements();
@@ -1495,9 +1510,10 @@ cm.Xml.completeIfAfterLt = function(cm1) {
 	});
 };
 cm.Xml.completeIfInTag = function(cm1) {
+	console.log("completeIfInTag");
 	return cm.Xml.completeAfter(cm1,function() {
 		var tok = cm1.getTokenAt(cm1.getCursor());
-		if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+		if(tok.type == "string" && tok.string.length == 1) return false;
 		var inner = CodeMirror.innerMode(cm1.getMode(),tok.state).state;
 		return inner.tagName;
 	});

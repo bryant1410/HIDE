@@ -109,15 +109,34 @@ class Editor
 						{
 							completionActive.widget.pick();
 						}
-                        
+                            
                         if (mode == "xml")
                         {
+                            var cur = cm2.getCursor();
+                            cm2.replaceRange("=\"\"", cur, cur);
+                            cm2.execCommand("goCharLeft");
                             cm.Xml.completeIfInTag(cm2);
                         }
+                        else
+                        {
+                            untyped __js__("return CodeMirror.Pass");
+                        }
+                        
 					}
+					else
+                    {
+                        untyped __js__("return CodeMirror.Pass");
+                    }
 					
-					untyped __js__("return CodeMirror.Pass");
 				},
+//             "\\\'(\\\'":
+//             	function passAndHint(cm2:CodeMirror)
+//             	{
+//                     trace("test");
+//                     cm.Xml.completeIfInTag(cm2);
+//                     untyped __js__("return CodeMirror.Pass");
+//                 },
+            	
             "\\\'<\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{

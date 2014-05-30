@@ -16,12 +16,26 @@ class Xml
     {
         var data = TabManager.getCurrentDocument().getValue();
         
-        var xml = Parser.parse(data);
-        var fast = new Fast(xml);
+        var xml = null;
+        
+        try
+        {
+            xml = Parser.parse(data);
+        }
+        catch (unknown:Dynamic)
+        {
+            trace(unknown);
+        }
         
         var tags:Dynamic = {"!attrs": {}};
+            
+		if (xml != null)
+        {
+            var fast = new Fast(xml);
+            walkThroughElements(tags, fast);
+            cm.Editor.editor.setOption("hintOptions", {schemaInfo: tags});
+        }
         
-        walkThroughElements(tags, fast);
         
 //         var dummy = {
 //         attrs: {
@@ -61,8 +75,6 @@ class Xml
 //         wings: dummy, feet: dummy, body: dummy, head: dummy, tail: dummy,
 //         leaves: dummy, stem: dummy, flowers: dummy
 //       };
-        
-      cm.Editor.editor.setOption("hintOptions", {schemaInfo: tags});
 	}
     
     static function walkThroughElements(tags:Dynamic, fast:Fast)
@@ -139,9 +151,11 @@ class Xml
     
 	public static function completeIfInTag(cm:CodeMirror) 
     {
+        trace("completeIfInTag");
         return completeAfter(cm, function() {
           var tok = cm.getTokenAt(cm.getCursor());
-          if (tok.type == "string" && (!~/['"]/.match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+          //(!~/['"]/.match(tok.string.charAt(tok.string.length - 1)) ||
+          if (tok.type == "string" && tok.string.length == 1) return false;
           var inner = CodeMirrorStatic.innerMode(cm.getMode(), tok.state).state;
           return inner.tagName;
         });
