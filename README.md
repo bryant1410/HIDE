@@ -30,6 +30,12 @@ haxelib run HIDE
 ![Alt text](http://s13.postimg.org/9l0qcxo87/screenshot_204.png)
 3. Run nw
 
+##### Development version
+
+1. `haxelib git HIDE https://github.com/as3boyan/HIDE/ master bin`
+2. `haxelib install node-webkit`
+3. `haxelib run HIDE`
+
 ##### Contributing
 I am always thrilled to receive pull requests, and I do my best to process them as fast as possible. Not sure if that typo is worth a pull request? Do it! I will appreciate it.
 
