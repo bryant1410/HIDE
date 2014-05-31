@@ -7,6 +7,9 @@
 #CPP target
 -cpp {{file}}
 
+#To produce 64 bit binaries the file should define the HXCPP_M64 compile variable:
+-D HXCPP_M64
+
 #Add debug information
 -debug
 

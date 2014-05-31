@@ -1,4 +1,5 @@
 package haxeproject;
+import core.Utils;
 import core.Splitter;
 import filetree.FileTree;
 import js.Browser;
@@ -194,10 +195,15 @@ class HaxeProject
 					case Project.PHP:
 						pathToFile = "bin/" + project.name + ".php";
 					case Project.CPP:
-						pathToFile = "bin/" + project.name + ".exe";
+						pathToFile = "bin";
 						
 						targetData.runActionType = Project.COMMAND;
-						targetData.runActionText = pathToFile;
+						targetData.runActionText = "bin/" + project.name + "-debug";
+                        
+                        if (Utils.os == Utils.WINDOWS)
+                        {
+                            targetData.runActionText += ".exe";
+                        }
 					case Project.JAVA:
 						pathToFile = "bin/" + project.name + ".jar";
 					case Project.CSHARP:

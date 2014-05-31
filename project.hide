@@ -15,8 +15,9 @@
         ,"src/cm/Editor.hx"
         ,"../HIDEProjects/OpenFLProject3/project.xml"
         ,"libs/js/CodeMirror/addon/hint/xml-hint.js"
+        ,"libs/js/CodeMirror/mode/haxe/haxe.js"
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "libs/js/CodeMirror/mode/haxe/haxe.js"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

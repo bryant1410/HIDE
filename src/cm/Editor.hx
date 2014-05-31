@@ -32,6 +32,13 @@ import haxe.macro.Expr;
 import sys.FileSystem;
 #end
     
+//{ test
+    class Test
+{
+    
+}
+//}
+    
 /**
  * ...
  * @author AS3Boyan

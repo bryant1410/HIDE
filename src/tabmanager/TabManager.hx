@@ -390,6 +390,8 @@ class TabManager
 					mode = "javascript";
 			case ".css":
 					mode = "css";
+            case ".json":
+                	mode = "application/ld+json";
 			case ".xml":
 					mode = "xml";
 			case ".html":

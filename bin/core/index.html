@@ -8,7 +8,7 @@
 	<link id="theme" href="light.css" rel="stylesheet" media="screen">
 	
 	<script src="includes/js/main.js"></script>
-	
+
     <script type="text/javascript">
         $(document).ready(function () {
             $('#mainSplitter').jqxSplitter({width:'100%', height:'100%', orientation: 'vertical', panels: [{ size: 170, collapsible: false}] });
@@ -25,26 +25,34 @@
             $('#outline').jqxTree('selectItem', null);
 			
 			$(".colorPreview").spectrum({});
-            
+
+	    var nwgui = require('nw.gui');
+            var window = nwgui.Window.get();            
+
             var fs = require('fs');
-            
+            console.log("foundMatchingClose");
             fs.exists(require('path').join("core", "HIDE.js"), function (exists)
             {                
                if (!exists)
                {
-                   var nwgui = require('nw.gui');
-                   var window = nwgui.Window.get();
                    window.show();
                    window.showDevTools();
                    $('body').html('HIDE.js is not found! Please compile HIDE.');
                }
 			}
             );
+		
+	    process.on('uncaughtException', function (err)
+	{
+		console.log(err);
+		window.show();
+	}
+	);
         });
     </script>
     
 	<!-- Code generated using Haxe -->
-    <script type="text/javascript" src="./HIDE.js"></script> 
+    <script type="text/javascript" src="./HIDE.js"></script>
 </head>
 
 <body>	

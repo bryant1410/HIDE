@@ -1510,10 +1510,9 @@ cm.Xml.completeIfAfterLt = function(cm1) {
 	});
 };
 cm.Xml.completeIfInTag = function(cm1) {
-	console.log("completeIfInTag");
 	return cm.Xml.completeAfter(cm1,function() {
 		var tok = cm1.getTokenAt(cm1.getCursor());
-		if(tok.type == "string" && tok.string.length == 1) return false;
+		if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
 		var inner = CodeMirror.innerMode(cm1.getMode(),tok.state).state;
 		return inner.tagName;
 	});
@@ -13125,9 +13124,10 @@ haxeproject.HaxeProject.createHaxeProject = function(data,target) {
 				pathToFile = "bin/" + project.name + ".php";
 				break;
 			case 4:
-				pathToFile = "bin/" + project.name + ".exe";
+				pathToFile = "bin";
 				targetData.runActionType = 2;
-				targetData.runActionText = pathToFile;
+				targetData.runActionText = "bin/" + project.name + "-debug";
+				if(core.Utils.os == 0) targetData.runActionText += ".exe";
 				break;
 			case 5:
 				pathToFile = "bin/" + project.name + ".jar";
@@ -16084,6 +16084,9 @@ tabmanager.TabManager.getMode = function(path) {
 		break;
 	case ".css":
 		mode = "css";
+		break;
+	case ".json":
+		mode = "application/ld+json";
 		break;
 	case ".xml":
 		mode = "xml";

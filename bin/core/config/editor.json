@@ -10,7 +10,7 @@
 	"mode": "haxe",
 	"lineWrapping": true,
 	//"highlightSelectionMatches": {"showToken": "regexp\\w"},
-	"foldGutter": {"rangeFinder": "evalnew CodeMirror.fold.combine(CodeMirror.fold.brace, CodeMirror.fold.comment)"},
+    "foldGutter": true,
 	"showCursorWhenSelecting": true,
 	"keyMap": "sublime",
     //"vimMode": true,

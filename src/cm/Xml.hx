@@ -123,7 +123,6 @@ class Xml
         }
     }
 
-    
 	public static function completeAfter(cm:CodeMirror, ?pred:Dynamic) 
     {
         var cur = cm.getCursor();
@@ -151,11 +150,9 @@ class Xml
     
 	public static function completeIfInTag(cm:CodeMirror) 
     {
-        trace("completeIfInTag");
         return completeAfter(cm, function() {
           var tok = cm.getTokenAt(cm.getCursor());
-          //(!~/['"]/.match(tok.string.charAt(tok.string.length - 1)) ||
-          if (tok.type == "string" && tok.string.length == 1) return false;
+          if (tok.type == "string" && (!~/['"]/.match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
           var inner = CodeMirrorStatic.innerMode(cm.getMode(), tok.state).state;
           return inner.tagName;
         });
