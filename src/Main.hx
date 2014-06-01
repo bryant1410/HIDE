@@ -78,7 +78,6 @@ class Main
         
         sync = true;
         
-		Hotkeys.prepare();
 		PreserveWindowState.init();
 		
 		Browser.window.addEventListener("load", function (e):Void
@@ -87,6 +86,7 @@ class Main
 			
 			SettingsWatcher.load();
 			SnippetsWatcher.load();
+			Hotkeys.prepare();
 			
 			Utils.prepare();
 			BootstrapMenu.createMenuBar();

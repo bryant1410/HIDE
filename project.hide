@@ -11,9 +11,9 @@
 
     ]
     ,"files" : [
-         "src/HIDE.hx"
+
     ]
-    ,"activeFile" : "src/HIDE.hx"
+    ,"activeFile" : "src/watchers/SettingsWatcher.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

@@ -1,4 +1,6 @@
 package watchers;
+import js.Node.NodeFsFileOptions;
+import core.Utils;
 import filetree.FileTree;
 import haxe.Timer;
 import js.Node;
@@ -23,10 +25,55 @@ class SettingsWatcher
 	public static var watcher:Dynamic;
     
     static var pathToSettings:String;
+	public static var pathToFolder:String;
 	
 	public static function load():Void 
-	{
-        pathToSettings = Node.path.join("core", "config", "settings.json");
+	{		
+		var pathToConfigFolder:String = Node.path.join("core", "config");
+		
+		switch (Utils.os)
+		{
+			case Utils.WINDOWS:
+				pathToFolder = Node.process.env.APPDATA;
+			default:
+				pathToFolder = Node.process.env.HOME;
+		}
+		
+		if (pathToFolder != null)
+		{
+			pathToFolder = Node.path.join(pathToFolder, ".HIDE");
+			if (!Node.fs.existsSync(pathToFolder))
+			{
+				Node.fs.mkdirSync(pathToFolder);
+			}
+			
+			var configFiles = Node.fs.readdirSync(pathToConfigFolder);
+			var files = Node.fs.readdirSync(pathToFolder);
+				
+			var options:NodeFsFileOptions = {};
+			options.encoding = NodeC.UTF8;
+			
+			var content:String;
+			
+			var pathToFile:String = null;
+			
+			for (file in configFiles)
+			{
+				if (files.indexOf(file) == -1)
+				{
+					pathToFile = Node.path.join(pathToConfigFolder, file);
+					content = Node.fs.readFileSync(pathToFile, options);
+					pathToFile = Node.path.join(pathToFolder, file);
+					Node.fs.writeFileSync(pathToFile, content, NodeC.UTF8);
+				}
+			}
+		}
+		else
+		{
+			pathToFolder = pathToConfigFolder;
+		}
+		
+        pathToSettings = Node.path.join(pathToFolder, "settings.json");
         
 		watcher = Watcher.watchFileForUpdates(pathToSettings, parse, 3000);
 		

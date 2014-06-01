@@ -132,13 +132,13 @@ class MenuCommands
 		Window.get().on('close', TabManager.saveAll);
 		
 		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
-		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","settings.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"settings.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", SettingsWatcher.settings.theme)));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","editor.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"editor.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config", "hotkeys.json")));
-		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open snippets configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config", "snippets.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "hotkeys.json")));
+		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open snippets configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "snippets.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK", 100, ClasspathWalker.showHaxeDirectoryDialog);
 		
 		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, Editor.editor.execCommand.bind("undo"));

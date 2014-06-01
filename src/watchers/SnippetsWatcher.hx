@@ -13,7 +13,7 @@ class SnippetsWatcher
 	
 	public static function load():Void 
 	{
-		var pathToFile = Node.path.join("core", "config", "snippets.json");
+		var pathToFile = Node.path.join(SettingsWatcher.pathToFolder, "snippets.json");
 		
 		watcher = Watcher.watchFileForUpdates(pathToFile, function ():Void 
 		{

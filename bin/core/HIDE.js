@@ -289,12 +289,12 @@ Main.main = function() {
 		Main.window.show();
 	});
 	Main.sync = true;
-	core.Hotkeys.prepare();
 	core.PreserveWindowState.init();
 	window.addEventListener("load",function(e) {
 		core.Splitter.load();
 		watchers.SettingsWatcher.load();
 		watchers.SnippetsWatcher.load();
+		core.Hotkeys.prepare();
 		core.Utils.prepare();
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
@@ -3089,7 +3089,7 @@ core.Hotkeys = function() { };
 $hxClasses["core.Hotkeys"] = core.Hotkeys;
 core.Hotkeys.__name__ = ["core","Hotkeys"];
 core.Hotkeys.prepare = function() {
-	core.Hotkeys.pathToData = js.Node.require("path").join("core","config","hotkeys.json");
+	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
 	var options = { };
 	options.interval = 1500;
@@ -3531,7 +3531,7 @@ core.MenuCommands.add = function() {
 		return function() {
 			return f2(a12);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","settings.json")));
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"settings.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,(function(f3,a13) {
 		return function() {
 			return f3(a13);
@@ -3541,7 +3541,7 @@ core.MenuCommands.add = function() {
 		return function() {
 			return f4(a14);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","editor.json")));
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"editor.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f5,a15,a2) {
 		return function() {
 			return f5(a15,a2);
@@ -3556,12 +3556,12 @@ core.MenuCommands.add = function() {
 		return function() {
 			return f7(a17);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","hotkeys.json")));
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json")));
 	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open snippets configuration file",1,(function(f8,a18) {
 		return function() {
 			return f8(a18);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","snippets.json")));
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
@@ -16618,7 +16618,37 @@ watchers.SettingsWatcher = function() { };
 $hxClasses["watchers.SettingsWatcher"] = watchers.SettingsWatcher;
 watchers.SettingsWatcher.__name__ = ["watchers","SettingsWatcher"];
 watchers.SettingsWatcher.load = function() {
-	watchers.SettingsWatcher.pathToSettings = js.Node.require("path").join("core","config","settings.json");
+	var pathToConfigFolder = js.Node.require("path").join("core","config");
+	var _g = core.Utils.os;
+	switch(_g) {
+	case 0:
+		watchers.SettingsWatcher.pathToFolder = js.Node.process.env.APPDATA;
+		break;
+	default:
+		watchers.SettingsWatcher.pathToFolder = js.Node.process.env.HOME;
+	}
+	if(watchers.SettingsWatcher.pathToFolder != null) {
+		watchers.SettingsWatcher.pathToFolder = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,".HIDE");
+		if(!js.Node.require("fs").existsSync(watchers.SettingsWatcher.pathToFolder)) js.Node.require("fs").mkdirSync(watchers.SettingsWatcher.pathToFolder);
+		var configFiles = js.Node.require("fs").readdirSync(pathToConfigFolder);
+		var files = js.Node.require("fs").readdirSync(watchers.SettingsWatcher.pathToFolder);
+		var options = { };
+		options.encoding = "utf8";
+		var content;
+		var pathToFile = null;
+		var _g1 = 0;
+		while(_g1 < configFiles.length) {
+			var file = configFiles[_g1];
+			++_g1;
+			if(HxOverrides.indexOf(files,file,0) == -1) {
+				pathToFile = js.Node.require("path").join(pathToConfigFolder,file);
+				content = js.Node.require("fs").readFileSync(pathToFile,options);
+				pathToFile = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,file);
+				js.Node.require("fs").writeFileSync(pathToFile,content,"utf8");
+			}
+		}
+	} else watchers.SettingsWatcher.pathToFolder = pathToConfigFolder;
+	watchers.SettingsWatcher.pathToSettings = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"settings.json");
 	watchers.SettingsWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.SettingsWatcher.pathToSettings,watchers.SettingsWatcher.parse,3000);
 	watchers.SettingsWatcher.parse();
 	nodejs.webkit.Window.get().on("close",function(e) {
@@ -16654,7 +16684,7 @@ watchers.SnippetsWatcher = function() { };
 $hxClasses["watchers.SnippetsWatcher"] = watchers.SnippetsWatcher;
 watchers.SnippetsWatcher.__name__ = ["watchers","SnippetsWatcher"];
 watchers.SnippetsWatcher.load = function() {
-	var pathToFile = js.Node.require("path").join("core","config","snippets.json");
+	var pathToFile = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json");
 	watchers.SnippetsWatcher.watcher = watchers.Watcher.watchFileForUpdates(pathToFile,function() {
 		completion.SnippetsCompletion.load();
 	},1000);

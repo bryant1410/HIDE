@@ -1,4 +1,5 @@
 package core;
+import watchers.SettingsWatcher;
 import cm.Editor;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
@@ -31,7 +32,7 @@ class Hotkeys
 	
 	public static function prepare():Void
 	{
-		pathToData = Node.path.join("core", "config","hotkeys.json");
+		pathToData = Node.path.join(SettingsWatcher.pathToFolder,"hotkeys.json");
 		parseData();
 		
 		var options:NodeWatchOpt = { };
