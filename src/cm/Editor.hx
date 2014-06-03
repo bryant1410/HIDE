@@ -1,6 +1,6 @@
 package cm;
-
 #if !macro
+import CodeMirror.Pos;
 import core.Completion;
 import core.FunctionParametersHelper;
 import core.HaxeLint;
@@ -31,13 +31,6 @@ import haxe.macro.Context;
 import haxe.macro.Expr;
 import sys.FileSystem;
 #end
-    
-//{ test
-    class Test
-{
-    
-}
-//}
     
 /**
  * ...
@@ -367,6 +360,36 @@ class Editor
 		{
 			untyped __js__(" var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ");
 		};
+
+		editor.on("gutterClick", function (cm:CodeMirror, line:Int, gutter:String, e)
+						{
+							if (ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter")
+							{
+								var cm = editor;
+								var foldedRegions:Array<Pos> = [];
+
+								for (marker in TabManager.getCurrentDocument().getAllMarks())
+								{
+									var pos = marker.find().from;
+									
+									if (cm.isFolded(pos))
+									{
+										foldedRegions.push(pos);
+									}
+								}
+								
+								var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+								
+								if (selectedFile != null)
+								{
+									selectedFile.foldedRegions = foldedRegions;
+								}
+								else
+								{
+									trace("cannot save folded regions for this document");
+								}
+							}
+						});
 	}
 	
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 

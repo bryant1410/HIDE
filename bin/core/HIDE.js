@@ -230,6 +230,14 @@ Lambda.indexOf = function(it,v) {
 	}
 	return -1;
 };
+Lambda.find = function(it,f) {
+	var $it0 = $iterator(it)();
+	while( $it0.hasNext() ) {
+		var v = $it0.next();
+		if(f(v)) return v;
+	}
+	return null;
+};
 var List = function() {
 	this.length = 0;
 };
@@ -1362,6 +1370,22 @@ cm.Editor.load = function() {
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
 	};
+	cm.Editor.editor.on("gutterClick",function(cm7,line1,gutter,e3) {
+		if(projectaccess.ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter") {
+			var cm8 = cm.Editor.editor;
+			var foldedRegions = [];
+			var _g5 = 0;
+			var _g13 = tabmanager.TabManager.getCurrentDocument().getAllMarks();
+			while(_g5 < _g13.length) {
+				var marker = _g13[_g5];
+				++_g5;
+				var pos = marker.find().from;
+				if(cm8.isFolded(pos)) foldedRegions.push(pos);
+			}
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+			if(selectedFile != null) selectedFile.foldedRegions = foldedRegions; else console.log("cannot save folded regions for this document");
+		}
+	});
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -14410,11 +14434,16 @@ openproject.OpenProject.parseProject = function(path) {
 			if(projectaccess.ProjectAccess.currentProject.files == null) projectaccess.ProjectAccess.currentProject.files = []; else {
 				totalFilesCount = projectaccess.ProjectAccess.currentProject.files.length;
 				var _g = 0;
-				var _g1 = projectaccess.ProjectAccess.currentProject.files;
-				while(_g < _g1.length) {
-					var file = _g1[_g];
-					++_g;
-					var fullPath = [js.Node.require("path").join(pathToProject,file)];
+				while(_g < totalFilesCount) {
+					var i = _g++;
+					if(typeof(projectaccess.ProjectAccess.currentProject.files[i]) == "string") projectaccess.ProjectAccess.currentProject.files[i] = { path : projectaccess.ProjectAccess.currentProject.files[i]};
+				}
+				var _g1 = 0;
+				var _g11 = projectaccess.ProjectAccess.currentProject.files;
+				while(_g1 < _g11.length) {
+					var file = _g11[_g1];
+					++_g1;
+					var fullPath = [js.Node.require("path").join(pathToProject,file.path)];
 					js.Node.require("fs").exists(fullPath[0],(function(fullPath) {
 						return function(exists) {
 							if(exists) tabmanager.TabManager.openFileInNewTab(fullPath[0],false,(function() {
@@ -15435,6 +15464,13 @@ projectaccess.ProjectAccess.getPathToHxml = function() {
 	}
 	return pathToHxml;
 };
+projectaccess.ProjectAccess.getFileByPath = function(path) {
+	var project = projectaccess.ProjectAccess.currentProject;
+	var selectedFile = Lambda.find(project.files,function(file) {
+		return file.path == path;
+	});
+	return selectedFile;
+};
 projectaccess.ProjectOptions = function() { };
 $hxClasses["projectaccess.ProjectOptions"] = projectaccess.ProjectOptions;
 projectaccess.ProjectOptions.__name__ = ["projectaccess","ProjectOptions"];
@@ -15921,7 +15957,8 @@ tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
 	tabmanager.TabManager.tabs.appendChild(tab.getElement());
 	if(projectaccess.ProjectAccess.path != null) {
 		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.files,relativePath,0) == -1) projectaccess.ProjectAccess.currentProject.files.push(relativePath);
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(relativePath);
+		if(selectedFile == null) projectaccess.ProjectAccess.currentProject.files.push({ path : relativePath});
 	}
 	core.RecentProjectsList.addFile(path);
 	cm.Editor.resize();
@@ -16045,7 +16082,8 @@ tabmanager.TabManager.removeTab = function(path,switchToTab) {
 	}
 	if(projectaccess.ProjectAccess.path != null) {
 		var pathToDocument = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		HxOverrides.remove(projectaccess.ProjectAccess.currentProject.files,pathToDocument);
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(pathToDocument);
+		HxOverrides.remove(projectaccess.ProjectAccess.currentProject.files,selectedFile);
 	}
 };
 tabmanager.TabManager.showPreviousTab = function() {
@@ -16124,6 +16162,20 @@ tabmanager.TabManager.selectDoc = function(path) {
 	core.HaxeLint.updateLinting();
 	var completionActive = cm.Editor.editor.state.completionActive;
 	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
+	if(projectaccess.ProjectAccess.currentProject != null) {
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
+		if(selectedFile != null) {
+			var foldedRegions = selectedFile.foldedRegions;
+			if(foldedRegions != null) {
+				var _g2 = 0;
+				while(_g2 < foldedRegions.length) {
+					var pos = foldedRegions[_g2];
+					++_g2;
+					cm.Editor.editor.foldCode(pos,null,"fold");
+				}
+			}
+		} else console.log("can't load folded regions for active document");
+	}
 	cm.Editor.editor.focus();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {

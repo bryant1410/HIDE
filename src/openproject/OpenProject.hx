@@ -1,4 +1,5 @@
 package openproject;
+import projectaccess.Project.FileData;
 import core.OutlinePanel;
 import core.FileDialog;
 import core.RecentProjectsList;
@@ -97,9 +98,17 @@ class OpenProject
 					{
                         totalFilesCount = ProjectAccess.currentProject.files.length;
                         
+						for (i in 0...totalFilesCount)
+						{
+							if (Std.is(ProjectAccess.currentProject.files[i], String))
+							{
+								ProjectAccess.currentProject.files[i] = {path: untyped ProjectAccess.currentProject.files[i]};
+							}
+						}
+						
 						for (file in ProjectAccess.currentProject.files) 
 						{
-							var fullPath:String = Node.path.join(pathToProject, file);
+							var fullPath:String = Node.path.join(pathToProject, file.path);
                             
 							Node.fs.exists(fullPath, function (exists:Bool) 
 							{

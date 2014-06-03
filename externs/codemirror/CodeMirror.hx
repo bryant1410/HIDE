@@ -1,4 +1,5 @@
 package ;
+import CodeMirror.LineHandle;
 
 //CodeMirror.hx from "try-haxe"
 //https://github.com/clemos/try-haxe/blob/master/src/js/codemirror/CodeMirror.hx
@@ -50,6 +51,20 @@ typedef LineWidgetOptions = {
 typedef DocHistory = {
 	var generation:Int;
 }
+	
+@:native('CodeMirror.TextMarker') extern class TextMarker
+{
+	function find():{from:Pos, to:Pos};
+	
+	var atomic: Bool;
+	var clearOnEnter: Bool;
+	var collapsed: Bool;
+	var doc: CodeMirror.Doc;
+	var id:Int;
+	var lines: Array<LineHandle>;
+	var type: String;
+	var widgetNode: Dynamic;
+}
 
 @:native('CodeMirror.Doc') extern class Doc 
 {
@@ -65,6 +80,7 @@ typedef DocHistory = {
 	function historySize():Int;
 	function getMode(): { name:String };
 	function lineCount():Int;
+	function getAllMarks():Array<Dynamic>;
 	var history:DocHistory;
 }
 
@@ -94,9 +110,9 @@ function getCursor( ?start : Bool ) : Pos;
 
 function getLine(line:Int):String;
 function getLineNumber(pos:Pos):Int;
-	
-function firstLine():Dynamic;
-function lastLine():Dynamic;
+
+function firstLine():Int;
+function lastLine():Int;
 
 function setOption(option:String, value:Dynamic):Void;
 function swapDoc(doc:Dynamic):Void;
@@ -142,6 +158,11 @@ function indentLine(line: Int, ?dir: Dynamic): Void;
 function showHint(options:Dynamic):Void;
 function listSelections():Array<{anchor:Pos, head:Pos}>;
     
+function foldCode(pos:Pos, ?options:{call:Dynamic}, ?force:String):Void;
+function isFolded(pos:Pos):Bool;
+
+function operation(func:Dynamic):Void;
+	
 function getWrapperElement() : DivElement;
 
 function somethingSelected() : Bool;

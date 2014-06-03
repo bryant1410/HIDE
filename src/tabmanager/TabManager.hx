@@ -64,10 +64,11 @@ class TabManager
 		if (ProjectAccess.path != null) 
 		{
 			var relativePath = Node.path.relative(ProjectAccess.path, path);
+			var selectedFile = ProjectAccess.getFileByPath(relativePath);
 			
-			if (ProjectAccess.currentProject.files.indexOf(relativePath) == -1) 
+			if (selectedFile == null) 
 			{
-				ProjectAccess.currentProject.files.push(relativePath);
+				ProjectAccess.currentProject.files.push({path: relativePath});
 			}
 		}
 		
@@ -329,7 +330,10 @@ class TabManager
 		if (ProjectAccess.path != null) 
 		{
 			var pathToDocument:String = Node.path.relative(ProjectAccess.path, path);
-			ProjectAccess.currentProject.files.remove(pathToDocument);
+			
+			var selectedFile = ProjectAccess.getFileByPath(pathToDocument);
+			
+			ProjectAccess.currentProject.files.remove(selectedFile);
 		}
 	}
 	
@@ -442,6 +446,28 @@ class TabManager
         {
             completionActive.widget.close();
         }
+			
+		if (ProjectAccess.currentProject != null)
+		{			
+			var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, selectedPath));
+			
+			if (selectedFile != null)
+			{
+				var foldedRegions = selectedFile.foldedRegions;
+			
+				if (foldedRegions != null)
+				{
+					for (pos in foldedRegions)
+					{
+						Editor.editor.foldCode(pos, null, "fold");
+					}
+				}	
+			}
+			else
+			{
+				trace("can't load folded regions for active document");
+			}
+		}
             
        	Editor.editor.focus();
 	}

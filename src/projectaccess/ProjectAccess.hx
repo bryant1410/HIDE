@@ -5,6 +5,7 @@ import js.Browser;
 import js.Node;
 import nodejs.webkit.Window;
 import projectaccess.Project.TargetData;
+import projectaccess.Project.FileData;
 import tjson.TJSON;
 
 /**
@@ -101,5 +102,17 @@ class ProjectAccess
 		}
 		
 		return pathToHxml;
+	}
+	
+	public static function getFileByPath(path:String)
+	{
+		var project = ProjectAccess.currentProject;
+		
+		var selectedFile = Lambda.find(project.files, function (file:FileData)
+				{
+					return file.path == path;
+				});
+		
+		return selectedFile;
 	}
 }

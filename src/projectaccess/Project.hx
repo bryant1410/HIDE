@@ -1,4 +1,5 @@
 package projectaccess;
+import CodeMirror.Pos;
 
 /**
  * ...
@@ -10,6 +11,11 @@ typedef TargetData = {
 	@:optional var runActionType:Int;
 	@:optional var runActionText:String;
 } 
+	
+typedef FileData = {
+	@:optional var path:String;
+	@:optional var foldedRegions:Array<Pos>;
+}
  
 class Project
 {
@@ -44,7 +50,7 @@ class Project
 	
 	public var targetData:Array<TargetData>;
 	
-	public var files:Array<String>;
+	public var files:Array<FileData>;
 	public var activeFile:String;
 	
 	public var openFLTarget:String;
@@ -63,6 +69,5 @@ class Project
 		targetData = [];
 		
 		showHiddenItems = false;
-	}
-	
+	}	
 }
