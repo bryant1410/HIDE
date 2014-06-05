@@ -418,6 +418,7 @@ class TabManager
 		if (selectedPath != null && ProjectAccess.currentProject != null)
 		{
 			Editor.saveFoldedRegions();
+			Editor.editor.refresh();
 		}
 		
 		var keys = tabMap.keys();

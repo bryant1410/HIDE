@@ -1,4 +1,5 @@
 package watchers;
+import nodejs.webkit.App;
 import js.Node.NodeFsFileOptions;
 import core.Utils;
 import filetree.FileTree;
@@ -31,13 +32,15 @@ class SettingsWatcher
 	{		
 		var pathToConfigFolder:String = Node.path.join("core", "config");
 		
-		switch (Utils.os)
-		{
-			case Utils.WINDOWS:
-				pathToFolder = Node.process.env.APPDATA;
-			default:
-				pathToFolder = Node.process.env.HOME;
-		}
+// 		switch (Utils.os)
+// 		{
+// 			case Utils.WINDOWS:
+// 				pathToFolder = Node.process.env.APPDATA;
+// 			default:
+// 				pathToFolder = Node.process.env.HOME;
+// 		}
+		
+		pathToFolder = App.dataPath;
 		
 		if (pathToFolder != null)
 		{

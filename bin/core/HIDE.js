@@ -16147,7 +16147,10 @@ tabmanager.TabManager.getMode = function(path) {
 	return mode;
 };
 tabmanager.TabManager.selectDoc = function(path) {
-	if(tabmanager.TabManager.selectedPath != null && projectaccess.ProjectAccess.currentProject != null) cm.Editor.saveFoldedRegions();
+	if(tabmanager.TabManager.selectedPath != null && projectaccess.ProjectAccess.currentProject != null) {
+		cm.Editor.saveFoldedRegions();
+		cm.Editor.editor.refresh();
+	}
 	var keys = tabmanager.TabManager.tabMap.keys();
 	var _g1 = 0;
 	var _g = keys.length;
@@ -16673,14 +16676,7 @@ $hxClasses["watchers.SettingsWatcher"] = watchers.SettingsWatcher;
 watchers.SettingsWatcher.__name__ = ["watchers","SettingsWatcher"];
 watchers.SettingsWatcher.load = function() {
 	var pathToConfigFolder = js.Node.require("path").join("core","config");
-	var _g = core.Utils.os;
-	switch(_g) {
-	case 0:
-		watchers.SettingsWatcher.pathToFolder = js.Node.process.env.APPDATA;
-		break;
-	default:
-		watchers.SettingsWatcher.pathToFolder = js.Node.process.env.HOME;
-	}
+	watchers.SettingsWatcher.pathToFolder = nodejs.webkit.App.dataPath;
 	if(watchers.SettingsWatcher.pathToFolder != null) {
 		watchers.SettingsWatcher.pathToFolder = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,".HIDE");
 		if(!js.Node.require("fs").existsSync(watchers.SettingsWatcher.pathToFolder)) js.Node.require("fs").mkdirSync(watchers.SettingsWatcher.pathToFolder);
@@ -16690,10 +16686,10 @@ watchers.SettingsWatcher.load = function() {
 		options.encoding = "utf8";
 		var content;
 		var pathToFile = null;
-		var _g1 = 0;
-		while(_g1 < configFiles.length) {
-			var file = configFiles[_g1];
-			++_g1;
+		var _g = 0;
+		while(_g < configFiles.length) {
+			var file = configFiles[_g];
+			++_g;
 			if(HxOverrides.indexOf(files,file,0) == -1) {
 				pathToFile = js.Node.require("path").join(pathToConfigFolder,file);
 				content = js.Node.require("fs").readFileSync(pathToFile,options);
