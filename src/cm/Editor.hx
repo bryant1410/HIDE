@@ -365,33 +365,39 @@ class Editor
 						{
 							if (ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter")
 							{
-								var cm = editor;
-								var foldedRegions:Array<Pos> = [];
-
-								for (marker in TabManager.getCurrentDocument().getAllMarks())
-								{
-									var pos = marker.find().from;
-									
-									if (cm.isFolded(pos))
-									{
-										foldedRegions.push(pos);
-									}
-								}
-								
-								var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
-								
-								if (selectedFile != null)
-								{
-									selectedFile.foldedRegions = foldedRegions;
-								}
-								else
-								{
-									trace("cannot save folded regions for this document");
-								}
+								saveFoldedRegions();
 							}
 						});
 	}
 	
+	public static function saveFoldedRegions()
+	{
+		var cm = editor;
+		var foldedRegions:Array<Pos> = [];
+
+		for (marker in TabManager.getCurrentDocument().getAllMarks())
+		{
+			var pos = marker.find().from;
+
+			if (cm.isFolded(pos))
+			{
+				foldedRegions.push(pos);
+			}
+		}
+
+		var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+
+		if (selectedFile != null)
+		{
+			selectedFile.foldedRegions = foldedRegions;
+		}
+		else
+		{
+			trace("cannot save folded regions for this document");
+		}
+	}
+
+		
 	public static function triggerCompletion(cm:CodeMirror, ?dot:Bool = false) 
 	{
         trace("triggerCompletion");

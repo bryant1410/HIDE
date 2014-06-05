@@ -89,7 +89,7 @@
             ]
         }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/tabmanager/TabManager.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

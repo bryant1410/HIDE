@@ -1371,21 +1371,22 @@ cm.Editor.load = function() {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
 	};
 	cm.Editor.editor.on("gutterClick",function(cm7,line1,gutter,e3) {
-		if(projectaccess.ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter") {
-			var cm8 = cm.Editor.editor;
-			var foldedRegions = [];
-			var _g5 = 0;
-			var _g13 = tabmanager.TabManager.getCurrentDocument().getAllMarks();
-			while(_g5 < _g13.length) {
-				var marker = _g13[_g5];
-				++_g5;
-				var pos = marker.find().from;
-				if(cm8.isFolded(pos)) foldedRegions.push(pos);
-			}
-			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
-			if(selectedFile != null) selectedFile.foldedRegions = foldedRegions; else console.log("cannot save folded regions for this document");
-		}
+		if(projectaccess.ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter") cm.Editor.saveFoldedRegions();
 	});
+};
+cm.Editor.saveFoldedRegions = function() {
+	var cm1 = cm.Editor.editor;
+	var foldedRegions = [];
+	var _g = 0;
+	var _g1 = tabmanager.TabManager.getCurrentDocument().getAllMarks();
+	while(_g < _g1.length) {
+		var marker = _g1[_g];
+		++_g;
+		var pos = marker.find().from;
+		if(cm1.isFolded(pos)) foldedRegions.push(pos);
+	}
+	var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+	if(selectedFile != null) selectedFile.foldedRegions = foldedRegions; else console.log("cannot save folded regions for this document");
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -16146,6 +16147,7 @@ tabmanager.TabManager.getMode = function(path) {
 	return mode;
 };
 tabmanager.TabManager.selectDoc = function(path) {
+	if(tabmanager.TabManager.selectedPath != null && projectaccess.ProjectAccess.currentProject != null) cm.Editor.saveFoldedRegions();
 	var keys = tabmanager.TabManager.tabMap.keys();
 	var _g1 = 0;
 	var _g = keys.length;

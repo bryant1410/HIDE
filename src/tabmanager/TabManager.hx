@@ -415,6 +415,11 @@ class TabManager
 	
 	public static function selectDoc(path:String):Void
 	{
+		if (selectedPath != null && ProjectAccess.currentProject != null)
+		{
+			Editor.saveFoldedRegions();
+		}
+		
 		var keys = tabMap.keys();
 		for (i in 0...keys.length) 
 		{
