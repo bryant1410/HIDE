@@ -1,4 +1,6 @@
 package projectaccess;
+import cm.Editor;
+import tabmanager.TabManager;
 import core.Helper;
 import haxe.Json;
 import js.Browser;
@@ -24,6 +26,11 @@ class ProjectAccess
 		
 		window.on("close", function ():Void 
 		{
+			if (currentProject != null && TabManager.getCurrentDocumentPath() != null)
+			{
+				Editor.saveFoldedRegions();
+			}
+			
 			save(null, true);
 			window.close();
 			

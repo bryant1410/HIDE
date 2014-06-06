@@ -15425,6 +15425,7 @@ projectaccess.ProjectAccess.__name__ = ["projectaccess","ProjectAccess"];
 projectaccess.ProjectAccess.registerSaveOnCloseListener = function() {
 	var $window = nodejs.webkit.Window.get();
 	$window.on("close",function() {
+		if(projectaccess.ProjectAccess.currentProject != null && tabmanager.TabManager.getCurrentDocumentPath() != null) cm.Editor.saveFoldedRegions();
 		projectaccess.ProjectAccess.save(null,true);
 		$window.close();
 	});
@@ -16062,6 +16063,7 @@ tabmanager.TabManager.closeOthers = function(path) {
 };
 tabmanager.TabManager.closeTab = function(path,switchToTab) {
 	if(switchToTab == null) switchToTab = true;
+	cm.Editor.saveFoldedRegions();
 	if(tabmanager.TabManager.isChanged(path)) Alertify.confirm(watchers.LocaleWatcher.getStringSync("File ") + path + watchers.LocaleWatcher.getStringSync(" was changed. Save it?"),function(e) {
 		if(e) tabmanager.TabManager.saveDoc(path);
 		tabmanager.TabManager.removeTab(path,switchToTab);

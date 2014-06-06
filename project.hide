@@ -11,59 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src/tabmanager/TabManager.hx"
-            ,"foldedRegions" : [
-                 {
-                     "line" : 41
-                    ,"ch" : 2
-                }
-                ,{
-                     "line" : 41
-                    ,"ch" : 2
-                }
-                ,{
-                     "line" : 41
-                    ,"ch" : 2
-                }
-                ,{
-                     "line" : 41
-                    ,"ch" : 2
-                }
-            ]
-        }
-        ,{
-             "path" : "src/projectaccess/Project.hx"
-            ,"foldedRegions" : [
 
-            ]
-        }
-        ,{
-             "path" : "src/projectaccess/ProjectAccess.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/core/MenuCommands.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/filetree/FileTree.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/cm/Editor.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
     ]
-    ,"activeFile" : "src/tabmanager/TabManager.hx"
+    ,"activeFile" : "src/Main.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

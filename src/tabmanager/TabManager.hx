@@ -271,7 +271,9 @@ class TabManager
 	}
 	
 	public static function closeTab(path:String, ?switchToTab:Bool = true):Void
-	{		
+	{
+		Editor.saveFoldedRegions();
+		
 		if (isChanged(path)) 
 		{
 			Alertify.confirm(LocaleWatcher.getStringSync("File ") + path +  LocaleWatcher.getStringSync(" was changed. Save it?"), function (e)
