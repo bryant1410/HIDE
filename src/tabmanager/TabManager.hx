@@ -300,6 +300,8 @@ class TabManager
 		
 		tab.remove();
 		
+		selectedPath = null;
+		
 		if (tabMap.getTabs().length > 0)
 		{
 			if (switchToTab)
@@ -320,8 +322,6 @@ class TabManager
 				WelcomeScreen.show();
 			}
 			
-			selectedPath = null;
-            
             OutlinePanel.clearFields();
             OutlinePanel.update();
 		}

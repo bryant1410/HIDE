@@ -16072,12 +16072,12 @@ tabmanager.TabManager.removeTab = function(path,switchToTab) {
 	var tab = tabmanager.TabManager.tabMap.get(path);
 	tabmanager.TabManager.tabMap.remove(path);
 	tab.remove();
+	tabmanager.TabManager.selectedPath = null;
 	if(tabmanager.TabManager.tabMap.getTabs().length > 0) {
 		if(switchToTab) tabmanager.TabManager.showPreviousTab();
 	} else {
 		new $("#editor").hide(0);
 		if(projectaccess.ProjectAccess.path != null) core.WelcomeScreen.hide(); else core.WelcomeScreen.show();
-		tabmanager.TabManager.selectedPath = null;
 		core.OutlinePanel.clearFields();
 		core.OutlinePanel.update();
 	}
