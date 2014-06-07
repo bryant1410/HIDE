@@ -1,4 +1,5 @@
 ###How to compile:
+1. Clone source using git
 1. You will need Haxe 3. Install haxelibs:
 	
         haxelib install jQueryExtern
