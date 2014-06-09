@@ -454,6 +454,7 @@ ul.tabs li {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   position: relative;
+  font-family: "Ubuntu Mono", "monospace", "Courier New";
 }
 ul.tabs li:hover {
   color: #444;
