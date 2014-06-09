@@ -1,4 +1,8 @@
 ###How to compile:
+1. Clone source using git
+
+        git clone --recursive https://github.com/as3boyan/HIDE.git
+
 1. You will need Haxe 3. Install haxelibs:
 	
         haxelib install jQueryExtern
@@ -14,9 +18,8 @@
 
 3. Navigate to __HIDE/bin__ folder and run node-webkit there using:
 
-```
-haxelib run node-webkit
-```
+        haxelib run node-webkit
+
 
 ###How to contribute:
 
