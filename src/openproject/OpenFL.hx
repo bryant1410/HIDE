@@ -23,6 +23,7 @@ class OpenFL
 		project.name = pathToProject.substr(pathToProject.lastIndexOf(js.Node.path.sep));
 		project.type = Project.OPENFL;
 		project.openFLTarget = "flash";
+		project.openFLBuildMode = "Debug";
 		ProjectAccess.path = pathToProject;
 		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
 		project.runActionType = Project.COMMAND;

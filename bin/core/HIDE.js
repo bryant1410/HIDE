@@ -14446,6 +14446,7 @@ openproject.OpenFL.open = function(path) {
 	project.name = HxOverrides.substr(pathToProject,pos,null);
 	project.type = 1;
 	project.openFLTarget = "flash";
+	project.openFLBuildMode = "Debug";
 	projectaccess.ProjectAccess.path = pathToProject;
 	project.buildActionCommand = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget,"--connect","5000"].join(" ");
 	project.runActionType = 2;
@@ -14505,18 +14506,19 @@ openproject.OpenProject.parseProject = function(path) {
 			var pathToProject = js.Node.require("path").dirname(path);
 			projectaccess.ProjectAccess.currentProject = openproject.OpenProject.parseProjectData(data);
 			projectaccess.ProjectAccess.path = pathToProject;
+			var project = projectaccess.ProjectAccess.currentProject;
 			parser.ClasspathWalker.parseProjectArguments();
 			var loadedFilesCount = 0;
 			var totalFilesCount;
-			if(projectaccess.ProjectAccess.currentProject.files == null) projectaccess.ProjectAccess.currentProject.files = []; else {
-				totalFilesCount = projectaccess.ProjectAccess.currentProject.files.length;
+			if(project.files == null) project.files = []; else {
+				totalFilesCount = project.files.length;
 				var _g = 0;
 				while(_g < totalFilesCount) {
 					var i = _g++;
-					if(typeof(projectaccess.ProjectAccess.currentProject.files[i]) == "string") projectaccess.ProjectAccess.currentProject.files[i] = { path : projectaccess.ProjectAccess.currentProject.files[i]};
+					if(typeof(project.files[i]) == "string") project.files[i] = { path : project.files[i]};
 				}
 				var _g1 = 0;
-				var _g11 = projectaccess.ProjectAccess.currentProject.files;
+				var _g11 = project.files;
 				while(_g1 < _g11.length) {
 					var file = _g11[_g1];
 					++_g1;
@@ -14527,7 +14529,7 @@ openproject.OpenProject.parseProject = function(path) {
 								return function() {
 									loadedFilesCount++;
 									if(loadedFilesCount == totalFilesCount) {
-										var activeFile = projectaccess.ProjectAccess.currentProject.activeFile;
+										var activeFile = project.activeFile;
 										if(activeFile != null) {
 											var fullPathToActiveFile = js.Node.require("path").join(pathToProject,activeFile);
 											js.Node.require("fs").exists(fullPathToActiveFile,(function() {
@@ -14546,10 +14548,13 @@ openproject.OpenProject.parseProject = function(path) {
 					})(fullPath));
 				}
 			}
-			if(projectaccess.ProjectAccess.currentProject.hiddenItems == null) projectaccess.ProjectAccess.currentProject.hiddenItems = [];
-			if(projectaccess.ProjectAccess.currentProject.showHiddenItems == null) projectaccess.ProjectAccess.currentProject.showHiddenItems = false;
+			if(project.hiddenItems == null) project.hiddenItems = [];
+			if(project.showHiddenItems == null) project.showHiddenItems = false;
+			if(project.type == 1) {
+				if(project.openFLBuildMode == null) project.openFLBuildMode = "Debug";
+			}
 			projectaccess.ProjectOptions.updateProjectOptions();
-			filetree.FileTree.load(projectaccess.ProjectAccess.currentProject.name,pathToProject);
+			filetree.FileTree.load(project.name,pathToProject);
 			core.Splitter.show();
 			js.Browser.getLocalStorage().setItem("pathToLastProject",path);
 			core.RecentProjectsList.add(path);
@@ -14562,17 +14567,17 @@ openproject.OpenProject.parseProject = function(path) {
 			core.OutlinePanel.clearFields();
 			core.OutlinePanel.update();
 			var pathToProject1 = js.Node.require("path").dirname(path);
-			var project = new projectaccess.Project();
+			var project1 = new projectaccess.Project();
 			var pos = pathToProject1.lastIndexOf(js.Node.require("path").sep);
-			project.name = HxOverrides.substr(pathToProject1,pos,null);
-			project.type = 2;
+			project1.name = HxOverrides.substr(pathToProject1,pos,null);
+			project1.type = 2;
 			projectaccess.ProjectAccess.path = pathToProject1;
-			project.main = js.Node.require("path").basename(path);
-			projectaccess.ProjectAccess.currentProject = project;
+			project1.main = js.Node.require("path").basename(path);
+			projectaccess.ProjectAccess.currentProject = project1;
 			projectaccess.ProjectOptions.updateProjectOptions();
 			var pathToProjectHide = js.Node.require("path").join(pathToProject1,"project.hide");
 			projectaccess.ProjectAccess.save(function() {
-				filetree.FileTree.load(project.name,pathToProject1);
+				filetree.FileTree.load(project1.name,pathToProject1);
 			});
 			core.Splitter.show();
 			js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
@@ -15512,9 +15517,10 @@ pluginloader.PluginManager.compilePlugins = function(onComplete,onFailed) {
 };
 var projectaccess = {};
 projectaccess.Project = function() {
-	this.files = [];
-	this.hiddenItems = [];
 	this.targetData = [];
+	this.files = [];
+	this.openFLBuildMode = "Debug";
+	this.hiddenItems = [];
 	this.showHiddenItems = false;
 };
 $hxClasses["projectaccess.Project"] = projectaccess.Project;
@@ -15532,6 +15538,7 @@ projectaccess.Project.prototype = {
 	,files: null
 	,activeFile: null
 	,openFLTarget: null
+	,openFLBuildMode: null
 	,runActionType: null
 	,runActionText: null
 	,buildActionCommand: null
@@ -15619,9 +15626,19 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.openFLTargetList.style.width = "100%";
 	var _this4 = window.document;
 	projectaccess.ProjectOptions.openFLTargetText = _this4.createElement("p");
-	projectaccess.ProjectOptions.openFLTargetText.innerText = watchers.LocaleWatcher.getStringSync("OpenFL target:");
+	projectaccess.ProjectOptions.openFLTargetText.textContent = watchers.LocaleWatcher.getStringSync("OpenFL target:");
 	projectaccess.ProjectOptions.openFLTargetText.setAttribute("localeString","OpenFL target:");
 	projectaccess.ProjectOptions.openFLTargetText.className = "custom-font-size";
+	var _this5 = window.document;
+	projectaccess.ProjectOptions.openFLBuildModeList = _this5.createElement("select");
+	projectaccess.ProjectOptions.openFLBuildModeList.id = "project-options-openfl-build-mode";
+	projectaccess.ProjectOptions.openFLBuildModeList.className = "custom-font-size";
+	projectaccess.ProjectOptions.openFLBuildModeList.style.width = "100%";
+	var _this6 = window.document;
+	projectaccess.ProjectOptions.openFLBuildModeText = _this6.createElement("p");
+	projectaccess.ProjectOptions.openFLBuildModeText.textContent = watchers.LocaleWatcher.getStringSync("Build mode:");
+	projectaccess.ProjectOptions.openFLBuildModeText.setAttribute("localeString","Build mode:");
+	projectaccess.ProjectOptions.openFLBuildModeText.className = "custom-font-size";
 	var _g = 0;
 	var _g1 = ["Flash","JavaScript","Neko","OpenFL","PHP","C++","Java","C#","Python"];
 	while(_g < _g1.length) {
@@ -15673,34 +15690,39 @@ projectaccess.ProjectOptions.create = function() {
 	}
 	projectaccess.ProjectOptions.openFLTargetList.onchange = function(_) {
 		var project1 = projectaccess.ProjectAccess.currentProject;
-		project1.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
-		var buildParams = ["haxelib","run","lime","build","\"%path%\"",project1.openFLTarget];
-		var _g4 = projectaccess.ProjectAccess.currentProject.openFLTarget;
-		switch(_g4) {
-		case "flash":case "html5":case "neko":
-			buildParams = buildParams.concat(["--connect","5000"]);
-			break;
-		default:
-		}
-		project1.buildActionCommand = buildParams.join(" ");
+		projectaccess.ProjectOptions.updateOpenFLBuildCommand();
 		project1.runActionType = 2;
 		project1.runActionText = ["haxelib","run","lime","run","\"%path%\"",project1.openFLTarget].join(" ");
 		parser.ClasspathWalker.parseProjectArguments();
 		projectaccess.ProjectOptions.updateProjectOptions();
 	};
-	var _this5 = window.document;
-	projectaccess.ProjectOptions.runActionDescription = _this5.createElement("p");
+	projectaccess.ProjectOptions.buildModes = ["Debug","Release"];
+	var _g4 = 0;
+	var _g12 = projectaccess.ProjectOptions.buildModes;
+	while(_g4 < _g12.length) {
+		var mode = _g12[_g4];
+		++_g4;
+		projectaccess.ProjectOptions.openFLBuildModeList.appendChild(projectaccess.ProjectOptions.createListItem(mode));
+	}
+	projectaccess.ProjectOptions.openFLBuildModeList.onchange = function(_1) {
+		var mode1 = projectaccess.ProjectOptions.buildModes[projectaccess.ProjectOptions.openFLBuildModeList.selectedIndex];
+		var project2 = projectaccess.ProjectAccess.currentProject;
+		project2.openFLBuildMode = mode1;
+		projectaccess.ProjectOptions.updateOpenFLBuildCommand();
+	};
+	var _this7 = window.document;
+	projectaccess.ProjectOptions.runActionDescription = _this7.createElement("p");
 	projectaccess.ProjectOptions.runActionDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.runActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Run action:");
 	projectaccess.ProjectOptions.runActionDescription.setAttribute("localeString","Run action:");
-	var _this6 = window.document;
-	projectaccess.ProjectOptions.runActionTextAreaDescription = _this6.createElement("p");
+	var _this8 = window.document;
+	projectaccess.ProjectOptions.runActionTextAreaDescription = _this8.createElement("p");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.textContent = watchers.LocaleWatcher.getStringSync("URL:");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.setAttribute("localeString","URL:");
 	projectaccess.ProjectOptions.runActionTextAreaDescription.className = "custom-font-size";
 	var actions = ["Open URL","Open File","Run command"];
-	var _this7 = window.document;
-	projectaccess.ProjectOptions.runActionList = _this7.createElement("select");
+	var _this9 = window.document;
+	projectaccess.ProjectOptions.runActionList = _this9.createElement("select");
 	projectaccess.ProjectOptions.runActionList.style.width = "100%";
 	projectaccess.ProjectOptions.runActionList.onchange = projectaccess.ProjectOptions.update;
 	var _g5 = 0;
@@ -15709,25 +15731,25 @@ projectaccess.ProjectOptions.create = function() {
 		++_g5;
 		projectaccess.ProjectOptions.runActionList.appendChild(projectaccess.ProjectOptions.createListItem(action));
 	}
-	var _this8 = window.document;
-	projectaccess.ProjectOptions.actionTextArea = _this8.createElement("textarea");
+	var _this10 = window.document;
+	projectaccess.ProjectOptions.actionTextArea = _this10.createElement("textarea");
 	projectaccess.ProjectOptions.actionTextArea.id = "project-options-action-textarea";
 	projectaccess.ProjectOptions.actionTextArea.className = "custom-font-size";
 	projectaccess.ProjectOptions.actionTextArea.onchange = function(e1) {
-		var project2 = projectaccess.ProjectAccess.currentProject;
-		if(project2.type == 0) {
-			var targetData = project2.targetData[project2.target];
+		var project3 = projectaccess.ProjectAccess.currentProject;
+		if(project3.type == 0) {
+			var targetData = project3.targetData[project3.target];
 			targetData.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
-		} else project2.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
+		} else project3.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
 		projectaccess.ProjectOptions.update(null);
 	};
-	var _this9 = window.document;
-	projectaccess.ProjectOptions.buildActionDescription = _this9.createElement("p");
+	var _this11 = window.document;
+	projectaccess.ProjectOptions.buildActionDescription = _this11.createElement("p");
 	projectaccess.ProjectOptions.buildActionDescription.className = "custom-font-size";
 	projectaccess.ProjectOptions.buildActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Build command:");
 	projectaccess.ProjectOptions.buildActionDescription.setAttribute("localeString","Build command:");
-	var _this10 = window.document;
-	projectaccess.ProjectOptions.buildActionTextArea = _this10.createElement("textarea");
+	var _this12 = window.document;
+	projectaccess.ProjectOptions.buildActionTextArea = _this12.createElement("textarea");
 	projectaccess.ProjectOptions.buildActionTextArea.id = "project-options-build-action-textarea";
 	projectaccess.ProjectOptions.buildActionTextArea.className = "custom-font-size";
 	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e2) {
@@ -15741,10 +15763,29 @@ projectaccess.ProjectOptions.create = function() {
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.inputGroupButton.getElement());
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLTargetText);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLTargetList);
+	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLBuildModeText);
+	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLBuildModeList);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionDescription);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionList);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionTextAreaDescription);
 	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.actionTextArea);
+};
+projectaccess.ProjectOptions.updateOpenFLBuildCommand = function() {
+	var project = projectaccess.ProjectAccess.currentProject;
+	project.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
+	var buildParams = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget];
+	if(project.openFLBuildMode == "Debug") {
+		buildParams.push("-debug");
+		if(project.openFLTarget == "flash") buildParams.push("-Dfdb");
+	}
+	var _g = project.openFLTarget;
+	switch(_g) {
+	case "flash":case "html5":case "neko":
+		buildParams = buildParams.concat(["--connect","5000"]);
+		break;
+	default:
+	}
+	project.buildActionCommand = buildParams.join(" ");
 };
 projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects = function() {
 	var _this = window.document;
@@ -15858,6 +15899,7 @@ projectaccess.ProjectOptions.updateProjectOptions = function() {
 		projectaccess.ProjectOptions.projectTargetList.selectedIndex = 3;
 		var i = Lambda.indexOf(projectaccess.ProjectOptions.openFLTargets,project.openFLTarget);
 		if(i != -1) projectaccess.ProjectOptions.openFLTargetList.selectedIndex = i; else projectaccess.ProjectOptions.openFLTargetList.selectedIndex = 0;
+		projectaccess.ProjectOptions.openFLBuildModeList.selectedIndex = HxOverrides.indexOf(projectaccess.ProjectOptions.buildModes,project.openFLBuildMode,0);
 	} else {
 		var _g1 = project.target;
 		switch(_g1) {

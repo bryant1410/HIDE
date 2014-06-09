@@ -85,28 +85,30 @@ class OpenProject
 					ProjectAccess.currentProject = parseProjectData(data);
 					ProjectAccess.path = pathToProject;
 					
+					var project = ProjectAccess.currentProject;
+					
 					ClasspathWalker.parseProjectArguments();
 					
                     var loadedFilesCount:Int = 0;
                     var totalFilesCount:Int;
                     
-					if (ProjectAccess.currentProject.files == null) 
+					if (project.files == null) 
 					{
-						ProjectAccess.currentProject.files = [];
+						project.files = [];
 					}
 					else 
 					{
-                        totalFilesCount = ProjectAccess.currentProject.files.length;
+                        totalFilesCount = project.files.length;
                         
 						for (i in 0...totalFilesCount)
 						{
-							if (Std.is(ProjectAccess.currentProject.files[i], String))
+							if (Std.is(project.files[i], String))
 							{
-								ProjectAccess.currentProject.files[i] = {path: untyped ProjectAccess.currentProject.files[i]};
+								project.files[i] = {path: untyped project.files[i]};
 							}
 						}
 						
-						for (file in ProjectAccess.currentProject.files) 
+						for (file in project.files) 
 						{
 							var fullPath:String = Node.path.join(pathToProject, file.path);
                             
@@ -120,7 +122,7 @@ class OpenProject
                                                                    
                                                                    if (loadedFilesCount == totalFilesCount)
                                                                    {
-                                                                       	var activeFile = ProjectAccess.currentProject.activeFile;
+                                                                       	var activeFile = project.activeFile;
                                                                        
                                                                         if (activeFile != null) 
                                                                         {
@@ -146,18 +148,26 @@ class OpenProject
 						
 					}
 					
-					if (ProjectAccess.currentProject.hiddenItems == null) 
+					if (project.hiddenItems == null) 
 					{
-						ProjectAccess.currentProject.hiddenItems = [];
+						project.hiddenItems = [];
 					}
 					
-					if (ProjectAccess.currentProject.showHiddenItems == null) 
+					if (project.showHiddenItems == null) 
 					{
-						ProjectAccess.currentProject.showHiddenItems = false;
+						project.showHiddenItems = false;
 					}
 					
+					if (project.type == Project.OPENFL)
+					{
+						if (project.openFLBuildMode == null)
+						{
+							project.openFLBuildMode = "Debug";
+						}
+					}
+						
 					ProjectOptions.updateProjectOptions();
-					FileTree.load(ProjectAccess.currentProject.name, pathToProject);
+					FileTree.load(project.name, pathToProject);
 					
 					Splitter.show();
 					

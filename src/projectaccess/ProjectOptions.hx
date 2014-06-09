@@ -32,6 +32,9 @@ class ProjectOptions
 	static var openFLTargetList:SelectElement;
 	static var openFLTargetText:ParagraphElement;
 	static var openFLTargets:Array<String>;
+	static var openFLBuildModeList:SelectElement;
+	static var openFLBuildModeText:ParagraphElement;
+	static var buildModes:Array<String>;
 	
 	//Build action(currently only shown for OpenFL projects)
 	static var buildActionDescription:ParagraphElement;
@@ -71,9 +74,19 @@ class ProjectOptions
 		openFLTargetList.style.width = "100%";
 		
 		openFLTargetText = Browser.document.createParagraphElement();
-		openFLTargetText.innerText = LocaleWatcher.getStringSync("OpenFL target:");
+		openFLTargetText.textContent = LocaleWatcher.getStringSync("OpenFL target:");
 		openFLTargetText.setAttribute("localeString", "OpenFL target:");
 		openFLTargetText.className = "custom-font-size";
+		
+		openFLBuildModeList = Browser.document.createSelectElement();
+		openFLBuildModeList.id = "project-options-openfl-build-mode";
+		openFLBuildModeList.className = "custom-font-size";
+		openFLBuildModeList.style.width = "100%";
+		
+		openFLBuildModeText = Browser.document.createParagraphElement();
+		openFLBuildModeText.textContent = LocaleWatcher.getStringSync("Build mode:");
+		openFLBuildModeText.setAttribute("localeString", "Build mode:");
+		openFLBuildModeText.className = "custom-font-size";
 		
 		for (target in ["Flash", "JavaScript", "Neko", "OpenFL", "PHP", "C++", "Java", "C#", "Python"])
 		{
@@ -123,19 +136,7 @@ class ProjectOptions
 		{
 			var project = ProjectAccess.currentProject;
 			
-			project.openFLTarget = openFLTargets[openFLTargetList.selectedIndex];
-			
-			var buildParams:Array<String> = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget];
-			
-			switch (ProjectAccess.currentProject.openFLTarget) 
-			{
-				case "flash", "html5", "neko":
-					buildParams = buildParams.concat(["--connect", "5000"]);
-				default:
-					
-			}
-			
-			project.buildActionCommand = buildParams.join(" ");
+			updateOpenFLBuildCommand();
 			
 			project.runActionType = Project.COMMAND;
 			project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
@@ -143,6 +144,24 @@ class ProjectOptions
 			ClasspathWalker.parseProjectArguments();
 			
 			updateProjectOptions();
+		};
+	
+		buildModes = ["Debug", "Release"];	
+
+		for (mode in buildModes)
+		{
+			openFLBuildModeList.appendChild(createListItem(mode));
+		}
+			
+		openFLBuildModeList.onchange = function (_)
+		{
+			var mode = buildModes[openFLBuildModeList.selectedIndex];
+			
+			var project = ProjectAccess.currentProject;
+			
+			project.openFLBuildMode = mode;
+			
+			updateOpenFLBuildCommand();
 		};
 		
 		runActionDescription = Browser.document.createParagraphElement();
@@ -208,12 +227,44 @@ class ProjectOptions
 		page.appendChild(inputGroupButton.getElement());
 		page.appendChild(openFLTargetText);
 		page.appendChild(openFLTargetList);
+		page.appendChild(openFLBuildModeText);
+		page.appendChild(openFLBuildModeList);
 		page.appendChild(runActionDescription);
 		page.appendChild(runActionList);
 		page.appendChild(runActionTextAreaDescription);
 		page.appendChild(actionTextArea);
 	}
 	
+	static function updateOpenFLBuildCommand()
+	{
+		var project = ProjectAccess.currentProject;
+
+		project.openFLTarget = openFLTargets[openFLTargetList.selectedIndex];
+
+		var buildParams:Array<String> = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget];
+
+		if (project.openFLBuildMode == "Debug")
+		{
+			buildParams.push("-debug");
+
+			if (project.openFLTarget == "flash")
+			{
+				buildParams.push("-Dfdb");
+			}
+		}
+
+		switch (project.openFLTarget) 
+		{
+			case "flash", "html5", "neko":
+				buildParams = buildParams.concat(["--connect", "5000"]);
+			default:
+
+		}
+
+		project.buildActionCommand = buildParams.join(" ");
+	}
+
+		
 	static function createOptionsForMultipleHxmlProjects() 
 	{
 		pathToHxmlDescription = Browser.document.createParagraphElement();
@@ -385,6 +436,8 @@ class ProjectOptions
 			{
 				openFLTargetList.selectedIndex = 0;
 			}
+			
+			openFLBuildModeList.selectedIndex = buildModes.indexOf(project.openFLBuildMode);
 		}
 		else 
 		{			

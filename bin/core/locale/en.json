@@ -178,4 +178,7 @@
     ,"Remove file " : "Remove file "
     ,"Kha" : "Kha"
     ,"Empty project" : "Empty project"
+    ,"Build mode:" : "Build mode:"
+    ,"Debug" : "Debug"
+    ,"Release" : "Release"
 }

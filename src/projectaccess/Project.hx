@@ -54,6 +54,7 @@ class Project
 	public var activeFile:String;
 	
 	public var openFLTarget:String;
+	public var openFLBuildMode:String;
 	
 	public var runActionType:Int;
 	public var runActionText:String;
@@ -64,10 +65,11 @@ class Project
 	
 	public function new() 
 	{
-		files = [];
-		hiddenItems = [];
 		targetData = [];
+		files = [];
+		openFLBuildMode = "Debug";
 		
+		hiddenItems = [];
 		showHiddenItems = false;
 	}	
 }

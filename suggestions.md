@@ -136,8 +136,6 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Check if new version of HIDE is available
 
 ###Important
-* getAllMarks() when switching project using Open Recent Project
-* getMode() when switching project, on FunctionParametersHelper update
 * When user create/remove folder - update file tree
 * OpenFL projects should be created with -debug flag
 * Changing run command for OpenFL projects doesn't affect build command
