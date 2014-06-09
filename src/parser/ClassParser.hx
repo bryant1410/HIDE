@@ -26,6 +26,11 @@ typedef FileData =
     filename: String,
     displayText: String
 }
+	
+typedef ClassData =
+{
+	fields: Array<String>
+}
 
 class ClassParser
 {
@@ -35,7 +40,7 @@ class ClassParser
     public static var haxeStdImports:Array<String> = [];
 	public static var importsList:Array<String> = [];
     
-	public static var classCompletions:StringMap<Array<String>> = new StringMap();
+	public static var classCompletions:StringMap<ClassData> = new StringMap();
     
     public static var haxeStdFileList:Array<FileData> = [];
     public static var filesList:Array<FileData> = [];
@@ -166,9 +171,9 @@ class ClassParser
 				//currentFunctionScopeType = SClass;
 		//}
 		
-		if (completions.length > 0) 
+		if (completions.length > 0)
 		{
-			classCompletions.set(className, completions);
+			classCompletions.set(className, {fields: completions});
 		}
 	}
 	

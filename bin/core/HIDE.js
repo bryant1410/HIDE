@@ -1942,66 +1942,31 @@ core.Completion.getHints = function(cm1,options) {
 		while(_g1 < _g2.length) {
 			var completion1 = _g2[_g1];
 			++_g1;
-			var completionItem = { text : completion1.n};
-			var functionData = core.FunctionParametersHelper.parseFunctionParams(completion1);
-			var info;
-			completionItem.className = "CodeMirror-Tern-completion";
-			if(functionData.parameters != null) {
-				info = completion1.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
-				completionItem.className += " CodeMirror-Tern-completion-fn";
-			} else {
-				info = completion1.t;
-				switch(info) {
-				case "Bool":
-					completionItem.className += " CodeMirror-Tern-completion-bool";
-					break;
-				case "Float":case "Int":case "UInt":
-					completionItem.className += " CodeMirror-Tern-completion-number";
-					break;
-				case "String":
-					completionItem.className += " CodeMirror-Tern-completion-string";
-					break;
-				default:
-					if(info.indexOf("Array") != -1) completionItem.className += " CodeMirror-Tern-completion-array"; else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) completionItem.className += " CodeMirror-Tern-completion-map"; else completionItem.className += " CodeMirror-Tern-completion-object";
-				}
-			}
-			var infoSpan = [(function($this) {
-				var $r;
-				var _this = window.document;
-				$r = _this.createElement("span");
-				return $r;
-			}(this))];
-			var infoTypeSpan;
-			var _this1 = window.document;
-			infoTypeSpan = _this1.createElement("span");
-			infoTypeSpan.textContent = info;
-			infoSpan[0].appendChild(infoTypeSpan);
-			infoSpan[0].appendChild(window.document.createElement("br"));
-			infoSpan[0].appendChild(window.document.createElement("br"));
-			var infoDescriptionSpan;
-			var _this2 = window.document;
-			infoDescriptionSpan = _this2.createElement("span");
-			infoDescriptionSpan.className = "completionDescription";
-			infoDescriptionSpan.innerHTML = completion1.d;
-			infoSpan[0].appendChild(infoDescriptionSpan);
-			completionItem.info = (function(infoSpan) {
-				return function(completionItem1) {
-					return infoSpan[0];
-				};
-			})(infoSpan);
+			var completionItem = core.Completion.generateCompletionItem(completion1.n,completion1.t,completion1.d);
 			core.Completion.list.push(completionItem);
 		}
 		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
 		var className = "CodeMirror-Tern-completion";
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
+			var doc = tabmanager.TabManager.getCurrentDocument();
+			if(doc != null) {
+				var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc.getValue());
+				var _g11 = 0;
+				while(_g11 < variableDeclarations.length) {
+					var item = variableDeclarations[_g11];
+					++_g11;
+					var completionItem1 = core.Completion.generateCompletionItem(item.name,item.type);
+					core.Completion.list.push(completionItem1);
+				}
+			}
 			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 			var classList = core.Completion.getClassList();
-			var _g11 = 0;
+			var _g12 = 0;
 			var _g21 = classList.topLevelClassList;
-			while(_g11 < _g21.length) {
-				var item = _g21[_g11];
-				++_g11;
-				var completion1 = { text : item.name};
+			while(_g12 < _g21.length) {
+				var item1 = _g21[_g12];
+				++_g12;
+				var completion1 = { text : item1.name};
 				completion1.className = className + " CodeMirror-Tern-completion-class";
 				core.Completion.list.push(completion1);
 			}
@@ -2011,64 +1976,64 @@ core.Completion.getHints = function(cm1,options) {
 		core.Completion.list = completion.MetaTags.getCompletion();
 		break;
 	case 5:
-		var _this3 = completion.Hxml.getCompletion();
-		core.Completion.list = _this3.slice();
-		var _g12 = 0;
+		var _this = completion.Hxml.getCompletion();
+		core.Completion.list = _this.slice();
+		var _g13 = 0;
 		var _g22 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g12 < _g22.length) {
-			var list2 = _g22[_g12];
-			++_g12;
+		while(_g13 < _g22.length) {
+			var list2 = _g22[_g13];
+			++_g13;
 			var _g3 = 0;
 			while(_g3 < list2.length) {
-				var item1 = list2[_g3];
+				var item2 = list2[_g3];
 				++_g3;
-				core.Completion.list.push({ text : item1});
+				core.Completion.list.push({ text : item2});
 			}
 		}
 		break;
 	case 1:
 		var displayText;
-		var _g13 = 0;
+		var _g14 = 0;
 		var _g23 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-		while(_g13 < _g23.length) {
-			var list21 = _g23[_g13];
-			++_g13;
+		while(_g14 < _g23.length) {
+			var list21 = _g23[_g14];
+			++_g14;
 			var _g31 = 0;
 			while(_g31 < list21.length) {
-				var item2 = list21[_g31];
+				var item3 = list21[_g31];
 				++_g31;
-				core.Completion.list.push({ text : item2.path, displayText : core.Completion.processDisplayText(item2.path)});
+				core.Completion.list.push({ text : item3.path, displayText : core.Completion.processDisplayText(item3.path)});
 			}
 		}
 		break;
 	case 2:
 		var displayText1;
-		var _g14 = 0;
+		var _g15 = 0;
 		var _g24 = parser.ClassParser.filesList;
-		while(_g14 < _g24.length) {
-			var item3 = _g24[_g14];
-			++_g14;
-			core.Completion.list.push({ text : item3.directory, displayText : core.Completion.processDisplayText(item3.path)});
+		while(_g15 < _g24.length) {
+			var item4 = _g24[_g15];
+			++_g15;
+			core.Completion.list.push({ text : item4.directory, displayText : core.Completion.processDisplayText(item4.path)});
 		}
 		break;
 	case 4:
 		var classList1 = core.Completion.getClassList();
 		var className1 = "CodeMirror-Tern-completion";
-		var _g15 = 0;
+		var _g16 = 0;
 		var _g25 = classList1.topLevelClassList;
-		while(_g15 < _g25.length) {
-			var item4 = _g25[_g15];
-			++_g15;
-			var completion2 = { text : item4.name};
+		while(_g16 < _g25.length) {
+			var item5 = _g25[_g16];
+			++_g16;
+			var completion2 = { text : item5.name};
 			completion2.className = className1 + " CodeMirror-Tern-completion-class";
 			core.Completion.list.push(completion2);
 		}
-		var _g16 = 0;
+		var _g17 = 0;
 		var _g26 = classList1.importsList;
-		while(_g16 < _g26.length) {
-			var item5 = _g26[_g16];
-			++_g16;
-			var completion3 = { text : item5};
+		while(_g17 < _g26.length) {
+			var item6 = _g26[_g17];
+			++_g17;
+			var completion3 = { text : item6};
 			completion3.className = className1 + " CodeMirror-Tern-completion-class";
 			core.Completion.list.push(completion3);
 		}
@@ -2258,6 +2223,60 @@ core.Completion.showClassList = function(ignoreWhitespace) {
 		if(ignoreWhitespace) closeCharacters = /[()\[\]{};>,]/;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : closeCharacters});
 	}
+};
+core.Completion.searchImage = function(name,type,description) {
+	var functionData = core.FunctionParametersHelper.parseFunctionParams(name,type,description);
+	var info = null;
+	var className = "CodeMirror-Tern-completion";
+	if(functionData.parameters != null) {
+		info = name + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
+		className += " CodeMirror-Tern-completion-fn";
+	} else if(type != null) {
+		info = type;
+		switch(info) {
+		case "Bool":
+			className += " CodeMirror-Tern-completion-bool";
+			break;
+		case "Float":case "Int":case "UInt":
+			className += " CodeMirror-Tern-completion-number";
+			break;
+		case "String":
+			className += " CodeMirror-Tern-completion-string";
+			break;
+		default:
+			if(info.indexOf("Array") != -1) className += " CodeMirror-Tern-completion-array"; else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) className += " CodeMirror-Tern-completion-map"; else className += " CodeMirror-Tern-completion-object";
+		}
+	}
+	return { className : className, info : info};
+};
+core.Completion.generateCompletionItem = function(name,type,description) {
+	var completionItem = { text : name};
+	var completionData = core.Completion.searchImage(name,type,description);
+	completionItem.className = completionData.className;
+	var infoSpan;
+	var _this = window.document;
+	infoSpan = _this.createElement("span");
+	if(completionData.info != null) {
+		var infoTypeSpan;
+		var _this1 = window.document;
+		infoTypeSpan = _this1.createElement("span");
+		infoTypeSpan.textContent = completionData.info;
+		infoSpan.appendChild(infoTypeSpan);
+		infoSpan.appendChild(window.document.createElement("br"));
+		infoSpan.appendChild(window.document.createElement("br"));
+	}
+	if(description != null) {
+		var infoDescriptionSpan;
+		var _this2 = window.document;
+		infoDescriptionSpan = _this2.createElement("span");
+		infoDescriptionSpan.className = "completionDescription";
+		infoDescriptionSpan.innerHTML = description;
+		infoSpan.appendChild(infoDescriptionSpan);
+	}
+	if(completionData.info != null || description != null) completionItem.info = function(completionItem1) {
+		return infoSpan;
+	};
+	return completionItem;
 };
 core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
 	var cm1 = cm.Editor.editor;
@@ -2496,9 +2515,9 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 			var completion = _g1[_g];
 			++_g;
 			if(word == completion.n) {
-				var functionData = core.FunctionParametersHelper.parseFunctionParams(completion);
+				var functionData = core.FunctionParametersHelper.parseFunctionParams(completion.n,completion.t,completion.d);
 				if(functionData.parameters != null) {
-					var description = core.FunctionParametersHelper.parseDescription(completion);
+					var description = core.FunctionParametersHelper.parseDescription(completion.d);
 					core.FunctionParametersHelper.clear();
 					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor());
 					core.FunctionParametersHelper.updateScroll();
@@ -2510,26 +2529,25 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 		if(!found) core.FunctionParametersHelper.clear();
 	},{ line : pos.line, ch : pos.ch - 1});
 };
-core.FunctionParametersHelper.parseDescription = function(completion) {
-	var description = completion.d;
+core.FunctionParametersHelper.parseDescription = function(description) {
 	if(description != null) {
 		if(description.indexOf(".") != -1) description = description.split(".")[0];
 	}
 	return description;
 };
-core.FunctionParametersHelper.parseFunctionParams = function(completion) {
+core.FunctionParametersHelper.parseFunctionParams = function(name,type,description) {
 	var parameters = null;
 	var retType = null;
-	if(completion.t.indexOf("->") != -1) {
+	if(type != null && type.indexOf("->") != -1) {
 		var openBracketsCount = 0;
 		var positions = [];
 		var i = 0;
 		var lastPos = 0;
-		while(i < completion.t.length) {
-			var _g = completion.t.charAt(i);
+		while(i < type.length) {
+			var _g = type.charAt(i);
 			switch(_g) {
 			case "-":
-				if(openBracketsCount == 0 && completion.t.charAt(i + 1) == ">") {
+				if(openBracketsCount == 0 && type.charAt(i + 1) == ">") {
 					positions.push({ start : lastPos, end : i - 1});
 					i++;
 					i++;
@@ -2546,13 +2564,13 @@ core.FunctionParametersHelper.parseFunctionParams = function(completion) {
 			}
 			i++;
 		}
-		positions.push({ start : lastPos, end : completion.t.length});
+		positions.push({ start : lastPos, end : type.length});
 		parameters = [];
 		var _g1 = 0;
 		var _g2 = positions.length;
 		while(_g1 < _g2) {
 			var j = _g1++;
-			var param = StringTools.trim(completion.t.substring(positions[j].start,positions[j].end));
+			var param = StringTools.trim(type.substring(positions[j].start,positions[j].end));
 			if(j < positions.length - 1) parameters.push(param); else retType = param;
 		}
 		if(parameters.length == 1 && parameters[0] == "Void") parameters = [];
@@ -4868,6 +4886,7 @@ filetree.FileTree.init = function() {
 				if(error4 == null) {
 					Alertify.success("File were successfully moved to " + newPath);
 					selectedItem9.value.path = newPath;
+					filetree.FileTree.attachContextMenu();
 				} else {
 					Alertify.error("Can't move file from " + previousPath + " to " + newPath);
 					filetree.FileTree.load();
@@ -4943,6 +4962,10 @@ filetree.FileTree.load = function(projectName,path) {
 		filetree.FileTree.watcher = null;
 	}
 	var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
+		console.log(changeType);
+		console.log(filePath);
+		console.log(fileCurrentStat);
+		console.log(filePreviousStat);
 		switch(changeType) {
 		case "create":
 			console.log(changeType);
@@ -14637,7 +14660,7 @@ parser.ClassParser.processClass = function(className,type) {
 		var i = _g1++;
 		if(parser.ClassParser.getScope(type.data[i])) completions.push(type.data[i].name);
 	}
-	if(completions.length > 0) parser.ClassParser.classCompletions.set(className,completions);
+	if(completions.length > 0) parser.ClassParser.classCompletions.set(className,{ fields : completions});
 };
 parser.ClassParser.getScope = function(field) {
 	var isPublic = false;
@@ -15221,6 +15244,30 @@ parser.RegexParser.getTypeDeclarations = function(data) {
 		return "";
 	});
 	return typeDeclarations;
+};
+parser.RegexParser.getVariableDeclarations = function(data) {
+	var variableDeclarations = [];
+	var eregVariables = new EReg("var +([a-z_]+):?([^=;]+)?","gi");
+	eregVariables.map(data,function(ereg2) {
+		var cm1 = cm.Editor.editor;
+		var pos = ereg2.matchedPos();
+		var index = pos.pos + pos.len;
+		var name = ereg2.matched(1);
+		var type = ereg2.matched(2);
+		var varDecl = Lambda.find(variableDeclarations,function(varDecl1) {
+			return varDecl1.name == name;
+		});
+		if(varDecl == null) {
+			var varDecl11 = { name : name};
+			if(type != null) {
+				type = StringTools.trim(type);
+				if(type != "") varDecl11.type = type;
+			}
+			variableDeclarations.push(varDecl11);
+		}
+		return "";
+	});
+	return variableDeclarations;
 };
 var pluginloader = {};
 pluginloader.PluginManager = function() { };

@@ -316,6 +316,7 @@ class FileTree
 						{
 							Alertify.success("File were successfully moved to " + newPath);
 							selectedItem.value.path = newPath;
+							attachContextMenu();
 						}
 						else 
 						{
@@ -445,7 +446,12 @@ class FileTree
 			path: path,
 			listener:
 				function (changeType, filePath, fileCurrentStat, filePreviousStat):Void 
-				{					
+				{
+					trace(changeType);
+					trace(filePath);
+					trace(fileCurrentStat);
+					trace(filePreviousStat);
+					
 					switch (changeType) 
 					{
 						case 'create':
@@ -588,6 +594,6 @@ class FileTree
     
     static function createFolderItem(path:String, items:Array<TreeItem>):TreeItem
     {
-    	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"};
+    	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"}; 
     }
 }

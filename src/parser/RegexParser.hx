@@ -1,8 +1,14 @@
 package parser;
+import cm.Editor;
 
 /**
 * @author 
  */
+
+typedef VariableData = {
+	var name:String;
+	@:optional var type:String;
+}
 
 //Regex for parsing imports ported from haxe-sublime-bundle
 //https://github.com/clemos/haxe-sublime-bundle/blob/master/HaxeHelper.py#L21
@@ -59,9 +65,9 @@ class RegexParser
     {
         var functionDeclarations:Array<{name:String, ?params:Array<String>}> = [];
         
-        var eregFunction = ~/function +([^;\.\(\) ]*)/i;
-        var eregFunctionParameters = ~/function +[a-zA-Z0-9_]+ *\(([^\)]*)/m;
-        var eregParam = ~/(= *"*[^"]*")/m;
+        var eregFunction = ~/function +([^;\.\(\) ]*)/gi;
+        var eregFunctionParameters = ~/function +[a-zA-Z0-9_]+ *\(([^\)]*)/gm;
+        var eregParam = ~/(= *"*[^"]*")/gm;
         
         eregFunction.map(data, function (ereg2:EReg)
                         {
@@ -86,17 +92,51 @@ class RegexParser
 
     public static function getVariableDeclarations(data:String)
     {
-        var variableDeclarations:Array<String> = [];
+		var variableDeclarations:Array<VariableData> = [];
         
-        var eregVariables = ~/var +([^:;\( )]*)/i;
+        var eregVariables = ~/var +([a-z_]+):?([^=;]+)?/gi;
+			//~/var +([^:;\( ]*)/gi;
         
         eregVariables.map(data, function(ereg2:EReg)
-                         {
-                             variableDeclarations.push(ereg2.matched(1));
+                         {							 
+							 var cm = Editor.editor;
+							 
+							 var pos = ereg2.matchedPos();
+							 var index = pos.pos + pos.len;
+							 
+// 							 var tokenType = cm.getTokenAt(cm.posFromIndex(index)).type;							 
+// 							 if (true)
+//  							 {
+								 var name = ereg2.matched(1);
+								 var type = ereg2.matched(2);
+
+								 var varDecl = Lambda.find(variableDeclarations, function (varDecl1:VariableData)
+											{
+												return varDecl1.name == name;
+											});
+								 
+								 if (varDecl == null)
+								 {
+									 var varDecl1:VariableData = {name: name};
+									 
+									 if (type != null)
+									 {
+										 type = StringTools.trim(type);
+										 
+										 if (type != "")
+										 {
+										 	varDecl1.type = type;	 
+										 }
+									 }
+									 
+									 variableDeclarations.push(varDecl1);
+								 } 
+//  							 }
+							 
                              return ""; 
                          });
-        
-        return eregVariables;
+		
+        return variableDeclarations;
     }
 
 

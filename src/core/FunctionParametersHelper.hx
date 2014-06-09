@@ -121,11 +121,11 @@ class FunctionParametersHelper
 			{							
 				if (word == completion.n) 
 				{
-					var functionData = parseFunctionParams(completion);
+					var functionData = parseFunctionParams(completion.n, completion.t, completion.d);
 					
 					if (functionData.parameters != null)
 					{
-						var description = parseDescription(completion);
+						var description = parseDescription(completion.d);
 						
 						FunctionParametersHelper.clear();
 						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor());
@@ -144,10 +144,8 @@ class FunctionParametersHelper
 		, {line: pos.line, ch: pos.ch - 1});
 	}
 	
-	static function parseDescription(completion:CompletionItem)
-	{
-		var description = completion.d;
-						
+	static function parseDescription(description:String)
+	{						
 		if (description != null) 
 		{
 			if (description.indexOf(".") != -1) 
@@ -159,25 +157,25 @@ class FunctionParametersHelper
 		return description;
 	}
 	
-	public static function parseFunctionParams(completion:CompletionItem)
+	public static function parseFunctionParams(name:String, type:String, description:String)
 	{
 		var parameters:Array<String> = null;
 		
 		var retType:String = null;
 		
-		if (completion.t.indexOf("->") != -1) 
+		if (type != null && type.indexOf("->") != -1) 
 		{
 			var openBracketsCount:Int = 0;
 			var positions:Array<{start:Int, end:Int}> = [];
 			var i:Int = 0;
 			var lastPos:Int = 0;
 			
-			while (i < completion.t.length) 
+			while (i < type.length) 
 			{				
-				switch (completion.t.charAt(i)) 
+				switch (type.charAt(i)) 
 				{
 					case "-":
-						if (openBracketsCount == 0 && completion.t.charAt(i + 1) == ">") 
+						if (openBracketsCount == 0 && type.charAt(i + 1) == ">") 
 						{
 							positions.push({start: lastPos, end: i-1});
 							i++;
@@ -195,13 +193,13 @@ class FunctionParametersHelper
 				i++;
 			}
 			
-			positions.push( { start: lastPos, end: completion.t.length } );
+			positions.push( { start: lastPos, end: type.length } );
 			
 			parameters = [];
 			
 			for (j in 0...positions.length) 
 			{
-				var param:String = StringTools.trim(completion.t.substring(positions[j].start, positions[j].end));
+				var param:String = StringTools.trim(type.substring(positions[j].start, positions[j].end));
 				
 				if (j < positions.length - 1) 
 				{

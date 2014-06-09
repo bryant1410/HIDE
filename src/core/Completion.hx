@@ -93,7 +93,7 @@ class Completion
 		{
 			range = RANGE;
 		}
-
+		
 		list = new Array();
 
 		switch (completionType) 
@@ -101,69 +101,9 @@ class Completion
 			case REGULAR:
 				for (completion in completions) 
 				{
-					var completionItem:CompletionData = { text: completion.n };
-					
-					var functionData = FunctionParametersHelper.parseFunctionParams(completion);
-					
-					var info:String;
-					
-					completionItem.className = "CodeMirror-Tern-completion";
-					
-					if (functionData.parameters != null) 
-					{
-						info = completion.n + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
-						completionItem.className += " CodeMirror-Tern-completion-fn";
-					}
-					else
-					{
-						info = completion.t;
-						
-						switch (info) 
-						{
-							case "Bool":
-								completionItem.className += " CodeMirror-Tern-completion-bool";
-							case "Float", "Int", "UInt":
-								completionItem.className += " CodeMirror-Tern-completion-number";
-							case "String":
-								completionItem.className += " CodeMirror-Tern-completion-string";
-							default:
-								if (info.indexOf("Array") != -1) 
-								{
-									completionItem.className += " CodeMirror-Tern-completion-array";
-								}
-								else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) 
-								{
-									completionItem.className += " CodeMirror-Tern-completion-map";
-								}
-								else 
-								{
-									completionItem.className += " CodeMirror-Tern-completion-object";
-								}
-						}
-					}
-					
-					var infoSpan:SpanElement = Browser.document.createSpanElement();
-					
-					var infoTypeSpan:SpanElement = Browser.document.createSpanElement();
-					infoTypeSpan.textContent = info;
-					infoSpan.appendChild(infoTypeSpan);
-					
-					infoSpan.appendChild(Browser.document.createElement("br"));
-					infoSpan.appendChild(Browser.document.createElement("br"));
-					
-					var infoDescriptionSpan:SpanElement = Browser.document.createSpanElement();
-					infoDescriptionSpan.className = "completionDescription";
-					infoDescriptionSpan.innerHTML = completion.d;
-					infoSpan.appendChild(infoDescriptionSpan);
-					
-					completionItem.info = function (completionItem) 
-					{
-						return infoSpan;
-					};
-					
+					var completionItem = generateCompletionItem(completion.n, completion.t, completion.d);
 					list.push(completionItem);
 				}
-				
         		
         		getCurrentWord(cm, {word: ~/[A-Z.]+$/i});
         
@@ -172,6 +112,19 @@ class Completion
 				if (curWord == null || curWord.indexOf(".") == -1)
                     
 				{
+					var doc = TabManager.getCurrentDocument();
+					
+					if (doc != null)
+					{
+						var variableDeclarations = RegexParser.getVariableDeclarations(doc.getValue());
+						
+						for (item in variableDeclarations)
+						{
+							var completionItem = generateCompletionItem(item.name, item.type);
+							list.push(completionItem);
+						}
+					}
+					
 				    list = list.concat(SnippetsCompletion.getCompletion());
                     
                     var classList = getClassList();
@@ -553,6 +506,88 @@ class Completion
 // 	{
         
 //     }
+
+	static function searchImage(name:String, ?type:String, ?description:String)
+	{
+		var functionData = FunctionParametersHelper.parseFunctionParams(name, type, description);
+		
+		var info:String = null;
+
+		var className = "CodeMirror-Tern-completion";
+
+		if (functionData.parameters != null) 
+		{
+			info = name + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
+			className += " CodeMirror-Tern-completion-fn";
+		}
+		else if (type != null)
+		{
+			info = type;
+
+			switch (info) 
+			{
+				case "Bool":
+					className += " CodeMirror-Tern-completion-bool";
+				case "Float", "Int", "UInt":
+					className += " CodeMirror-Tern-completion-number";
+				case "String":
+					className += " CodeMirror-Tern-completion-string";
+				default:
+					if (info.indexOf("Array") != -1) 
+					{
+						className += " CodeMirror-Tern-completion-array";
+					}
+					else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) 
+					{
+						className += " CodeMirror-Tern-completion-map";
+					}
+					else 
+					{
+						className += " CodeMirror-Tern-completion-object";
+					}
+			}
+		}
+			
+		return {className: className, info: info};
+	}
+
+	static function generateCompletionItem(name:String, ?type:String, ?description:String)
+	{
+		var completionItem:CompletionData = { text: name };
+					
+		var completionData = searchImage(name, type, description);
+		completionItem.className = completionData.className;	
+
+		var infoSpan:SpanElement = Browser.document.createSpanElement();
+
+		if (completionData.info != null)
+		{
+			var infoTypeSpan:SpanElement = Browser.document.createSpanElement();
+			infoTypeSpan.textContent = completionData.info;
+			infoSpan.appendChild(infoTypeSpan);
+
+			infoSpan.appendChild(Browser.document.createElement("br"));
+			infoSpan.appendChild(Browser.document.createElement("br"));
+		}
+
+		if (description != null)
+		{
+			var infoDescriptionSpan:SpanElement = Browser.document.createSpanElement();
+			infoDescriptionSpan.className = "completionDescription";
+			infoDescriptionSpan.innerHTML = description;
+			infoSpan.appendChild(infoDescriptionSpan);
+		}
+
+		if (completionData.info != null || description != null)
+		{
+			completionItem.info = function (completionItem) 
+			{
+				return infoSpan;
+			};
+		}
+			
+		return completionItem;
+	}
 
 	public static function showImportDefinition(importsSuggestions:Array<String>, ?from:CodeMirror.Pos, ?to:CodeMirror.Pos)
 	{

@@ -52,42 +52,42 @@ import watchers.SnippetsWatcher;
  * @author AS3Boyan
  */
 
-class Main 
+class Main
 {
 	public static var currentTime:Float;
 	public static var window:Window;
     public static var sync:Bool;
-	
-	static function main() 
-	{        
+
+	static function main()
+	{
 		window = Window.get();
 		window.showDevTools();
-		
+
 		js.Node.process.on('uncaughtException', function (err)
 		{
 			trace(err);
-			
+
 			window.show();
-			
-			//if (!window.isDevToolsOpen()) 
+
+			//if (!window.isDevToolsOpen())
 			//{
-				
+
 			//}
 		}
 		);
-        
+
         sync = true;
-        
+
 		PreserveWindowState.init();
-		
+
 		Browser.window.addEventListener("load", function (e):Void
 		{
 			Splitter.load();
-			
+
 			SettingsWatcher.load();
 			SnippetsWatcher.load();
 			Hotkeys.prepare();
-			
+
 			Utils.prepare();
 			BootstrapMenu.createMenuBar();
 			NewProjectDialog.load();
@@ -101,54 +101,54 @@ class Main
 			Editor.load();
 			MenuCommands.add();
 			Completion.registerHelper();
-			
+
 			HaxePrinterLoader.load();
-			
+
 			ProjectAccess.registerSaveOnCloseListener();
-			
+
 			HaxeProject.load();
 			OpenFLProject.load();
             KhaProject.load();
-			
+
 			CompilationOutput.load();
-			
+
 			RecentProjectsList.load();
 			OpenProject.searchForLastProject();
 			DragAndDrop.prepare();
 			ClasspathWalker.load();
 			WelcomeScreen.load();
             QuickOpen.load();
-			
+
             sync = false;
-            
+
 			currentTime = Date.now().getTime();
-			
+
 			ProcessHelper.checkProcessInstalled("haxe", ["-v"], function (installed:Bool)
 			{
-				if (installed) 
+				if (installed)
 				{
 					HaxeServer.check();
 					PluginManager.loadPlugins();
 				}
-				else 
+				else
 				{
 					Alertify.error("Haxe compiler is not found");
 					PluginManager.loadPlugins(false);
 				}
 			}
 			);
-			
-			ProcessHelper.checkProcessInstalled("npm", ["-v"], function (installed:Bool):Void 
+
+			ProcessHelper.checkProcessInstalled("npm", ["-v"], function (installed:Bool):Void
 			{
 				trace("npm installed " + Std.string(installed));
-				
-				if (installed) 
+
+				if (installed)
 				{
-					ProcessHelper.runProcess("npm", ["list", "-g", "flambe"], null, function (stdout:String, stderr:String):Void 
+					ProcessHelper.runProcess("npm", ["list", "-g", "flambe"], null, function (stdout:String, stderr:String):Void
 					{
 						trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
 					}
-					, function (code, stdout, stderr):Void 
+					, function (code, stdout, stderr):Void
 					{
 						trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
 					}
@@ -156,28 +156,28 @@ class Main
 				}
 			}
 			);
-			
-			ProcessHelper.checkProcessInstalled("haxelib run lime", [], function (installed:Bool):Void 
+
+			ProcessHelper.checkProcessInstalled("haxelib run lime", [], function (installed:Bool):Void
 			{
 				trace("lime installed " + Std.string(installed));
 			}
 			);
-            
+
             ProcessHelper.checkProcessInstalled("git", ["--version"], function (installed:Bool)
             {
                 trace("git installed " + Std.string(installed));
             }
             );
-						
+
 			window.show();
 		}
 		);
-		
+
 		window.on("close", function (e)
 		{
-			App.closeAllWindows();			
+			App.closeAllWindows();
 		}
 		);
 	}
-	
+
 }
