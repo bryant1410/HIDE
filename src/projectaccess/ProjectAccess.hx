@@ -41,6 +41,8 @@ class ProjectAccess
 	{
 		if (ProjectAccess.path != null)
 		{
+			Editor.saveFoldedRegions();
+			
 			var pathToProjectHide:String = js.Node.path.join(ProjectAccess.path, "project.hide");
 			
 			var data:String = TJSON.encode(ProjectAccess.currentProject, 'fancy');

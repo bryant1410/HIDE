@@ -372,28 +372,38 @@ class Editor
 	
 	public static function saveFoldedRegions()
 	{
-		var cm = editor;
-		var foldedRegions:Array<Pos> = [];
-
-		for (marker in TabManager.getCurrentDocument().getAllMarks())
+		var doc = TabManager.getCurrentDocument();
+		
+		if (doc != null && ProjectAccess.currentProject != null)
 		{
-			var pos = marker.find().from;
+			var cm = editor;
+			var foldedRegions:Array<Pos> = [];
 
-			if (cm.isFolded(pos))
+			for (marker in doc.getAllMarks())
 			{
-				foldedRegions.push(pos);
+				var pos = marker.find().from;
+
+				if (cm.isFolded(pos))
+				{
+					foldedRegions.push(pos);
+				}
 			}
-		}
 
-		var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+			var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
 
-		if (selectedFile != null)
-		{
-			selectedFile.foldedRegions = foldedRegions;
+			if (selectedFile != null)
+			{
+				selectedFile.foldedRegions = foldedRegions;
+				trace("folding regions saved successfully for" + Std.string(selectedFile));
+			}
+			else
+			{
+				trace("cannot save folded regions for this document");
+			}
 		}
 		else
 		{
-			trace("cannot save folded regions for this document");
+			trace("unable to preserve code folding for" + Std.string(doc));
 		}
 	}
 

@@ -51,16 +51,21 @@ class FunctionParametersHelper
 	
 	public static function update(cm:CodeMirror):Void
 	{		
-		var modeName:String = TabManager.getCurrentDocument().getMode().name;
+		var doc = TabManager.getCurrentDocument();
+		
+		if (doc != null)
+		{
+			var modeName:String = doc.getMode().name;
 			
-		if (modeName == "haxe" && !cm.state.completionActive)
-		{	
-			var cursor = cm.getCursor();
-			var data = cm.getLine(cursor.line);			
-			
-			if (cursor != null && data.charAt(cursor.ch - 1) != ".")
-			{
-				scanForBracket(cm, cursor);
+			if (modeName == "haxe" && !cm.state.completionActive)
+			{	
+				var cursor = cm.getCursor();
+				var data = cm.getLine(cursor.line);			
+
+				if (cursor != null && data.charAt(cursor.ch - 1) != ".")
+				{
+					scanForBracket(cm, cursor);
+				}
 			}
 		}
 	}

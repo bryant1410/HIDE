@@ -66,26 +66,32 @@ class RegexParser
         var functionDeclarations:Array<{name:String, ?params:Array<String>}> = [];
         
         var eregFunction = ~/function +([^;\.\(\) ]*)/gi;
-        var eregFunctionParameters = ~/function +[a-zA-Z0-9_]+ *\(([^\)]*)/gm;
-        var eregParam = ~/(= *"*[^"]*")/gm;
+        var eregFunctionWithParameters = ~/function *([a-zA-Z0-9_]*) *\(([^\)]*)/gm;
+        var eregParamDefault = ~/(= *"*[^"]*")/gm;
         
-        eregFunction.map(data, function (ereg2:EReg)
+        eregFunctionWithParameters.map(data, function (ereg2:EReg)
                         {
                             var name:String = ereg2.matched(1);
                             
-                            if (name != "new")
+                            if (name != null)
                             {
-                                functionDeclarations.push({name: name});
+								if (name != "new")
+								{
+									var params = null;
+									
+									var str = ereg2.matched(2);
+									
+									if (str != null)
+									{
+										params = str.split(",");
+									}
+									
+									functionDeclarations.push({name: name, params: params});
+								}
                             }
                             
                             return "";
                         });
-        
-        eregFunctionParameters.map(data, function (ereg2:EReg)
-                                  {
-                                      trace(ereg2.matched(1));
-                                      return "";
-                                  });
         
         return functionDeclarations;
     }

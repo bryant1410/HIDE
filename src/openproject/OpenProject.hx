@@ -260,6 +260,7 @@ class OpenProject
 	static function updateProjectData()
 	{
 		ProjectAccess.path = null;
+		ProjectAccess.currentProject = null;
 		Splitter.hide();
 		Browser.getLocalStorage().removeItem("pathToLastProject");
 	}

@@ -1,4 +1,5 @@
 package core;
+import haxe.Timer;
 import completion.Hxml.CompletionData;
 import parser.RegexParser;
 import cm.Editor;
@@ -123,18 +124,49 @@ class Completion
 							var completionItem = generateCompletionItem(item.name, item.type);
 							list.push(completionItem);
 						}
+						
+						var functionDeclarations = RegexParser.getFunctionDeclarations(doc.getValue());
+
+						for (item in functionDeclarations)
+						{
+							var completionData = generateFunctionCompletionItem(item.name, item.params);
+							var completionItem = createCompletionItem(item.name, null, completionData);
+							list.push(completionItem);
+						}
 					}
 					
 				    list = list.concat(SnippetsCompletion.getCompletion());
                     
                     var classList = getClassList();
                     
+					var packages:Array<String> = [];				
+	
                     for (item in classList.topLevelClassList)
                     {
                         var completion:CompletionData = {text: item.name };
                         completion.className = className + " CodeMirror-Tern-completion-class";
-                    	list.push(completion);     
+                    	list.push(completion);
                     }
+
+					for (list in [ClassParser.importsList, ClassParser.haxeStdImports])
+					{
+						for (item in list)
+						{
+							var str = item.split(".")[0];
+	
+							if (packages.indexOf(str) == -1 && str.charAt(0) == str.charAt(0).toLowerCase())
+							{
+								packages.push(str);
+							}	 
+						}
+					}
+
+					for (item in packages)
+					{
+						var completion:CompletionData = {text: item };
+                        completion.className = className + " CodeMirror-Tern-completion-package";
+                    	list.push(completion);
+					}
 				}
 			case METATAGS:
 				list = MetaTags.getCompletion();
@@ -204,7 +236,7 @@ class Completion
 
 		return data;
 	}
-        
+	
     static function searchForImport(completion:CompletionData)
     {
         var cm = Editor.editor;
@@ -517,8 +549,9 @@ class Completion
 
 		if (functionData.parameters != null) 
 		{
-			info = name + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
-			className += " CodeMirror-Tern-completion-fn";
+			var data = generateFunctionCompletionItem(name, functionData.parameters);
+			className = data.className;
+			info = data.info + ":" + functionData.retType;
 		}
 		else if (type != null)
 		{
@@ -551,11 +584,36 @@ class Completion
 		return {className: className, info: info};
 	}
 
+	static function generateFunctionCompletionItem(name:String, params:Array<String>)
+	{
+		var info:String = null;
+
+		var className = "CodeMirror-Tern-completion";
+		
+		info = name + "(";
+		
+		if (params != null)
+		{
+			info += params.join(", ");
+		}
+			
+		info += ")";
+		
+		className += " CodeMirror-Tern-completion-fn";
+		
+		return {className: className, info: info};
+	}
+
 	static function generateCompletionItem(name:String, ?type:String, ?description:String)
 	{
-		var completionItem:CompletionData = { text: name };
-					
 		var completionData = searchImage(name, type, description);
+		return createCompletionItem(name, description, completionData);
+	}
+
+	static function createCompletionItem(name:String, description:String, completionData:Dynamic)
+	{
+		var completionItem:CompletionData = { text: name };
+
 		completionItem.className = completionData.className;	
 
 		var infoSpan:SpanElement = Browser.document.createSpanElement();
@@ -585,9 +643,10 @@ class Completion
 				return infoSpan;
 			};
 		}
-			
+
 		return completionItem;
 	}
+
 
 	public static function showImportDefinition(importsSuggestions:Array<String>, ?from:CodeMirror.Pos, ?to:CodeMirror.Pos)
 	{

@@ -671,6 +671,11 @@ opacity: 0.7; }
   background: #536F79;
 }
 
+.CodeMirror-Tern-completion-package:before {
+  content: "P";
+  background: #536F79;
+}
+
 .CodeMirror-matchingtag { background: rgba(255, 150, 0, .3); }
 
 #quickOpen

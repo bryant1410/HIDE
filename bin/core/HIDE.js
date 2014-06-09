@@ -1375,18 +1375,24 @@ cm.Editor.load = function() {
 	});
 };
 cm.Editor.saveFoldedRegions = function() {
-	var cm1 = cm.Editor.editor;
-	var foldedRegions = [];
-	var _g = 0;
-	var _g1 = tabmanager.TabManager.getCurrentDocument().getAllMarks();
-	while(_g < _g1.length) {
-		var marker = _g1[_g];
-		++_g;
-		var pos = marker.find().from;
-		if(cm1.isFolded(pos)) foldedRegions.push(pos);
-	}
-	var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
-	if(selectedFile != null) selectedFile.foldedRegions = foldedRegions; else console.log("cannot save folded regions for this document");
+	var doc = tabmanager.TabManager.getCurrentDocument();
+	if(doc != null && projectaccess.ProjectAccess.currentProject != null) {
+		var cm1 = cm.Editor.editor;
+		var foldedRegions = [];
+		var _g = 0;
+		var _g1 = doc.getAllMarks();
+		while(_g < _g1.length) {
+			var marker = _g1[_g];
+			++_g;
+			var pos = marker.find().from;
+			if(cm1.isFolded(pos)) foldedRegions.push(pos);
+		}
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+		if(selectedFile != null) {
+			selectedFile.foldedRegions = foldedRegions;
+			console.log("folding regions saved successfully for" + Std.string(selectedFile));
+		} else console.log("cannot save folded regions for this document");
+	} else console.log("unable to preserve code folding for" + Std.string(doc));
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -1958,17 +1964,48 @@ core.Completion.getHints = function(cm1,options) {
 					var completionItem1 = core.Completion.generateCompletionItem(item.name,item.type);
 					core.Completion.list.push(completionItem1);
 				}
+				var functionDeclarations = parser.RegexParser.getFunctionDeclarations(doc.getValue());
+				var _g12 = 0;
+				while(_g12 < functionDeclarations.length) {
+					var item1 = functionDeclarations[_g12];
+					++_g12;
+					var completionData = core.Completion.generateFunctionCompletionItem(item1.name,item1.params);
+					var completionItem2 = core.Completion.createCompletionItem(item1.name,null,completionData);
+					core.Completion.list.push(completionItem2);
+				}
 			}
 			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 			var classList = core.Completion.getClassList();
-			var _g12 = 0;
+			var packages = [];
+			var _g13 = 0;
 			var _g21 = classList.topLevelClassList;
-			while(_g12 < _g21.length) {
-				var item1 = _g21[_g12];
-				++_g12;
-				var completion1 = { text : item1.name};
+			while(_g13 < _g21.length) {
+				var item2 = _g21[_g13];
+				++_g13;
+				var completion1 = { text : item2.name};
 				completion1.className = className + " CodeMirror-Tern-completion-class";
 				core.Completion.list.push(completion1);
+			}
+			var _g14 = 0;
+			var _g22 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+			while(_g14 < _g22.length) {
+				var list = _g22[_g14];
+				++_g14;
+				var _g3 = 0;
+				while(_g3 < list.length) {
+					var item3 = list[_g3];
+					++_g3;
+					var str = item3.split(".")[0];
+					if(HxOverrides.indexOf(packages,str,0) == -1 && str.charAt(0) == str.charAt(0).toLowerCase()) packages.push(str);
+				}
+			}
+			var _g15 = 0;
+			while(_g15 < packages.length) {
+				var item4 = packages[_g15];
+				++_g15;
+				var completion2 = { text : item4};
+				completion2.className = className + " CodeMirror-Tern-completion-package";
+				core.Completion.list.push(completion2);
 			}
 		}
 		break;
@@ -1978,64 +2015,64 @@ core.Completion.getHints = function(cm1,options) {
 	case 5:
 		var _this = completion.Hxml.getCompletion();
 		core.Completion.list = _this.slice();
-		var _g13 = 0;
-		var _g22 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g13 < _g22.length) {
-			var list2 = _g22[_g13];
-			++_g13;
-			var _g3 = 0;
-			while(_g3 < list2.length) {
-				var item2 = list2[_g3];
-				++_g3;
-				core.Completion.list.push({ text : item2});
+		var _g16 = 0;
+		var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+		while(_g16 < _g23.length) {
+			var list2 = _g23[_g16];
+			++_g16;
+			var _g31 = 0;
+			while(_g31 < list2.length) {
+				var item5 = list2[_g31];
+				++_g31;
+				core.Completion.list.push({ text : item5});
 			}
 		}
 		break;
 	case 1:
 		var displayText;
-		var _g14 = 0;
-		var _g23 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-		while(_g14 < _g23.length) {
-			var list21 = _g23[_g14];
-			++_g14;
-			var _g31 = 0;
-			while(_g31 < list21.length) {
-				var item3 = list21[_g31];
-				++_g31;
-				core.Completion.list.push({ text : item3.path, displayText : core.Completion.processDisplayText(item3.path)});
+		var _g17 = 0;
+		var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+		while(_g17 < _g24.length) {
+			var list21 = _g24[_g17];
+			++_g17;
+			var _g32 = 0;
+			while(_g32 < list21.length) {
+				var item6 = list21[_g32];
+				++_g32;
+				core.Completion.list.push({ text : item6.path, displayText : core.Completion.processDisplayText(item6.path)});
 			}
 		}
 		break;
 	case 2:
 		var displayText1;
-		var _g15 = 0;
-		var _g24 = parser.ClassParser.filesList;
-		while(_g15 < _g24.length) {
-			var item4 = _g24[_g15];
-			++_g15;
-			core.Completion.list.push({ text : item4.directory, displayText : core.Completion.processDisplayText(item4.path)});
+		var _g18 = 0;
+		var _g25 = parser.ClassParser.filesList;
+		while(_g18 < _g25.length) {
+			var item7 = _g25[_g18];
+			++_g18;
+			core.Completion.list.push({ text : item7.directory, displayText : core.Completion.processDisplayText(item7.path)});
 		}
 		break;
 	case 4:
 		var classList1 = core.Completion.getClassList();
 		var className1 = "CodeMirror-Tern-completion";
-		var _g16 = 0;
-		var _g25 = classList1.topLevelClassList;
-		while(_g16 < _g25.length) {
-			var item5 = _g25[_g16];
-			++_g16;
-			var completion2 = { text : item5.name};
-			completion2.className = className1 + " CodeMirror-Tern-completion-class";
-			core.Completion.list.push(completion2);
-		}
-		var _g17 = 0;
-		var _g26 = classList1.importsList;
-		while(_g17 < _g26.length) {
-			var item6 = _g26[_g17];
-			++_g17;
-			var completion3 = { text : item6};
+		var _g19 = 0;
+		var _g26 = classList1.topLevelClassList;
+		while(_g19 < _g26.length) {
+			var item8 = _g26[_g19];
+			++_g19;
+			var completion3 = { text : item8.name};
 			completion3.className = className1 + " CodeMirror-Tern-completion-class";
 			core.Completion.list.push(completion3);
+		}
+		var _g110 = 0;
+		var _g27 = classList1.importsList;
+		while(_g110 < _g27.length) {
+			var item9 = _g27[_g110];
+			++_g110;
+			var completion4 = { text : item9};
+			completion4.className = className1 + " CodeMirror-Tern-completion-class";
+			core.Completion.list.push(completion4);
 		}
 		break;
 	default:
@@ -2229,8 +2266,9 @@ core.Completion.searchImage = function(name,type,description) {
 	var info = null;
 	var className = "CodeMirror-Tern-completion";
 	if(functionData.parameters != null) {
-		info = name + "(" + functionData.parameters.join(", ") + ")" + ":" + functionData.retType;
-		className += " CodeMirror-Tern-completion-fn";
+		var data = core.Completion.generateFunctionCompletionItem(name,functionData.parameters);
+		className = data.className;
+		info = data.info + ":" + functionData.retType;
 	} else if(type != null) {
 		info = type;
 		switch(info) {
@@ -2249,9 +2287,21 @@ core.Completion.searchImage = function(name,type,description) {
 	}
 	return { className : className, info : info};
 };
+core.Completion.generateFunctionCompletionItem = function(name,params) {
+	var info = null;
+	var className = "CodeMirror-Tern-completion";
+	info = name + "(";
+	if(params != null) info += params.join(", ");
+	info += ")";
+	className += " CodeMirror-Tern-completion-fn";
+	return { className : className, info : info};
+};
 core.Completion.generateCompletionItem = function(name,type,description) {
-	var completionItem = { text : name};
 	var completionData = core.Completion.searchImage(name,type,description);
+	return core.Completion.createCompletionItem(name,description,completionData);
+};
+core.Completion.createCompletionItem = function(name,description,completionData) {
+	var completionItem = { text : name};
 	completionItem.className = completionData.className;
 	var infoSpan;
 	var _this = window.document;
@@ -2478,11 +2528,14 @@ core.FunctionParametersHelper.clear = function() {
 	core.FunctionParametersHelper.widgets = [];
 };
 core.FunctionParametersHelper.update = function(cm) {
-	var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
-	if(modeName == "haxe" && !cm.state.completionActive) {
-		var cursor = cm.getCursor();
-		var data = cm.getLine(cursor.line);
-		if(cursor != null && data.charAt(cursor.ch - 1) != ".") core.FunctionParametersHelper.scanForBracket(cm,cursor);
+	var doc = tabmanager.TabManager.getCurrentDocument();
+	if(doc != null) {
+		var modeName = doc.getMode().name;
+		if(modeName == "haxe" && !cm.state.completionActive) {
+			var cursor = cm.getCursor();
+			var data = cm.getLine(cursor.line);
+			if(cursor != null && data.charAt(cursor.ch - 1) != ".") core.FunctionParametersHelper.scanForBracket(cm,cursor);
+		}
 	}
 };
 core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
@@ -14559,6 +14612,7 @@ openproject.OpenProject.closeProject = function(sync) {
 };
 openproject.OpenProject.updateProjectData = function() {
 	projectaccess.ProjectAccess.path = null;
+	projectaccess.ProjectAccess.currentProject = null;
 	core.Splitter.hide();
 	js.Browser.getLocalStorage().removeItem("pathToLastProject");
 };
@@ -15245,6 +15299,25 @@ parser.RegexParser.getTypeDeclarations = function(data) {
 	});
 	return typeDeclarations;
 };
+parser.RegexParser.getFunctionDeclarations = function(data) {
+	var functionDeclarations = [];
+	var eregFunction = new EReg("function +([^;\\.\\(\\) ]*)","gi");
+	var eregFunctionWithParameters = new EReg("function *([a-zA-Z0-9_]*) *\\(([^\\)]*)","gm");
+	var eregParamDefault = new EReg("(= *\"*[^\"]*\")","gm");
+	eregFunctionWithParameters.map(data,function(ereg2) {
+		var name = ereg2.matched(1);
+		if(name != null) {
+			if(name != "new") {
+				var params = null;
+				var str = ereg2.matched(2);
+				if(str != null) params = str.split(",");
+				functionDeclarations.push({ name : name, params : params});
+			}
+		}
+		return "";
+	});
+	return functionDeclarations;
+};
 parser.RegexParser.getVariableDeclarations = function(data) {
 	var variableDeclarations = [];
 	var eregVariables = new EReg("var +([a-z_]+):?([^=;]+)?","gi");
@@ -15480,6 +15553,7 @@ projectaccess.ProjectAccess.registerSaveOnCloseListener = function() {
 projectaccess.ProjectAccess.save = function(onComplete,sync) {
 	if(sync == null) sync = false;
 	if(projectaccess.ProjectAccess.path != null) {
+		cm.Editor.saveFoldedRegions();
 		var pathToProjectHide = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
 		var data = tjson.TJSON.encode(projectaccess.ProjectAccess.currentProject,"fancy");
 		if(sync) js.Node.require("fs").writeFileSync(pathToProjectHide,data,"utf8"); else core.Helper.debounce("saveProject",function() {
