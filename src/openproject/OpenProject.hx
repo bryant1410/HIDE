@@ -132,6 +132,7 @@ class OpenProject
                                                                             {
                                                                                 if (exists) 
                                                                                 {
+										    trace(fullPathToActiveFile);
                                                                                     TabManager.selectDoc(fullPathToActiveFile);
                                                                                     cm.Editor.editor.focus();
                                                                                 }

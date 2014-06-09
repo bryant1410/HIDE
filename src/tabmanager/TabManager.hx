@@ -417,12 +417,8 @@ class TabManager
 	
 	public static function selectDoc(path:String):Void
 	{
-		if (selectedPath != null && ProjectAccess.currentProject != null)
-		{
-			Editor.saveFoldedRegions();
-			Editor.editor.refresh();
-		}
-		
+		var found = false;
+
 		var keys = tabMap.keys();
 		for (i in 0...keys.length) 
 		{
@@ -430,6 +426,7 @@ class TabManager
 			{
 				tabMap.get(keys[i]).getElement().className = "selected";
 				selectedIndex = i;
+				found = true;
 			}
 			else 
 			{
@@ -437,7 +434,17 @@ class TabManager
 			}
 		}
 		
-		selectedPath = path;
+		if (found)
+		{
+			var project = ProjectAccess.currentProject;
+
+			if (selectedPath != null && project != null)
+			{
+				Editor.saveFoldedRegions();
+				Editor.editor.refresh();
+			}
+			
+			selectedPath = path;
 		
 		if (ProjectAccess.path != null) 
 		{
@@ -477,7 +484,8 @@ class TabManager
 			}
 		}
             
-       	Editor.editor.focus();
+       	Editor.editor.focus();		
+		}
 	}
 	
 	public static function getCurrentDocumentPath():String
@@ -491,7 +499,12 @@ class TabManager
         
         if (selectedPath != null)
         {
-            doc = tabMap.get(selectedPath).doc;
+            var tab = tabMap.get(selectedPath);
+
+	    if (tab != null)
+	    {
+		doc = tab.doc;
+	    }
         }
             
 		return doc;

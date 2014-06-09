@@ -13,7 +13,7 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "src/projectaccess/ProjectOptions.hx"
+    ,"activeFile" : "src/openproject/OpenProject.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

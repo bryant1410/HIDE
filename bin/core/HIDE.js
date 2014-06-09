@@ -14535,6 +14535,7 @@ openproject.OpenProject.parseProject = function(path) {
 											js.Node.require("fs").exists(fullPathToActiveFile,(function() {
 												return function(exists1) {
 													if(exists1) {
+														console.log(fullPathToActiveFile);
 														tabmanager.TabManager.selectDoc(fullPathToActiveFile);
 														cm.Editor.editor.focus();
 													}
@@ -15818,16 +15819,19 @@ projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects = function() {
 	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
 };
 projectaccess.ProjectOptions.update = function(_) {
-	if(projectaccess.ProjectOptions.projectTargetList.selectedIndex == 3) {
+	var project = projectaccess.ProjectAccess.currentProject;
+	if(project.type == 1) {
 		projectaccess.ProjectOptions.openFLTargetList.style.display = "";
 		projectaccess.ProjectOptions.openFLTargetText.style.display = "";
+		projectaccess.ProjectOptions.openFLBuildModeList.style.display = "";
+		projectaccess.ProjectOptions.openFLBuildModeText.style.display = "";
 	} else {
 		projectaccess.ProjectOptions.openFLTargetList.style.display = "none";
 		projectaccess.ProjectOptions.openFLTargetText.style.display = "none";
+		projectaccess.ProjectOptions.openFLBuildModeList.style.display = "none";
+		projectaccess.ProjectOptions.openFLBuildModeText.style.display = "none";
 	}
-	if(projectaccess.ProjectAccess.currentProject.type == 2) {
-		projectaccess.ProjectOptions.openFLTargetList.style.display = "none";
-		projectaccess.ProjectOptions.openFLTargetText.style.display = "none";
+	if(project.type == 2) {
 		projectaccess.ProjectOptions.buildActionTextArea.style.display = "none";
 		projectaccess.ProjectOptions.buildActionDescription.style.display = "none";
 		projectaccess.ProjectOptions.projectTargetList.style.display = "none";
@@ -15842,7 +15846,7 @@ projectaccess.ProjectOptions.update = function(_) {
 		projectaccess.ProjectOptions.projectTargetText.style.display = "";
 		projectaccess.ProjectOptions.actionTextArea.style.display = "";
 	}
-	if(projectaccess.ProjectAccess.currentProject.type == 0) {
+	if(project.type == 0) {
 		projectaccess.ProjectOptions.pathToHxmlDescription.style.display = "";
 		projectaccess.ProjectOptions.inputGroupButton.getElement().style.display = "";
 	} else {
@@ -15867,7 +15871,6 @@ projectaccess.ProjectOptions.update = function(_) {
 	default:
 		runActionType = 0;
 	}
-	var project = projectaccess.ProjectAccess.currentProject;
 	var _g1 = project.type;
 	switch(_g1) {
 	case 0:
@@ -16312,10 +16315,7 @@ tabmanager.TabManager.getMode = function(path) {
 	return mode;
 };
 tabmanager.TabManager.selectDoc = function(path) {
-	if(tabmanager.TabManager.selectedPath != null && projectaccess.ProjectAccess.currentProject != null) {
-		cm.Editor.saveFoldedRegions();
-		cm.Editor.editor.refresh();
-	}
+	var found = false;
 	var keys = tabmanager.TabManager.tabMap.keys();
 	var _g1 = 0;
 	var _g = keys.length;
@@ -16324,36 +16324,47 @@ tabmanager.TabManager.selectDoc = function(path) {
 		if(keys[i] == path) {
 			tabmanager.TabManager.tabMap.get(keys[i]).getElement().className = "selected";
 			tabmanager.TabManager.selectedIndex = i;
+			found = true;
 		} else tabmanager.TabManager.tabMap.get(keys[i]).getElement().className = "";
 	}
-	tabmanager.TabManager.selectedPath = path;
-	if(projectaccess.ProjectAccess.path != null) projectaccess.ProjectAccess.currentProject.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
-	cm.Editor.editor.swapDoc(tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc);
-	core.HaxeLint.updateLinting();
-	var completionActive = cm.Editor.editor.state.completionActive;
-	if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
-	if(projectaccess.ProjectAccess.currentProject != null) {
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
-		if(selectedFile != null) {
-			var foldedRegions = selectedFile.foldedRegions;
-			if(foldedRegions != null) {
-				var _g2 = 0;
-				while(_g2 < foldedRegions.length) {
-					var pos = foldedRegions[_g2];
-					++_g2;
-					cm.Editor.editor.foldCode(pos,null,"fold");
+	if(found) {
+		var project = projectaccess.ProjectAccess.currentProject;
+		if(tabmanager.TabManager.selectedPath != null && project != null) {
+			cm.Editor.saveFoldedRegions();
+			cm.Editor.editor.refresh();
+		}
+		tabmanager.TabManager.selectedPath = path;
+		if(projectaccess.ProjectAccess.path != null) projectaccess.ProjectAccess.currentProject.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
+		cm.Editor.editor.swapDoc(tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc);
+		core.HaxeLint.updateLinting();
+		var completionActive = cm.Editor.editor.state.completionActive;
+		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
+		if(projectaccess.ProjectAccess.currentProject != null) {
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
+			if(selectedFile != null) {
+				var foldedRegions = selectedFile.foldedRegions;
+				if(foldedRegions != null) {
+					var _g2 = 0;
+					while(_g2 < foldedRegions.length) {
+						var pos = foldedRegions[_g2];
+						++_g2;
+						cm.Editor.editor.foldCode(pos,null,"fold");
+					}
 				}
-			}
-		} else console.log("can't load folded regions for active document");
+			} else console.log("can't load folded regions for active document");
+		}
+		cm.Editor.editor.focus();
 	}
-	cm.Editor.editor.focus();
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;
 };
 tabmanager.TabManager.getCurrentDocument = function() {
 	var doc = null;
-	if(tabmanager.TabManager.selectedPath != null) doc = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc;
+	if(tabmanager.TabManager.selectedPath != null) {
+		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
+		if(tab != null) doc = tab.doc;
+	}
 	return doc;
 };
 tabmanager.TabManager.saveDoc = function(path,onComplete) {

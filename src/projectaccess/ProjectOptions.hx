@@ -316,10 +316,14 @@ class ProjectOptions
 	
 	static function update(_):Void
 	{
-		if (projectTargetList.selectedIndex == 3)
+		var project = ProjectAccess.currentProject;
+		
+		if (project.type == Project.OPENFL)
 		{
 			openFLTargetList.style.display = "";
 			openFLTargetText.style.display = "";
+			openFLBuildModeList.style.display = "";
+			openFLBuildModeText.style.display = "";
 			//textarea.style.display = "none";
 			//projectOptionsText.style.display = "none";
 		}
@@ -327,14 +331,16 @@ class ProjectOptions
 		{
 			openFLTargetList.style.display = "none";
 			openFLTargetText.style.display = "none";
+			openFLBuildModeList.style.display = "none";
+			openFLBuildModeText.style.display = "none";
 			//textarea.style.display = "";
 			//projectOptionsText.style.display = "";
 		}
 		
-		if (ProjectAccess.currentProject.type == Project.HXML) 
+		if (project.type == Project.HXML) 
 		{
-			openFLTargetList.style.display = "none";
-			openFLTargetText.style.display = "none";
+// 			openFLTargetList.style.display = "none";
+// 			openFLTargetText.style.display = "none";
 			//textarea.style.display = "none";
 			//projectOptionsText.style.display = "none";
 			
@@ -359,7 +365,7 @@ class ProjectOptions
 			actionTextArea.style.display = "";
 		}
 		
-		if (ProjectAccess.currentProject.type == Project.HAXE) 
+		if (project.type == Project.HAXE) 
 		{
 			pathToHxmlDescription.style.display = "";
 			inputGroupButton.getElement().style.display = "";
@@ -387,8 +393,6 @@ class ProjectOptions
 			default:
 				runActionType = 0;
 		}
-		
-		var project = ProjectAccess.currentProject;
 		
 		switch (project.type) 
 		{
