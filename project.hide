@@ -12,19 +12,13 @@
     ]
     ,"files" : [
          {
-             "path" : "src/projectaccess/ProjectOptions.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/core/RunProject.hx"
+             "path" : "src/cm/Editor.hx"
             ,"foldedRegions" : [
 
             ]
         }
     ]
-    ,"activeFile" : "src/core/RunProject.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

@@ -117,7 +117,9 @@ class Completion
 					
 					if (doc != null)
 					{
-						var variableDeclarations = RegexParser.getVariableDeclarations(doc.getValue());
+						var data = doc.getRange({line: 0, ch: 0}, {line: cm.getCursor().line, ch: 0});
+						
+						var variableDeclarations = RegexParser.getVariableDeclarations(data);
 						
 						for (item in variableDeclarations)
 						{
@@ -677,7 +679,8 @@ class Completion
 	
     public static function getClassList()
     {
-        var value = tabmanager.TabManager.getCurrentDocument().getValue();
+        var value = TabManager.getCurrentDocument().getValue();
+		var mainClass = Node.path.basename(TabManager.getCurrentDocumentPath(), ".hx");
 
         var filePackage = RegexParser.getFilePackage(value);
         var fileImports = RegexParser.getFileImportsList(value);
@@ -731,8 +734,20 @@ class Completion
                     }
                     else if (filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item, filePackage.filePackage + "."))
                     {
-                        relativeImport = item.substr(filePackage.filePackage.length + 1);
-                        importsList.push(relativeImport);
+						relativeImport = item.substr(filePackage.filePackage.length + 1);
+						
+						trace(relativeImport);
+						
+						if (StringTools.startsWith(relativeImport, mainClass + "."))
+						{
+							relativeImport = relativeImport.substr(mainClass.length + 1);
+							trace(relativeImport);
+							topLevelClassList.push({name: relativeImport, fullName: item});
+						}
+						else
+						{
+							importsList.push(relativeImport);
+						}
                     }
                     else
                     {

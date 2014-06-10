@@ -81,10 +81,11 @@ typedef DocHistory = {
 	function getMode(): { name:String };
 	function lineCount():Int;
 	function getAllMarks():Array<Dynamic>;
+	function getRange(from: Pos, to: Pos, ?separator: String):String;
 	var history:DocHistory;
 }
 
-@:native('CodeMirror') extern class CodeMirror {
+@:native('CodeMirror') extern class CodeMirror extends Doc {
 
 static var keyMap:Dynamic;
 public var gutters:Array<String>;
@@ -102,8 +103,6 @@ public static function registerHelper(type:String, mode:String, onCompletion:Dyn
 @:overload(function (object:Dynamic, event:String, callback_function:Dynamic):Void {})
 function on(event:String, callback_function:Dynamic):Void;
 
-function setValue( v : String ) : Void;
-function getValue() : String;
 function refresh() : Void;
 
 function getCursor( ?start : Bool ) : Pos;
@@ -122,7 +121,6 @@ function getDoc():Dynamic;
 function setGutterMarker(line: Int, gutterID: String, value: Element):LineHandle;
 function indexFromPos(pos:Pos):Int;
 function posFromIndex(index:Int):Pos;
-function getMode():Dynamic;
 
 function addLineWidget(line:Int, msg:DivElement, options:LineWidgetOptions):Dynamic;
 function removeLineWidget(widget:Dynamic):Void;
@@ -142,13 +140,9 @@ function findMatchingBracket(pos:CodeMirror.Pos, strict:Bool, config:Dynamic):{f
 function execCommand(command:String):Void;
 function replaceRange(replacement: String, from: Pos, to: Pos, ?origin: String):Void;
 function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
-function getSelection(?lineSep: String):String;
 function replaceSelection(replacement: String, ?select: String):Void;
-function lineCount():Int;
-function getRange(from: Pos, to: Pos, ?separator: String):String;
 
 function markText(from : Pos, to : Pos, options:{className : String} ) : MarkedText;
-function getAllMarks():Array<MarkedText>;
 
 function setMarker( line : Int , ?text : String , ?className : String ) : LineHandle;
 @:overload( function( line : LineHandle ) : Void {})
@@ -166,7 +160,6 @@ function operation(func:Dynamic):Void;
 	
 function getWrapperElement() : DivElement;
 
-function somethingSelected() : Bool;
 function focus() : Void;
 
 }

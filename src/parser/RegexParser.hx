@@ -8,6 +8,7 @@ import cm.Editor;
 typedef VariableData = {
 	var name:String;
 	@:optional var type:String;
+	var pos:{pos:Int, len:Int};
 }
 
 //Regex for parsing imports ported from haxe-sublime-bundle
@@ -96,17 +97,15 @@ class RegexParser
         return functionDeclarations;
     }
 
-    public static function getVariableDeclarations(data:String)
+    public static function getVariableDeclarations(data:String):Array<VariableData>
     {
 		var variableDeclarations:Array<VariableData> = [];
         
-        var eregVariables = ~/var +([a-z_]+):?([^=;]+)?/gi;
+        var eregVariables = ~/var +([a-z_0-9]+):?([^=;]+)?/gi;
 			//~/var +([^:;\( ]*)/gi;
         
         eregVariables.map(data, function(ereg2:EReg)
                          {							 
-							 var cm = Editor.editor;
-							 
 							 var pos = ereg2.matchedPos();
 							 var index = pos.pos + pos.len;
 							 
@@ -115,28 +114,28 @@ class RegexParser
 //  							 {
 								 var name = ereg2.matched(1);
 								 var type = ereg2.matched(2);
-
-								 var varDecl = Lambda.find(variableDeclarations, function (varDecl1:VariableData)
+								 
+							 	var varDecl = Lambda.find(variableDeclarations, function (varDecl1:VariableData)
 											{
 												return varDecl1.name == name;
 											});
-								 
-								 if (varDecl == null)
-								 {
-									 var varDecl1:VariableData = {name: name};
-									 
+
+								if (varDecl == null)
+								{
+									 var varDecl1:VariableData = {name: name, pos: pos};
+
 									 if (type != null)
 									 {
 										 type = StringTools.trim(type);
-										 
+
 										 if (type != "")
 										 {
-										 	varDecl1.type = type;	 
+											varDecl1.type = type;	 
 										 }
 									 }
-									 
+
 									 variableDeclarations.push(varDecl1);
-								 } 
+								}
 //  							 }
 							 
                              return ""; 
@@ -144,6 +143,4 @@ class RegexParser
 		
         return variableDeclarations;
     }
-
-
 }

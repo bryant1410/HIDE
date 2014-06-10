@@ -1338,22 +1338,71 @@ cm.Editor.load = function() {
 				cm6.indentLine(line2);
 			}
 		}
-		var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
+		var doc = tabmanager.TabManager.getCurrentDocument();
+		var modeName = doc.getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
 				core.HaxeLint.updateLinting();
 			},100);
 			var cursor1 = cm6.getCursor();
 			var data = cm6.getLine(cursor1.line);
-			if(data.charAt(cursor1.ch - 1) == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true);
-			if(data.charAt(cursor1.ch - 1) == ":") {
+			var lastChar = data.charAt(cursor1.ch - 1);
+			if(lastChar == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true);
+			if(lastChar == "=") {
+				var name = StringTools.trim(data.substring(0,cursor1.ch - 1));
+				var type = null;
+				if(name != "" && name.indexOf(".") == -1) {
+					var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc.getValue());
+					var variableWithExplicitType = [];
+					var _g4 = 0;
+					while(_g4 < variableDeclarations.length) {
+						var item = variableDeclarations[_g4];
+						++_g4;
+						if(item.type != null) variableWithExplicitType.push(item);
+					}
+					var _g5 = 0;
+					while(_g5 < variableWithExplicitType.length) {
+						var item1 = variableWithExplicitType[_g5];
+						++_g5;
+						if(name == item1.name) {
+							type = item1.type;
+							break;
+						}
+					}
+					if(type != null) {
+						var variableWithSameType = [];
+						var _g6 = 0;
+						while(_g6 < variableWithExplicitType.length) {
+							var item2 = variableWithExplicitType[_g6];
+							++_g6;
+							if(type == item2.type) variableWithSameType.push(item2.name);
+						}
+						var value1 = doc.getValue();
+						var _g7 = 0;
+						while(_g7 < variableWithSameType.length) {
+							var item3 = variableWithSameType[_g7];
+							++_g7;
+							var ereg = new EReg("[\t ]*" + item3 + "[\t ]*= *(.+)$","gm");
+							var ereg2 = new EReg("[\t ]*" + item3 + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$","gm");
+							ereg.map(value1,function(ereg3) {
+								console.log(ereg3.matched(1));
+								return "";
+							});
+							ereg2.map(value1,function(ereg31) {
+								console.log(ereg31.matched(1));
+								return "";
+							});
+						}
+					}
+				}
+			} else if(lastChar == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
-			} else if(data.charAt(cursor1.ch - 1) == "<") {
-				var _g4 = 0;
-				while(_g4 < basicTypes.length) {
-					var type = basicTypes[_g4];
-					++_g4;
-					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor1.ch - 1),type)) {
+			} else if(lastChar == "<") {
+				var _g8 = 0;
+				while(_g8 < basicTypes.length) {
+					var type1 = basicTypes[_g8];
+					++_g8;
+					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor1.ch - 1),type1)) {
 						core.Completion.showClassList();
 						break;
 					}
@@ -1956,7 +2005,8 @@ core.Completion.getHints = function(cm1,options) {
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
 			var doc = tabmanager.TabManager.getCurrentDocument();
 			if(doc != null) {
-				var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc.getValue());
+				var data = doc.getRange({ line : 0, ch : 0},{ line : cm1.getCursor().line, ch : 0});
+				var variableDeclarations = parser.RegexParser.getVariableDeclarations(data);
 				var _g11 = 0;
 				while(_g11 < variableDeclarations.length) {
 					var item = variableDeclarations[_g11];
@@ -2079,16 +2129,16 @@ core.Completion.getHints = function(cm1,options) {
 	}
 	core.Completion.getCurrentWord(cm1,options);
 	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
-	var data = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
-	CodeMirror.attachContextInfo(cm.Editor.editor,data);
+	var data1 = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
+	CodeMirror.attachContextInfo(cm.Editor.editor,data1);
 	var _g4 = core.Completion.completionType;
 	switch(_g4[1]) {
 	case 0:case 4:
-		CodeMirror.on(data,"pick",core.Completion.searchForImport);
+		CodeMirror.on(data1,"pick",core.Completion.searchForImport);
 		break;
 	default:
 	}
-	return data;
+	return data1;
 };
 core.Completion.searchForImport = function(completion) {
 	var cm1 = cm.Editor.editor;
@@ -2354,6 +2404,7 @@ core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
 };
 core.Completion.getClassList = function() {
 	var value = tabmanager.TabManager.getCurrentDocument().getValue();
+	var mainClass = js.Node.require("path").basename(tabmanager.TabManager.getCurrentDocumentPath(),".hx");
 	var filePackage = parser.RegexParser.getFilePackage(value);
 	var fileImports = parser.RegexParser.getFileImportsList(value);
 	var topLevelClassList = [];
@@ -2397,7 +2448,12 @@ core.Completion.getClassList = function() {
 					topLevelClassList.push({ name : relativeImport, fullName : item});
 				} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
 					relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-					importsList.push(relativeImport);
+					console.log(relativeImport);
+					if(StringTools.startsWith(relativeImport,mainClass + ".")) {
+						relativeImport = HxOverrides.substr(relativeImport,mainClass.length + 1,null);
+						console.log(relativeImport);
+						topLevelClassList.push({ name : relativeImport, fullName : item});
+					} else importsList.push(relativeImport);
 				} else {
 					relativeImport = item;
 					importsList.push(relativeImport);
@@ -15327,9 +15383,8 @@ parser.RegexParser.getFunctionDeclarations = function(data) {
 };
 parser.RegexParser.getVariableDeclarations = function(data) {
 	var variableDeclarations = [];
-	var eregVariables = new EReg("var +([a-z_]+):?([^=;]+)?","gi");
+	var eregVariables = new EReg("var +([a-z_0-9]+):?([^=;]+)?","gi");
 	eregVariables.map(data,function(ereg2) {
-		var cm1 = cm.Editor.editor;
 		var pos = ereg2.matchedPos();
 		var index = pos.pos + pos.len;
 		var name = ereg2.matched(1);
@@ -15338,7 +15393,7 @@ parser.RegexParser.getVariableDeclarations = function(data) {
 			return varDecl1.name == name;
 		});
 		if(varDecl == null) {
-			var varDecl11 = { name : name};
+			var varDecl11 = { name : name, pos : pos};
 			if(type != null) {
 				type = StringTools.trim(type);
 				if(type != "") varDecl11.type = type;

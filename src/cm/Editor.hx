@@ -1,4 +1,5 @@
 package cm;
+import parser.RegexParser;
 #if !macro
 import CodeMirror.Pos;
 import core.Completion;
@@ -264,7 +265,8 @@ class Editor
                 }
             }
             
-			var modeName:String = TabManager.getCurrentDocument().getMode().name;
+			var doc = TabManager.getCurrentDocument();
+			var modeName:String = doc.getMode().name;
 			
 			if (modeName == "haxe") 
 			{
@@ -276,11 +278,6 @@ class Editor
 				var cursor = cm.getCursor();
 				var data = cm.getLine(cursor.line);
 				
-                if (data.charAt(cursor.ch - 1) == ".")
-                {
-                    triggerCompletion(Editor.editor, true);
-                }
-                
 				//if (StringTools.endsWith(e.text[0], ";")) 
 				//{
 					//var insertNewLine:Bool = true;
@@ -297,7 +294,79 @@ class Editor
 					//cm.execCommand("newlineAndIndent");
 				//}
 				
-				if (data.charAt(cursor.ch - 1) == ":")
+				var lastChar = data.charAt(cursor.ch - 1);
+				
+				if (lastChar == ".")
+                {
+                    triggerCompletion(Editor.editor, true);
+                }	
+				if (lastChar == "=")
+                {
+                    var name = StringTools.trim(data.substring(0, cursor.ch - 1));
+					
+					var type = null;
+					
+					if (name != "" && name.indexOf(".") == -1)
+					{						
+						var variableDeclarations = RegexParser.getVariableDeclarations(doc.getValue());
+						
+						var variableWithExplicitType = [];
+						
+						for (item in variableDeclarations)
+						{
+							if (item.type != null)							
+							{
+								variableWithExplicitType.push(item);
+							}
+						}
+							
+						for (item in variableWithExplicitType)
+						{
+							if (name == item.name)
+							{
+								type = item.type;
+								break;
+							}	 
+						}
+						
+						if (type != null)
+						{
+							var variableWithSameType = [];
+						
+							for (item in variableWithExplicitType)
+							{
+								if (type == item.type)
+								{
+									variableWithSameType.push(item.name);
+								}
+							}
+							
+							var value = doc.getValue();
+							
+							for (item in variableWithSameType)
+							{
+// 								~/[\t ]*editor2[\t ]*= *(.+)$/gm
+// 								~/[\t ]*editor2[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$/gm
+								 
+								var ereg = new EReg("[\t ]*" + item + "[\t ]*= *(.+)$", "gm");
+								var ereg2 = new EReg("[\t ]*" + item + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$", "gm");
+								
+								ereg.map(value, function (ereg3)
+										{
+											trace(ereg3.matched(1));
+											return "";
+										});
+				
+								ereg2.map(value, function (ereg3)
+										{
+											trace(ereg3.matched(1));
+											return "";
+										});
+							}
+						}
+					}
+                }	
+				else if (lastChar == ":")
 				{
 					if (data.charAt(cursor.ch - 2) == "@")
 					{
@@ -308,7 +377,7 @@ class Editor
 						Completion.showClassList();
 					}
 				}
-				else if (data.charAt(cursor.ch - 1) == "<")
+				else if (lastChar == "<")
 				{
 					for (type in basicTypes) 
 					{
