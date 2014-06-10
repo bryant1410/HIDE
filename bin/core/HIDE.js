@@ -4379,6 +4379,7 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 				build.Hxml.checkHxml(dirname,filename,hxmlData,onComplete);
 			}
 		} else {
+			projectaccess.ProjectOptions.updateOpenFLBuildCommand();
 			var command = project.buildActionCommand;
 			command = build.CommandPreprocessor.preprocess(command,pathToProject);
 			var params = build.CommandPreprocessor.preprocess(command,pathToProject).split(" ");

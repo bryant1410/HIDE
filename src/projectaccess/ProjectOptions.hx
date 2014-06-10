@@ -235,7 +235,7 @@ class ProjectOptions
 		page.appendChild(actionTextArea);
 	}
 	
-	static function updateOpenFLBuildCommand()
+	public static function updateOpenFLBuildCommand()
 	{
 		var project = ProjectAccess.currentProject;
 

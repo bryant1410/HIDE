@@ -1,4 +1,5 @@
 package core;
+import projectaccess.ProjectOptions;
 import build.CommandPreprocessor;
 import build.Hxml;
 import cm.Editor;
@@ -262,6 +263,8 @@ class RunProject
 				}
 				else
 				{
+					ProjectOptions.updateOpenFLBuildCommand();
+					
 					var command:String = project.buildActionCommand;
 					command = CommandPreprocessor.preprocess(command, pathToProject);
 					
