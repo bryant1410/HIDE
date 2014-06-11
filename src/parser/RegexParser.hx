@@ -20,7 +20,7 @@ class RegexParser
         var fileImports:Array<String> = [];
         
         var ereg = ~/^[ \t]*import ([a-z0-9._*]+);$/gim;
-
+		
         ereg.map(data, function (ereg)
                  {
                      fileImports.push(ereg.matched(1));

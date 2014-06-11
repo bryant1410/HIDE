@@ -1369,6 +1369,8 @@ cm.Editor.load = function() {
 							break;
 						}
 					}
+					var suggestions = [];
+					var value1 = doc.getValue();
 					if(type != null) {
 						var variableWithSameType = [];
 						var _g6 = 0;
@@ -1377,29 +1379,33 @@ cm.Editor.load = function() {
 							++_g6;
 							if(type == item2.type) variableWithSameType.push(item2.name);
 						}
-						var value1 = doc.getValue();
 						var _g7 = 0;
 						while(_g7 < variableWithSameType.length) {
 							var item3 = variableWithSameType[_g7];
 							++_g7;
 							var ereg = new EReg("[\t ]*" + item3 + "[\t ]*= *(.+)$","gm");
-							var ereg2 = new EReg("[\t ]*" + item3 + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$","gm");
-							var suggestions = [[]];
-							ereg.map(value1,(function(suggestions) {
-								return function(ereg3) {
-									suggestions[0].push(" " + ereg3.matched(1));
-									return "";
-								};
-							})(suggestions));
-							ereg2.map(value1,(function(suggestions) {
-								return function(ereg31) {
-									suggestions[0].push(" " + ereg31.matched(1));
-									return "";
-								};
-							})(suggestions));
-							suggestions[0].push(" " + "new " + type);
-							core.Completion.showCodeSuggestions(suggestions[0]);
+							var ereg2 = new EReg("[\t ]*" + item3 + "[\t ]*:[a-zA-Z0-9_<>]*[\t ]*= *(.+)$","gm");
+							ereg.map(value1,function(ereg3) {
+								var text = " " + ereg3.matched(1);
+								if(HxOverrides.indexOf(suggestions,text,0) == -1) suggestions.push(text);
+								return "";
+							});
+							ereg2.map(value1,function(ereg31) {
+								var text1 = " " + ereg31.matched(1);
+								if(HxOverrides.indexOf(suggestions,text1,0) == -1) suggestions.push(text1);
+								return "";
+							});
 						}
+						suggestions.push(" " + "new " + type);
+						core.Completion.showCodeSuggestions(suggestions);
+					} else {
+						var ereg1 = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$","gm");
+						ereg1.map(value1,function(ereg32) {
+							var text2 = " " + ereg32.matched(1);
+							if(HxOverrides.indexOf(suggestions,text2,0) == -1) suggestions.push(text2);
+							return "";
+						});
+						if(suggestions.length > 0) core.Completion.showCodeSuggestions(suggestions);
 					}
 				}
 			} else if(lastChar == ":") {

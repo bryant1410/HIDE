@@ -329,6 +329,10 @@ class Editor
 							}	 
 						}
 						
+						var suggestions = [];
+					
+						var value = doc.getValue();		
+				
 						if (type != null)
 						{
 							var variableWithSameType = [];
@@ -340,33 +344,58 @@ class Editor
 									variableWithSameType.push(item.name);
 								}
 							}
-							
-							var value = doc.getValue();
-							
+				
 							for (item in variableWithSameType)
 							{
 // 								~/[\t ]*editor2[\t ]*= *(.+)$/gm
 // 								~/[\t ]*editor2[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$/gm
 								 
 								var ereg = new EReg("[\t ]*" + item + "[\t ]*= *(.+)$", "gm");
-								var ereg2 = new EReg("[\t ]*" + item + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$", "gm");
-								
-								var suggestions = [];
+								var ereg2 = new EReg("[\t ]*" + item + "[\t ]*:[a-zA-Z0-9_<>]*[\t ]*= *(.+)$", "gm");
 				
 								ereg.map(value, function (ereg3)
 										{
-											suggestions.push(" " + ereg3.matched(1));
+											var text = " " + ereg3.matched(1);
+											
+											if (suggestions.indexOf(text) == -1)
+											{
+												suggestions.push(text);
+											}
 											return "";
 										});
 				
 								ereg2.map(value, function (ereg3)
 										{
-											suggestions.push(" " + ereg3.matched(1));
+											var text = " " + ereg3.matched(1);
+											
+											if (suggestions.indexOf(text) == -1)
+											{
+												suggestions.push(text);
+											}
 											return "";
 										});
+							}
 				
-				
-								suggestions.push(" " + "new " + type);
+							suggestions.push(" " + "new " + type);
+							Completion.showCodeSuggestions(suggestions);
+						}
+						else
+						{
+							var ereg = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$", "gm");
+							
+							ereg.map(value, function (ereg3)
+										{
+											var text = " " + ereg3.matched(1);
+											
+											if (suggestions.indexOf(text) == -1)
+											{
+												suggestions.push(text);
+											}
+											return "";
+										});
+							
+							if (suggestions.length > 0)
+							{
 								Completion.showCodeSuggestions(suggestions);
 							}
 						}

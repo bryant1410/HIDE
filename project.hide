@@ -35,8 +35,20 @@
 
             ]
         }
+        ,{
+             "path" : "src/dialogs/ProjectOptionsDialog.hx"
+            ,"foldedRegions" : [
+
+            ]
+        }
+        ,{
+             "path" : "src/projectaccess/ProjectOptions.hx"
+            ,"foldedRegions" : [
+
+            ]
+        }
     ]
-    ,"activeFile" : "src/core/ImportDefinition.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
