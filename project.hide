@@ -17,6 +17,18 @@
 
             ]
         }
+        ,{
+             "path" : "src/core/Completion.hx"
+            ,"foldedRegions" : [
+
+            ]
+        }
+        ,{
+             "path" : "src/core/ImportDefinition.hx"
+            ,"foldedRegions" : [
+
+            ]
+        }
     ]
     ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null

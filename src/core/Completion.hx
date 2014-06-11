@@ -259,7 +259,7 @@ class Completion
             
             if (fullImport.indexOf(".") != -1)
             {
-                var topLevelClassList = core.Completion.getClassList().topLevelClassList;
+                var topLevelClassList = getClassList().topLevelClassList;
                 ImportDefinition.searchImportByText(topLevelClassList, fullImport, {line: cursor.line, ch:importStart}, {line: cursor.line, ch:importEnd}, false);
             }
 		}
@@ -676,6 +676,36 @@ class Completion
             }
         , {completeSingle: false});
     }
+		
+	public static function showCodeSuggestions(suggestions:Array<String>)
+	{
+		var cm = Editor.editor;
+        
+        CodeMirrorStatic.showHint(cm, function ()
+            {
+                var completions:Array<CompletionData> = [];
+                
+                var completion:CompletionData;
+                
+				var pos = cm.getCursor();
+				
+				var word = getCurrentWord(cm, {word: ~/[A-Z]+$/i}, pos).word;
+				
+                for (item in suggestions)
+                {
+					 if (word == null || StringTools.startsWith(item, word))
+					 {
+						 completion = {};
+						 completion.text = item;
+						 completions.push(completion); 
+					 } 
+				}
+                                  
+        		var data:Dynamic = { list: completions, from: pos, to: pos };
+        		return data;
+            }
+        , {completeSingle: false});
+	}
 	
     public static function getClassList()
     {

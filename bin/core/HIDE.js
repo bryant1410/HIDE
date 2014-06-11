@@ -1384,14 +1384,21 @@ cm.Editor.load = function() {
 							++_g7;
 							var ereg = new EReg("[\t ]*" + item3 + "[\t ]*= *(.+)$","gm");
 							var ereg2 = new EReg("[\t ]*" + item3 + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$","gm");
-							ereg.map(value1,function(ereg3) {
-								console.log(ereg3.matched(1));
-								return "";
-							});
-							ereg2.map(value1,function(ereg31) {
-								console.log(ereg31.matched(1));
-								return "";
-							});
+							var suggestions = [[]];
+							ereg.map(value1,(function(suggestions) {
+								return function(ereg3) {
+									suggestions[0].push(" " + ereg3.matched(1));
+									return "";
+								};
+							})(suggestions));
+							ereg2.map(value1,(function(suggestions) {
+								return function(ereg31) {
+									suggestions[0].push(" " + ereg31.matched(1));
+									return "";
+								};
+							})(suggestions));
+							suggestions[0].push(" " + "new " + type);
+							core.Completion.showCodeSuggestions(suggestions[0]);
 						}
 					}
 				}
@@ -2398,6 +2405,27 @@ core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
 			completions.push(completion);
 		}
 		var pos = cm1.getCursor();
+		var data = { list : completions, from : pos, to : pos};
+		return data;
+	},{ completeSingle : false});
+};
+core.Completion.showCodeSuggestions = function(suggestions) {
+	var cm1 = cm.Editor.editor;
+	CodeMirror.showHint(cm1,function() {
+		var completions = [];
+		var completion;
+		var pos = cm1.getCursor();
+		var word = core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z]+$","i")},pos).word;
+		var _g = 0;
+		while(_g < suggestions.length) {
+			var item = suggestions[_g];
+			++_g;
+			if(word == null || StringTools.startsWith(item,word)) {
+				completion = { };
+				completion.text = item;
+				completions.push(completion);
+			}
+		}
 		var data = { list : completions, from : pos, to : pos};
 		return data;
 	},{ completeSingle : false});

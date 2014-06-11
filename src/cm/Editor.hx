@@ -351,17 +351,23 @@ class Editor
 								var ereg = new EReg("[\t ]*" + item + "[\t ]*= *(.+)$", "gm");
 								var ereg2 = new EReg("[\t ]*" + item + "[\t ]*:[a-zA-Z0-9_]*[\t ]*= *(.+)$", "gm");
 								
+								var suggestions = [];
+				
 								ereg.map(value, function (ereg3)
 										{
-											trace(ereg3.matched(1));
+											suggestions.push(" " + ereg3.matched(1));
 											return "";
 										});
 				
 								ereg2.map(value, function (ereg3)
 										{
-											trace(ereg3.matched(1));
+											suggestions.push(" " + ereg3.matched(1));
 											return "";
 										});
+				
+				
+								suggestions.push(" " + "new " + type);
+								Completion.showCodeSuggestions(suggestions);
 							}
 						}
 					}
