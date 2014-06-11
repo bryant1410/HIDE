@@ -29,8 +29,14 @@
 
             ]
         }
+        ,{
+             "path" : "src/parser/RegexParser.hx"
+            ,"foldedRegions" : [
+
+            ]
+        }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/core/ImportDefinition.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

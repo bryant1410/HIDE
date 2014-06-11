@@ -2409,6 +2409,14 @@ core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
 		return data;
 	},{ completeSingle : false});
 };
+core.Completion.showActions = function(completions) {
+	var cm1 = cm.Editor.editor;
+	CodeMirror.showHint(cm1,function() {
+		var pos = cm1.getCursor();
+		var data = { list : completions, from : pos, to : pos};
+		return data;
+	},{ completeSingle : false});
+};
 core.Completion.showCodeSuggestions = function(suggestions) {
 	var cm1 = cm.Editor.editor;
 	CodeMirror.showHint(cm1,function() {
@@ -3446,7 +3454,7 @@ core.ImportDefinition.searchImport = function(data,path) {
 		topLevelClassList = core.Completion.getClassList().topLevelClassList;
 		switch(mode) {
 		case "token":
-			core.ImportDefinition.checkImport(topLevelClassList,token);
+			core.ImportDefinition.checkImport(cm1,topLevelClassList,token);
 			break;
 		case "selection":
 			core.ImportDefinition.searchImportByText(topLevelClassList,selectedText,from,to);
@@ -3483,7 +3491,7 @@ core.ImportDefinition.searchImportByText = function(topLevelClassList,text,from,
 		if(found) core.ImportDefinition.importClass(cm1,text,from,to); else if(suggestImport) core.Completion.showImportDefinition([text],from,to);
 	} else core.ImportDefinition.updateImport(cm1,text.split(".").pop(),from,to);
 };
-core.ImportDefinition.checkImport = function(topLevelClassList,token) {
+core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 	var searchPattern = "." + token.string;
 	var foundImports = [];
 	var foundAtTopLevel = false;
@@ -3526,9 +3534,55 @@ core.ImportDefinition.checkImport = function(topLevelClassList,token) {
 		}
 	}
 	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) core.Completion.showImportDefinition(foundImports); else {
-		var info = "Unable to find additional imports for '" + token.string + "'.";
-		if(alreadyImported.length > 0) info += " Already imported:\n" + Std.string(alreadyImported);
-		Alertify.log(info);
+		var cursor = cm.getCursor();
+		var lineData = cm.getLine(cursor.line);
+		var ereg = new EReg("var[\t ]*([^ =]+):([^ =;\n]+)","gim");
+		var ereg2 = new EReg("var[\t ]*([^ =:;\n]+)","gim");
+		var pos = null;
+		var len = null;
+		var variableName = null;
+		var variableDeclarationString = null;
+		var matchedEreg = null;
+		if(ereg.match(lineData)) matchedEreg = ereg; else if(ereg2.match(lineData)) matchedEreg = ereg2;
+		if(matchedEreg != null) {
+			pos = matchedEreg.matchedPos();
+			variableName = matchedEreg.matched(1);
+			variableDeclarationString = matchedEreg.matched(0);
+			len = variableDeclarationString.length;
+			variableDeclarationString = StringTools.trim(variableDeclarationString);
+			if(!StringTools.endsWith(variableDeclarationString,";")) variableDeclarationString += ";";
+		}
+		var classDeclarations = parser.RegexParser.getClassDeclarations(tabmanager.TabManager.getCurrentDocument().getValue());
+		var currentClassDeclaration = null;
+		var _g4 = 0;
+		while(_g4 < classDeclarations.length) {
+			var item1 = classDeclarations[_g4];
+			++_g4;
+			var classDeclarationPos = cm.posFromIndex(item1.pos.pos + item1.pos.len);
+			if(cursor.line < classDeclarationPos.line || cursor.line == classDeclarationPos.line && cursor.ch < classDeclarationPos.ch) break;
+			currentClassDeclaration = item1;
+		}
+		if(currentClassDeclaration != null && matchedEreg != null) {
+			var completionItem = { };
+			completionItem.displayText = "Move to the class scope";
+			completionItem.hint = function(cm1,data,completion) {
+				var classDeclarationPos1 = cm1.posFromIndex(currentClassDeclaration.pos.pos + currentClassDeclaration.pos.len);
+				var index = cm1.indexFromPos({ line : cursor.line, ch : 0});
+				classDeclarationPos1.line += 1;
+				classDeclarationPos1.ch = 0;
+				variableDeclarationString += "\n";
+				cm1.replaceRange(variableDeclarationString,classDeclarationPos1,classDeclarationPos1);
+				cm1.indentLine(classDeclarationPos1.line);
+				var from = cm1.posFromIndex(index + pos.pos + variableDeclarationString.length + 1);
+				var to = cm1.posFromIndex(index + pos.pos + pos.len + variableDeclarationString.length + 1);
+				cm1.replaceRange(variableName,from,to);
+			};
+			core.Completion.showActions([completionItem]);
+		} else {
+			var info = "Unable to find additional imports for '" + token.string + "'.";
+			if(alreadyImported.length > 0) info += " Already imported:\n" + Std.string(alreadyImported);
+			Alertify.log(info);
+		}
 	}
 };
 core.ImportDefinition.importClassHint = function(from,to,cm,data,completion) {
@@ -15431,6 +15485,16 @@ parser.RegexParser.getVariableDeclarations = function(data) {
 		return "";
 	});
 	return variableDeclarations;
+};
+parser.RegexParser.getClassDeclarations = function(data) {
+	var classDeclarations = [];
+	var eregClass = new EReg("class[\t ]+([a-z_0-9]+)[^;\n]+\n?\\{","gi");
+	eregClass.map(data,function(ereg) {
+		var pos = ereg.matchedPos();
+		classDeclarations.push({ name : ereg.matched(1), pos : pos});
+		return "";
+	});
+	return classDeclarations;
 };
 var pluginloader = {};
 pluginloader.PluginManager = function() { };

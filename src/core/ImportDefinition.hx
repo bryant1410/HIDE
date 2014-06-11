@@ -1,4 +1,5 @@
 package core;
+import tabmanager.TabManager;
 import cm.Editor;
 import core.Completion.TopLevelImport;
 import parser.RegexParser;
@@ -10,7 +11,7 @@ import completion.Hxml.CompletionData;
 /**
 * @author AS3Boyan
  */
-class ImportDefinition
+class ImportDefinition 
 {
     public static function searchImport(data:String, path:String)
     {
@@ -18,7 +19,7 @@ class ImportDefinition
         
         var cm = cm.Editor.editor;
         var token = cm.getTokenAt(cm.getCursor());
-
+		
 //         var fileImports:Array<String> = [];
         var topLevelClassList:Array<TopLevelImport> = [];
         
@@ -70,7 +71,7 @@ class ImportDefinition
             switch (mode)
             {
                 case "token":
-                    checkImport(topLevelClassList, token);
+                    checkImport(cm, topLevelClassList, token);
                 case "selection":
                     searchImportByText(topLevelClassList, selectedText, from, to);
                 default:
@@ -126,7 +127,7 @@ class ImportDefinition
     }
 
     
-    static function checkImport(topLevelClassList:Array<TopLevelImport>, token:TokenData)
+    static function checkImport(cm:CodeMirror, topLevelClassList:Array<TopLevelImport>, token:TokenData)
     {
         var searchPattern = "." + token.string;
 
@@ -188,14 +189,93 @@ class ImportDefinition
         }
         else
         {
-            var info = "Unable to find additional imports for '" + token.string + "'.";
+			var cursor = cm.getCursor();
+			
+			var lineData:String = cm.getLine(cursor.line);
+			
+			var ereg = ~/var[\t ]*([^ =]+):([^ =;\n]+)/gim;
+			var ereg2 = ~/var[\t ]*([^ =:;\n]+)/gim;
+			
+			var pos = null;
+			var len = null;
+			var variableName:String = null;
+			var variableDeclarationString:String = null;
+			
+			var matchedEreg = null;
+			
+			if (ereg.match(lineData))
+			{
+				matchedEreg = ereg;
+			}
+			else if (ereg2.match(lineData))
+			{
+				matchedEreg = ereg2;
+			}
+				
+			if (matchedEreg != null)
+			{
+				pos = matchedEreg.matchedPos();
+				variableName = matchedEreg.matched(1);
+				variableDeclarationString = matchedEreg.matched(0);
+				
+				len = variableDeclarationString.length;
+				
+				variableDeclarationString = StringTools.trim(variableDeclarationString);
+				if (!StringTools.endsWith(variableDeclarationString, ";"))
+				{
+					variableDeclarationString += ";";
+				}
+			}
+				
+			var classDeclarations = RegexParser.getClassDeclarations(TabManager.getCurrentDocument().getValue());
+			
+			var currentClassDeclaration = null;
+			
+			for (item in classDeclarations)
+			{
+				 var classDeclarationPos = cm.posFromIndex(item.pos.pos + item.pos.len);
+				 
+				 if (cursor.line < classDeclarationPos.line || (cursor.line == classDeclarationPos.line && cursor.ch < classDeclarationPos.ch))
+				 {
+					 break;
+				 }
+				 
+				 currentClassDeclaration = item;
+			}
+			
+			if (currentClassDeclaration != null && matchedEreg != null)
+			{
+				var completionItem:CompletionData = {};
+				completionItem.displayText = "Move to the class scope";
+				completionItem.hint = function (cm:CodeMirror, data, completion)
+					{
+						var classDeclarationPos = cm.posFromIndex(currentClassDeclaration.pos.pos + currentClassDeclaration.pos.len);
+						var index = cm.indexFromPos({line: cursor.line, ch: 0});
+						
+						classDeclarationPos.line += 1;
+						classDeclarationPos.ch = 0;
+						variableDeclarationString += "\n";
+						cm.replaceRange(variableDeclarationString, classDeclarationPos, classDeclarationPos);
+						cm.indentLine(classDeclarationPos.line);
+						
+						var from = cm.posFromIndex(index + pos.pos + variableDeclarationString.length + 1);
+						var to = cm.posFromIndex(index + pos.pos + pos.len + variableDeclarationString.length + 1);
+						cm.replaceRange(variableName, from, to);
+					};
+				
+				Completion.showActions([completionItem]);
+			}
+			else
+			{
+				var info = "Unable to find additional imports for '" + token.string + "'.";
 
-            if (alreadyImported.length > 0)
-            {
-                info += " Already imported:\n" + Std.string(alreadyImported);
-            }
+				if (alreadyImported.length > 0)
+				{
+					info += " Already imported:\n" + Std.string(alreadyImported);
+				}
 
-            Alertify.log(info);
+				Alertify.log(info);
+			}
         }
     }
         

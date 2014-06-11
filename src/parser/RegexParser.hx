@@ -143,4 +143,21 @@ class RegexParser
 		
         return variableDeclarations;
     }
+	
+	public static function getClassDeclarations(data:String)
+	{
+		var classDeclarations = [];
+		
+		var eregClass = ~/class[\t ]+([a-z_0-9]+)[^;\n]+\n?\{/gi;
+		
+		eregClass.map(data, function (ereg)
+					 {
+						var pos = ereg.matchedPos();
+						classDeclarations.push({name: ereg.matched(1), pos: pos});
+						return ""; 
+					 });
+		
+		return classDeclarations;
+	}
+
 }

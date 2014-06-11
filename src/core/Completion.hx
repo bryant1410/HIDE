@@ -677,6 +677,21 @@ class Completion
         , {completeSingle: false});
     }
 		
+	public static function showActions(completions:Array<CompletionData>)
+	{
+		var cm = Editor.editor;
+        
+        CodeMirrorStatic.showHint(cm, function ()
+            {        		
+				var pos = cm.getCursor();
+                                  
+        		var data:Dynamic = { list: completions, from: pos, to: pos };
+        		return data;
+            }
+        , {completeSingle: false});
+	}
+
+		
 	public static function showCodeSuggestions(suggestions:Array<String>)
 	{
 		var cm = Editor.editor;
@@ -706,6 +721,8 @@ class Completion
             }
         , {completeSingle: false});
 	}
+
+	
 	
     public static function getClassList()
     {
