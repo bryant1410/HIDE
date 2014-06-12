@@ -1,4 +1,5 @@
 package parser;
+import CodeMirror.Pos;
 import cm.Editor;
 
 /**
@@ -159,5 +160,47 @@ class RegexParser
 		
 		return classDeclarations;
 	}
+	
+	public static function getFunctionParameters(data:String, pos:Pos)
+	{
+		var functionDeclarations = [];
+		var functionParams = [];
+		
+		var eregFunction = ~/[public|private|static|inline|macro\t ]* function[\t ]+([^;\.\(\) ]+)\((.+)\)[^;\.{]+\{/gi;
+		
+		eregFunction.map(data, function (ereg)
+						{
+							functionDeclarations.push({name: ereg.matched(1), params: ereg.matched(2).split(","), pos: ereg.matchedPos()});
+							return "";
+						});
+		
+		var currentFunctionDeclaration = null;
+		
+		for (item in functionDeclarations)
+		{
+			if (Editor.editor.indexFromPos(pos) < item.pos.pos + item.pos.len)
+			{
+				break;
+			}
+		
+			currentFunctionDeclaration = item;
+		}
+	
+		if (currentFunctionDeclaration != null)
+		{
+			var ereg = ~/([a-z_0-9]+):?([^=;]+)?/gi;
+			
+			for (param in currentFunctionDeclaration.params)
+			{
+				if (ereg.match(param))
+				{
+					functionParams.push({name: ereg.matched(1), type: ereg.matched(2)});
+				}
+			}
+		}
+
+		return functionParams;
+	}
+
 
 }

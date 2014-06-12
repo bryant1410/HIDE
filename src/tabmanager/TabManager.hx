@@ -434,6 +434,8 @@ class TabManager
 			}
 		}
 		
+		var cm = Editor.editor;
+
 		if (found)
 		{
 			var project = ProjectAccess.currentProject;
@@ -441,17 +443,19 @@ class TabManager
 			if (selectedPath != null && project != null)
 			{
 				Editor.saveFoldedRegions();
-				Editor.editor.refresh();
+				cm.refresh();
 			}
 			
 			selectedPath = path;
 		
 		if (ProjectAccess.path != null) 
 		{
-			ProjectAccess.currentProject.activeFile = Node.path.relative(ProjectAccess.path, selectedPath);
+			project.activeFile = Node.path.relative(ProjectAccess.path, selectedPath);
 		}
 		
-		Editor.editor.swapDoc(tabMap.get(selectedPath).doc);
+		var doc = tabMap.get(selectedPath).doc;
+			
+		Editor.editor.swapDoc(doc);
 		
 		HaxeLint.updateLinting();
 
@@ -474,9 +478,17 @@ class TabManager
 				{
 					for (pos in foldedRegions)
 					{
-						Editor.editor.foldCode(pos, null, "fold");
+						cm.foldCode(pos, null, "fold");
 					}
-				}	
+				}
+				
+				if (selectedFile.activeLine != null)
+				{
+					var pos = {line: selectedFile.activeLine, ch: 0};
+					
+					doc.setCursor(pos);
+					cm.centerOnLine(pos.line);
+				}
 			}
 			else
 			{

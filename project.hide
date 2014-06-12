@@ -11,44 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src/cm/Editor.hx"
-            ,"foldedRegions" : [
 
-            ]
-        }
-        ,{
-             "path" : "src/core/Completion.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/core/ImportDefinition.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/parser/RegexParser.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/dialogs/ProjectOptionsDialog.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
-        ,{
-             "path" : "src/projectaccess/ProjectOptions.hx"
-            ,"foldedRegions" : [
-
-            ]
-        }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/parser/RegexParser.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

@@ -117,7 +117,15 @@ class Completion
 					
 					if (doc != null)
 					{
-						var data = doc.getRange({line: 0, ch: 0}, {line: cm.getCursor().line, ch: 0});
+						var data = doc.getRange({line: 0, ch: 0}, {line: cm.getCursor().line + 1, ch: 0});
+						
+						var functionParams = RegexParser.getFunctionParameters(data, doc.getCursor());
+						
+						for (item in functionParams)
+						{
+							var completionItem = generateCompletionItem(item.name, item.type);
+							list.push(completionItem);
+						}
 						
 						var variableDeclarations = RegexParser.getVariableDeclarations(data);
 						

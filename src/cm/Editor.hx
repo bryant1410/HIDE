@@ -1,6 +1,6 @@
 package cm;
-import parser.RegexParser;
 #if !macro
+import parser.RegexParser;
 import CodeMirror.Pos;
 import core.Completion;
 import core.FunctionParametersHelper;
@@ -481,6 +481,7 @@ class Editor
 		if (doc != null && ProjectAccess.currentProject != null)
 		{
 			var cm = editor;
+			var cursor = doc.getCursor();
 			var foldedRegions:Array<Pos> = [];
 
 			for (marker in doc.getAllMarks())
@@ -498,6 +499,7 @@ class Editor
 			if (selectedFile != null)
 			{
 				selectedFile.foldedRegions = foldedRegions;
+				selectedFile.activeLine = cursor.line;
 				trace("folding regions saved successfully for" + Std.string(selectedFile));
 			}
 			else

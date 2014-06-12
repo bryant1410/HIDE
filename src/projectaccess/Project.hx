@@ -15,6 +15,7 @@ typedef TargetData = {
 typedef FileData = {
 	@:optional var path:String;
 	@:optional var foldedRegions:Array<Pos>;
+	@:optional var activeLine:Int;
 }
  
 class Project

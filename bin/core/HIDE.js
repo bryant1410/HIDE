@@ -1440,6 +1440,7 @@ cm.Editor.saveFoldedRegions = function() {
 	var doc = tabmanager.TabManager.getCurrentDocument();
 	if(doc != null && projectaccess.ProjectAccess.currentProject != null) {
 		var cm1 = cm.Editor.editor;
+		var cursor = doc.getCursor();
 		var foldedRegions = [];
 		var _g = 0;
 		var _g1 = doc.getAllMarks();
@@ -1452,6 +1453,7 @@ cm.Editor.saveFoldedRegions = function() {
 		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
+			selectedFile.activeLine = cursor.line;
 			console.log("folding regions saved successfully for" + Std.string(selectedFile));
 		} else console.log("cannot save folded regions for this document");
 	} else console.log("unable to preserve code folding for" + Std.string(doc));
@@ -2018,55 +2020,63 @@ core.Completion.getHints = function(cm1,options) {
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
 			var doc = tabmanager.TabManager.getCurrentDocument();
 			if(doc != null) {
-				var data = doc.getRange({ line : 0, ch : 0},{ line : cm1.getCursor().line, ch : 0});
-				var variableDeclarations = parser.RegexParser.getVariableDeclarations(data);
+				var data = doc.getRange({ line : 0, ch : 0},{ line : cm1.getCursor().line + 1, ch : 0});
+				var functionParams = parser.RegexParser.getFunctionParameters(data,doc.getCursor());
 				var _g11 = 0;
-				while(_g11 < variableDeclarations.length) {
-					var item = variableDeclarations[_g11];
+				while(_g11 < functionParams.length) {
+					var item = functionParams[_g11];
 					++_g11;
 					var completionItem1 = core.Completion.generateCompletionItem(item.name,item.type);
 					core.Completion.list.push(completionItem1);
 				}
-				var functionDeclarations = parser.RegexParser.getFunctionDeclarations(doc.getValue());
+				var variableDeclarations = parser.RegexParser.getVariableDeclarations(data);
 				var _g12 = 0;
-				while(_g12 < functionDeclarations.length) {
-					var item1 = functionDeclarations[_g12];
+				while(_g12 < variableDeclarations.length) {
+					var item1 = variableDeclarations[_g12];
 					++_g12;
-					var completionData = core.Completion.generateFunctionCompletionItem(item1.name,item1.params);
-					var completionItem2 = core.Completion.createCompletionItem(item1.name,null,completionData);
+					var completionItem2 = core.Completion.generateCompletionItem(item1.name,item1.type);
 					core.Completion.list.push(completionItem2);
+				}
+				var functionDeclarations = parser.RegexParser.getFunctionDeclarations(doc.getValue());
+				var _g13 = 0;
+				while(_g13 < functionDeclarations.length) {
+					var item2 = functionDeclarations[_g13];
+					++_g13;
+					var completionData = core.Completion.generateFunctionCompletionItem(item2.name,item2.params);
+					var completionItem3 = core.Completion.createCompletionItem(item2.name,null,completionData);
+					core.Completion.list.push(completionItem3);
 				}
 			}
 			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
 			var classList = core.Completion.getClassList();
 			var packages = [];
-			var _g13 = 0;
+			var _g14 = 0;
 			var _g21 = classList.topLevelClassList;
-			while(_g13 < _g21.length) {
-				var item2 = _g21[_g13];
-				++_g13;
-				var completion1 = { text : item2.name};
+			while(_g14 < _g21.length) {
+				var item3 = _g21[_g14];
+				++_g14;
+				var completion1 = { text : item3.name};
 				completion1.className = className + " CodeMirror-Tern-completion-class";
 				core.Completion.list.push(completion1);
 			}
-			var _g14 = 0;
+			var _g15 = 0;
 			var _g22 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-			while(_g14 < _g22.length) {
-				var list = _g22[_g14];
-				++_g14;
+			while(_g15 < _g22.length) {
+				var list = _g22[_g15];
+				++_g15;
 				var _g3 = 0;
 				while(_g3 < list.length) {
-					var item3 = list[_g3];
+					var item4 = list[_g3];
 					++_g3;
-					var str = item3.split(".")[0];
+					var str = item4.split(".")[0];
 					if(HxOverrides.indexOf(packages,str,0) == -1 && str.charAt(0) == str.charAt(0).toLowerCase()) packages.push(str);
 				}
 			}
-			var _g15 = 0;
-			while(_g15 < packages.length) {
-				var item4 = packages[_g15];
-				++_g15;
-				var completion2 = { text : item4};
+			var _g16 = 0;
+			while(_g16 < packages.length) {
+				var item5 = packages[_g16];
+				++_g16;
+				var completion2 = { text : item5};
 				completion2.className = className + " CodeMirror-Tern-completion-package";
 				core.Completion.list.push(completion2);
 			}
@@ -2078,62 +2088,62 @@ core.Completion.getHints = function(cm1,options) {
 	case 5:
 		var _this = completion.Hxml.getCompletion();
 		core.Completion.list = _this.slice();
-		var _g16 = 0;
+		var _g17 = 0;
 		var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g16 < _g23.length) {
-			var list2 = _g23[_g16];
-			++_g16;
+		while(_g17 < _g23.length) {
+			var list2 = _g23[_g17];
+			++_g17;
 			var _g31 = 0;
 			while(_g31 < list2.length) {
-				var item5 = list2[_g31];
+				var item6 = list2[_g31];
 				++_g31;
-				core.Completion.list.push({ text : item5});
+				core.Completion.list.push({ text : item6});
 			}
 		}
 		break;
 	case 1:
 		var displayText;
-		var _g17 = 0;
+		var _g18 = 0;
 		var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-		while(_g17 < _g24.length) {
-			var list21 = _g24[_g17];
-			++_g17;
+		while(_g18 < _g24.length) {
+			var list21 = _g24[_g18];
+			++_g18;
 			var _g32 = 0;
 			while(_g32 < list21.length) {
-				var item6 = list21[_g32];
+				var item7 = list21[_g32];
 				++_g32;
-				core.Completion.list.push({ text : item6.path, displayText : core.Completion.processDisplayText(item6.path)});
+				core.Completion.list.push({ text : item7.path, displayText : core.Completion.processDisplayText(item7.path)});
 			}
 		}
 		break;
 	case 2:
 		var displayText1;
-		var _g18 = 0;
+		var _g19 = 0;
 		var _g25 = parser.ClassParser.filesList;
-		while(_g18 < _g25.length) {
-			var item7 = _g25[_g18];
-			++_g18;
-			core.Completion.list.push({ text : item7.directory, displayText : core.Completion.processDisplayText(item7.path)});
+		while(_g19 < _g25.length) {
+			var item8 = _g25[_g19];
+			++_g19;
+			core.Completion.list.push({ text : item8.directory, displayText : core.Completion.processDisplayText(item8.path)});
 		}
 		break;
 	case 4:
 		var classList1 = core.Completion.getClassList();
 		var className1 = "CodeMirror-Tern-completion";
-		var _g19 = 0;
+		var _g110 = 0;
 		var _g26 = classList1.topLevelClassList;
-		while(_g19 < _g26.length) {
-			var item8 = _g26[_g19];
-			++_g19;
-			var completion3 = { text : item8.name};
+		while(_g110 < _g26.length) {
+			var item9 = _g26[_g110];
+			++_g110;
+			var completion3 = { text : item9.name};
 			completion3.className = className1 + " CodeMirror-Tern-completion-class";
 			core.Completion.list.push(completion3);
 		}
-		var _g110 = 0;
+		var _g111 = 0;
 		var _g27 = classList1.importsList;
-		while(_g110 < _g27.length) {
-			var item9 = _g27[_g110];
-			++_g110;
-			var completion4 = { text : item9};
+		while(_g111 < _g27.length) {
+			var item10 = _g27[_g111];
+			++_g111;
+			var completion4 = { text : item10};
 			completion4.className = className1 + " CodeMirror-Tern-completion-class";
 			core.Completion.list.push(completion4);
 		}
@@ -15502,6 +15512,34 @@ parser.RegexParser.getClassDeclarations = function(data) {
 	});
 	return classDeclarations;
 };
+parser.RegexParser.getFunctionParameters = function(data,pos) {
+	var functionDeclarations = [];
+	var functionParams = [];
+	var eregFunction = new EReg("[public|private|static|inline|macro\t ]* function[\t ]+([^;\\.\\(\\) ]+)\\((.+)\\)[^;\\.{]+\\{","gi");
+	eregFunction.map(data,function(ereg) {
+		functionDeclarations.push({ name : ereg.matched(1), params : ereg.matched(2).split(","), pos : ereg.matchedPos()});
+		return "";
+	});
+	var currentFunctionDeclaration = null;
+	var _g = 0;
+	while(_g < functionDeclarations.length) {
+		var item = functionDeclarations[_g];
+		++_g;
+		if(cm.Editor.editor.indexFromPos(pos) < item.pos.pos + item.pos.len) break;
+		currentFunctionDeclaration = item;
+	}
+	if(currentFunctionDeclaration != null) {
+		var ereg1 = new EReg("([a-z_0-9]+):?([^=;]+)?","gi");
+		var _g1 = 0;
+		var _g11 = currentFunctionDeclaration.params;
+		while(_g1 < _g11.length) {
+			var param = _g11[_g1];
+			++_g1;
+			if(ereg1.match(param)) functionParams.push({ name : ereg1.matched(1), type : ereg1.matched(2)});
+		}
+	}
+	return functionParams;
+};
 var pluginloader = {};
 pluginloader.PluginManager = function() { };
 $hxClasses["pluginloader.PluginManager"] = pluginloader.PluginManager;
@@ -16481,15 +16519,17 @@ tabmanager.TabManager.selectDoc = function(path) {
 			found = true;
 		} else tabmanager.TabManager.tabMap.get(keys[i]).getElement().className = "";
 	}
+	var cm1 = cm.Editor.editor;
 	if(found) {
 		var project = projectaccess.ProjectAccess.currentProject;
 		if(tabmanager.TabManager.selectedPath != null && project != null) {
 			cm.Editor.saveFoldedRegions();
-			cm.Editor.editor.refresh();
+			cm1.refresh();
 		}
 		tabmanager.TabManager.selectedPath = path;
-		if(projectaccess.ProjectAccess.path != null) projectaccess.ProjectAccess.currentProject.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
-		cm.Editor.editor.swapDoc(tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc);
+		if(projectaccess.ProjectAccess.path != null) project.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
+		var doc = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc;
+		cm.Editor.editor.swapDoc(doc);
 		core.HaxeLint.updateLinting();
 		var completionActive = cm.Editor.editor.state.completionActive;
 		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
@@ -16502,8 +16542,13 @@ tabmanager.TabManager.selectDoc = function(path) {
 					while(_g2 < foldedRegions.length) {
 						var pos = foldedRegions[_g2];
 						++_g2;
-						cm.Editor.editor.foldCode(pos,null,"fold");
+						cm1.foldCode(pos,null,"fold");
 					}
+				}
+				if(selectedFile.activeLine != null) {
+					var pos1 = { line : selectedFile.activeLine, ch : 0};
+					doc.setCursor(pos1);
+					cm1.centerOnLine(pos1.line);
 				}
 			} else console.log("can't load folded regions for active document");
 		}

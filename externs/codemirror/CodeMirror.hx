@@ -82,6 +82,11 @@ typedef DocHistory = {
 	function lineCount():Int;
 	function getAllMarks():Array<Dynamic>;
 	function getRange(from: Pos, to: Pos, ?separator: String):String;
+	function getCursor( ?start : Bool ) : Pos;
+	function setCursor(pos: Pos, ?ch: Int, ?options: Dynamic):Void;
+	function listSelections():Array<{anchor:Pos, head:Pos}>;
+	function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
+	function replaceSelection(replacement: String, ?select: String):Void;
 	var history:DocHistory;
 }
 
@@ -104,9 +109,7 @@ public static function registerHelper(type:String, mode:String, onCompletion:Dyn
 function on(event:String, callback_function:Dynamic):Void;
 
 function refresh() : Void;
-
-function getCursor( ?start : Bool ) : Pos;
-
+	
 function getLine(line:Int):String;
 function getLineNumber(pos:Pos):Int;
 
@@ -139,8 +142,6 @@ function findMatchingBracket(pos:CodeMirror.Pos, strict:Bool, config:Dynamic):{f
 
 function execCommand(command:String):Void;
 function replaceRange(replacement: String, from: Pos, to: Pos, ?origin: String):Void;
-function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
-function replaceSelection(replacement: String, ?select: String):Void;
 
 function markText(from : Pos, to : Pos, options:{className : String} ) : MarkedText;
 
@@ -151,8 +152,7 @@ function getTokenAt(pos: Pos, ?precise:Bool):TokenData;
 function getTokenTypeAt(pos: Pos):String;
 function indentLine(line: Int, ?dir: Dynamic): Void;
 function showHint(options:Dynamic):Void;
-function listSelections():Array<{anchor:Pos, head:Pos}>;
-    
+   
 function foldCode(pos:Pos, ?options:{call:Dynamic}, ?force:String):Void;
 function isFolded(pos:Pos):Bool;
 
