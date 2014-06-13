@@ -1,6 +1,6 @@
 cd libs
 cd hxparse
-git pull origin development
+git pull origin master
 cd ..
 cd haxeparser
 git pull origin master

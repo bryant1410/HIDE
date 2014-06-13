@@ -1472,6 +1472,8 @@ License: http://jqwidgets.com/license/
       display.blinker = setInterval(function() {
         display.cursorDiv.style.visibility = (on = !on) ? "" : "hidden";
       }, cm.options.cursorBlinkRate);
+    else if (cm.options.cursorBlinkRate < 0)
+      display.cursorDiv.style.visibility = "hidden";
   }
 
   // HIGHLIGHT WORKER
@@ -1494,9 +1496,11 @@ License: http://jqwidgets.com/license/
         var oldStyles = line.styles;
         var highlighted = highlightLine(cm, line, state, true);
         line.styles = highlighted.styles;
-        if (highlighted.classes) line.styleClasses = highlighted.classes;
-        else if (line.styleClasses) line.styleClasses = null;
-        var ischange = !oldStyles || oldStyles.length != line.styles.length;
+        var oldCls = line.styleClasses, newCls = highlighted.classes;
+        if (newCls) line.styleClasses = newCls;
+        else if (oldCls) line.styleClasses = null;
+        var ischange = !oldStyles || oldStyles.length != line.styles.length ||
+          oldCls != newCls && (!oldCls || !newCls || oldCls.bgClass != newCls.bgClass || oldCls.textClass != newCls.textClass);
         for (var i = 0; !ischange && i < oldStyles.length; ++i) ischange = oldStyles[i] != line.styles[i];
         if (ischange) regLineChange(cm, doc.frontier, "text");
         line.stateAfter = copyState(doc.mode, state);
@@ -3193,7 +3197,7 @@ License: http://jqwidgets.com/license/
 
   function onKeyPress(e) {
     var cm = this;
-    if (signalDOMEvent(cm, e)) return;
+    if (signalDOMEvent(cm, e) || e.ctrlKey || mac && e.metaKey) return;
     var keyCode = e.keyCode, charCode = e.charCode;
     if (presto && keyCode == lastStoppedKey) {lastStoppedKey = null; e_preventDefault(e); return;}
     if (((presto && (!e.which || e.which < 10)) || khtml) && handleKeyBinding(cm, e)) return;
@@ -4323,14 +4327,21 @@ License: http://jqwidgets.com/license/
     }),
 
     setSize: methodOp(function(width, height) {
+      var cm = this;
       function interpret(val) {
         return typeof val == "number" || /^\d+$/.test(String(val)) ? val + "px" : val;
       }
-      if (width != null) this.display.wrapper.style.width = interpret(width);
-      if (height != null) this.display.wrapper.style.height = interpret(height);
-      if (this.options.lineWrapping) clearLineMeasurementCache(this);
-      this.curOp.forceUpdate = true;
-      signal(this, "refresh", this);
+      if (width != null) cm.display.wrapper.style.width = interpret(width);
+      if (height != null) cm.display.wrapper.style.height = interpret(height);
+      if (cm.options.lineWrapping) clearLineMeasurementCache(this);
+      var lineNo = cm.display.viewFrom;
+      cm.doc.iter(lineNo, cm.display.viewTo, function(line) {
+        if (line.widgets) for (var i = 0; i < line.widgets.length; i++)
+          if (line.widgets[i].noHScroll) { regLineChange(cm, lineNo, "widget"); break; }
+        ++lineNo;
+      });
+      cm.curOp.forceUpdate = true;
+      signal(cm, "refresh", this);
     }),
 
     operation: function(f){return runInOp(this, f);},
@@ -8083,10 +8094,14 @@ License: http://jqwidgets.com/license/
     closeNotification(this, null);
     var dialog = dialogDiv(this, template, options && options.bottom);
     var closed = false, me = this;
-    function close() {
-      if (closed) return;
-      closed = true;
-      dialog.parentNode.removeChild(dialog);
+    function close(newVal) {
+      if (typeof newVal == 'string') {
+        inp.value = newVal;
+      } else {
+        if (closed) return;
+        closed = true;
+        dialog.parentNode.removeChild(dialog);
+      }
     }
     var inp = dialog.getElementsByTagName("input")[0], button;
     if (inp) {
@@ -9856,7 +9871,11 @@ License: http://jqwidgets.com/license/
         macroModeState: new MacroModeState,
         // Recording latest f, t, F or T motion command.
         lastChararacterSearch: {increment:0, forward:true, selectedCharacter:''},
-        registerController: new RegisterController({})
+        registerController: new RegisterController({}),
+        // search history buffer
+        searchHistoryController: new HistoryController({}),
+        // ex Command history buffer
+        exCommandHistoryController : new HistoryController({})
       };
       for (var optionName in options) {
         var option = options[optionName];
@@ -10127,7 +10146,45 @@ License: http://jqwidgets.com/license/
         }
       }
     };
-
+    function HistoryController() {
+        this.historyBuffer = [];
+        this.iterator;
+        this.initialPrefix = null;
+    }
+    HistoryController.prototype = {
+      // the input argument here acts a user entered prefix for a small time
+      // until we start autocompletion in which case it is the autocompleted.
+      nextMatch: function (input, up) {
+        var historyBuffer = this.historyBuffer;
+        var dir = up ? -1 : 1;
+        if (this.initialPrefix === null) this.initialPrefix = input;
+        for (var i = this.iterator + dir; up ? i >= 0 : i < historyBuffer.length; i+= dir) {
+          var element = historyBuffer[i];
+          for (var j = 0; j <= element.length; j++) {
+            if (this.initialPrefix == element.substring(0, j)) {
+              this.iterator = i;
+              return element;
+            }
+          }
+        }
+        // should return the user input in case we reach the end of buffer.
+        if (i >= historyBuffer.length) {
+          this.iterator = historyBuffer.length;
+          return this.initialPrefix;
+        }
+        // return the last autocompleted query or exCommand as it is.
+        if (i < 0 ) return input;
+      },
+      pushInput: function(input) {
+        var index = this.historyBuffer.indexOf(input);
+        if (index > -1) this.historyBuffer.splice(index, 1);
+        if (input.length) this.historyBuffer.push(input);
+      },
+      reset: function() {
+        this.initialPrefix = null;
+        this.iterator = this.historyBuffer.length;
+      }
+    };
     var commandDispatcher = {
       matchCommand: function(key, keyMap, vim) {
         var inputState = vim.inputState;
@@ -10314,6 +10371,8 @@ License: http://jqwidgets.com/license/
         var originalQuery = getSearchState(cm).getQuery();
         var originalScrollPos = cm.getScrollInfo();
         function handleQuery(query, ignoreCase, smartCase) {
+          vimGlobalState.searchHistoryController.pushInput(query);
+          vimGlobalState.searchHistoryController.reset();
           try {
             updateSearchQuery(cm, query, ignoreCase, smartCase);
           } catch (e) {
@@ -10334,7 +10393,16 @@ License: http://jqwidgets.com/license/
             logSearchQuery(macroModeState, query);
           }
         }
-        function onPromptKeyUp(_e, query) {
+        function onPromptKeyUp(e, query, close) {
+          var keyName = CodeMirror.keyName(e), up;
+          if (keyName == 'Up' || keyName == 'Down') {
+            up = keyName == 'Up' ? true : false;
+            query = vimGlobalState.searchHistoryController.nextMatch(query, up) || '';
+            close(query);
+          } else {
+            if ( keyName != 'Left' && keyName != 'Right' && keyName != 'Ctrl' && keyName != 'Alt' && keyName != 'Shift')
+              vimGlobalState.searchHistoryController.reset();
+          }
           var parsedQuery;
           try {
             parsedQuery = updateSearchQuery(cm, query,
@@ -10349,13 +10417,14 @@ License: http://jqwidgets.com/license/
             cm.scrollTo(originalScrollPos.left, originalScrollPos.top);
           }
         }
-        function onPromptKeyDown(e, _query, close) {
+        function onPromptKeyDown(e, query, close) {
           var keyName = CodeMirror.keyName(e);
           if (keyName == 'Esc' || keyName == 'Ctrl-C' || keyName == 'Ctrl-[') {
+            vimGlobalState.searchHistoryController.pushInput(query);
+            vimGlobalState.searchHistoryController.reset();
             updateSearchQuery(cm, originalQuery);
             clearSearchHighlight(cm);
             cm.scrollTo(originalScrollPos.left, originalScrollPos.top);
-
             CodeMirror.e_stop(e);
             close();
             cm.focus();
@@ -10413,14 +10482,26 @@ License: http://jqwidgets.com/license/
         function onPromptClose(input) {
           // Give the prompt some time to close so that if processCommand shows
           // an error, the elements don't overlap.
+          vimGlobalState.exCommandHistoryController.pushInput(input);
+          vimGlobalState.exCommandHistoryController.reset();
           exCommandDispatcher.processCommand(cm, input);
         }
-        function onPromptKeyDown(e, _input, close) {
-          var keyName = CodeMirror.keyName(e);
+        function onPromptKeyDown(e, input, close) {
+          var keyName = CodeMirror.keyName(e), up;
           if (keyName == 'Esc' || keyName == 'Ctrl-C' || keyName == 'Ctrl-[') {
+            vimGlobalState.exCommandHistoryController.pushInput(input);
+            vimGlobalState.exCommandHistoryController.reset();
             CodeMirror.e_stop(e);
             close();
             cm.focus();
+          }
+          if (keyName == 'Up' || keyName == 'Down') {
+            up = keyName == 'Up' ? true : false;
+            input = vimGlobalState.exCommandHistoryController.nextMatch(input, up) || '';
+            close(input);
+          } else {
+            if ( keyName != 'Left' && keyName != 'Right' && keyName != 'Ctrl' && keyName != 'Alt' && keyName != 'Shift')
+              vimGlobalState.exCommandHistoryController.reset();
           }
         }
         if (command.type == 'keyToEx') {
@@ -12208,6 +12289,18 @@ License: http://jqwidgets.com/license/
         onClose(prompt(shortText, ''));
       }
     }
+    function splitBySlash(argString) {
+      var slashes = findUnescapedSlashes(argString) || [];
+      if (!slashes.length) return [];
+      var tokens = [];
+      // in case of strings like foo/bar
+      if (slashes[0] !== 0) return;
+      for (var i = 0; i < slashes.length; i++) {
+        if (typeof slashes[i] == 'number')
+          tokens.push(argString.substring(slashes[i] + 1, slashes[i+1]));
+      }
+      return tokens;
+    }
 
     function findUnescapedSlashes(str) {
       var escapeNextChar = false;
@@ -12544,16 +12637,17 @@ License: http://jqwidgets.com/license/
       { name: 'redo', shortName: 'red' },
       { name: 'set', shortName: 'set' },
       { name: 'sort', shortName: 'sor' },
-      { name: 'substitute', shortName: 's' },
+      { name: 'substitute', shortName: 's', possiblyAsync: true },
       { name: 'nohlsearch', shortName: 'noh' },
       { name: 'delmarks', shortName: 'delm' },
-      { name: 'registers', shortName: 'reg', excludeFromCommandHistory: true }
+      { name: 'registers', shortName: 'reg', excludeFromCommandHistory: true },
+      { name: 'global', shortName: 'g' }
     ];
     Vim.ExCommandDispatcher = function() {
       this.buildCommandMap_();
     };
     Vim.ExCommandDispatcher.prototype = {
-      processCommand: function(cm, input) {
+      processCommand: function(cm, input, opt_params) {
         var vim = cm.state.vim;
         var commandHistoryRegister = vimGlobalState.registerController.getRegister(':');
         var previousCommand = commandHistoryRegister.toString();
@@ -12563,7 +12657,7 @@ License: http://jqwidgets.com/license/
         var inputStream = new CodeMirror.StringStream(input);
         // update ": with the latest command whether valid or invalid
         commandHistoryRegister.setText(input);
-        var params = {};
+        var params = opt_params || {};
         params.input = input;
         try {
           this.parseInput_(cm, inputStream, params);
@@ -12571,6 +12665,7 @@ License: http://jqwidgets.com/license/
           showConfirm(cm, e);
           throw e;
         }
+        var command;
         var commandName;
         if (!params.commandName) {
           // If only a line range is defined, move to the line.
@@ -12578,7 +12673,7 @@ License: http://jqwidgets.com/license/
             commandName = 'move';
           }
         } else {
-          var command = this.matchCommand_(params.commandName);
+          command = this.matchCommand_(params.commandName);
           if (command) {
             commandName = command.name;
             if (command.excludeFromCommandHistory) {
@@ -12604,6 +12699,12 @@ License: http://jqwidgets.com/license/
         }
         try {
           exCommands[commandName](cm, params);
+          // Possibly asynchronous commands (e.g. substitute, which might have a
+          // user confirmation), are responsible for calling the callback when
+          // done. All others have it taken care of for them here.
+          if ((!command || !command.possiblyAsync) && params.callback) {
+            params.callback();
+          }
         } catch(e) {
           showConfirm(cm, e);
           throw e;
@@ -12955,26 +13056,77 @@ License: http://jqwidgets.com/license/
         }
         cm.replaceRange(text.join('\n'), curStart, curEnd);
       },
+      global: function(cm, params) {
+        // a global command is of the form
+        // :[range]g/pattern/[cmd]
+        // argString holds the string /pattern/[cmd]
+        var argString = params.argString;
+        if (!argString) {
+          showConfirm(cm, 'Regular Expression missing from global');
+          return;
+        }
+        // range is specified here
+        var lineStart = (params.line !== undefined) ? params.line : cm.firstLine();
+        var lineEnd = params.lineEnd || params.line || cm.lastLine();
+        // get the tokens from argString
+        var tokens = splitBySlash(argString);
+        var regexPart = argString, cmd;
+        if (tokens.length) {
+          regexPart = tokens[0];
+          cmd = tokens.slice(1, tokens.length).join('/');
+        }
+        if (regexPart) {
+          // If regex part is empty, then use the previous query. Otherwise
+          // use the regex part as the new query.
+          try {
+           updateSearchQuery(cm, regexPart, true /** ignoreCase */,
+             true /** smartCase */);
+          } catch (e) {
+           showConfirm(cm, 'Invalid regex: ' + regexPart);
+           return;
+          }
+        }
+        // now that we have the regexPart, search for regex matches in the
+        // specified range of lines
+        var query = getSearchState(cm).getQuery();
+        var matchedLines = [], content = '';
+        for (var i = lineStart; i <= lineEnd; i++) {
+          var matched = query.test(cm.getLine(i));
+          if (matched) {
+            matchedLines.push(i+1);
+            content+= cm.getLine(i) + '<br>';
+          }
+        }
+        // if there is no [cmd], just display the list of matched lines
+        if (!cmd) {
+          showConfirm(cm, content);
+          return;
+        }
+        var index = 0;
+        var nextCommand = function() {
+          if (index < matchedLines.length) {
+            var command = matchedLines[index] + cmd;
+            exCommandDispatcher.processCommand(cm, command, {
+              callback: nextCommand
+            });
+          }
+          index++;
+        };
+        nextCommand();
+      },
       substitute: function(cm, params) {
         if (!cm.getSearchCursor) {
           throw new Error('Search feature not available. Requires searchcursor.js or ' +
               'any other getSearchCursor implementation.');
         }
         var argString = params.argString;
-        var slashes = argString ? findUnescapedSlashes(argString) : [];
-        var replacePart = '';
-        if (slashes.length) {
-          if (slashes[0] !== 0) {
-            showConfirm(cm, 'Substitutions should be of the form ' +
-                ':s/pattern/replace/');
-            return;
-          }
-          var regexPart = argString.substring(slashes[0] + 1, slashes[1]);
-          var flagsPart;
-          var count;
-          var confirm = false; // Whether to confirm each replace.
-          if (slashes[1]) {
-            replacePart = argString.substring(slashes[1] + 1, slashes[2]);
+        var tokens = argString ? splitBySlash(argString) : [];
+        var regexPart, replacePart = '', trailing, flagsPart, count;
+        var confirm = false; // Whether to confirm each replace.
+        if (tokens.length) {
+          regexPart = tokens[0];
+          replacePart = tokens[1];
+          if (replacePart !== undefined) {
             if (getOption('pcre')) {
               replacePart = unescapeRegexReplace(replacePart);
             } else {
@@ -12982,13 +13134,22 @@ License: http://jqwidgets.com/license/
             }
             vimGlobalState.lastSubstituteReplacePart = replacePart;
           }
-          if (slashes[2]) {
-            // After the 3rd slash, we can have flags followed by a space followed
-            // by count.
-            var trailing = argString.substring(slashes[2] + 1).split(' ');
-            flagsPart = trailing[0];
-            count = parseInt(trailing[1]);
+          trailing = tokens[2] ? tokens[2].split(' ') : [];
+        } else {
+          // either the argString is empty or its of the form ' hello/world'
+          // actually splitBySlash returns a list of tokens
+          // only if the string starts with a '/'
+          if (argString && argString.length) {
+            showConfirm(cm, 'Substitutions should be of the form ' +
+                ':s/pattern/replace/');
+            return;
           }
+        }
+        // After the 3rd slash, we can have flags followed by a space followed
+        // by count.
+        if (trailing) {
+          flagsPart = trailing[0];
+          count = parseInt(trailing[1]);
           if (flagsPart) {
             if (flagsPart.indexOf('c') != -1) {
               confirm = true;
@@ -13023,7 +13184,7 @@ License: http://jqwidgets.com/license/
         }
         var startPos = clipCursorToContent(cm, Pos(lineStart, 0));
         var cursor = cm.getSearchCursor(query, startPos);
-        doReplace(cm, confirm, lineStart, lineEnd, cursor, query, replacePart);
+        doReplace(cm, confirm, lineStart, lineEnd, cursor, query, replacePart, params.callback);
       },
       redo: CodeMirror.commands.redo,
       undo: CodeMirror.commands.undo,
@@ -13112,9 +13273,10 @@ License: http://jqwidgets.com/license/
     * @param {RegExp} query Query for performing matches with.
     * @param {string} replaceWith Text to replace matches with. May contain $1,
     *     $2, etc for replacing captured groups using Javascript replace.
+    * @param {function()} callback A callback for when the replace is done.
     */
     function doReplace(cm, confirm, lineStart, lineEnd, searchCursor, query,
-        replaceWith) {
+        replaceWith, callback) {
       // Set up all the functions.
       cm.state.vim.exMode = true;
       var done = false;
@@ -13155,6 +13317,7 @@ License: http://jqwidgets.com/license/
           vim.exMode = false;
           vim.lastHPos = vim.lastHSPos = lastPos.ch;
         }
+        if (callback) { callback(); };
       }
       function onPromptKeyDown(e, _value, close) {
         // Swallow all keys.
@@ -13166,7 +13329,13 @@ License: http://jqwidgets.com/license/
           case 'N':
             next(); break;
           case 'A':
-            cm.operation(replaceAll); break;
+            // replaceAll contains a call to close of its own. We don't want it
+            // to fire too early or multiple times.
+            var savedCallback = callback;
+            callback = undefined;
+            cm.operation(replaceAll);
+            callback = savedCallback;
+            break;
           case 'L':
             replace();
             // fall through and exit.
@@ -13188,6 +13357,7 @@ License: http://jqwidgets.com/license/
       }
       if (!confirm) {
         replaceAll();
+        if (callback) { callback(); };
         return;
       }
       showPrompt(cm, {
@@ -13323,8 +13493,10 @@ License: http://jqwidgets.com/license/
           text = text.substring(match.index + key.length);
           CodeMirror.Vim.handleKey(cm, key);
           if (vim.insertMode) {
-            repeatInsertModeChanges(
-                cm, register.insertModeChanges[imc++].changes, 1);
+            var changes = register.insertModeChanges[imc++].changes;
+            vimGlobalState.macroModeState.lastInsertModeChanges.changes =
+                changes;
+            repeatInsertModeChanges(cm, changes, 1);
             exitInsertMode(cm);
           }
         }
@@ -16411,7 +16583,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     var cc = state.cc;
     // Communicate our context to the combinators.
     // (Less wasteful than consing up a hundred closures on every call.)
-    cx.state = state; cx.stream = stream; cx.marked = null, cx.cc = cc;
+    cx.state = state; cx.stream = stream; cx.marked = null, cx.cc = cc; cx.style = style;
 
     if (!state.lexical.hasOwnProperty("align"))
       state.lexical.align = true;
@@ -16516,7 +16688,7 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == "catch") return cont(pushlex("form"), pushcontext, expect("("), funarg, expect(")"),
                                      statement, poplex, popcontext);
     if (type == "module") return cont(pushlex("form"), pushcontext, afterModule, popcontext, poplex);
-    if (type == "class") return cont(pushlex("form"), className, objlit, poplex);
+    if (type == "class") return cont(pushlex("form"), className, poplex);
     if (type == "export") return cont(pushlex("form"), afterExport, poplex);
     if (type == "import") return cont(pushlex("form"), afterImport, poplex);
     return pass(pushlex("stat"), expression, expect(";"), poplex);
@@ -16603,15 +16775,18 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == "variable") {cx.marked = "property"; return cont();}
   }
   function objprop(type, value) {
-    if (type == "variable") {
+    if (type == "variable" || cx.style == "keyword") {
       cx.marked = "property";
       if (value == "get" || value == "set") return cont(getterSetter);
+      return cont(afterprop);
     } else if (type == "number" || type == "string") {
-      cx.marked = jsonldMode ? "property" : (type + " property");
+      cx.marked = jsonldMode ? "property" : (cx.style + " property");
+      return cont(afterprop);
+    } else if (type == "jsonld-keyword") {
+      return cont(afterprop);
     } else if (type == "[") {
       return cont(expression, expect("]"), afterprop);
     }
-    if (atomicTypes.hasOwnProperty(type)) return cont(afterprop);
   }
   function getterSetter(type) {
     if (type != "variable") return pass(afterprop);
@@ -16710,11 +16885,27 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   function className(type, value) {
     if (type == "variable") {register(value); return cont(classNameAfter);}
   }
-  function classNameAfter(_type, value) {
-    if (value == "extends") return cont(expression);
+  function classNameAfter(type, value) {
+    if (value == "extends") return cont(expression, classNameAfter);
+    if (type == "{") return cont(pushlex("}"), classBody, poplex);
   }
-  function objlit(type) {
-    if (type == "{") return contCommasep(objprop, "}");
+  function classBody(type, value) {
+    if (type == "variable" || cx.style == "keyword") {
+      cx.marked = "property";
+      if (value == "get" || value == "set") return cont(classGetterSetter, functiondef, classBody);
+      return cont(functiondef, classBody);
+    }
+    if (value == "*") {
+      cx.marked = "keyword";
+      return cont(classBody);
+    }
+    if (type == ";") return cont(classBody);
+    if (type == "}") return cont();
+  }
+  function classGetterSetter(type) {
+    if (type != "variable") return pass();
+    cx.marked = "property";
+    return cont();
   }
   function afterModule(type, value) {
     if (type == "string") return cont(statement);

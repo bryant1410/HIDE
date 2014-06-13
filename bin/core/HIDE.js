@@ -1067,7 +1067,7 @@ byte.js._ByteData.ByteData_Impl_.readString = function(this1,pos,len) {
 	return buf.b;
 };
 byte.js._ByteData.ByteData_Impl_.ofString = function(s) {
-	var a = new Uint8Array(s.length);
+	var a = new Int8Array(s.length);
 	var _g1 = 0;
 	var _g = s.length;
 	while(_g1 < _g) {
@@ -7279,11 +7279,11 @@ hxparse.Lexer = function(input,sourceName) {
 	this.input = input;
 	this.source = sourceName;
 	this.pos = 0;
+	this.eof = false;
 };
 $hxClasses["hxparse.Lexer"] = hxparse.Lexer;
 hxparse.Lexer.__name__ = ["hxparse","Lexer"];
-hxparse.Lexer.buildRuleset = function(rules,name) {
-	if(name == null) name = "";
+hxparse.Lexer.buildRuleset = function(rules) {
 	var cases = [];
 	var functions = [];
 	var eofFunction = null;
@@ -7296,18 +7296,19 @@ hxparse.Lexer.buildRuleset = function(rules,name) {
 			functions.push(rule.func);
 		}
 	}
-	return new hxparse.Ruleset(new hxparse.LexEngine(cases).firstState(),functions,eofFunction,name);
+	return new hxparse.Ruleset(new hxparse.LexEngine(cases).firstState(),functions,eofFunction);
 };
 hxparse.Lexer.prototype = {
 	current: null
 	,input: null
 	,source: null
 	,pos: null
+	,eof: null
 	,curPos: function() {
 		return new hxparse.Position(this.source,this.pos - this.current.length,this.pos);
 	}
 	,token: function(ruleset) {
-		if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) {
+		if(this.eof) {
 			if(ruleset.eofFunction != null) return ruleset.eofFunction(this); else throw new haxe.io.Eof();
 		}
 		var state = ruleset.state;
@@ -7319,7 +7320,10 @@ hxparse.Lexer.prototype = {
 				lastMatch = state;
 				lastMatchPos = this.pos;
 			}
-			if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) break;
+			if(this.pos == byte.js._ByteData.ByteData_Impl_.get_length(this.input)) {
+				this.eof = true;
+				break;
+			}
 			var i = this.input[this.pos];
 			this.pos++;
 			state = state.trans[i];
@@ -7357,7 +7361,7 @@ hxparse.LexEngine = function(patterns) {
 $hxClasses["hxparse.LexEngine"] = hxparse.LexEngine;
 hxparse.LexEngine.__name__ = ["hxparse","LexEngine"];
 hxparse.LexEngine.parse = function(pattern) {
-	var p = hxparse.LexEngine.parseInner(byte.js._ByteData.ByteData_Impl_.ofString(pattern));
+	var p = hxparse.LexEngine.parseInner(pattern);
 	if(p == null) throw "Invalid pattern '" + pattern + "'";
 	return p.pattern;
 };
@@ -7458,12 +7462,9 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 	if(pDepth == null) pDepth = 0;
 	if(i == null) i = 0;
 	var r = hxparse._LexEngine.Pattern.Empty;
-	var l = byte.js._ByteData.ByteData_Impl_.get_length(pattern);
+	var l = pattern.length;
 	while(i < l) {
-		var c;
-		var pos = i++;
-		c = pattern[pos];
-		if(c > 255) throw c;
+		var c = StringTools.fastCodeAt(pattern,i++);
 		switch(c) {
 		case 43:
 			if(r != hxparse._LexEngine.Pattern.Empty) r = hxparse.LexEngine.plus(r); else r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
@@ -7491,15 +7492,13 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 		case 41:
 			return { pattern : hxparse._LexEngine.Pattern.Group(r), pos : i};
 		case 91:
-			if(byte.js._ByteData.ByteData_Impl_.get_length(pattern) > 1) {
+			if(pattern.length > 1) {
 				var range = 0;
 				var acc = [];
-				var not = pattern[i] == 94;
+				var not = pattern.charCodeAt(i) == 94;
 				if(not) i++;
 				while(true) {
-					var c1;
-					var pos1 = i++;
-					c1 = pattern[pos1];
+					var c1 = StringTools.fastCodeAt(pattern,i++);
 					if(c1 == 93) {
 						if(range != 0) return null;
 						break;
@@ -7511,10 +7510,7 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 							range = last.min;
 						}
 					} else {
-						if(c1 == 92) {
-							var pos2 = i++;
-							c1 = pattern[pos2];
-						}
+						if(c1 == 92) c1 = StringTools.fastCodeAt(pattern,i++);
 						if(range == 0) acc.push({ min : c1, max : c1}); else {
 							acc.push({ min : range, max : c1});
 							range = 0;
@@ -7533,12 +7529,11 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 			} else r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
 			break;
 		case 92:
-			var pos3 = i++;
-			c = pattern[pos3];
+			c = StringTools.fastCodeAt(pattern,i++);
 			if(c != c) c = 92; else if(c >= 48 && c <= 57) {
 				var v = c - 48;
 				while(true) {
-					var cNext = pattern[i];
+					var cNext = pattern.charCodeAt(i);
 					if(cNext >= 48 && cNext <= 57) {
 						v = v * 10 + (cNext - 48);
 						++i;
@@ -7552,7 +7547,7 @@ hxparse.LexEngine.parseInner = function(pattern,i,pDepth) {
 			r = hxparse.LexEngine.next(r,hxparse._LexEngine.Pattern.Match([{ min : c, max : c}]));
 		}
 	}
-	if(pDepth != 0) throw "Found unclosed parenthesis while parsing \"" + Std.string(pattern) + "\"";
+	if(pDepth != 0) throw "Found unclosed parenthesis while parsing \"" + pattern + "\"";
 	return { pattern : r, pos : i};
 };
 hxparse.LexEngine.prototype = {
@@ -7770,6 +7765,80 @@ hxparse._LexEngine.Pattern.Plus = function(p) { var $x = ["Plus",3,p]; $x.__enum
 hxparse._LexEngine.Pattern.Next = function(p1,p2) { var $x = ["Next",4,p1,p2]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
 hxparse._LexEngine.Pattern.Choice = function(p1,p2) { var $x = ["Choice",5,p1,p2]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
 hxparse._LexEngine.Pattern.Group = function(p) { var $x = ["Group",6,p]; $x.__enum__ = hxparse._LexEngine.Pattern; $x.toString = $estr; return $x; };
+hxparse._LexEngine.Node = function(id,pid) {
+	this.id = id;
+	this.pid = pid;
+	this.trans = [];
+	this.epsilon = [];
+};
+$hxClasses["hxparse._LexEngine.Node"] = hxparse._LexEngine.Node;
+hxparse._LexEngine.Node.__name__ = ["hxparse","_LexEngine","Node"];
+hxparse._LexEngine.Node.prototype = {
+	id: null
+	,pid: null
+	,trans: null
+	,epsilon: null
+	,__class__: hxparse._LexEngine.Node
+};
+hxparse.Ruleset = function(state,functions,eofFunction) {
+	this.state = state;
+	this.functions = functions;
+	this.eofFunction = eofFunction;
+};
+$hxClasses["hxparse.Ruleset"] = hxparse.Ruleset;
+hxparse.Ruleset.__name__ = ["hxparse","Ruleset"];
+hxparse.Ruleset.prototype = {
+	state: null
+	,functions: null
+	,eofFunction: null
+	,__class__: hxparse.Ruleset
+};
+hxparse.Position = function(source,min,max) {
+	this.psource = source;
+	this.pmin = min;
+	this.pmax = max;
+};
+$hxClasses["hxparse.Position"] = hxparse.Position;
+hxparse.Position.__name__ = ["hxparse","Position"];
+hxparse.Position.prototype = {
+	psource: null
+	,pmin: null
+	,pmax: null
+	,toString: function() {
+		return "" + this.psource + ":characters " + this.pmin + "-" + this.pmax;
+	}
+	,getLinePosition: function(input) {
+		var lineMin = 1;
+		var lineMax = 1;
+		var posMin = 0;
+		var posMax = 0;
+		var cur = 0;
+		while(cur < this.pmin) {
+			if(input[cur] == 10) {
+				lineMin++;
+				posMin = cur;
+			}
+			cur++;
+		}
+		lineMax = lineMin;
+		posMax = posMin;
+		posMin = cur - posMin;
+		while(cur < this.pmax) {
+			if(input[cur] == 10) {
+				lineMax++;
+				posMax = cur;
+			}
+			cur++;
+		}
+		posMax = cur - posMax;
+		return { lineMin : lineMin, lineMax : lineMax, posMin : posMin, posMax : posMax};
+	}
+	,format: function(input) {
+		var linePos = this.getLinePosition(input);
+		if(linePos.lineMin != linePos.lineMax) return "" + this.psource + ":lines " + linePos.lineMin + "-" + linePos.lineMax; else return "" + this.psource + ":line " + linePos.lineMin + ":characters " + linePos.posMin + "-" + linePos.posMax;
+	}
+	,__class__: hxparse.Position
+};
 var js = {};
 js.Boot = function() { };
 $hxClasses["js.Boot"] = js.Boot;
@@ -7888,83 +7957,6 @@ js.Boot.__instanceof = function(o,cl) {
 };
 js.Boot.__cast = function(o,t) {
 	if(js.Boot.__instanceof(o,t)) return o; else throw "Cannot cast " + Std.string(o) + " to " + Std.string(t);
-};
-hxparse._LexEngine.Node = function(id,pid) {
-	this.id = id;
-	this.pid = pid;
-	this.trans = [];
-	this.epsilon = [];
-};
-$hxClasses["hxparse._LexEngine.Node"] = hxparse._LexEngine.Node;
-hxparse._LexEngine.Node.__name__ = ["hxparse","_LexEngine","Node"];
-hxparse._LexEngine.Node.prototype = {
-	id: null
-	,pid: null
-	,trans: null
-	,epsilon: null
-	,__class__: hxparse._LexEngine.Node
-};
-hxparse.Ruleset = function(state,functions,eofFunction,name) {
-	if(name == null) name = "";
-	this.state = state;
-	this.functions = functions;
-	this.eofFunction = eofFunction;
-	this.name = name;
-};
-$hxClasses["hxparse.Ruleset"] = hxparse.Ruleset;
-hxparse.Ruleset.__name__ = ["hxparse","Ruleset"];
-hxparse.Ruleset.prototype = {
-	state: null
-	,functions: null
-	,eofFunction: null
-	,name: null
-	,__class__: hxparse.Ruleset
-};
-hxparse.Position = function(source,min,max) {
-	this.psource = source;
-	this.pmin = min;
-	this.pmax = max;
-};
-$hxClasses["hxparse.Position"] = hxparse.Position;
-hxparse.Position.__name__ = ["hxparse","Position"];
-hxparse.Position.prototype = {
-	psource: null
-	,pmin: null
-	,pmax: null
-	,toString: function() {
-		return "" + this.psource + ":characters " + this.pmin + "-" + this.pmax;
-	}
-	,getLinePosition: function(input) {
-		var lineMin = 1;
-		var lineMax = 1;
-		var posMin = 0;
-		var posMax = 0;
-		var cur = 0;
-		while(cur < this.pmin) {
-			if(input[cur] == 10) {
-				lineMin++;
-				posMin = cur;
-			}
-			cur++;
-		}
-		lineMax = lineMin;
-		posMax = posMin;
-		posMin = cur - posMin;
-		while(cur < this.pmax) {
-			if(input[cur] == 10) {
-				lineMax++;
-				posMax = cur;
-			}
-			cur++;
-		}
-		posMax = cur - posMax;
-		return { lineMin : lineMin, lineMax : lineMax, posMin : posMin, posMax : posMax};
-	}
-	,format: function(input) {
-		var linePos = this.getLinePosition(input);
-		if(linePos.lineMin != linePos.lineMax) return "" + this.psource + ":lines " + linePos.lineMin + "-" + linePos.lineMax; else return "" + this.psource + ":line " + linePos.lineMin + ":characters " + linePos.posMin + "-" + linePos.posMax;
-	}
-	,__class__: hxparse.Position
 };
 haxeparser.HaxeLexer = function(input,sourceName) {
 	hxparse.Lexer.call(this,input,sourceName);
@@ -17510,7 +17502,7 @@ haxeparser.HaxeLexer.tok = hxparse.Lexer.buildRuleset([{ rule : "", func : funct
 	if(kwd != null) return haxeparser.HaxeLexer.mk(lexer61,haxeparser.TokenDef.Kwd(kwd)); else return haxeparser.HaxeLexer.mk(lexer61,haxeparser.TokenDef.Const(haxe.macro.Constant.CIdent(lexer61.current)));
 }},{ rule : "_*[A-Z][a-zA-Z0-9_]*", func : function(lexer62) {
 	return haxeparser.HaxeLexer.mk(lexer62,haxeparser.TokenDef.Const(haxe.macro.Constant.CIdent(lexer62.current)));
-}}],"tok");
+}}]);
 haxeparser.HaxeLexer.string = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "\\\\";
 	return lexer.token(haxeparser.HaxeLexer.string);
@@ -17534,7 +17526,7 @@ haxeparser.HaxeLexer.string = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", f
 }},{ rule : "[^\\\\\"]+", func : function(lexer7) {
 	if(lexer7.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer7.current;
 	return lexer7.token(haxeparser.HaxeLexer.string);
-}}],"string");
+}}]);
 haxeparser.HaxeLexer.string2 = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "\\";
 	return lexer.token(haxeparser.HaxeLexer.string2);
@@ -17555,7 +17547,7 @@ haxeparser.HaxeLexer.string2 = hxparse.Lexer.buildRuleset([{ rule : "\\\\\\\\", 
 }},{ rule : "[^\\\\']+", func : function(lexer6) {
 	if(lexer6.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer6.current;
 	return lexer6.token(haxeparser.HaxeLexer.string2);
-}}],"string2");
+}}]);
 haxeparser.HaxeLexer.comment = hxparse.Lexer.buildRuleset([{ rule : "*/", func : function(lexer) {
 	return new hxparse.Position(lexer.source,lexer.pos - lexer.current.length,lexer.pos).pmax;
 }},{ rule : "*", func : function(lexer1) {
@@ -17564,7 +17556,7 @@ haxeparser.HaxeLexer.comment = hxparse.Lexer.buildRuleset([{ rule : "*/", func :
 }},{ rule : "[^\\*]+", func : function(lexer2) {
 	if(lexer2.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer2.current;
 	return lexer2.token(haxeparser.HaxeLexer.comment);
-}}],"comment");
+}}]);
 haxeparser.HaxeLexer.regexp = hxparse.Lexer.buildRuleset([{ rule : "\\\\/", func : function(lexer) {
 	haxeparser.HaxeLexer.buf.b += "/";
 	return lexer.token(haxeparser.HaxeLexer.regexp);
@@ -17588,10 +17580,10 @@ haxeparser.HaxeLexer.regexp = hxparse.Lexer.buildRuleset([{ rule : "\\\\/", func
 }},{ rule : "[^\\\\/\r\n]+", func : function(lexer7) {
 	if(lexer7.current == null) haxeparser.HaxeLexer.buf.b += "null"; else haxeparser.HaxeLexer.buf.b += "" + lexer7.current;
 	return lexer7.token(haxeparser.HaxeLexer.regexp);
-}}],"regexp");
+}}]);
 haxeparser.HaxeLexer.regexp_options = hxparse.Lexer.buildRuleset([{ rule : "[gimsu]*", func : function(lexer) {
 	return { pmax : new hxparse.Position(lexer.source,lexer.pos - lexer.current.length,lexer.pos).pmax, opt : lexer.current};
-}}],"regexp_options");
+}}]);
 menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();

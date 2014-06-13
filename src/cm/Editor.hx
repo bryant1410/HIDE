@@ -638,7 +638,8 @@ class Editor
 		
 		for (theme in sys.FileSystem.readDirectory(Sys.getCwd() + "libs/js/CodeMirror/theme")) 
 		{
-			var eConst = EConst(CString(theme.split(".").shift()));
+			var basename = theme.split(".").shift();
+			var eConst = EConst(CString(basename));
 			result.push( { expr: eConst, pos: p } );
 		}
         
