@@ -87,6 +87,7 @@ typedef DocHistory = {
 	function listSelections():Array<{anchor:Pos, head:Pos}>;
 	function setSelection(anchor: Pos, ?head: Pos, ?options: Dynamic):Void;
 	function replaceSelection(replacement: String, ?select: String):Void;
+	function getLine(line:Int):String;
 	var history:DocHistory;
 }
 
@@ -109,8 +110,6 @@ public static function registerHelper(type:String, mode:String, onCompletion:Dyn
 function on(event:String, callback_function:Dynamic):Void;
 
 function refresh() : Void;
-	
-function getLine(line:Int):String;
 function getLineNumber(pos:Pos):Int;
 
 function firstLine():Int;

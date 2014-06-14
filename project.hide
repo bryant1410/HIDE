@@ -16,21 +16,21 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 506
+            ,"activeLine" : 487
         }
         ,{
              "path" : "src/core/FunctionParametersHelper.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 140
+            ,"activeLine" : 150
         }
         ,{
              "path" : "src/core/Completion.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 461
+            ,"activeLine" : 467
         }
     ]
     ,"activeFile" : "src/cm/Editor.hx"

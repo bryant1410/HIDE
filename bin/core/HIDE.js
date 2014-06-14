@@ -1330,6 +1330,7 @@ cm.Editor.load = function() {
 	var timer = null;
 	var basicTypes = ["Array","Map","StringMap"];
 	cm.Editor.editor.on("change",function(cm6,e2) {
+		console.log(e2);
 		if(e2.origin == "paste" && e2.from.line - e2.to.line > 0) {
 			var _g12 = e2.from.line;
 			var _g3 = e2.to.line;
@@ -1371,7 +1372,7 @@ cm.Editor.load = function() {
 					var suggestions = [];
 					var value1 = doc.getValue();
 					if(type != null) {
-						if(type == "Bool") suggestions = ["false","true"]; else if(StringTools.startsWith(type,"Array<")) suggestions = ["["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
+						if(type == "Bool") suggestions = [" false;"," true;"]; else if(StringTools.startsWith(type,"Array<")) suggestions = [" ["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
 						var variableWithSameType = [];
 						var _g6 = 0;
 						while(_g6 < variableWithExplicitType.length) {
@@ -1431,15 +1432,16 @@ cm.Editor.load = function() {
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
-		core.Helper.debounce("type",function() {
-			var doc1 = tabmanager.TabManager.getCurrentDocument();
-			if(doc1 != null && doc1.getMode().name == "haxe") {
-				var completionActive3 = cm.Editor.editor.state.completionActive;
-				if(completionActive3 == null) {
-					var pos = doc1.getCursor();
-					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
-					if(word != null && word.word.length >= 3) core.Completion.showRegularCompletion();
-				}
+		if(e2.origin == "+input") core.Helper.debounce("type",function() {
+			if(cm.Editor.isValidWordForCompletionOnType()) {
+				var doc1 = tabmanager.TabManager.getCurrentDocument();
+				var pos = doc1.getCursor();
+				core.Completion.getCompletion(function() {
+					if(cm.Editor.isValidWordForCompletionOnType()) {
+						var pos2 = doc1.getCursor();
+						if(pos.line == pos2.line && pos.ch == pos2.ch) core.Completion.showRegularCompletion(false);
+					}
+				},pos);
 			}
 		},500);
 	});
@@ -1449,6 +1451,27 @@ cm.Editor.load = function() {
 	cm.Editor.editor.on("gutterClick",function(cm7,line1,gutter,e3) {
 		if(projectaccess.ProjectAccess.currentProject != null && gutter == "CodeMirror-foldgutter") cm.Editor.saveFoldedRegions();
 	});
+};
+cm.Editor.isValidWordForCompletionOnType = function() {
+	var isValid = false;
+	var cm1 = cm.Editor.editor;
+	var doc = tabmanager.TabManager.getCurrentDocument();
+	if(doc != null && doc.getMode().name == "haxe") {
+		var completionActive = cm.Editor.editor.state.completionActive;
+		if(completionActive == null) {
+			var pos = doc.getCursor();
+			var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
+			var type = cm1.getTokenTypeAt(pos);
+			if(word.word != null && type != "string" && type != "string-2") {
+				if(word.word.length >= 3) {
+					var lineData = doc.getLine(pos.line);
+					var dataBeforeWord = lineData.substring(0,pos.ch - word.word.length);
+					if(!StringTools.endsWith(dataBeforeWord,"var ") && !StringTools.endsWith(dataBeforeWord,"function ")) isValid = true;
+				}
+			}
+		}
+	}
+	return isValid;
 };
 cm.Editor.saveFoldedRegions = function() {
 	var doc = tabmanager.TabManager.getCurrentDocument();
@@ -2294,14 +2317,17 @@ core.Completion.isEditorVisible = function() {
 	editor = js.Boot.__cast(window.document.getElementById("editor") , HTMLDivElement);
 	return editor.style.display != "none";
 };
-core.Completion.showRegularCompletion = function() {
+core.Completion.showRegularCompletion = function(getCompletionFromHaxeCompiler) {
+	if(getCompletionFromHaxeCompiler == null) getCompletionFromHaxeCompiler = true;
 	if(core.Completion.isEditorVisible()) {
 		cm.Editor.regenerateCompletionOnDot = true;
 		core.Completion.WORD = new EReg("[A-Z_0-9]+$","i");
 		core.Completion.completionType = core.CompletionType.REGULAR;
+		var cm1 = cm.Editor.editor;
+		if(!getCompletionFromHaxeCompiler) core.Completion.completionActive = true;
 		var hint = core.Completion.getHintAsync;
 		hint.async = true;
-		cm.Editor.editor.showHint({ hint : hint, completeSingle : false});
+		cm1.showHint({ hint : hint, completeSingle : false});
 	}
 };
 core.Completion.showMetaTagsCompletion = function() {
@@ -2669,7 +2695,15 @@ core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
 		if(matchedBracket == null || cursor.line <= matchedBracket.line && cursor.ch <= matchedBracket.ch) {
 			var range = cm.getRange(bracketsData.pos,cursor);
 			var currentParameter = range.split(",").length - 1;
-			if(core.FunctionParametersHelper.lastPos == null || core.FunctionParametersHelper.lastPos.ch != pos.ch || core.FunctionParametersHelper.lastPos.line != pos.line) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else if(core.FunctionParametersHelper.alreadyShown()) core.FunctionParametersHelper.widgets[0].updateParameters(currentParameter);
+			if(core.FunctionParametersHelper.lastPos == null || core.FunctionParametersHelper.lastPos.ch != pos.ch || core.FunctionParametersHelper.lastPos.line != pos.line) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else if(core.FunctionParametersHelper.alreadyShown()) {
+				var _g = 0;
+				var _g1 = core.FunctionParametersHelper.widgets;
+				while(_g < _g1.length) {
+					var widget = _g1[_g];
+					++_g;
+					widget.updateParameters(currentParameter);
+				}
+			}
 			core.FunctionParametersHelper.lastPos = pos;
 		} else {
 			core.FunctionParametersHelper.lastPos = null;
@@ -2685,6 +2719,7 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 	var word = core.Completion.getCurrentWord(cm,{ },posBeforeBracket).word;
 	core.Completion.getCompletion(function() {
 		var found = false;
+		core.FunctionParametersHelper.clear();
 		var _g = 0;
 		var _g1 = core.Completion.completions;
 		while(_g < _g1.length) {
@@ -2694,15 +2729,12 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 				var functionData = core.FunctionParametersHelper.parseFunctionParams(completion.n,completion.t,completion.d);
 				if(functionData.parameters != null) {
 					var description = core.FunctionParametersHelper.parseDescription(completion.d);
-					core.FunctionParametersHelper.clear();
 					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor());
-					core.FunctionParametersHelper.updateScroll();
 					found = true;
-					break;
 				}
 			}
 		}
-		if(!found) core.FunctionParametersHelper.clear();
+		core.FunctionParametersHelper.updateScroll();
 	},posBeforeBracket);
 };
 core.FunctionParametersHelper.parseDescription = function(description) {

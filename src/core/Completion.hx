@@ -431,7 +431,7 @@ class Completion
 		);
 	}
 	
-    static function getHintAsync(cm:CodeMirror, c:Dynamic)
+    static function getHintAsync(cm:CodeMirror, c:Dynamic->Void)
 	{   
         if (completionActive)
         {
@@ -454,7 +454,7 @@ class Completion
 		return editor.style.display != "none";
 	}
 	
-	public static function showRegularCompletion():Void
+	public static function showRegularCompletion(?getCompletionFromHaxeCompiler:Bool = true):Void
 	{
 		if (isEditorVisible()) 
 		{
@@ -462,10 +462,16 @@ class Completion
 			WORD = ~/[A-Z_0-9]+$/i;
 			completionType = REGULAR;
             
-            var hint:Dynamic = getHintAsync;
-            hint.async = true;
-            
-            Editor.editor.showHint({hint: hint, completeSingle: false});
+			var cm = Editor.editor;
+			
+            if (!getCompletionFromHaxeCompiler)
+			{
+				completionActive = true;
+			}
+			
+			var hint:Dynamic = getHintAsync;
+			hint.async = true;
+			cm.showHint({hint: hint, completeSingle: false});
 		}
 	}
 	

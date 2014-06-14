@@ -257,6 +257,8 @@ class Editor
 		
 		editor.on("change", function (cm:CodeMirror, e:CodeMirror.ChangeEvent):Void 
 		{
+			trace(e);
+			
             if (e.origin == "paste" && (e.from.line - e.to.line) > 0)
             {
                 for (line2 in e.from.line...e.to.line)
@@ -337,19 +339,19 @@ class Editor
 						{
 							if (type == "Bool")
 							{
-								suggestions = ["false", "true"];
+								suggestions = [" false;", " true;"];
 							}
 							else if (StringTools.startsWith(type, "Array<"))
 							{
-								suggestions = ["["];
+								suggestions = [" ["];
 							}
 							else if (type == "String")
 							{
-								suggestions = ["\""];
+								suggestions = [ "\""];
 							}
 							else if (type == "Dynamic")
 							{
-								suggestions = ["{"];
+								suggestions = [ "{"];
 							}
 							
 							var variableWithSameType = [];
@@ -484,27 +486,32 @@ class Editor
 			//}
 			//, 150);
 
-			Helper.debounce("type", function ():Void
+			if (e.origin == "+input")
+			{
+				Helper.debounce("type", function ():Void
 						   {
-							   var doc = TabManager.getCurrentDocument();
-							   
-							   if (doc != null && doc.getMode().name == "haxe")
+							   if (isValidWordForCompletionOnType())
 							   {
-								   	var completionActive = editor.state.completionActive;
-						
-									if (completionActive == null) 
-									{
-										var pos = doc.getCursor();
-										
-										var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
-										
-										if (word != null && word.word.length >= 3)
-										{
-											Completion.showRegularCompletion();
-										}
-									}
+								   var doc = TabManager.getCurrentDocument();
+								   var pos = doc.getCursor();
+								   
+								   Completion.getCompletion(function ()
+															{
+																if (isValidWordForCompletionOnType())
+																{
+																	var pos2 = doc.getCursor();
+																	
+																	if (pos.line == pos2.line && pos.ch == pos2.ch)
+																	{
+																		Completion.showRegularCompletion(false);
+																	}
+																}
+															}, pos);
 							   }
+								   
+								
 						   }, 500);
+			}
 		}
 		);
 		
@@ -521,6 +528,46 @@ class Editor
 							}
 						});
 	}
+		
+		static function isValidWordForCompletionOnType()
+		{
+			var isValid:Bool = false;
+			
+			var cm = editor;
+			
+			var doc = TabManager.getCurrentDocument();
+
+		    if (doc != null && doc.getMode().name == "haxe")
+		    {
+				var completionActive = editor.state.completionActive;
+
+				if (completionActive == null) 
+				{
+					var pos = doc.getCursor();
+
+					var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
+
+					var type = cm.getTokenTypeAt(pos);
+
+					if (word.word != null && type != "string" && type != "string-2")
+					{
+						if (word.word.length >= 3)
+						{
+							var lineData = doc.getLine(pos.line);
+							var dataBeforeWord = lineData.substring(0, pos.ch - word.word.length);
+
+							if (!StringTools.endsWith(dataBeforeWord, "var ") && !StringTools.endsWith(dataBeforeWord, "function "))
+							{													
+								isValid = true;
+							}
+						}
+					}
+				}
+		    }
+				
+			return isValid;
+		}
+
 		
 	public static function saveFoldedRegions()
 	{

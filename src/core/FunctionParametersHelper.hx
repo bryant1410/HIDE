@@ -97,7 +97,10 @@ class FunctionParametersHelper
                 }
                 else if (FunctionParametersHelper.alreadyShown())
                 {
-                    widgets[0].updateParameters(currentParameter);
+                    for (widget in widgets)
+					{
+						widget.updateParameters(currentParameter);	 
+					}
                 }
                 
                 lastPos = pos;
@@ -125,6 +128,8 @@ class FunctionParametersHelper
 		{
 			var found:Bool = false;
 			
+			FunctionParametersHelper.clear();
+			
 			for (completion in Completion.completions) 
 			{							
 				if (word == completion.n) 
@@ -134,20 +139,19 @@ class FunctionParametersHelper
 					if (functionData.parameters != null)
 					{
 						var description = parseDescription(completion.d);
-						
-						FunctionParametersHelper.clear();
 						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor());
-						FunctionParametersHelper.updateScroll();
 						found = true;
-						break;
+// 						break;
 					}
 				}
 			}
+				
+			FunctionParametersHelper.updateScroll();
 			
-			if (!found) 
-			{
-				FunctionParametersHelper.clear();
-			}  
+// 			if (!found) 
+// 			{
+// 				FunctionParametersHelper.clear();
+// 			}  
 		}
 		, posBeforeBracket);
 	}
