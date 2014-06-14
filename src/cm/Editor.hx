@@ -444,9 +444,9 @@ class Editor
 				{                    
 					Completion.showClassList(true);
 				}
-				else if (StringTools.endsWith(data, "in "))
-				{
-					var ereg = ~/for \([a-z_0-9]+[\t ]+in[\t ]+/gi;
+				else if (StringTools.endsWith(data, "in )"))
+				{	
+					var ereg = ~/for[\t ]*\([a-z_0-9]+[\t ]+in[\t ]+\)/gi;
 					
 					if (ereg.match(data))
 					{
@@ -488,16 +488,23 @@ class Editor
 						   {
 							   var doc = TabManager.getCurrentDocument();
 							   
-							   if (doc != null)
+							   if (doc != null && doc.getMode().name == "haxe")
 							   {
 								   	var completionActive = editor.state.completionActive;
 						
 									if (completionActive == null) 
 									{
-										var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, doc.getCursor());
+										var pos = doc.getCursor();
+										
+										var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
+										
+										if (word != null && word.word.length >= 3)
+										{
+											Completion.showRegularCompletion();
+										}
 									}
 							   }
-						   }, 1700);
+						   }, 500);
 		}
 		);
 		
@@ -514,7 +521,7 @@ class Editor
 							}
 						});
 	}
-	
+		
 	public static function saveFoldedRegions()
 	{
 		var doc = TabManager.getCurrentDocument();

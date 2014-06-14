@@ -1,4 +1,5 @@
 package core;
+import CodeMirror.Pos;
 import cm.Editor;
 import core.Completion.CompletionItem;
 import core.LineWidget;
@@ -114,9 +115,11 @@ class FunctionParametersHelper
 		}
 	}
 	
-	static function getFunctionParams(cm:CodeMirror, pos:CodeMirror.Pos, currentParameter:Int):Void
+	static function getFunctionParams(cm:CodeMirror, pos:Pos, currentParameter:Int):Void
 	{
-		var word = Completion.getCurrentWord(cm, {}, {line:pos.line, ch:pos.ch - 1}).word;
+		var posBeforeBracket:Pos = {line:pos.line, ch:pos.ch - 1};
+		
+		var word = Completion.getCurrentWord(cm, {}, posBeforeBracket).word;
         
 		Completion.getCompletion(function ()
 		{
@@ -146,7 +149,7 @@ class FunctionParametersHelper
 				FunctionParametersHelper.clear();
 			}  
 		}
-		, {line: pos.line, ch: pos.ch - 1});
+		, posBeforeBracket);
 	}
 	
 	static function parseDescription(description:String)

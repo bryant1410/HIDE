@@ -317,7 +317,7 @@ class Completion
 		return {word:curWord, from: {line:cur.line, ch: start}, to: {line:cur.line, ch: end}};
 	}
 	
-	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos)
+	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos):Void
 	{        
 		if (ProjectAccess.path != null) 
 		{

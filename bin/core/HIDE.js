@@ -1420,8 +1420,8 @@ cm.Editor.load = function() {
 						break;
 					}
 				}
-			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true); else if(StringTools.endsWith(data,"in ")) {
-				var ereg4 = new EReg("for \\([a-z_0-9]+[\t ]+in[\t ]+","gi");
+			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true); else if(StringTools.endsWith(data,"in )")) {
+				var ereg4 = new EReg("for[\t ]*\\([a-z_0-9]+[\t ]+in[\t ]+\\)","gi");
 				if(ereg4.match(data)) cm.Editor.triggerCompletion(cm.Editor.editor,false);
 			}
 		} else if(modeName == "hxml") {
@@ -1433,13 +1433,15 @@ cm.Editor.load = function() {
 		tab.setChanged(!tab.doc.isClean());
 		core.Helper.debounce("type",function() {
 			var doc1 = tabmanager.TabManager.getCurrentDocument();
-			if(doc1 != null) {
+			if(doc1 != null && doc1.getMode().name == "haxe") {
 				var completionActive3 = cm.Editor.editor.state.completionActive;
 				if(completionActive3 == null) {
-					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},doc1.getCursor());
+					var pos = doc1.getCursor();
+					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
+					if(word != null && word.word.length >= 3) core.Completion.showRegularCompletion();
 				}
 			}
-		},1700);
+		},500);
 	});
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
@@ -2679,7 +2681,8 @@ core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
 	}
 };
 core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
-	var word = core.Completion.getCurrentWord(cm,{ },{ line : pos.line, ch : pos.ch - 1}).word;
+	var posBeforeBracket = { line : pos.line, ch : pos.ch - 1};
+	var word = core.Completion.getCurrentWord(cm,{ },posBeforeBracket).word;
 	core.Completion.getCompletion(function() {
 		var found = false;
 		var _g = 0;
@@ -2700,7 +2703,7 @@ core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParamet
 			}
 		}
 		if(!found) core.FunctionParametersHelper.clear();
-	},{ line : pos.line, ch : pos.ch - 1});
+	},posBeforeBracket);
 };
 core.FunctionParametersHelper.parseDescription = function(description) {
 	if(description != null) {
@@ -16558,7 +16561,6 @@ tabmanager.TabManager.selectDoc = function(path) {
 					cm1.centerOnLine(pos1.line);
 				}
 				tab.loaded = true;
-				console.log(tab);
 			} else console.log("can't load folded regions for active document");
 		}
 		cm.Editor.editor.focus();

@@ -12,25 +12,25 @@
     ]
     ,"files" : [
          {
-             "path" : "src/core/Completion.hx"
+             "path" : "src/cm/Editor.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 109
+            ,"activeLine" : 506
         }
         ,{
              "path" : "src/core/FunctionParametersHelper.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 129
+            ,"activeLine" : 140
         }
         ,{
-             "path" : "src/cm/Editor.hx"
+             "path" : "src/core/Completion.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 0
+            ,"activeLine" : 461
         }
     ]
     ,"activeFile" : "src/cm/Editor.hx"
