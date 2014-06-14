@@ -300,7 +300,7 @@ class Editor
                 {
                     triggerCompletion(Editor.editor, true);
                 }	
-				if (lastChar == "=")
+				else if (lastChar == "=")
                 {
                     var name = StringTools.trim(data.substring(0, cursor.ch - 1));
 					
@@ -335,6 +335,23 @@ class Editor
 				
 						if (type != null)
 						{
+							if (type == "Bool")
+							{
+								suggestions = ["false", "true"];
+							}
+							else if (StringTools.startsWith(type, "Array<"))
+							{
+								suggestions = ["["];
+							}
+							else if (type == "String")
+							{
+								suggestions = ["\""];
+							}
+							else if (type == "Dynamic")
+							{
+								suggestions = ["{"];
+							}
+							
 							var variableWithSameType = [];
 						
 							for (item in variableWithExplicitType)
@@ -427,6 +444,15 @@ class Editor
 				{                    
 					Completion.showClassList(true);
 				}
+				else if (StringTools.endsWith(data, "in "))
+				{
+					var ereg = ~/for \([a-z_0-9]+[\t ]+in[\t ]+/gi;
+					
+					if (ereg.match(data))
+					{
+						triggerCompletion(editor, false);
+					}
+				}
 			}
 			else if (modeName == "hxml") 
 			{
@@ -457,6 +483,21 @@ class Editor
 				tab.setChanged(!tab.doc.isClean());
 			//}
 			//, 150);
+
+			Helper.debounce("type", function ():Void
+						   {
+							   var doc = TabManager.getCurrentDocument();
+							   
+							   if (doc != null)
+							   {
+								   	var completionActive = editor.state.completionActive;
+						
+									if (completionActive == null) 
+									{
+										var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, doc.getCursor());
+									}
+							   }
+						   }, 1700);
 		}
 		);
 		

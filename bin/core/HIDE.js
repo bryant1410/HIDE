@@ -1347,8 +1347,7 @@ cm.Editor.load = function() {
 			var cursor1 = cm6.getCursor();
 			var data = cm6.getLine(cursor1.line);
 			var lastChar = data.charAt(cursor1.ch - 1);
-			if(lastChar == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true);
-			if(lastChar == "=") {
+			if(lastChar == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true); else if(lastChar == "=") {
 				var name = StringTools.trim(data.substring(0,cursor1.ch - 1));
 				var type = null;
 				if(name != "" && name.indexOf(".") == -1) {
@@ -1372,6 +1371,7 @@ cm.Editor.load = function() {
 					var suggestions = [];
 					var value1 = doc.getValue();
 					if(type != null) {
+						if(type == "Bool") suggestions = ["false","true"]; else if(StringTools.startsWith(type,"Array<")) suggestions = ["["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
 						var variableWithSameType = [];
 						var _g6 = 0;
 						while(_g6 < variableWithExplicitType.length) {
@@ -1420,7 +1420,10 @@ cm.Editor.load = function() {
 						break;
 					}
 				}
-			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true);
+			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true); else if(StringTools.endsWith(data,"in ")) {
+				var ereg4 = new EReg("for \\([a-z_0-9]+[\t ]+in[\t ]+","gi");
+				if(ereg4.match(data)) cm.Editor.triggerCompletion(cm.Editor.editor,false);
+			}
 		} else if(modeName == "hxml") {
 			var cursor2 = cm6.getCursor();
 			var data1 = cm6.getLine(cursor2.line);
@@ -1428,6 +1431,15 @@ cm.Editor.load = function() {
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
+		core.Helper.debounce("type",function() {
+			var doc1 = tabmanager.TabManager.getCurrentDocument();
+			if(doc1 != null) {
+				var completionActive3 = cm.Editor.editor.state.completionActive;
+				if(completionActive3 == null) {
+					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},doc1.getCursor());
+				}
+			}
+		},1700);
 	});
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
@@ -2015,7 +2027,7 @@ core.Completion.getHints = function(cm1,options) {
 			var completionItem = core.Completion.generateCompletionItem(completion1.n,completion1.t,completion1.d);
 			core.Completion.list.push(completionItem);
 		}
-		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z.]+$","i")});
+		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9.]+$","i")});
 		var className = "CodeMirror-Tern-completion";
 		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
 			var doc = tabmanager.TabManager.getCurrentDocument();
@@ -2167,7 +2179,7 @@ core.Completion.searchForImport = function(completion) {
 	var cm1 = cm.Editor.editor;
 	var cursor = cm1.getCursor();
 	var curLine = cm1.getLine(cursor.line);
-	var word = new EReg("[A-Z\\.]+$","i");
+	var word = new EReg("[A-Z_0-9\\.]+$","i");
 	var importStart = cursor.ch;
 	var importEnd = importStart;
 	while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
@@ -2283,7 +2295,7 @@ core.Completion.isEditorVisible = function() {
 core.Completion.showRegularCompletion = function() {
 	if(core.Completion.isEditorVisible()) {
 		cm.Editor.regenerateCompletionOnDot = true;
-		core.Completion.WORD = new EReg("[A-Z]+$","i");
+		core.Completion.WORD = new EReg("[A-Z_0-9]+$","i");
 		core.Completion.completionType = core.CompletionType.REGULAR;
 		var hint = core.Completion.getHintAsync;
 		hint.async = true;
@@ -2294,7 +2306,7 @@ core.Completion.showMetaTagsCompletion = function() {
 	if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z@:]+$","i");
+		core.Completion.WORD = new EReg("[A-Z_0-9@:]+$","i");
 		core.Completion.completionType = core.CompletionType.METATAGS;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[\s()\[\]{};>,]/});
 	}
@@ -2303,7 +2315,7 @@ core.Completion.showHxmlCompletion = function() {
 	if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z- \\.\\\\/]+$","i");
+		core.Completion.WORD = new EReg("[A-Z_0-9- \\.\\\\/]+$","i");
 		core.Completion.completionType = core.CompletionType.HXML;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[()\[\]{};:>,]/});
 	}
@@ -2317,7 +2329,7 @@ core.Completion.showFileList = function(openFile,insertDirectory) {
 	} else if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z-\\.\\\\/]+$","i");
+		core.Completion.WORD = new EReg("[A-Z_0-9-\\.\\\\/]+$","i");
 		if(insertDirectory == false) core.Completion.completionType = core.CompletionType.FILELIST; else core.Completion.completionType = core.CompletionType.PASTEFOLDER;
 		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints);
 	}
@@ -2327,7 +2339,7 @@ core.Completion.showClassList = function(ignoreWhitespace) {
 	if(core.Completion.isEditorVisible()) {
 		core.Completion.cur = cm.Editor.editor.getCursor();
 		cm.Editor.regenerateCompletionOnDot = true;
-		core.Completion.WORD = new EReg("[A-Z\\.]+$","i");
+		core.Completion.WORD = new EReg("[A-Z_0-9\\.]+$","i");
 		core.Completion.completionType = core.CompletionType.CLASSLIST;
 		var closeCharacters = /[\s()\[\]{};>,]/;
 		if(ignoreWhitespace) closeCharacters = /[()\[\]{};>,]/;
@@ -2439,7 +2451,7 @@ core.Completion.showCodeSuggestions = function(suggestions) {
 		var completions = [];
 		var completion;
 		var pos = cm1.getCursor();
-		var word = core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z]+$","i")},pos).word;
+		var word = core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9]+$","i")},pos).word;
 		var _g = 0;
 		while(_g < suggestions.length) {
 			var item = suggestions[_g];
@@ -16214,6 +16226,7 @@ tabmanager.Tab = function(_name,_path,_doc,_save) {
 	this.name = _name;
 	this.doc = _doc;
 	this.path = _path;
+	this.loaded = false;
 	var _this = window.document;
 	this.li = _this.createElement("li");
 	this.li.title = this.path;
@@ -16251,6 +16264,7 @@ tabmanager.Tab.prototype = {
 	name: null
 	,path: null
 	,doc: null
+	,loaded: null
 	,li: null
 	,span3: null
 	,watcher: null
@@ -16520,12 +16534,13 @@ tabmanager.TabManager.selectDoc = function(path) {
 		}
 		tabmanager.TabManager.selectedPath = path;
 		if(projectaccess.ProjectAccess.path != null) project.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
-		var doc = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath).doc;
+		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
+		var doc = tab.doc;
 		cm.Editor.editor.swapDoc(doc);
 		core.HaxeLint.updateLinting();
 		var completionActive = cm.Editor.editor.state.completionActive;
 		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
-		if(projectaccess.ProjectAccess.currentProject != null) {
+		if(projectaccess.ProjectAccess.currentProject != null && !tab.loaded) {
 			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
 			if(selectedFile != null) {
 				var foldedRegions = selectedFile.foldedRegions;
@@ -16542,6 +16557,8 @@ tabmanager.TabManager.selectDoc = function(path) {
 					doc.setCursor(pos1);
 					cm1.centerOnLine(pos1.line);
 				}
+				tab.loaded = true;
+				console.log(tab);
 			} else console.log("can't load folded regions for active document");
 		}
 		cm.Editor.editor.focus();
@@ -17239,7 +17256,7 @@ cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
 cm.ERegPreview.markers = [];
 core.AnnotationRuler.positions = [];
-core.Completion.WORD = new EReg("[A-Z]+$","i");
+core.Completion.WORD = new EReg("[A-Z_0-9]+$","i");
 core.Completion.RANGE = 500;
 core.Completion.completions = [];
 core.Completion.completionType = core.CompletionType.REGULAR;
@@ -17588,7 +17605,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = [];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

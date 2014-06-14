@@ -15,6 +15,7 @@ class Tab
 	public var name:String;
 	public var path:String;
 	public var doc:CodeMirror.Doc;
+	public var loaded:Bool;
 	var li:LIElement;
 	var span3:SpanElement;
 	var watcher:Dynamic;
@@ -27,6 +28,7 @@ class Tab
 		name = _name;
 		doc = _doc;
 		path = _path;
+		loaded = false;
 		
 		li = Browser.document.createLIElement();
 		li.title = path;

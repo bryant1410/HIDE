@@ -59,7 +59,7 @@ class Completion
 	static var cur:Pos;
 	static var end:Int;
 	static var start:Int;
-	static var WORD:EReg = ~/[A-Z]+$/i;
+	static var WORD:EReg = ~/[A-Z_0-9]+$/i;
 	static var RANGE = 500;
 	public static var curWord:String;
 	public static var completions:Array<CompletionItem> = [];
@@ -106,7 +106,7 @@ class Completion
 					list.push(completionItem);
 				}
         		
-        		getCurrentWord(cm, {word: ~/[A-Z.]+$/i});
+        		getCurrentWord(cm, {word: ~/[A-Z_0-9.]+$/i});
         
         		var className = "CodeMirror-Tern-completion";	
         
@@ -254,7 +254,7 @@ class Completion
         var cursor = cm.getCursor();
         var curLine:String = cm.getLine(cursor.line);
         
-        var word = ~/[A-Z\.]+$/i;
+        var word = ~/[A-Z_0-9\.]+$/i;
         
         var importStart = cursor.ch;
         var importEnd = importStart;
@@ -459,7 +459,7 @@ class Completion
 		if (isEditorVisible()) 
 		{
 			Editor.regenerateCompletionOnDot = true;
-			WORD = ~/[A-Z]+$/i;
+			WORD = ~/[A-Z_0-9]+$/i;
 			completionType = REGULAR;
             
             var hint:Dynamic = getHintAsync;
@@ -475,7 +475,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
             Editor.regenerateCompletionOnDot = false;
-			WORD = ~/[A-Z@:]+$/i;
+			WORD = ~/[A-Z_0-9@:]+$/i;
 			completionType = METATAGS;
 			CodeMirrorStatic.showHint(Editor.editor, getHints, { closeCharacters: untyped __js__("/[\\s()\\[\\]{};>,]/") } );
 		}
@@ -487,7 +487,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
             Editor.regenerateCompletionOnDot = false;
-			WORD = ~/[A-Z- \.\\\/]+$/i;
+			WORD = ~/[A-Z_0-9- \.\\\/]+$/i;
 			completionType = HXML;
 			CodeMirrorStatic.showHint(Editor.editor, getHints, { closeCharacters: untyped __js__("/[()\\[\\]{};:>,]/") } );
 		}
@@ -505,7 +505,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = false;
-			WORD = ~/[A-Z-\.\\\/]+$/i;
+			WORD = ~/[A-Z_0-9-\.\\\/]+$/i;
             
             if (insertDirectory == false)
             {
@@ -527,7 +527,7 @@ class Completion
 		{
             cur = Editor.editor.getCursor();
 			Editor.regenerateCompletionOnDot = true;
-			WORD = ~/[A-Z\.]+$/i;
+			WORD = ~/[A-Z_0-9\.]+$/i;
 			completionType = CLASSLIST;
             
 //             default closeCharacters value
@@ -712,7 +712,7 @@ class Completion
                 
 				var pos = cm.getCursor();
 				
-				var word = getCurrentWord(cm, {word: ~/[A-Z]+$/i}, pos).word;
+				var word = getCurrentWord(cm, {word: ~/[A-Z_0-9]+$/i}, pos).word;
 				
                 for (item in suggestions)
                 {

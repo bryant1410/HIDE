@@ -34,7 +34,7 @@ typedef ClassData =
 
 class ClassParser
 {
-    public static var haxeStdTopLevelClassList:Array<String> = [];
+    public static var haxeStdTopLevelClassList:Array<String> = ["Int", "Float", "String", "Void", "Std", "Bool", "Dynamic", "Array"];
 	public static var topLevelClassList:Array<String> = [];
     
     public static var haxeStdImports:Array<String> = [];

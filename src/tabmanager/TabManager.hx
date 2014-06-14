@@ -453,7 +453,8 @@ class TabManager
 			project.activeFile = Node.path.relative(ProjectAccess.path, selectedPath);
 		}
 		
-		var doc = tabMap.get(selectedPath).doc;
+		var tab = tabMap.get(selectedPath);
+		var doc = tab.doc;
 			
 		Editor.editor.swapDoc(doc);
 		
@@ -466,7 +467,7 @@ class TabManager
             completionActive.widget.close();
         }
 			
-		if (ProjectAccess.currentProject != null)
+		if (ProjectAccess.currentProject != null && !tab.loaded)
 		{			
 			var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, selectedPath));
 			
@@ -489,6 +490,8 @@ class TabManager
 					doc.setCursor(pos);
 					cm.centerOnLine(pos.line);
 				}
+					
+				tab.loaded = true;
 			}
 			else
 			{

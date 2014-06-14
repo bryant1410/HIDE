@@ -11,9 +11,29 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/core/Completion.hx"
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 109
+        }
+        ,{
+             "path" : "src/core/FunctionParametersHelper.hx"
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 129
+        }
+        ,{
+             "path" : "src/cm/Editor.hx"
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 0
+        }
     ]
-    ,"activeFile" : "src/HIDE.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
