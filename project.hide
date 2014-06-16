@@ -16,7 +16,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 487
+            ,"activeLine" : 496
         }
         ,{
              "path" : "src/core/FunctionParametersHelper.hx"
@@ -30,10 +30,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 467
+            ,"activeLine" : 461
         }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
