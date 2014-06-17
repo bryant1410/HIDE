@@ -445,6 +445,7 @@ class Completion
                                      });
             
             completionActive = true;
+			
         }
     }
         

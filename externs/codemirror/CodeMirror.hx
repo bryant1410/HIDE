@@ -160,5 +160,6 @@ function operation(func:Dynamic):Void;
 function getWrapperElement() : DivElement;
 
 function focus() : Void;
+function getOption(name:String): Dynamic;
 
 }

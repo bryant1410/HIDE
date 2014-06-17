@@ -15,7 +15,7 @@
             $('#secondNested').jqxSplitter({ width: '100%', height:'100%', orientation: 'horizontal', panels: [{ size: '70%'}] });
             $('#thirdNested').jqxSplitter({ width: '100%', height: '100%',  orientation: 'horizontal', panels: [{ size: '85%', collapsible: false}] });
             $("#tabs2").jqxTabs({  height: '100%', width: '100%' });
-            $("#tabs1").jqxTabs({  height: '100%', width: '100%' });
+			$("#tabs1").jqxTabs({  height: '100%', width: '100%' });
 			
 			$('#filetree').jqxTree({allowDrag: true, allowDrop: true, width: '100%', height: '100%'});
 			$('#filetree').jqxTree('selectItem', null);
@@ -236,6 +236,20 @@
                             <div id="output"></div>
                             <!--<div id="options"></div>-->
                         </div>
+						<div id="status-bar">
+							<div id="status-info">
+								<div id="status-cursor"></div>
+								<div id="status-file"></div>
+							</div>
+							<div id="status-indicators">
+								<div id="status-indent">
+									<div id="indent-type">Spaces:</div>
+									<div id="indent-width-label">4
+										<input id="indent-width-input" type="number" min="1" max="10" maxlength="2" size="2" class="hidden">
+									</div>
+								</div>
+							</div>
+						</div>
                     </div>
                 </div>
             </div>

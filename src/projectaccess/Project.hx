@@ -16,6 +16,8 @@ typedef FileData = {
 	@:optional var path:String;
 	@:optional var foldedRegions:Array<Pos>;
 	@:optional var activeLine:Int;
+	@:optional var useTabs:Bool;
+	@:optional var indentSize:Int;
 }
  
 class Project

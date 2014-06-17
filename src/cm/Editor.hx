@@ -1,5 +1,6 @@
 package cm;
 #if !macro
+import projectaccess.Project.FileData;
 import parser.RegexParser;
 import CodeMirror.Pos;
 import core.Completion;
@@ -240,6 +241,13 @@ class Editor
 				ColorPreview.update(cm);
 				ERegPreview.update(cm);
 			}, 100);
+			
+			var doc = TabManager.getCurrentDocument();
+			if (doc != null)
+			{
+				var pos = doc.getCursor();
+				Browser.document.getElementById("status-cursor").textContent = "Line " + Std.string(pos.line + 1) + ", Column " + Std.string(pos.ch + 1);
+			}
 		}
 		);
 		
@@ -256,9 +264,7 @@ class Editor
 // 		var ignoreNewLineKeywords = ["function", "for ", "while"];
 		
 		editor.on("change", function (cm:CodeMirror, e:CodeMirror.ChangeEvent):Void 
-		{
-			trace(e);
-			
+		{			
             if (e.origin == "paste" && (e.from.line - e.to.line) > 0)
             {
                 for (line2 in e.from.line...e.to.line)
@@ -595,6 +601,8 @@ class Editor
 			{
 				selectedFile.foldedRegions = foldedRegions;
 				selectedFile.activeLine = cursor.line;
+				saveIndentationSettings(selectedFile);
+				
 				trace("folding regions saved successfully for" + Std.string(selectedFile));
 			}
 			else
@@ -605,6 +613,21 @@ class Editor
 		else
 		{
 			trace("unable to preserve code folding for" + Std.string(doc));
+		}
+	}
+
+		
+	public static function saveIndentationSettings(selectedFile:FileData)
+	{
+		selectedFile.useTabs = editor.getOption("indentWithTabs");
+				
+		if (selectedFile.useTabs)
+		{
+			selectedFile.indentSize = editor.getOption("tabSize");
+		}
+		else
+		{
+			selectedFile.indentSize = editor.getOption("indentUnit");
 		}
 	}
 

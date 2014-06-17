@@ -1323,6 +1323,11 @@ cm.Editor.load = function() {
 			cm.ColorPreview.update(cm4);
 			cm.ERegPreview.update(cm4);
 		},100);
+		var doc = tabmanager.TabManager.getCurrentDocument();
+		if(doc != null) {
+			var pos = doc.getCursor();
+			window.document.getElementById("status-cursor").textContent = "Line " + Std.string(pos.line + 1) + ", Column " + Std.string(pos.ch + 1);
+		}
 	});
 	cm.Editor.editor.on("scroll",function(cm5) {
 		cm.ColorPreview.scroll(cm.Editor.editor);
@@ -1330,7 +1335,6 @@ cm.Editor.load = function() {
 	var timer = null;
 	var basicTypes = ["Array","Map","StringMap"];
 	cm.Editor.editor.on("change",function(cm6,e2) {
-		console.log(e2);
 		if(e2.origin == "paste" && e2.from.line - e2.to.line > 0) {
 			var _g12 = e2.from.line;
 			var _g3 = e2.to.line;
@@ -1339,8 +1343,8 @@ cm.Editor.load = function() {
 				cm6.indentLine(line2);
 			}
 		}
-		var doc = tabmanager.TabManager.getCurrentDocument();
-		var modeName = doc.getMode().name;
+		var doc1 = tabmanager.TabManager.getCurrentDocument();
+		var modeName = doc1.getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
 				core.HaxeLint.updateLinting();
@@ -1352,7 +1356,7 @@ cm.Editor.load = function() {
 				var name = StringTools.trim(data.substring(0,cursor1.ch - 1));
 				var type = null;
 				if(name != "" && name.indexOf(".") == -1) {
-					var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc.getValue());
+					var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc1.getValue());
 					var variableWithExplicitType = [];
 					var _g4 = 0;
 					while(_g4 < variableDeclarations.length) {
@@ -1370,7 +1374,7 @@ cm.Editor.load = function() {
 						}
 					}
 					var suggestions = [];
-					var value1 = doc.getValue();
+					var value1 = doc1.getValue();
 					if(type != null) {
 						if(type == "Bool") suggestions = [" false;"," true;"]; else if(StringTools.startsWith(type,"Array<")) suggestions = [" ["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
 						var variableWithSameType = [];
@@ -1434,11 +1438,11 @@ cm.Editor.load = function() {
 		tab.setChanged(!tab.doc.isClean());
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			if(cm.Editor.isValidWordForCompletionOnType()) {
-				var doc1 = tabmanager.TabManager.getCurrentDocument();
-				var pos = doc1.getCursor();
+				var doc2 = tabmanager.TabManager.getCurrentDocument();
+				var pos1 = doc2.getCursor();
 				core.Completion.getCompletion(function() {
 					if(cm.Editor.isValidWordForCompletionOnType()) core.Completion.showRegularCompletion(false);
-				},pos);
+				},pos1);
 			}
 		}
 	});
@@ -1488,9 +1492,14 @@ cm.Editor.saveFoldedRegions = function() {
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
+			cm.Editor.saveIndentationSettings(selectedFile);
 			console.log("folding regions saved successfully for" + Std.string(selectedFile));
 		} else console.log("cannot save folded regions for this document");
 	} else console.log("unable to preserve code folding for" + Std.string(doc));
+};
+cm.Editor.saveIndentationSettings = function(selectedFile) {
+	selectedFile.useTabs = cm.Editor.editor.getOption("indentWithTabs");
+	if(selectedFile.useTabs) selectedFile.indentSize = cm.Editor.editor.getOption("tabSize"); else selectedFile.indentSize = cm.Editor.editor.getOption("indentUnit");
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -16492,6 +16501,22 @@ tabmanager.TabManager.load = function() {
 	options.labels.ok = watchers.LocaleWatcher.getStringSync("Yes");
 	options.labels.cancel = watchers.LocaleWatcher.getStringSync("No");
 	Alertify.set(options);
+	var indentWidthLabel;
+	indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
+	var indentWidthInput;
+	indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
+	indentWidthLabel.onclick = function(e) {
+		indentWidthLabel.classList.add("hidden");
+		indentWidthInput.classList.remove("hidden");
+		indentWidthInput.focus();
+		indentWidthInput.value = "4";
+		indentWidthInput.onblur = function(_) {
+		};
+		indentWidthInput.onkeyup = function(event) {
+			if(event.keyCode == 13) indentWidthInput.blur(); else if(event.keyCode == 27) {
+			}
+		};
+	};
 };
 tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
 	if(save == null) save = false;
@@ -16720,27 +16745,36 @@ tabmanager.TabManager.selectDoc = function(path) {
 		core.HaxeLint.updateLinting();
 		var completionActive = cm.Editor.editor.state.completionActive;
 		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
-		if(projectaccess.ProjectAccess.currentProject != null && !tab.loaded) {
+		if(projectaccess.ProjectAccess.currentProject != null) {
 			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
 			if(selectedFile != null) {
-				var foldedRegions = selectedFile.foldedRegions;
-				if(foldedRegions != null) {
-					var _g2 = 0;
-					while(_g2 < foldedRegions.length) {
-						var pos = foldedRegions[_g2];
-						++_g2;
-						cm1.foldCode(pos,null,"fold");
+				if(!tab.loaded) {
+					var foldedRegions = selectedFile.foldedRegions;
+					if(foldedRegions != null) {
+						var _g2 = 0;
+						while(_g2 < foldedRegions.length) {
+							var pos = foldedRegions[_g2];
+							++_g2;
+							cm1.foldCode(pos,null,"fold");
+						}
 					}
+					if(selectedFile.activeLine != null) {
+						var pos1 = { line : selectedFile.activeLine, ch : 0};
+						doc.setCursor(pos1);
+						cm1.centerOnLine(pos1.line);
+					}
+					tab.loaded = true;
 				}
-				if(selectedFile.activeLine != null) {
-					var pos1 = { line : selectedFile.activeLine, ch : 0};
-					doc.setCursor(pos1);
-					cm1.centerOnLine(pos1.line);
-				}
-				tab.loaded = true;
+				if(selectedFile.useTabs != null && selectedFile.indentSize != null) {
+					cm1.setOption("indentWithTabs",selectedFile.useTabs);
+					if(selectedFile.useTabs) cm1.setOption("tabSize",selectedFile.indentSize); else cm1.setOption("indentUnit",selectedFile.indentSize);
+				} else cm.Editor.saveIndentationSettings(selectedFile);
+				if(selectedFile.useTabs) window.document.getElementById("indent-type").textContent = "Tab Size:"; else window.document.getElementById("indent-type").textContent = "Spaces:";
+				if(selectedFile.indentSize == null) (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "null"; else (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "" + selectedFile.indentSize;
 			} else console.log("can't load folded regions for active document");
 		}
-		cm.Editor.editor.focus();
+		cm1.focus();
+		window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
 	}
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
@@ -17769,7 +17803,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array"];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

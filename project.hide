@@ -16,7 +16,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 496
+            ,"activeLine" : 613
         }
         ,{
              "path" : "src/core/FunctionParametersHelper.hx"
@@ -30,10 +30,35 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 484
+            ,"activeLine" : 258
+        }
+        ,{
+             "path" : "bin/core/index.html"
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 242
+        }
+        ,{
+             "path" : "bin/core/light.css"
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 187
+            ,"useTabs" : true
+            ,"indentSize" : 4
+        }
+        ,{
+             "path" : "src/tabmanager/TabManager.hx"
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 66
+            ,"useTabs" : true
+            ,"indentSize" : 4
         }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "bin/core/light.css"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

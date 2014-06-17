@@ -1,5 +1,7 @@
 
 package tabmanager;
+import js.html.KeyboardEvent;
+import js.html.InputElement;
 import cm.Xml;
 import core.OutlinePanel;
 import cm.CMDoc;
@@ -52,6 +54,34 @@ class TabManager
 		options.labels.cancel = LocaleWatcher.getStringSync("No");
 		
 		Alertify.set(options);
+		
+		var indentWidthLabel = cast (Browser.document.getElementById("indent-width-label"), DivElement);
+		var indentWidthInput = cast (Browser.document.getElementById("indent-width-input"), InputElement);
+		
+		indentWidthLabel.onclick = function (e)
+			{
+				indentWidthLabel.classList.add("hidden");
+                indentWidthInput.classList.remove("hidden");
+				indentWidthInput.focus();
+				
+				indentWidthInput.value = "4";
+				
+				indentWidthInput.onblur = function (_)
+					{
+// 						_changeIndentWidth(current, $indentWidthInput.val());
+					};
+				
+				indentWidthInput.onkeyup = function (event)
+					{
+						if (event.keyCode == 13) 
+						{
+                        	indentWidthInput.blur();
+                        } else if (event.keyCode == 27) 
+						{
+//                             _changeIndentWidth(current, false);
+                        }
+					};
+			};
 	}
 	
 	public static function createNewTab(name:String, path:String, doc:CodeMirror.Doc, ?save:Bool = false):Void
@@ -449,59 +479,92 @@ class TabManager
 			}
 			
 			selectedPath = path;
-		
-		if (ProjectAccess.path != null) 
-		{
-			project.activeFile = Node.path.relative(ProjectAccess.path, selectedPath);
-		}
-		
-		var tab = tabMap.get(selectedPath);
-		var doc = tab.doc;
 			
-		Editor.editor.swapDoc(doc);
-		
-		HaxeLint.updateLinting();
+			if (ProjectAccess.path != null) 
+			{
+				project.activeFile = Node.path.relative(ProjectAccess.path, selectedPath);
+			}
 
-		var completionActive = Editor.editor.state.completionActive;
-						
-        if (completionActive != null && completionActive.widget != null) 
-        {
-            completionActive.widget.close();
-        }
-			
-		if (ProjectAccess.currentProject != null && !tab.loaded)
-		{			
-			var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, selectedPath));
-			
-			if (selectedFile != null)
+			var tab = tabMap.get(selectedPath);
+			var doc = tab.doc;
+
+			Editor.editor.swapDoc(doc);
+
+			HaxeLint.updateLinting();
+
+			var completionActive = Editor.editor.state.completionActive;
+
+			if (completionActive != null && completionActive.widget != null) 
 			{
-				var foldedRegions = selectedFile.foldedRegions;
-			
-				if (foldedRegions != null)
-				{
-					for (pos in foldedRegions)
-					{
-						cm.foldCode(pos, null, "fold");
-					}
-				}
+				completionActive.widget.close();
+			}
+
+			if (ProjectAccess.currentProject != null)
+			{		
+				var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, selectedPath));
 				
-				if (selectedFile.activeLine != null)
+				if (selectedFile != null)
 				{
-					var pos = {line: selectedFile.activeLine, ch: 0};
+					if (!tab.loaded)
+					{
+						var foldedRegions = selectedFile.foldedRegions;
+
+						if (foldedRegions != null)
+						{
+							for (pos in foldedRegions)
+							{
+								cm.foldCode(pos, null, "fold");
+							}
+						}
+
+						if (selectedFile.activeLine != null)
+						{
+							var pos = {line: selectedFile.activeLine, ch: 0};
+
+							doc.setCursor(pos);
+							cm.centerOnLine(pos.line);
+						}
+
+						tab.loaded = true;
+					}
 					
-					doc.setCursor(pos);
-					cm.centerOnLine(pos.line);
+					if (selectedFile.useTabs != null && selectedFile.indentSize != null)
+					{
+						cm.setOption("indentWithTabs", selectedFile.useTabs);
+						
+						if (selectedFile.useTabs)
+						{
+							cm.setOption("tabSize", selectedFile.indentSize);
+						}
+						else
+						{
+							cm.setOption("indentUnit", selectedFile.indentSize);
+						}
+					}
+					else
+					{
+						Editor.saveIndentationSettings(selectedFile);
+					}
+						
+					if (selectedFile.useTabs)
+					{
+						Browser.document.getElementById("indent-type").textContent = "Tab Size:";
+					}
+					else
+					{
+						Browser.document.getElementById("indent-type").textContent = "Spaces:";
+					}
+						
+					cast(Browser.document.getElementById("indent-width-input"), InputElement).value = Std.string(selectedFile.indentSize);
 				}
-					
-				tab.loaded = true;
+				else
+				{
+					trace("can't load folded regions for active document");
+				}
 			}
-			else
-			{
-				trace("can't load folded regions for active document");
-			}
-		}
-            
-       	Editor.editor.focus();		
+
+			cm.focus();		
+			Browser.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
 		}
 	}
 	
