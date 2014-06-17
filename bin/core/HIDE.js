@@ -1432,18 +1432,15 @@ cm.Editor.load = function() {
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
-		if(e2.origin == "+input") core.Helper.debounce("type",function() {
+		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			if(cm.Editor.isValidWordForCompletionOnType()) {
 				var doc1 = tabmanager.TabManager.getCurrentDocument();
 				var pos = doc1.getCursor();
 				core.Completion.getCompletion(function() {
-					if(cm.Editor.isValidWordForCompletionOnType()) {
-						var pos2 = doc1.getCursor();
-						if(pos.line == pos2.line && pos.ch == pos2.ch) core.Completion.showRegularCompletion(false);
-					}
+					if(cm.Editor.isValidWordForCompletionOnType()) core.Completion.showRegularCompletion(false);
 				},pos);
 			}
-		},500);
+		}
 	});
 	CodeMirror.prototype.centerOnLine = function(line) {
 		 var h = this.getScrollInfo().clientHeight;  var coords = this.charCoords({line: line, ch: 0}, 'local'); this.scrollTo(null, (coords.top + coords.bottom - h) / 2); ;
@@ -1463,7 +1460,7 @@ cm.Editor.isValidWordForCompletionOnType = function() {
 			var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
 			var type = cm1.getTokenTypeAt(pos);
 			if(word.word != null && type != "string" && type != "string-2") {
-				if(word.word.length >= 3) {
+				if(word.word.length >= 1) {
 					var lineData = doc.getLine(pos.line);
 					var dataBeforeWord = lineData.substring(0,pos.ch - word.word.length);
 					if(!StringTools.endsWith(dataBeforeWord,"var ") && !StringTools.endsWith(dataBeforeWord,"function ")) isValid = true;

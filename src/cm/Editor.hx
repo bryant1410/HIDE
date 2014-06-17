@@ -485,11 +485,11 @@ class Editor
 				tab.setChanged(!tab.doc.isClean());
 			//}
 			//, 150);
-
-			if (e.origin == "+input")
+			
+			if (["+input", "+delete"].indexOf(e.origin) != -1)
 			{
-				Helper.debounce("type", function ():Void
-						   {
+// 				Helper.debounce("type", function ():Void
+// 						   {
 							   if (isValidWordForCompletionOnType())
 							   {
 								   var doc = TabManager.getCurrentDocument();
@@ -499,18 +499,18 @@ class Editor
 															{
 																if (isValidWordForCompletionOnType())
 																{
-																	var pos2 = doc.getCursor();
+// 																	var pos2 = doc.getCursor();
 																	
-																	if (pos.line == pos2.line && pos.ch == pos2.ch)
-																	{
+// 																	if (pos.line == pos2.line && pos.ch == pos2.ch)
+// 																	{
 																		Completion.showRegularCompletion(false);
-																	}
+// 																	}
 																}
 															}, pos);
 							   }
 								   
 								
-						   }, 500);
+// 						   }, 500);
 			}
 		}
 		);
@@ -551,7 +551,7 @@ class Editor
 
 					if (word.word != null && type != "string" && type != "string-2")
 					{
-						if (word.word.length >= 3)
+						if (word.word.length >= 1)
 						{
 							var lineData = doc.getLine(pos.line);
 							var dataBeforeWord = lineData.substring(0, pos.ch - word.word.length);

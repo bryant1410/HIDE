@@ -30,10 +30,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 461
+            ,"activeLine" : 484
         }
     ]
-    ,"activeFile" : "src/core/Completion.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
