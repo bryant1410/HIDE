@@ -1352,8 +1352,8 @@ cm.Editor.load = function() {
 			var cursor1 = cm6.getCursor();
 			var data = cm6.getLine(cursor1.line);
 			var lastChar = data.charAt(cursor1.ch - 1);
-			if(lastChar == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true); else if(lastChar == "=") {
-				var name = StringTools.trim(data.substring(0,cursor1.ch - 1));
+			if(lastChar == ".") cm.Editor.triggerCompletion(cm.Editor.editor,true); else if(data.charAt(cursor1.ch - 2) == "=" && lastChar == " ") {
+				var name = StringTools.trim(data.substring(0,cursor1.ch - 2));
 				var type = null;
 				if(name != "" && name.indexOf(".") == -1) {
 					var variableDeclarations = parser.RegexParser.getVariableDeclarations(doc1.getValue());
@@ -1376,7 +1376,7 @@ cm.Editor.load = function() {
 					var suggestions = [];
 					var value1 = doc1.getValue();
 					if(type != null) {
-						if(type == "Bool") suggestions = [" false;"," true;"]; else if(StringTools.startsWith(type,"Array<")) suggestions = [" ["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
+						if(type == "Bool") suggestions = ["false;","true;"]; else if(StringTools.startsWith(type,"Array<")) suggestions = ["["]; else if(type == "String") suggestions = ["\""]; else if(type == "Dynamic") suggestions = ["{"];
 						var variableWithSameType = [];
 						var _g6 = 0;
 						while(_g6 < variableWithExplicitType.length) {
@@ -1391,23 +1391,23 @@ cm.Editor.load = function() {
 							var ereg = new EReg("[\t ]*" + item3 + "[\t ]*= *(.+)$","gm");
 							var ereg2 = new EReg("[\t ]*" + item3 + "[\t ]*:[a-zA-Z0-9_<>]*[\t ]*= *(.+)$","gm");
 							ereg.map(value1,function(ereg3) {
-								var text = " " + ereg3.matched(1);
-								if(HxOverrides.indexOf(suggestions,text,0) == -1) suggestions.push(text);
+								var text = StringTools.trim(ereg3.matched(1));
+								if(text != "" && HxOverrides.indexOf(suggestions,text,0) == -1) suggestions.push(text);
 								return "";
 							});
 							ereg2.map(value1,function(ereg31) {
-								var text1 = " " + ereg31.matched(1);
-								if(HxOverrides.indexOf(suggestions,text1,0) == -1) suggestions.push(text1);
+								var text1 = StringTools.trim(ereg31.matched(1));
+								if(text1 != "" && HxOverrides.indexOf(suggestions,text1,0) == -1) suggestions.push(text1);
 								return "";
 							});
 						}
-						suggestions.push(" " + "new " + type);
+						suggestions.push("new " + type);
 						core.Completion.showCodeSuggestions(suggestions);
 					} else {
 						var ereg1 = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$","gm");
 						ereg1.map(value1,function(ereg32) {
-							var text2 = " " + ereg32.matched(1);
-							if(HxOverrides.indexOf(suggestions,text2,0) == -1) suggestions.push(text2);
+							var text2 = StringTools.trim(ereg32.matched(1));
+							if(text2 != "" && HxOverrides.indexOf(suggestions,text2,0) == -1) suggestions.push(text2);
 							return "";
 						});
 						if(suggestions.length > 0) core.Completion.showCodeSuggestions(suggestions);
@@ -16518,6 +16518,15 @@ tabmanager.TabManager.load = function() {
 			}
 		};
 	};
+	var indentType = window.document.getElementById("indent-type");
+	indentType.onclick = function(_1) {
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+		if(selectedFile != null) {
+			selectedFile.useTabs = !selectedFile.useTabs;
+			tabmanager.TabManager.updateIndentationSettings(selectedFile);
+			tabmanager.TabManager.loadIndentationSettings(cm.Editor.editor,selectedFile);
+		}
+	};
 };
 tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
 	if(save == null) save = false;
@@ -16766,18 +16775,24 @@ tabmanager.TabManager.selectDoc = function(path) {
 					}
 					tab.loaded = true;
 				}
-				if(selectedFile.useTabs != null && selectedFile.indentSize != null) {
-					cm1.setOption("indentWithTabs",selectedFile.useTabs);
-					if(selectedFile.useTabs) cm1.setOption("tabSize",selectedFile.indentSize); else cm1.setOption("indentUnit",selectedFile.indentSize);
-				} else cm.Editor.saveIndentationSettings(selectedFile);
-				var indentType = window.document.getElementById("indent-type");
-				if(selectedFile.useTabs) indentType.textContent = "Tab Size:"; else indentType.textContent = "Spaces:";
-				if(selectedFile.indentSize == null) (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "null"; else (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "" + selectedFile.indentSize;
+				if(selectedFile.useTabs != null && selectedFile.indentSize != null) tabmanager.TabManager.loadIndentationSettings(cm1,selectedFile); else cm.Editor.saveIndentationSettings(selectedFile);
+				tabmanager.TabManager.updateIndentationSettings(selectedFile);
 			} else console.log("can't load folded regions for active document");
 		}
 		cm1.focus();
 		window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
 	}
+};
+tabmanager.TabManager.loadIndentationSettings = function(cm,selectedFile) {
+	cm.setOption("indentWithTabs",selectedFile.useTabs);
+	if(selectedFile.useTabs) cm.setOption("tabSize",selectedFile.indentSize); else cm.setOption("indentUnit",selectedFile.indentSize);
+};
+tabmanager.TabManager.updateIndentationSettings = function(selectedFile) {
+	var indentType = window.document.getElementById("indent-type");
+	if(selectedFile.useTabs) indentType.textContent = "Tab Size:"; else indentType.textContent = "Spaces:";
+	var indentWidthInput;
+	indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
+	if(selectedFile.indentSize == null) indentWidthInput.value = "null"; else indentWidthInput.value = "" + selectedFile.indentSize;
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;
@@ -17805,7 +17820,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this"];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this","break","continue","extends","implements","in","override","package","inline","throw","untyped","using","import"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

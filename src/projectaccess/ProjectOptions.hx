@@ -92,7 +92,7 @@ class ProjectOptions
 		{
 			projectTargetList.appendChild(createListItem(target));
 		}
-			
+					
 		//projectTargetList.disabled = true;
 		projectTargetList.onchange = function (e):Void 
 		{

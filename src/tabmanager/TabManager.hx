@@ -1,5 +1,6 @@
 
 package tabmanager;
+import projectaccess.Project.FileData;
 import js.html.KeyboardEvent;
 import js.html.InputElement;
 import cm.Xml;
@@ -82,6 +83,20 @@ class TabManager
                         }
 					};
 			};
+		
+		var indentType = Browser.document.getElementById("indent-type");
+		
+		indentType.onclick = function (_)
+			{
+				var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+				
+				if (selectedFile != null)
+				{	
+					selectedFile.useTabs = !selectedFile.useTabs;
+					updateIndentationSettings(selectedFile);
+					loadIndentationSettings(Editor.editor, selectedFile);
+				}
+			}
 	}
 	
 	public static function createNewTab(name:String, path:String, doc:CodeMirror.Doc, ?save:Bool = false):Void
@@ -530,34 +545,14 @@ class TabManager
 					
 					if (selectedFile.useTabs != null && selectedFile.indentSize != null)
 					{
-						cm.setOption("indentWithTabs", selectedFile.useTabs);
-						
-						if (selectedFile.useTabs)
-						{
-							cm.setOption("tabSize", selectedFile.indentSize);
-						}
-						else
-						{
-							cm.setOption("indentUnit", selectedFile.indentSize);
-						}
+						loadIndentationSettings(cm, selectedFile);
 					}
 					else
 					{
 						Editor.saveIndentationSettings(selectedFile);
 					}
 						
-					var indentType = Browser.document.getElementById("indent-type");
-						
-					if (selectedFile.useTabs)
-					{
-						indentType.textContent = "Tab Size:";
-					}
-					else
-					{
-						indentType.textContent = "Spaces:";
-					}
-						
-					cast(Browser.document.getElementById("indent-width-input"), InputElement).value = Std.string(selectedFile.indentSize);
+					updateIndentationSettings(selectedFile);
 				}
 				else
 				{
@@ -570,6 +565,37 @@ class TabManager
 		}
 	}
 	
+	static function loadIndentationSettings(cm:CodeMirror, selectedFile:FileData)
+	{
+		cm.setOption("indentWithTabs", selectedFile.useTabs);
+		
+		if (selectedFile.useTabs)
+		{
+			cm.setOption("tabSize", selectedFile.indentSize);
+		}
+		else
+		{
+			cm.setOption("indentUnit", selectedFile.indentSize);
+		}
+	}
+		
+	static function updateIndentationSettings(selectedFile:FileData)
+	{
+		var indentType = Browser.document.getElementById("indent-type");
+
+		if (selectedFile.useTabs)
+		{
+			indentType.textContent = "Tab Size:";
+		}
+		else
+		{
+			indentType.textContent = "Spaces:";
+		}
+		
+		var indentWidthInput = cast(Browser.document.getElementById("indent-width-input"), InputElement);
+		indentWidthInput.value = Std.string(selectedFile.indentSize);
+	}
+		
 	public static function getCurrentDocumentPath():String
 	{
 		return selectedPath;

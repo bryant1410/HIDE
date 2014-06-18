@@ -102,6 +102,11 @@
 					"description": "enum",
 					"template": "enum ${value}\n{\n${cursor}\n\n}\n"
 				},
+				{
+					"name": "interface",
+					"description": "interface",
+					"template": "interface ${value}\n{\n${cursor}\n\n}\n"
+				},
 			]
 		}
 	]

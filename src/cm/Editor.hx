@@ -308,9 +308,9 @@ class Editor
                 {
                     triggerCompletion(Editor.editor, true);
                 }	
-				else if (lastChar == "=")
+				else if (data.charAt(cursor.ch - 2) == "=" && lastChar == " ")
                 {
-                    var name = StringTools.trim(data.substring(0, cursor.ch - 1));
+                    var name = StringTools.trim(data.substring(0, cursor.ch - 2));
 					
 					var type = null;
 					
@@ -345,19 +345,19 @@ class Editor
 						{
 							if (type == "Bool")
 							{
-								suggestions = [" false;", " true;"];
+								suggestions = ["false;", "true;"];
 							}
 							else if (StringTools.startsWith(type, "Array<"))
 							{
-								suggestions = [" ["];
+								suggestions = ["["];
 							}
 							else if (type == "String")
 							{
-								suggestions = [ "\""];
+								suggestions = ["\""];
 							}
 							else if (type == "Dynamic")
 							{
-								suggestions = [ "{"];
+								suggestions = ["{"];
 							}
 							
 							var variableWithSameType = [];
@@ -380,9 +380,9 @@ class Editor
 				
 								ereg.map(value, function (ereg3)
 										{
-											var text = " " + ereg3.matched(1);
+											var text = StringTools.trim(ereg3.matched(1));
 											
-											if (suggestions.indexOf(text) == -1)
+											if (text != "" && suggestions.indexOf(text) == -1)
 											{
 												suggestions.push(text);
 											}
@@ -391,9 +391,9 @@ class Editor
 				
 								ereg2.map(value, function (ereg3)
 										{
-											var text = " " + ereg3.matched(1);
+											var text = StringTools.trim(ereg3.matched(1));
 											
-											if (suggestions.indexOf(text) == -1)
+											if (text != "" && suggestions.indexOf(text) == -1)
 											{
 												suggestions.push(text);
 											}
@@ -401,7 +401,7 @@ class Editor
 										});
 							}
 				
-							suggestions.push(" " + "new " + type);
+							suggestions.push("new " + type);
 							Completion.showCodeSuggestions(suggestions);
 						}
 						else
@@ -410,9 +410,9 @@ class Editor
 							
 							ereg.map(value, function (ereg3)
 										{
-											var text = " " + ereg3.matched(1);
+											var text = StringTools.trim(ereg3.matched(1));
 											
-											if (suggestions.indexOf(text) == -1)
+											if (text != "" && suggestions.indexOf(text) == -1)
 											{
 												suggestions.push(text);
 											}
