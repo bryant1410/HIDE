@@ -16,7 +16,9 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 613
+            ,"activeLine" : 543
+            ,"useTabs" : true
+            ,"indentSize" : 4
         }
         ,{
              "path" : "src/core/FunctionParametersHelper.hx"
@@ -24,13 +26,17 @@
 
             ]
             ,"activeLine" : 150
+            ,"useTabs" : true
+            ,"indentSize" : 4
         }
         ,{
              "path" : "src/core/Completion.hx"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 258
+            ,"activeLine" : 269
+            ,"useTabs" : true
+            ,"indentSize" : 4
         }
         ,{
              "path" : "bin/core/index.html"
@@ -38,13 +44,15 @@
 
             ]
             ,"activeLine" : 242
+            ,"useTabs" : true
+            ,"indentSize" : 4
         }
         ,{
              "path" : "bin/core/light.css"
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 187
+            ,"activeLine" : 149
             ,"useTabs" : true
             ,"indentSize" : 4
         }
@@ -53,12 +61,21 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 66
+            ,"activeLine" : 550
             ,"useTabs" : true
             ,"indentSize" : 4
         }
+        ,{
+             "path" : "src/parser/ClassParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 44
+        }
     ]
-    ,"activeFile" : "bin/core/light.css"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

@@ -555,9 +555,11 @@ class Editor
 
 					var type = cm.getTokenTypeAt(pos);
 
+					var eregDigit = ~/[0-9]+$/i;
+					
 					if (word.word != null && type != "string" && type != "string-2")
 					{
-						if (word.word.length >= 1)
+						if (word.word.length >= 1 && !eregDigit.match(word.word.charAt(0)))
 						{
 							var lineData = doc.getLine(pos.line);
 							var dataBeforeWord = lineData.substring(0, pos.ch - word.word.length);

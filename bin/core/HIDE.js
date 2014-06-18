@@ -1463,8 +1463,9 @@ cm.Editor.isValidWordForCompletionOnType = function() {
 			var pos = doc.getCursor();
 			var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
 			var type = cm1.getTokenTypeAt(pos);
+			var eregDigit = new EReg("[0-9]+$","i");
 			if(word.word != null && type != "string" && type != "string-2") {
-				if(word.word.length >= 1) {
+				if(word.word.length >= 1 && !eregDigit.match(word.word.charAt(0))) {
 					var lineData = doc.getLine(pos.line);
 					var dataBeforeWord = lineData.substring(0,pos.ch - word.word.length);
 					if(!StringTools.endsWith(dataBeforeWord,"var ") && !StringTools.endsWith(dataBeforeWord,"function ")) isValid = true;
@@ -16769,7 +16770,8 @@ tabmanager.TabManager.selectDoc = function(path) {
 					cm1.setOption("indentWithTabs",selectedFile.useTabs);
 					if(selectedFile.useTabs) cm1.setOption("tabSize",selectedFile.indentSize); else cm1.setOption("indentUnit",selectedFile.indentSize);
 				} else cm.Editor.saveIndentationSettings(selectedFile);
-				if(selectedFile.useTabs) window.document.getElementById("indent-type").textContent = "Tab Size:"; else window.document.getElementById("indent-type").textContent = "Spaces:";
+				var indentType = window.document.getElementById("indent-type");
+				if(selectedFile.useTabs) indentType.textContent = "Tab Size:"; else indentType.textContent = "Spaces:";
 				if(selectedFile.indentSize == null) (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "null"; else (js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement)).value = "" + selectedFile.indentSize;
 			} else console.log("can't load folded regions for active document");
 		}
@@ -17803,7 +17805,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null"];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

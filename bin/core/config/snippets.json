@@ -70,12 +70,37 @@
                 {
 					"name": "if",
 					"description": "if",
-					"template": "if (${value})\n{\ncase ${cursor}:\n\ndefault:\n\n}\n"
+					"template": "if (${value})\n{\n${cursor}\n\n}\n"
+				},
+				{
+					"name": "else",
+					"description": "else",
+					"template": "else ${cursor}\n"
 				},
                 {
 					"name": "case",
 					"description": "case",
 					"template": "case ${cursor}:\n"
+				},
+				{
+					"name": "cast",
+					"description": "cast",
+					"template": "cast (${cursor}\n"
+				},
+{
+					"name": "class",
+					"description": "class",
+					"template": "class ${value}\n{\n${cursor}\n\n}\n"
+				},
+				{
+					"name": "typedef",
+					"description": "typedef",
+					"template": "typedef ${value} = \n{\n${cursor}\n\n}\n"
+				},
+				{
+					"name": "enum",
+					"description": "enum",
+					"template": "enum ${value}\n{\n${cursor}\n\n}\n"
 				},
 			]
 		}

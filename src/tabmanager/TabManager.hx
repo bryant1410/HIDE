@@ -546,13 +546,15 @@ class TabManager
 						Editor.saveIndentationSettings(selectedFile);
 					}
 						
+					var indentType = Browser.document.getElementById("indent-type");
+						
 					if (selectedFile.useTabs)
 					{
-						Browser.document.getElementById("indent-type").textContent = "Tab Size:";
+						indentType.textContent = "Tab Size:";
 					}
 					else
 					{
-						Browser.document.getElementById("indent-type").textContent = "Spaces:";
+						indentType.textContent = "Spaces:";
 					}
 						
 					cast(Browser.document.getElementById("indent-width-input"), InputElement).value = Std.string(selectedFile.indentSize);

@@ -19413,7 +19413,7 @@ CodeMirror.defineMIME("text/x-yaml", "yaml");
 
     function selectNextVariable(cm) {
       var state = cm._templateState;
-      if (state.selectableMarkers.length > 0) {
+      if (state && state.selectableMarkers.length > 0) {
         state.varIndex++;
         if (state.varIndex >= state.selectableMarkers.length) {
           state.varIndex = 0;
@@ -19619,7 +19619,9 @@ CodeMirror.defineMIME("text/x-yaml", "yaml");
 
     function uninstall(cm) {
       var state = cm._templateState;
-      for ( var i = 0; i < state.marked.length; i++) {
+      if (state)
+{
+for ( var i = 0; i < state.marked.length; i++) {
         state.marked[i].clear();
       }
       state.marked.length = 0;
@@ -19627,6 +19629,7 @@ CodeMirror.defineMIME("text/x-yaml", "yaml");
       cm.off("change", onChange);
       cm.removeKeyMap(ourMap);
       delete cm._templateState;
+}
     }
 
 	var completions = [];
