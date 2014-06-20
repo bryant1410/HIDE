@@ -11,58 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src/cm/Editor.hx"
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 599
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
-        ,{
-             "path" : "src/core/FunctionParametersHelper.hx"
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 150
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
-        ,{
-             "path" : "src/core/Completion.hx"
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 269
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
-        ,{
-             "path" : "bin/core/index.html"
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 248
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
-        ,{
-             "path" : "bin/core/light.css"
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 171
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
-        ,{
-             "path" : "libs/css/HIDE.css"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-        }
     ]
-    ,"activeFile" : "bin/core/light.css"
+    ,"activeFile" : "bin/core/config/settings.json"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

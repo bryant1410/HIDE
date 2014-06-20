@@ -454,7 +454,7 @@ ul.tabs li {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   position: relative;
-  font-family: "Ubuntu Mono", "monospace", "Courier New";
+/*   font-family: "Ubuntu Mono", "monospace", "Courier New"; */
 }
 ul.tabs li:hover {
   color: #444;
@@ -795,7 +795,10 @@ display: none!important;
 visibility: hidden!important;
 }
 
-textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+/* input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], , input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input 
+ */
+textarea, input[type="number"]
+{
 background-color: #fff;
 border: 1px solid #b2b5b5;
 color: #000;

@@ -1237,3 +1237,14 @@ ul.tabs li:hover
   background-image: url('images/icon-plus_white.png');
 }
 
+#status-bar
+{
+	border-color: #35353A;
+	background: #252526;
+}
+
+#status-indicators
+{
+	border-color: #35353A;
+	background: #252526;
+}

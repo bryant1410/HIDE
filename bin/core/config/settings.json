@@ -10,5 +10,8 @@
     	"project.hide",
         ".git",
         ".svn",
-	]
+	],
+		
+	"indentWithTabs": true,
+	"indentSize": 4
 }

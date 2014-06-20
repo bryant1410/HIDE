@@ -19413,44 +19413,53 @@ CodeMirror.defineMIME("text/x-yaml", "yaml");
 
     function selectNextVariable(cm) {
       var state = cm._templateState;
-      if (state && state.selectableMarkers.length > 0) {
-        state.varIndex++;
-        if (state.varIndex >= state.selectableMarkers.length) {
-          state.varIndex = 0;
-        }
-        var marker = state.selectableMarkers[state.varIndex];
-        var pos = marker.find();
-        var templateVar = marker._templateVar;  
-          
-        cm.setSelection(pos.from, pos.to);
-          
-        for ( var i = 0; i < state.marked.length; i++) {
-          var m = state.marked[i];
-          if (m == marker) {
-            m.className = "";
-            m.startStyle = "";
-            m.endStyle = "";
-          } else {
-            if (m._templateVar == marker._templateVar) {
-              m.className = "CodeMirror-templates-variable-selected";
+      if (state)
+			{
+         if (state.selectableMarkers.length > 0) 
+         {
+          state.varIndex++;
+          if (state.varIndex >= state.selectableMarkers.length) {
+            state.varIndex = 0;
+          }
+          var marker = state.selectableMarkers[state.varIndex];
+          var pos = marker.find();
+          var templateVar = marker._templateVar;  
+
+          cm.setSelection(pos.from, pos.to);
+
+          for ( var i = 0; i < state.marked.length; i++) {
+            var m = state.marked[i];
+            if (m == marker) {
+              m.className = "";
               m.startStyle = "";
               m.endStyle = "";
             } else {
-              m.className = "CodeMirror-templates-variable";
-              m.startStyle = "CodeMirror-templates-variable-start";
-              m.endStyle = "CodeMirror-templates-variable-end";
+              if (m._templateVar == marker._templateVar) {
+                m.className = "CodeMirror-templates-variable-selected";
+                m.startStyle = "";
+                m.endStyle = "";
+              } else {
+                m.className = "CodeMirror-templates-variable";
+                m.startStyle = "CodeMirror-templates-variable-start";
+                m.endStyle = "CodeMirror-templates-variable-end";
+              }
             }
           }
-        }
-        cm.refresh();
-          
-        if (templateVar == "cursor")
-        {
-            cm.replaceRange("", pos.from, {line: pos.from.line, ch: pos.from.ch + 2})
-            cm.setSelection(pos.from);
-            uninstall(cm);
-        }
+          cm.refresh();
+
+          if (templateVar == "cursor")
+          {
+              cm.replaceRange("", pos.from, {line: pos.from.line, ch: pos.from.ch + 2})
+              cm.setSelection(pos.from);
+              uninstall(cm);
+          }
+				}
       }
+      else
+      {
+        uninstall(cm);
+      }
+	
     }
 
     function parseTemplate(template) {
@@ -19626,10 +19635,9 @@ for ( var i = 0; i < state.marked.length; i++) {
       }
       state.marked.length = 0;
       state.selectableMarkers.length = 0;
-      cm.off("change", onChange);
+}cm.off("change", onChange);
       cm.removeKeyMap(ourMap);
       delete cm._templateState;
-}
     }
 
 	var completions = [];

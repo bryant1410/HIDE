@@ -14,6 +14,8 @@ typedef Settings = {
 	var theme:String;
 	var locale:String;
 	var ignore:Array<String>;
+	var indentWithTabs:Bool;
+	var indentSize:Int;
 }
 
 /**

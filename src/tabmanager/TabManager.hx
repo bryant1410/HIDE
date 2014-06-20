@@ -1,5 +1,6 @@
 
 package tabmanager;
+import watchers.SettingsWatcher;
 import projectaccess.Project.FileData;
 import js.html.KeyboardEvent;
 import js.html.InputElement;
@@ -119,7 +120,7 @@ class TabManager
 		{
 			selectedFile.indentSize = indentSize;
 			updateIndentationSettings(selectedFile);
-				loadIndentationSettings(Editor.editor, selectedFile);
+			loadIndentationSettings(Editor.editor, selectedFile);
 		}
 	}
 
@@ -477,7 +478,7 @@ class TabManager
 			case ".css":
 					mode = "css";
             case ".json":
-                	mode = "application/ld+json";
+                	mode = "application/json";
 			case ".xml":
 					mode = "xml";
 			case ".html":
@@ -578,15 +579,26 @@ class TabManager
 						tab.loaded = true;
 					}
 					
-					if (selectedFile.useTabs != null && selectedFile.indentSize != null)
+					if (selectedFile.useTabs == null || selectedFile.indentSize == null)
 					{
-						loadIndentationSettings(cm, selectedFile);
-					}
-					else
-					{
-						Editor.saveIndentationSettings(selectedFile);
+						var indentWithTabs = SettingsWatcher.settings.indentWithTabs;
+						var indentSize = SettingsWatcher.settings.indentSize;
+						
+						if (indentWithTabs == null)
+						{
+							indentWithTabs = true;
+						}
+							
+						if (indentSize == null)
+						{
+							indentSize = 4;
+						}
+						
+						selectedFile.useTabs = indentWithTabs;
+						setIndentationSize(indentSize);
 					}
 						
+					loadIndentationSettings(cm, selectedFile);
 					updateIndentationSettings(selectedFile);
 				}
 				else

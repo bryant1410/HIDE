@@ -60,7 +60,7 @@
 				{
 					"name": "trace",
 					"description": "trace",
-					"template": "trace(${cursor});"
+					"template": "trace${cursor}"
 				},
                 {
 					"name": "switch",
@@ -75,7 +75,7 @@
 				{
 					"name": "else",
 					"description": "else",
-					"template": "else ${cursor}\n"
+					"template": "else ${cursor}"
 				},
                 {
 					"name": "case",
@@ -85,7 +85,7 @@
 				{
 					"name": "cast",
 					"description": "cast",
-					"template": "cast (${cursor}\n"
+					"template": "cast ${cursor}\n"
 				},
 {
 					"name": "class",

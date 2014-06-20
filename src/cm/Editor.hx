@@ -603,7 +603,6 @@ class Editor
 			{
 				selectedFile.foldedRegions = foldedRegions;
 				selectedFile.activeLine = cursor.line;
-				saveIndentationSettings(selectedFile);
 				
 				trace("folding regions saved successfully for" + Std.string(selectedFile));
 			}
@@ -615,21 +614,6 @@ class Editor
 		else
 		{
 			trace("unable to preserve code folding for" + Std.string(doc));
-		}
-	}
-
-		
-	public static function saveIndentationSettings(selectedFile:FileData)
-	{
-		selectedFile.useTabs = editor.getOption("indentWithTabs");
-				
-		if (selectedFile.useTabs)
-		{
-			selectedFile.indentSize = editor.getOption("tabSize");
-		}
-		else
-		{
-			selectedFile.indentSize = editor.getOption("indentUnit");
 		}
 	}
 
@@ -720,6 +704,10 @@ class Editor
 			if (theme != null) 
 			{
 				setTheme(theme);
+			}
+			else
+			{
+            	setTheme("mbo");
 			}
 		}
 		

@@ -1493,14 +1493,9 @@ cm.Editor.saveFoldedRegions = function() {
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
-			cm.Editor.saveIndentationSettings(selectedFile);
 			console.log("folding regions saved successfully for" + Std.string(selectedFile));
 		} else console.log("cannot save folded regions for this document");
 	} else console.log("unable to preserve code folding for" + Std.string(doc));
-};
-cm.Editor.saveIndentationSettings = function(selectedFile) {
-	selectedFile.useTabs = cm.Editor.editor.getOption("indentWithTabs");
-	if(selectedFile.useTabs) selectedFile.indentSize = cm.Editor.editor.getOption("tabSize"); else selectedFile.indentSize = cm.Editor.editor.getOption("indentUnit");
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
@@ -1560,7 +1555,7 @@ cm.Editor.loadTheme = function() {
 	var localStorage2 = js.Browser.getLocalStorage();
 	if(localStorage2 != null) {
 		var theme = localStorage2.getItem("theme");
-		if(theme != null) cm.Editor.setTheme(theme);
+		if(theme != null) cm.Editor.setTheme(theme); else cm.Editor.setTheme("mbo");
 	}
 };
 cm.Editor.loadThemes = function(themes,onComplete) {
@@ -16723,7 +16718,7 @@ tabmanager.TabManager.getMode = function(path) {
 		mode = "css";
 		break;
 	case ".json":
-		mode = "application/ld+json";
+		mode = "application/json";
 		break;
 	case ".xml":
 		mode = "xml";
@@ -16795,7 +16790,15 @@ tabmanager.TabManager.selectDoc = function(path) {
 					}
 					tab.loaded = true;
 				}
-				if(selectedFile.useTabs != null && selectedFile.indentSize != null) tabmanager.TabManager.loadIndentationSettings(cm1,selectedFile); else cm.Editor.saveIndentationSettings(selectedFile);
+				if(selectedFile.useTabs == null || selectedFile.indentSize == null) {
+					var indentWithTabs = watchers.SettingsWatcher.settings.indentWithTabs;
+					var indentSize = watchers.SettingsWatcher.settings.indentSize;
+					if(indentWithTabs == null) indentWithTabs = true;
+					if(indentSize == null) indentSize = 4;
+					selectedFile.useTabs = indentWithTabs;
+					tabmanager.TabManager.setIndentationSize(indentSize);
+				}
+				tabmanager.TabManager.loadIndentationSettings(cm1,selectedFile);
 				tabmanager.TabManager.updateIndentationSettings(selectedFile);
 			} else console.log("can't load folded regions for active document");
 		}
