@@ -65,11 +65,21 @@ class TabManager
                 indentWidthInput.classList.remove("hidden");
 				indentWidthInput.focus();
 				
-				indentWidthInput.value = "4";
+				indentWidthInput.select();
 				
 				indentWidthInput.onblur = function (_)
 					{
-// 						_changeIndentWidth(current, $indentWidthInput.val());
+						indentWidthLabel.classList.remove("hidden");
+                		indentWidthInput.classList.add("hidden");
+
+						// remove all event handlers from the input field
+						indentWidthInput.onblur = null;
+						indentWidthInput.onkeyup = null;
+
+						// restore focus to the editor
+						Editor.editor.focus();
+						
+						setIndentationSize(Std.parseInt(indentWidthInput.value));	
 					};
 				
 				indentWidthInput.onkeyup = function (event)
@@ -77,9 +87,10 @@ class TabManager
 						if (event.keyCode == 13) 
 						{
                         	indentWidthInput.blur();
-                        } else if (event.keyCode == 27) 
+                        }
+						else if (event.keyCode == 27)
 						{
-//                             _changeIndentWidth(current, false);
+							resetIndentationSettings();
                         }
 					};
 			};
@@ -88,16 +99,41 @@ class TabManager
 		
 		indentType.onclick = function (_)
 			{
-				var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+				var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
 				
 				if (selectedFile != null)
 				{	
 					selectedFile.useTabs = !selectedFile.useTabs;
+                    trace(selectedFile.useTabs);
 					updateIndentationSettings(selectedFile);
 					loadIndentationSettings(Editor.editor, selectedFile);
 				}
 			}
 	}
+	
+	static function setIndentationSize(indentSize:Int)
+	{
+		var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+				
+		if (selectedFile != null)
+		{
+			selectedFile.indentSize = indentSize;
+			updateIndentationSettings(selectedFile);
+				loadIndentationSettings(Editor.editor, selectedFile);
+		}
+	}
+
+	
+	static function resetIndentationSettings()
+	{
+		var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+				
+		if (selectedFile != null)
+		{	
+			updateIndentationSettings(selectedFile);
+		}
+	}
+
 	
 	public static function createNewTab(name:String, path:String, doc:CodeMirror.Doc, ?save:Bool = false):Void
 	{
@@ -109,7 +145,7 @@ class TabManager
 		if (ProjectAccess.path != null) 
 		{
 			var relativePath = Node.path.relative(ProjectAccess.path, path);
-			var selectedFile = ProjectAccess.getFileByPath(relativePath);
+			var selectedFile = ProjectAccess.getFileByPath(path);
 			
 			if (selectedFile == null) 
 			{
@@ -373,12 +409,11 @@ class TabManager
             OutlinePanel.update();
 		}
 		
-		
 		if (ProjectAccess.path != null) 
 		{
-			var pathToDocument:String = Node.path.relative(ProjectAccess.path, path);
+// 			var pathToDocument:String = Node.path.relative(ProjectAccess.path, path);
 			
-			var selectedFile = ProjectAccess.getFileByPath(pathToDocument);
+			var selectedFile = ProjectAccess.getFileByPath(path);
 			
 			ProjectAccess.currentProject.files.remove(selectedFile);
 		}
@@ -516,7 +551,7 @@ class TabManager
 
 			if (ProjectAccess.currentProject != null)
 			{		
-				var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, selectedPath));
+				var selectedFile = ProjectAccess.getFileByPath(selectedPath);
 				
 				if (selectedFile != null)
 				{
@@ -594,6 +629,9 @@ class TabManager
 		
 		var indentWidthInput = cast(Browser.document.getElementById("indent-width-input"), InputElement);
 		indentWidthInput.value = Std.string(selectedFile.indentSize);
+		
+		var indentWidthLabel = cast(Browser.document.getElementById("indent-width-label"), DivElement);
+		indentWidthLabel.textContent = Std.string(selectedFile.indentSize);
 	}
 		
 	public static function getCurrentDocumentPath():String

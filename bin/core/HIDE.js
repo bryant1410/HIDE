@@ -13728,7 +13728,6 @@ kha.KhaProject = function() { };
 $hxClasses["kha.KhaProject"] = kha.KhaProject;
 kha.KhaProject.__name__ = ["kha","KhaProject"];
 kha.KhaProject.load = function() {
-	newprojectdialog.NewProjectDialog.getCategory("Kha",3).addItem("Empty project",null,false,false);
 };
 var menu = {};
 menu.BootstrapMenu = function() { };
@@ -15979,10 +15978,14 @@ projectaccess.ProjectAccess.getPathToHxml = function() {
 	return pathToHxml;
 };
 projectaccess.ProjectAccess.getFileByPath = function(path) {
-	var project = projectaccess.ProjectAccess.currentProject;
-	var selectedFile = Lambda.find(project.files,function(file) {
-		return file.path == path;
-	});
+	var selectedFile = null;
+	if(projectaccess.ProjectAccess.path != null) {
+		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+		var project = projectaccess.ProjectAccess.currentProject;
+		selectedFile = Lambda.find(project.files,function(file) {
+			return file.path == relativePath;
+		});
+	}
 	return selectedFile;
 };
 projectaccess.ProjectOptions = function() { };
@@ -16510,23 +16513,41 @@ tabmanager.TabManager.load = function() {
 		indentWidthLabel.classList.add("hidden");
 		indentWidthInput.classList.remove("hidden");
 		indentWidthInput.focus();
-		indentWidthInput.value = "4";
+		indentWidthInput.select();
 		indentWidthInput.onblur = function(_) {
+			indentWidthLabel.classList.remove("hidden");
+			indentWidthInput.classList.add("hidden");
+			indentWidthInput.onblur = null;
+			indentWidthInput.onkeyup = null;
+			cm.Editor.editor.focus();
+			tabmanager.TabManager.setIndentationSize(Std.parseInt(indentWidthInput.value));
 		};
 		indentWidthInput.onkeyup = function(event) {
-			if(event.keyCode == 13) indentWidthInput.blur(); else if(event.keyCode == 27) {
-			}
+			if(event.keyCode == 13) indentWidthInput.blur(); else if(event.keyCode == 27) tabmanager.TabManager.resetIndentationSettings();
 		};
 	};
 	var indentType = window.document.getElementById("indent-type");
 	indentType.onclick = function(_1) {
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
 		if(selectedFile != null) {
 			selectedFile.useTabs = !selectedFile.useTabs;
+			console.log(selectedFile.useTabs);
 			tabmanager.TabManager.updateIndentationSettings(selectedFile);
 			tabmanager.TabManager.loadIndentationSettings(cm.Editor.editor,selectedFile);
 		}
 	};
+};
+tabmanager.TabManager.setIndentationSize = function(indentSize) {
+	var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
+	if(selectedFile != null) {
+		selectedFile.indentSize = indentSize;
+		tabmanager.TabManager.updateIndentationSettings(selectedFile);
+		tabmanager.TabManager.loadIndentationSettings(cm.Editor.editor,selectedFile);
+	}
+};
+tabmanager.TabManager.resetIndentationSettings = function() {
+	var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
+	if(selectedFile != null) tabmanager.TabManager.updateIndentationSettings(selectedFile);
 };
 tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
 	if(save == null) save = false;
@@ -16535,7 +16556,7 @@ tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
 	tabmanager.TabManager.tabs.appendChild(tab.getElement());
 	if(projectaccess.ProjectAccess.path != null) {
 		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(relativePath);
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
 		if(selectedFile == null) projectaccess.ProjectAccess.currentProject.files.push({ path : relativePath});
 	}
 	core.RecentProjectsList.addFile(path);
@@ -16660,8 +16681,7 @@ tabmanager.TabManager.removeTab = function(path,switchToTab) {
 		core.OutlinePanel.update();
 	}
 	if(projectaccess.ProjectAccess.path != null) {
-		var pathToDocument = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(pathToDocument);
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
 		HxOverrides.remove(projectaccess.ProjectAccess.currentProject.files,selectedFile);
 	}
 };
@@ -16756,7 +16776,7 @@ tabmanager.TabManager.selectDoc = function(path) {
 		var completionActive = cm.Editor.editor.state.completionActive;
 		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
 		if(projectaccess.ProjectAccess.currentProject != null) {
-			var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath));
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.selectedPath);
 			if(selectedFile != null) {
 				if(!tab.loaded) {
 					var foldedRegions = selectedFile.foldedRegions;
@@ -16793,6 +16813,9 @@ tabmanager.TabManager.updateIndentationSettings = function(selectedFile) {
 	var indentWidthInput;
 	indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
 	if(selectedFile.indentSize == null) indentWidthInput.value = "null"; else indentWidthInput.value = "" + selectedFile.indentSize;
+	var indentWidthLabel;
+	indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
+	if(selectedFile.indentSize == null) indentWidthLabel.textContent = "null"; else indentWidthLabel.textContent = "" + selectedFile.indentSize;
 };
 tabmanager.TabManager.getCurrentDocumentPath = function() {
 	return tabmanager.TabManager.selectedPath;

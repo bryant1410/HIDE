@@ -8,12 +8,12 @@ class KhaProject
 {
     public static function load()
     {
-        NewProjectDialog.getCategory("Kha", 3).addItem("Empty project", null, false, false);
+//         NewProjectDialog.getCategory("Kha", 3).addItem("Empty project", null, false, false);
     }
     
-    static function closeKhaEmptyProject(data:ProjectData)
+    static function cloneKhaEmptyProject(data:ProjectData)
     {
-        
+		
     }
 
 

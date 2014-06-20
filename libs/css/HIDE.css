@@ -704,3 +704,119 @@ opacity: 0.7; }
 	overflow-y: auto;
 	overflow-x: hidden;
 }
+
+
+#status-bar {
+position: relative;
+background: #fff;
+border-top: 1px solid rgba(0,0,0,0.1);
+box-sizing: border-box;
+color: #454545;
+font-family: 'SourceSansPro',Helvetica,Arial,"Meiryo UI","ＭＳ Ｐゴシック","MS PGothic",sans-serif;
+font-size: 11px;
+line-height: 25px;
+height: 26px;
+width: 100%;
+/* height: 15%; */
+overflow: hidden;
+-webkit-user-select: none;
+cursor: default;
+}
+
+#status-info {
+color: #454545;
+left: 10px;
+position: absolute;
+white-space: nowrap;
+}
+
+#status-indicators {
+background: #fff;
+color: #454545;
+position: absolute;
+right: 0;
+text-align: right;
+white-space: nowrap;
+}
+
+#status-file {
+color: #999;
+}
+
+#indent-type, #indent-width-label {
+cursor: pointer;
+margin-right: 3px;
+}
+
+#status-indent>* {
+display: inline-block;
+}
+
+#indent-type:hover, #indent-width-label:hover {
+text-decoration: underline;
+}
+
+#indent-type, #indent-width-label {
+cursor: pointer;
+margin-right: 3px;
+}
+
+#status-indent>*.hidden {
+display: none;
+}
+#indent-width-input {
+font-size: 11px;
+font-weight: 500;
+height: 17px;
+line-height: 1;
+vertical-align: middle;
+color: #454545;
+margin: 0;
+padding: 0 3px 2px;
+position: relative;
+left: 0;
+top: -1px;
+width: 15px;
+transition: 0.1s linear all;
+overflow: hidden;
+}
+
+#status-info div {
+display: inline;
+}
+
+#tabs1
+{
+	margin-bottom: -28px;
+}
+
+.hidden {
+display: none!important;
+visibility: hidden!important;
+}
+
+textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"], .uneditable-input {
+background-color: #fff;
+border: 1px solid #b2b5b5;
+color: #000;
+font-size: 14px;
+font-weight: normal;
+-webkit-font-smoothing: antialiased;
+-webkit-border-radius: 3px;
+-moz-border-radius: 3px;
+border-radius: 3px;
+-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.06);
+-moz-box-shadow: inset 0 1px 0 rgba(0,0,0,0.06);
+box-shadow: inset 0 1px 0 rgba(0,0,0,0.06);
+-webkit-transition: border linear 180ms, box-shadow linear 180ms;
+-moz-transition: border linear 180ms, box-shadow linear 180ms;
+-o-transition: border linear 180ms, box-shadow linear 180ms;
+transition: border linear 180ms, box-shadow linear 180ms;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    /* display: none; <- Crashes Chrome on hover */
+    -webkit-appearance: none;
+    margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}

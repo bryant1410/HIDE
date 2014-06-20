@@ -115,12 +115,19 @@ class ProjectAccess
 	
 	public static function getFileByPath(path:String)
 	{
-		var project = ProjectAccess.currentProject;
+		var selectedFile = null;
 		
-		var selectedFile = Lambda.find(project.files, function (file:FileData)
+		if (ProjectAccess.path != null)
+		{
+			var relativePath:String = Node.path.relative(ProjectAccess.path, path);
+		
+			var project = ProjectAccess.currentProject;
+		
+			selectedFile = Lambda.find(project.files, function (file:FileData)
 				{
-					return file.path == path;
+					return file.path == relativePath;
 				});
+		}
 		
 		return selectedFile;
 	}

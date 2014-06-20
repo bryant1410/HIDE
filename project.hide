@@ -52,21 +52,17 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 169
+            ,"activeLine" : 171
             ,"useTabs" : true
             ,"indentSize" : 4
         }
         ,{
-             "path" : "src/tabmanager/TabManager.hx"
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 85
+             "path" : "libs/css/HIDE.css"
             ,"useTabs" : true
             ,"indentSize" : 4
         }
     ]
-    ,"activeFile" : "src/tabmanager/TabManager.hx"
+    ,"activeFile" : "bin/core/light.css"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
