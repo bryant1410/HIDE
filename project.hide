@@ -13,7 +13,7 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "bin/core/changes.md"
+    ,"activeFile" : "../.config/HIDE/.HIDE/settings.json"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

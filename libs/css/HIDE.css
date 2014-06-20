@@ -324,7 +324,7 @@ welcomeA:hover {
 .CodeMirror{
 	width: 100%;
     height: 100%;
-	font-family: monospace;
+	font-family: monospace, "Courier New", "Ubuntu Mono";
 }
 
 .CodeMirror {
@@ -431,11 +431,21 @@ background-repeat: repeat-x;
   -webkit-user-select: none;
 }
 
+#thirdNested
+{
+	-webkit-user-drag: none;
+	-webkit-user-select: none;	
+}
+
+.dropdown-menu
+{
+	cursor: pointer;
+}
+
 ul.tabs {
   list-style: none;
   margin: 0 0 -1px 0;
   padding: 5px 0 0 37px;
-  font-family: "Ubuntu Mono";
   overflow: hidden;
   z-index: 0;
 }
@@ -454,7 +464,6 @@ ul.tabs li {
   border-top-left-radius: 6px;
   border-top-right-radius: 6px;
   position: relative;
-/*   font-family: "Ubuntu Mono", "monospace", "Courier New"; */
 }
 ul.tabs li:hover {
   color: #444;
@@ -712,12 +721,10 @@ background: #fff;
 border-top: 1px solid rgba(0,0,0,0.1);
 box-sizing: border-box;
 color: #454545;
-font-family: 'SourceSansPro',Helvetica,Arial,"Meiryo UI","ＭＳ Ｐゴシック","MS PGothic",sans-serif;
 font-size: 11px;
 line-height: 25px;
 height: 26px;
 width: 100%;
-/* height: 15%; */
 overflow: hidden;
 -webkit-user-select: none;
 cursor: default;
@@ -822,4 +829,20 @@ input::-webkit-inner-spin-button {
     /* display: none; <- Crashes Chrome on hover */
     -webkit-appearance: none;
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+body,
+dropdown-menu,
+.jqx-widget,
+.jqx-widget-content,
+.jqx-widget-header,
+.jqx-fill-state-normal,
+.jqx-fill-state-hover,
+.jqx-widget .jqx-grid-column-header, .jqx-grid-cell, .jqx-widget .jqx-grid-cell, .jqx-widget .jqx-grid-group-cell, .jqx-grid-group-cell,
+.jqx-window-header, .jqx-input-button-header, .jqx-calendar-title-header, .jqx-grid .jqx-widget-header, .jqx-grid-header, .jqx-grid-column-header,
+.jqx-widget .jqx-grid-cell, .jqx-listitem-state-normal, .jqx-menu-item-normal, .jqx-tree-item-normal, .jqx-calendar-cell, .jqx-grid-cell,.jqx-menu-vertical .jqx-menu-item-top-normal, .jqx-input-popup .jqx-fill-state-normal,
+.jqx-widget .jqx-grid-cell-hover, .jqx-listitem-state-hover, .jqx-menu-item-hover, .jqx-tree-item-hover, .jqx-calendar-cell-hover, .jqx-grid-cell-hover,.jqx-menu-vertical .jqx-menu-item-top-hover, .jqx-input-popup .jqx-fill-state-hover,.jqx-input-button-header, .jqx-input-popup .jqx-fill-state-pressed,.jqx-input-button-header,
+.jqx-widget  .jqx-grid-cell-selected, .jqx-listitem-state-selected, .jqx-menu-item-selected, .jqx-tree-item-selected, .jqx-calendar-cell-selected, .jqx-grid-cell-selected,.jqx-menu-vertical .jqx-menu-item-top-selected, .jqx-grid-selectionarea
+{
+	font-family: Segoe UI, Verdana, Arial, sans-serif;
 }

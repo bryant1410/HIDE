@@ -1,3 +1,8 @@
+0.4.1
+-----------
+
+* CHANGED: switched to "Segoe UI" font for GUI
+
 0.4.0
 -----------
 
@@ -10,6 +15,7 @@
 * ADDED: Move variable declaration to class scope action(using Ctrl-Shift-1)
 * ADDED: Code suggestions
 * ADDED: XML completion
+* ADDED: Project Options: Debug/Release switch for OpenFL projects
 
 0.3.9
 -----------
