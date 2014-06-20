@@ -1,3 +1,16 @@
+0.4.0
+-----------
+
+* CHANGED: metrodark theme
+* ADDED: completion on type
+* ADDED: indentation settings
+* ADDED: YAML syntax highlighting
+* ADDED: overridden method parameters hinting
+* ADDED: preserve code folding, cursor position and indentation between sessions
+* ADDED: Move variable declaration to class scope action(using Ctrl-Shift-1)
+* ADDED: Code suggestions
+* ADDED: XML completion
+
 0.3.9
 -----------
 

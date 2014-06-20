@@ -9590,31 +9590,22 @@ License: http://jqwidgets.com/license/
       if (val) {
         cm.setOption('keyMap', 'vim');
         cm.setOption('disableInput', true);
+        cm.setOption('showCursorWhenSelecting', false);
         CodeMirror.signal(cm, "vim-mode-change", {mode: "normal"});
-        cm.on('beforeSelectionChange', beforeSelectionChange);
         cm.on('cursorActivity', onCursorActivity);
         maybeInitVimState(cm);
         CodeMirror.on(cm.getInputField(), 'paste', getOnPasteFn(cm));
       } else if (cm.state.vim) {
         cm.setOption('keyMap', 'default');
         cm.setOption('disableInput', false);
-        cm.off('beforeSelectionChange', beforeSelectionChange);
         cm.off('cursorActivity', onCursorActivity);
         CodeMirror.off(cm.getInputField(), 'paste', getOnPasteFn(cm));
         cm.state.vim = null;
       }
     });
-    function beforeSelectionChange(cm, obj) {
+    function beforeSelectionChange(cm, _obj) {
       var vim = cm.state.vim;
       if (vim.insertMode || vim.exMode) return;
-
-      var head = obj.ranges[0].head;
-      var anchor = obj.ranges[0].anchor;
-      if (head.ch && head.ch == cm.doc.getLine(head.line).length) {
-        var pos = Pos(head.line, head.ch - 1);
-        obj.update([{anchor: cursorEqual(head, anchor) ? pos : anchor,
-                     head: pos}]);
-      }
     }
     function getOnPasteFn(cm) {
       var vim = cm.state.vim;
@@ -9845,6 +9836,8 @@ License: http://jqwidgets.com/license/
           // executed in between.
           lastMotion: null,
           marks: {},
+          // Mark for rendering fake cursor for visual mode.
+          fakeCursor: null,
           insertMode: false,
           // Repeat count for changes made in insert mode, triggered by key
           // sequences like 3,i. Only exists when insertMode is true.
@@ -10594,11 +10587,16 @@ License: http://jqwidgets.com/license/
               // The end of the selection has moved from after the start to
               // before the start. We will shift the start right by 1.
               selectionStart.ch += 1;
+              curEnd.ch -= 1;
             } else if (cursorIsBefore(selectionEnd, selectionStart) &&
                 (cursorEqual(selectionStart, curEnd) ||
                     cursorIsBefore(selectionStart, curEnd))) {
               // The opposite happened. We will shift the start left by 1.
               selectionStart.ch -= 1;
+              curEnd.ch += 1;
+            }
+            if (vim.lastHPos != Infinity) {
+              vim.lastHPos = curEnd.ch;
             }
             selectionEnd = curEnd;
             selectionStart = (motionResult instanceof Array) ? curStart : selectionStart;
@@ -10647,7 +10645,7 @@ License: http://jqwidgets.com/license/
           } else if (!curEnd) {
             curEnd = copyCursor(curStart);
           }
-          if (motionArgs.inclusive && !(vim.visualMode && inverted)) {
+          if (motionArgs.inclusive && !vim.visualMode) {
             // Move the selection end one to the right to include the last
             // character.
             curEnd.ch++;
@@ -11228,7 +11226,9 @@ License: http://jqwidgets.com/license/
         } else if (insertAt == 'endOfSelectedArea') {
           var selectionEnd = cm.getCursor('head');
           var selectionStart = cm.getCursor('anchor');
-          selectionEnd = cursorIsBefore(selectionStart, selectionEnd) ? Pos(selectionEnd.line, selectionEnd.ch+1) : (selectionEnd.line < selectionStart.line ? Pos(selectionStart.line, 0) : selectionEnd);
+          if (selectionEnd.line < selectionStart.line) {
+            selectionEnd = Pos(selectionStart.line, 0);
+          }
           cm.setCursor(selectionEnd);
           exitVisualMode(cm);
         }
@@ -11270,16 +11270,7 @@ License: http://jqwidgets.com/license/
               cm, Pos(curStart.line, curStart.ch + repeat),
               true /** includeLineBreak */);
           }
-          // Make the initial selection.
-          if (!actionArgs.repeatIsExplicit && !vim.visualLine) {
-            // This is a strange case. Here the implicit repeat is 1. The
-            // following commands lets the cursor hover over the 1 character
-            // selection.
-            cm.setCursor(curEnd);
-            cm.setSelection(curEnd, curStart);
-          } else {
-            cm.setSelection(curStart, curEnd);
-          }
+          cm.setSelection(curStart, curEnd);
           CodeMirror.signal(cm, "vim-mode-change", {mode: "visual", subMode: vim.visualLine ? "linewise" : ""});
         } else {
           curStart = cm.getCursor('anchor');
@@ -11496,9 +11487,6 @@ License: http://jqwidgets.com/license/
         if (vim.visualMode){
           curStart=cm.getCursor('start');
           curEnd=cm.getCursor('end');
-          // workaround to catch the character under the cursor
-          //  existing workaround doesn't cover actions
-          curEnd=cm.clipPos(Pos(curEnd.line, curEnd.ch+1));
         }else{
           var line = cm.getLine(curStart.line);
           replaceTo = curStart.ch + actionArgs.repeat;
@@ -11675,8 +11663,6 @@ License: http://jqwidgets.com/license/
           var tmp = selectionStart;
           selectionStart = selectionEnd;
           selectionEnd = tmp;
-        } else {
-          selectionEnd = cm.clipPos(Pos(selectionEnd.line, selectionEnd.ch+1));
         }
         exitVisualMode(cm);
       }
@@ -11715,6 +11701,9 @@ License: http://jqwidgets.com/license/
         cm.setCursor(clipCursorToContent(cm, selectionEnd));
       }
       CodeMirror.signal(cm, "vim-mode-change", {mode: "normal"});
+      if (vim.fakeCursor) {
+        vim.fakeCursor.clear();
+      }
     }
 
     // Remove any trailing newlines from the selection. For
@@ -13123,6 +13112,7 @@ License: http://jqwidgets.com/license/
         var tokens = argString ? splitBySlash(argString) : [];
         var regexPart, replacePart = '', trailing, flagsPart, count;
         var confirm = false; // Whether to confirm each replace.
+        var global = false; // True to replace all instances on a line, false to replace only 1.
         if (tokens.length) {
           regexPart = tokens[0];
           replacePart = tokens[1];
@@ -13155,6 +13145,10 @@ License: http://jqwidgets.com/license/
               confirm = true;
               flagsPart.replace('c', '');
             }
+            if (flagsPart.indexOf('g') != -1) {
+              global = true;
+              flagsPart.replace('g', '');
+            }
             regexPart = regexPart + '/' + flagsPart;
           }
         }
@@ -13184,7 +13178,7 @@ License: http://jqwidgets.com/license/
         }
         var startPos = clipCursorToContent(cm, Pos(lineStart, 0));
         var cursor = cm.getSearchCursor(query, startPos);
-        doReplace(cm, confirm, lineStart, lineEnd, cursor, query, replacePart, params.callback);
+        doReplace(cm, confirm, global, lineStart, lineEnd, cursor, query, replacePart, params.callback);
       },
       redo: CodeMirror.commands.redo,
       undo: CodeMirror.commands.undo,
@@ -13275,7 +13269,7 @@ License: http://jqwidgets.com/license/
     *     $2, etc for replacing captured groups using Javascript replace.
     * @param {function()} callback A callback for when the replace is done.
     */
-    function doReplace(cm, confirm, lineStart, lineEnd, searchCursor, query,
+    function doReplace(cm, confirm, global, lineStart, lineEnd, searchCursor, query,
         replaceWith, callback) {
       // Set up all the functions.
       cm.state.vim.exMode = true;
@@ -13296,17 +13290,21 @@ License: http://jqwidgets.com/license/
         searchCursor.replace(newText);
       }
       function next() {
-        var found = searchCursor.findNext();
-        if (!found) {
-          done = true;
-        } else if (isInRange(searchCursor.from(), lineStart, lineEnd)) {
+        var found;
+        // The below only loops to skip over multiple occurrences on the same
+        // line when 'global' is not true.
+        while(found = searchCursor.findNext() &&
+              isInRange(searchCursor.from(), lineStart, lineEnd)) {
+          if (!global && lastPos && searchCursor.from().line == lastPos.line) {
+            continue;
+          }
           cm.scrollIntoView(searchCursor.from(), 30);
           cm.setSelection(searchCursor.from(), searchCursor.to());
           lastPos = searchCursor.from();
           done = false;
-        } else {
-          done = true;
+          return;
         }
+        done = true;
       }
       function stop(close) {
         if (close) { close(); }
@@ -13317,7 +13315,7 @@ License: http://jqwidgets.com/license/
           vim.exMode = false;
           vim.lastHPos = vim.lastHSPos = lastPos.ch;
         }
-        if (callback) { callback(); };
+        if (callback) { callback(); }
       }
       function onPromptKeyDown(e, _value, close) {
         // Swallow all keys.
@@ -13571,6 +13569,25 @@ License: http://jqwidgets.com/license/
       } else if (cm.doc.history.lastSelOrigin == '*mouse') {
         // Reset lastHPos if mouse click was done in normal mode.
         vim.lastHPos = cm.doc.getCursor().ch;
+        if (cm.somethingSelected()) {
+          // If something is still selected, enter visual mode.
+          vim.visualMode = true;
+        }
+      }
+      if (vim.visualMode) {
+        var from, head;
+        from = head = cm.getCursor('head');
+        var anchor = cm.getCursor('anchor');
+        var to = Pos(head.line, from.ch + (cursorIsBefore(anchor, head) ? -1 : 1));
+        if (cursorIsBefore(to, from)) {
+          var temp = from;
+          from = to;
+          to = temp;
+        }
+        if (vim.fakeCursor) {
+          vim.fakeCursor.clear();
+        }
+        vim.fakeCursor = cm.markText(from, to, {className: 'cm-animate-fat-cursor'});
       }
     }
 
@@ -17686,7 +17703,7 @@ CodeMirror.defineMode("css", function(config, parserConfig) {
         }
       },
       ":": function(stream) {
-        if (stream.match(/\s*{/))
+        if (stream.match(/\s*\{/))
           return [null, "{"];
         return false;
       },
