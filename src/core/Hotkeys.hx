@@ -28,10 +28,12 @@ class Hotkeys
 	static var spanMap:StringMap<SpanElement> = new StringMap();
 	public static var data:Dynamic;
 	static var pathToData:String;
-	static var commandKey:Bool = Utils.os == Utils.MAC;
+	static var commandKey:Bool;
 	
 	public static function prepare():Void
 	{
+		commandKey = Utils.os == Utils.MAC;
+		
 		pathToData = Node.path.join(SettingsWatcher.pathToFolder,"hotkeys.json");
 		parseData();
 		
@@ -62,6 +64,8 @@ class Hotkeys
 					hotkey.onKeyDown();
 				}
 			}
+										
+// 			trace(e);
 		}
 		);
 	}
@@ -133,7 +137,6 @@ class Hotkeys
 			
 			if (spanMap.exists(menuItem)) 
 			{
-				
 				if (commandKey) 
 				{
 					hotkeyText = StringTools.replace(hotkeyText, "Ctrl", "Cmd");

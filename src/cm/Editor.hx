@@ -432,9 +432,28 @@ class Editor
 					{
 						Completion.showMetaTagsCompletion();
 					}
-					else 
+					else
 					{
-						Completion.showClassList();
+						var pos = {line: cursor.line, ch: cursor.ch - 1};
+						var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
+						
+						if (word.word == null || word.word != "default")
+						{
+							var len = 0;
+							
+							if (word.word != null)
+							{
+								len = word.word.length;
+							}
+							
+							var dataBeforeWord = data.substring(0, pos.ch - len);
+							dataBeforeWord = StringTools.trim(dataBeforeWord);
+						
+							if (!StringTools.endsWith(dataBeforeWord, "case"))
+							{
+								Completion.showClassList();
+							}
+						}
 					}
 				}
 				else if (lastChar == "<")
@@ -597,7 +616,7 @@ class Editor
 				}
 			}
 
-			var selectedFile = ProjectAccess.getFileByPath(Node.path.relative(ProjectAccess.path, TabManager.getCurrentDocumentPath()));
+			var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
 
 			if (selectedFile != null)
 			{

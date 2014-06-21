@@ -302,8 +302,8 @@ Main.main = function() {
 		core.Splitter.load();
 		watchers.SettingsWatcher.load();
 		watchers.SnippetsWatcher.load();
-		core.Hotkeys.prepare();
 		core.Utils.prepare();
+		core.Hotkeys.prepare();
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
 		cm.Zoom.load();
@@ -1414,7 +1414,17 @@ cm.Editor.load = function() {
 					}
 				}
 			} else if(lastChar == ":") {
-				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else core.Completion.showClassList();
+				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else {
+					var pos1 = { line : cursor1.line, ch : cursor1.ch - 1};
+					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos1);
+					if(word.word == null || word.word != "default") {
+						var len = 0;
+						if(word.word != null) len = word.word.length;
+						var dataBeforeWord = data.substring(0,pos1.ch - len);
+						dataBeforeWord = StringTools.trim(dataBeforeWord);
+						if(!StringTools.endsWith(dataBeforeWord,"case")) core.Completion.showClassList();
+					}
+				}
 			} else if(lastChar == "<") {
 				var _g8 = 0;
 				while(_g8 < basicTypes.length) {
@@ -1439,10 +1449,10 @@ cm.Editor.load = function() {
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			if(cm.Editor.isValidWordForCompletionOnType()) {
 				var doc2 = tabmanager.TabManager.getCurrentDocument();
-				var pos1 = doc2.getCursor();
+				var pos2 = doc2.getCursor();
 				core.Completion.getCompletion(function() {
 					if(cm.Editor.isValidWordForCompletionOnType()) core.Completion.showRegularCompletion(false);
-				},pos1);
+				},pos2);
 			}
 		}
 	});
@@ -1489,7 +1499,7 @@ cm.Editor.saveFoldedRegions = function() {
 			var pos = marker.find().from;
 			if(cm1.isFolded(pos)) foldedRegions.push(pos);
 		}
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.getCurrentDocumentPath()));
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
@@ -3330,18 +3340,11 @@ core.Helper.debounce = function(type,onComplete,time_ms) {
 	};
 	core.Helper.timers.set(type,timer);
 };
-core.Utils = function() { };
-$hxClasses["core.Utils"] = core.Utils;
-core.Utils.__name__ = ["core","Utils"];
-core.Utils.prepare = function() {
-	var platform = js.Node.require("os").platform();
-	core.Utils.os = 3;
-	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
-};
 core.Hotkeys = function() { };
 $hxClasses["core.Hotkeys"] = core.Hotkeys;
 core.Hotkeys.__name__ = ["core","Hotkeys"];
 core.Hotkeys.prepare = function() {
+	core.Hotkeys.commandKey = core.Utils.os == 2;
 	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
 	var options = { };
@@ -4632,6 +4635,14 @@ core.Splitter.hide = function() {
 	new $("#thirdNested").jqxSplitter({ showSplitBar : false});
 	new $("#annotationRuler").fadeOut(250);
 	if(tabmanager.TabManager.tabMap != null && tabmanager.TabManager.tabMap.getTabs().length == 0) core.WelcomeScreen.show();
+};
+core.Utils = function() { };
+$hxClasses["core.Utils"] = core.Utils;
+core.Utils.__name__ = ["core","Utils"];
+core.Utils.prepare = function() {
+	var platform = js.Node.require("os").platform();
+	core.Utils.os = 3;
+	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
 };
 core.WelcomeScreen = function() { };
 $hxClasses["core.WelcomeScreen"] = core.WelcomeScreen;
@@ -17531,7 +17542,6 @@ core.Helper.timers = new haxe.ds.StringMap();
 core.Hotkeys.hotkeys = new Array();
 core.Hotkeys.commandMap = new haxe.ds.StringMap();
 core.Hotkeys.spanMap = new haxe.ds.StringMap();
-core.Hotkeys.commandKey = core.Utils.os == 2;
 core.OutlinePanel.source = [];
 core.PreserveWindowState.isMaximizationEvent = false;
 core.PreserveWindowState.window = nodejs.webkit.Window.get();

@@ -86,9 +86,9 @@ class Main
 
 			SettingsWatcher.load();
 			SnippetsWatcher.load();
+			Utils.prepare();
 			Hotkeys.prepare();
 
-			Utils.prepare();
 			BootstrapMenu.createMenuBar();
 			NewProjectDialog.load();
 			Zoom.load();
