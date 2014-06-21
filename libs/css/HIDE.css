@@ -792,10 +792,10 @@ overflow: hidden;
 display: inline;
 }
 
-#tabs1
+/* #tabs1
 {
 	margin-bottom: -28px;
-}
+} */
 
 .hidden {
 display: none!important;

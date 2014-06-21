@@ -214,7 +214,7 @@ class Editor
 		Node.fs.writeFileSync(Node.path.join("core", "bindings.txt"), value, NodeC.UTF8);
 		
 		Browser.window.addEventListener("resize", function (e)
-		{
+		{			
 			Helper.debounce("resize", function ():Void 
 			{
 				editor.refresh();
@@ -707,8 +707,10 @@ class Editor
 	}
 	
 	public static function resize():Void 
-	{
-		var height = Browser.window.innerHeight - 34 - new JQuery("ul.tabs").height() - new JQuery("#tabs1").height() - 5;
+	{		
+		var panels = untyped new JQuery('#thirdNested').jqxSplitter('panels');
+
+		var height = Browser.window.innerHeight - 34 - new JQuery("ul.tabs").height() - panels[1].element[0].clientHeight - 5;
 		new JQuery(".CodeMirror").css("height", Std.string(Std.int(height)) + "px");
 	}
 	

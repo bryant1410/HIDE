@@ -10,12 +10,53 @@
 	<script src="includes/js/main.js"></script>
 
     <script type="text/javascript">
-        $(document).ready(function () {
+	function updateSize(height)
+	{					
+		if (height > 0)
+		{
+			$('#tabs1').jqxTabs({height:(height - 28).toString() + "px"});
+		}
+	}
+
+    $(document).ready(function () {
+			var nwgui = require('nw.gui');
+			var mainWindow = nwgui.Window.get();      
+			mainWindow.showDevTools();
+
+			process.on('uncaughtException', function (err)
+			{
+				console.log(err);
+				mainWindow.show();
+				mainWindow.showDevTools();
+			}
+			);
+
             $('#mainSplitter').jqxSplitter({width:'100%', height:'100%', orientation: 'vertical', panels: [{ size: 170, collapsible: false}] });
             $('#secondNested').jqxSplitter({ width: '100%', height:'100%', orientation: 'horizontal', panels: [{ size: '70%'}] });
             $('#thirdNested').jqxSplitter({ width: '100%', height: '100%',  orientation: 'horizontal', panels: [{ size: '85%', collapsible: false}] });
             $("#tabs2").jqxTabs({  height: '100%', width: '100%' });
 			$("#tabs1").jqxTabs({  height: '100%', width: '100%' });
+			
+			$('#thirdNested').on('resize', function (events)
+								{
+									if (events && events.args && events.args.panels)
+									{
+										var height = events.args.panels[1].size;
+										updateSize(height);
+									}
+								}
+								);
+		
+			$(window).on('resize', function ()
+						 {
+							 setTimeout(function ()
+									   {
+											var panels = $('#thirdNested').jqxSplitter('panels');
+							 				updateSize(panels[1].element[0].clientHeight);
+									   }
+									   , 75);
+						 }
+						);
 			
 			$('#filetree').jqxTree({allowDrag: true, allowDrop: true, width: '100%', height: '100%'});
 			$('#filetree').jqxTree('selectItem', null);
@@ -26,8 +67,7 @@
 			
 			$(".colorPreview").spectrum({});
 
-	    var nwgui = require('nw.gui');
-            var window = nwgui.Window.get();            
+	          
 
             var fs = require('fs');
             console.log("foundMatchingClose");
@@ -35,19 +75,12 @@
             {                
                if (!exists)
                {
-                   window.show();
-                   window.showDevTools();
+                   mainWindow.show();
+                   mainWindow.showDevTools();
                    $('body').html('HIDE.js is not found! Please compile HIDE.');
                }
 			}
             );
-		
-	    process.on('uncaughtException', function (err)
-	{
-		console.log(err);
-		window.show();
-	}
-	);
         });
     </script>
     

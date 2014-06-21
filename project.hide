@@ -11,9 +11,35 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/HIDE.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 0
+        }
+        ,{
+             "path" : "src/Main.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 39
+        }
+        ,{
+             "path" : "bin/core/index.html"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 63
+        }
     ]
-    ,"activeFile" : "src/tabmanager/TabManager.hx"
+    ,"activeFile" : "bin/core/index.html"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

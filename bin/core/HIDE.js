@@ -1558,7 +1558,8 @@ cm.Editor.walk = function(object) {
 	}
 };
 cm.Editor.resize = function() {
-	var height = window.innerHeight - 34 - new $("ul.tabs").height() - new $("#tabs1").height() - 5;
+	var panels = new $("#thirdNested").jqxSplitter("panels");
+	var height = window.innerHeight - 34 - new $("ul.tabs").height() - panels[1].element[0].clientHeight - 5;
 	new $(".CodeMirror").css("height",Std.string(height | 0) + "px");
 };
 cm.Editor.loadTheme = function() {
