@@ -68,7 +68,10 @@ class Hotkeys
 				}
 			}
 													
-			trace(e);
+			if (e.keyCode == "S".code)
+			{
+				trace(e);
+			}
 		}
 		);
 	}

@@ -11,9 +11,17 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/core/Hotkeys.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 71
+        }
     ]
-    ,"activeFile" : "libs/css/HIDE.css"
+    ,"activeFile" : "src/core/Hotkeys.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

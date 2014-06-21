@@ -3375,7 +3375,7 @@ core.Hotkeys.prepare = function() {
 				console.log(Std.string(hotkey));
 			}
 		}
-		console.log(e);
+		if(e.keyCode == 83) console.log(e);
 	});
 };
 core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
