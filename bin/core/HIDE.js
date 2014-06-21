@@ -1044,7 +1044,8 @@ build.Hxml.buildHxml = function(dirname,filename,useCompilationServer,startComma
 	if(useCompilationServer) params = params.concat(["--connect","5000"]);
 	params.push(filename);
 	var process = params.shift();
-	core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,onComplete);
+	var cwd = projectaccess.ProjectAccess.path;
+	core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
 };
 var byte = {};
 byte.js = {};
@@ -1416,7 +1417,7 @@ cm.Editor.load = function() {
 			} else if(lastChar == ":") {
 				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else {
 					var pos1 = { line : cursor1.line, ch : cursor1.ch - 1};
-					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos1);
+					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9\\.]+$","i")},pos1);
 					if(word.word == null || word.word != "default") {
 						var len = 0;
 						if(word.word != null) len = word.word.length;
@@ -3315,7 +3316,7 @@ core.HaxeServer.check = function() {
 };
 core.HaxeServer.start = function() {
 	console.log("Starting new Haxe server at localhost:5000");
-	core.HaxeServer.haxeServer = core.ProcessHelper.runPersistentProcess("haxe",["--wait","5000"],function(code,stdout,stderr) {
+	core.HaxeServer.haxeServer = core.ProcessHelper.runPersistentProcess("haxe",["--wait","5000"],null,function(code,stdout,stderr) {
 		console.log(stdout);
 		console.log(stderr);
 	});
@@ -4015,7 +4016,7 @@ core.ProcessHelper.runProcess = function(process,params,path,onComplete,onFailed
 	});
 	return process1;
 };
-core.ProcessHelper.runProcessAndPrintOutputToConsole = function(process,params,onComplete) {
+core.ProcessHelper.runProcessAndPrintOutputToConsole = function(process,params,cwd,onComplete) {
 	var command = core.ProcessHelper.processParamsToCommand(process,params);
 	new $("#outputTab").click();
 	var textarea;
@@ -4023,7 +4024,7 @@ core.ProcessHelper.runProcessAndPrintOutputToConsole = function(process,params,o
 	textarea.value = "Build started\n";
 	textarea.value += command + "\n";
 	new $("#errors").html("");
-	var process1 = core.ProcessHelper.runPersistentProcess(process,params,function(code,stdout,stderr) {
+	var process1 = core.ProcessHelper.runPersistentProcess(process,params,cwd,function(code,stdout,stderr) {
 		core.ProcessHelper.processOutput(code,core.ProcessHelper.processStdout,core.ProcessHelper.processStderr,onComplete);
 	});
 	return process1;
@@ -4122,13 +4123,13 @@ core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
 	}
 	core.HaxeLint.updateLinting();
 };
-core.ProcessHelper.runPersistentProcess = function(process,params,onClose,redirectToOutput) {
+core.ProcessHelper.runPersistentProcess = function(process,params,cwd,onClose,redirectToOutput) {
 	if(redirectToOutput == null) redirectToOutput = false;
 	var textarea;
 	textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
 	core.ProcessHelper.processStdout = "";
 	core.ProcessHelper.processStderr = "";
-	var process1 = js.Node.require("child_process").spawn(process,params,{ });
+	var process1 = js.Node.require("child_process").spawn(process,params,{ cwd : cwd});
 	process1.stdout.setEncoding("utf8");
 	process1.stdout.on("data",function(data) {
 		core.ProcessHelper.processStdout += data;
@@ -4452,7 +4453,7 @@ core.RunProject.cleanProject = function() {
 			var pathToHxml = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.targetData[project.target].pathToHxml);
 			break;
 		case 1:
-			core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew("haxelib",["run","lime","clean",project.openFLTarget]);
+			core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew("haxelib",["run","lime","clean",project.openFLTarget],projectaccess.ProjectAccess.path);
 			break;
 		case 2:
 			var pathToHxml1 = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.main);
@@ -4510,7 +4511,8 @@ core.RunProject.runProject = function() {
 			if(core.RunProject.isValidCommand(command)) {
 				var params = build.CommandPreprocessor.preprocess(command,projectaccess.ProjectAccess.path).split(" ");
 				var process = params.shift();
-				core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew(process,params);
+				var cwd = projectaccess.ProjectAccess.path;
+				core.RunProject.runProcess = core.RunProject.killRunningProcessAndRunNew(process,params,cwd);
 				var $window = nodejs.webkit.Window.get();
 				$window.on("close",function(e) {
 					core.RunProject.killRunProcess();
@@ -4522,9 +4524,9 @@ core.RunProject.runProject = function() {
 		}
 	});
 };
-core.RunProject.killRunningProcessAndRunNew = function(process,params) {
+core.RunProject.killRunningProcessAndRunNew = function(process,params,cwd) {
 	core.RunProject.killRunProcess();
-	return core.ProcessHelper.runPersistentProcess(process,params,null,true);
+	return core.ProcessHelper.runPersistentProcess(process,params,cwd,null,true);
 };
 core.RunProject.killRunProcess = function() {
 	console.log(core.RunProject.runProcess);
@@ -4591,7 +4593,8 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 			command = build.CommandPreprocessor.preprocess(command,pathToProject);
 			var params = build.CommandPreprocessor.preprocess(command,pathToProject).split(" ");
 			var process = params.shift();
-			core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,onComplete);
+			var cwd = projectaccess.ProjectAccess.path;
+			core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
 		}
 	});
 };
@@ -4954,7 +4957,8 @@ dialogs.InstallHaxelibDialog = function() {
 	okButton.onclick = function(e1) {
 		Alertify.log("Running command: " + _g.input.value);
 		var params = StringTools.trim(_g.input.value).split(" ");
-		core.ProcessHelper.runPersistentProcess(params.shift(),params,function(code,stdout,stderr) {
+		var cwd = projectaccess.ProjectAccess.path;
+		core.ProcessHelper.runPersistentProcess(params.shift(),params,cwd,function(code,stdout,stderr) {
 			if(code == 0) Alertify.success(_g.lib + " install complete(" + _g.input.value + ")."); else {
 				Alertify.error("Error on running command " + _g.input.value);
 				Alertify.error(stdout);

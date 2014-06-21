@@ -58,7 +58,7 @@ class ProcessHelper
 		return process;
 	}
 	
-	public static function runProcessAndPrintOutputToConsole(process:String, params:Array<String>, ?onComplete:Void->Void):NodeChildProcess
+	public static function runProcessAndPrintOutputToConsole(process:String, params:Array<String>, cwd:String, ?onComplete:Void->Void):NodeChildProcess
 	{
 		var command:String = processParamsToCommand(process, params);
 		
@@ -70,7 +70,7 @@ class ProcessHelper
 		
 		new JQuery("#errors").html("");
 		
-		var process:NodeChildProcess = runPersistentProcess(process, params, function (code:Int, stdout:String, stderr:String):Void 
+		var process:NodeChildProcess = runPersistentProcess(process, params, cwd, function (code:Int, stdout:String, stderr:String):Void 
 		{
 			processOutput(code, processStdout, processStderr, onComplete);
 		}
@@ -247,14 +247,14 @@ class ProcessHelper
 		HaxeLint.updateLinting();
 	}
 	
-	public static function runPersistentProcess(process:String, params:Array<String>, ?onClose:Int->String->String->Void, ?redirectToOutput:Bool = false):NodeChildProcess
+	public static function runPersistentProcess(process:String, params:Array<String>, cwd:String, ?onClose:Int->String->String->Void, ?redirectToOutput:Bool = false):NodeChildProcess
 	{
 		var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
 		
 		processStdout = "";
 		processStderr = "";
 		
-		var process:NodeChildProcess = Node.child_process.spawn(process, params, { } );
+		var process:NodeChildProcess = Node.child_process.spawn(process, params, { cwd: cwd } );
 		
 		process.stdout.setEncoding(NodeC.UTF8);
 		process.stdout.on("data", function (data:String)

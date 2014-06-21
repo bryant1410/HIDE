@@ -35,7 +35,7 @@ class RunProject
 				case Project.HAXE:
 					var pathToHxml:String = Node.path.join(ProjectAccess.path, project.targetData[project.target].pathToHxml);
 				case Project.OPENFL:
-					runProcess = killRunningProcessAndRunNew("haxelib", ["run", "lime", "clean", project.openFLTarget]);
+					runProcess = killRunningProcessAndRunNew("haxelib", ["run", "lime", "clean", project.openFLTarget], ProjectAccess.path);
 				case Project.HXML:
 					var pathToHxml:String = Node.path.join(ProjectAccess.path, project.main);
 				default:
@@ -81,7 +81,7 @@ class RunProject
 	public static function runProject():Void
 	{		
 		buildProject(null, function ()
-		{
+		{	
 			var project = ProjectAccess.currentProject;
 			
 			var runActionType;
@@ -133,7 +133,9 @@ class RunProject
 						
 						var process:String = params.shift();
 						
-						runProcess = killRunningProcessAndRunNew(process, params);
+						var cwd:String = ProjectAccess.path;
+						
+						runProcess = killRunningProcessAndRunNew(process, params, cwd);
 						
 						var window:Window = Window.get();
 		
@@ -151,10 +153,10 @@ class RunProject
 		);
 	}
 	
-	static function killRunningProcessAndRunNew(process:String, params:Array<String>):NodeChildProcess 
+	static function killRunningProcessAndRunNew(process:String, params:Array<String>, cwd:String):NodeChildProcess 
 	{
 		killRunProcess();
-		return ProcessHelper.runPersistentProcess(process, params, null, true);
+		return ProcessHelper.runPersistentProcess(process, params, cwd, null, true);
 	}
 	
 	static function killRunProcess():Void
@@ -276,7 +278,9 @@ class RunProject
 					var params:Array<String> = CommandPreprocessor.preprocess(command, pathToProject).split(" ");
 					var process:String = params.shift();
 					
-					ProcessHelper.runProcessAndPrintOutputToConsole(process, params, onComplete);			
+					var cwd = ProjectAccess.path;
+					
+					ProcessHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);			
 				}
 			}
 			);

@@ -1,4 +1,5 @@
 package build;
+import projectaccess.ProjectAccess;
 import core.ProcessHelper;
 import core.Utils;
 
@@ -56,6 +57,8 @@ class Hxml
 		
 		var process:String = params.shift();
 		
-		ProcessHelper.runProcessAndPrintOutputToConsole(process, params, onComplete);
+		var cwd = ProjectAccess.path;
+		
+		ProcessHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);
 	}
 }

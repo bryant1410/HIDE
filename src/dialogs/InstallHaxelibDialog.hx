@@ -1,4 +1,5 @@
 package dialogs;
+import projectaccess.ProjectAccess;
 import bootstrap.ButtonManager;
 import bootstrap.InputGroup;
 import bootstrap.InputGroupButton;
@@ -109,7 +110,9 @@ class InstallHaxelibDialog extends ModalDialog
 			
 			var params = StringTools.trim(input.value).split(" ");
 			
-			ProcessHelper.runPersistentProcess(params.shift(), params, function (code, stdout, stderr):Void 
+			var cwd = ProjectAccess.path;
+			
+			ProcessHelper.runPersistentProcess(params.shift(), params, cwd, function (code, stdout, stderr):Void 
 			{
 				if (code == 0) 
 				{

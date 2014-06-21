@@ -435,7 +435,7 @@ class Editor
 					else
 					{
 						var pos = {line: cursor.line, ch: cursor.ch - 1};
-						var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
+						var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9\.]+$/i}, pos);
 						
 						if (word.word == null || word.word != "default")
 						{
