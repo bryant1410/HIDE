@@ -12,14 +12,19 @@
         haxelib install jQueryExtern
         haxelib install node-webkit
 
-2. Compile HIDE by running:
+2. Navigate to __HIDE/bin__ and run __npm install__ to install required dependencies(you might need to add __sudo__ if you work under Linux/Mac OS X)
+
+		npm install
+
+3. Navigate to the root folder and compile HIDE by running:
 
         haxe HIDE.hxml
 
-3. Navigate to __HIDE/bin__ folder and run node-webkit there using:
+4. Navigate to __HIDE/bin__ folder and run node-webkit there using:
 
         haxelib run node-webkit
 
+5. Select __File__ -> __Open Project...__ and select __project.hide__ in the root folder of the HIDE repository to open HIDE project in HIDE
 
 ###How to contribute:
 
