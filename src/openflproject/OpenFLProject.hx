@@ -61,10 +61,10 @@ class OpenFLProject
 			
 			params = ["openfl:project", "\"" + str + data.projectName + "\""];
 			
-			if (data.projectCompany != "")
-			{
-				params.push("\"" + data.projectCompany + "\"");
-			}
+// 			if (data.projectCompany != "")
+// 			{
+// 				params.push("\"" + data.projectCompany + "\"");
+// 			}
 		}
 		else 
 		{

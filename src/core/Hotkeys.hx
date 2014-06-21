@@ -64,9 +64,10 @@ class Hotkeys
 				if (isHotkeyEvent(hotkey, e))
 				{
 					hotkey.onKeyDown();
+					trace(Std.string(hotkey));
 				}
 			}
-										
+													
 			trace(e);
 		}
 		);
@@ -158,8 +159,6 @@ class Hotkeys
 	inline static function isHotkeyEvent(hotkey:Dynamic, e:KeyboardEvent):Bool
 	{
 		var isHotkey:Bool = hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || (commandKey && e.metaKey)) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
-		trace(e);
-		trace(isHotkey);
 		return isHotkey;
 	}
 	

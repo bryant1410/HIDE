@@ -3370,7 +3370,10 @@ core.Hotkeys.prepare = function() {
 		while(_g < _g1.length) {
 			var hotkey = _g1[_g];
 			++_g;
-			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) hotkey.onKeyDown();
+			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) {
+				hotkey.onKeyDown();
+				console.log(Std.string(hotkey));
+			}
 		}
 		console.log(e);
 	});
@@ -3417,8 +3420,6 @@ core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 };
 core.Hotkeys.isHotkeyEvent = function(hotkey,e) {
 	var isHotkey = hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
-	console.log(e);
-	console.log(isHotkey);
 	return isHotkey;
 };
 core.Hotkeys.parseData = function() {
@@ -14760,7 +14761,6 @@ openflproject.OpenFLProject.createOpenFLProject = function(data,sample) {
 		var str = "";
 		if(data.projectPackage != "") str = data.projectPackage + ".";
 		params = ["openfl:project","\"" + str + data.projectName + "\""];
-		if(data.projectCompany != "") params.push("\"" + data.projectCompany + "\"");
 	} else params = [data.projectName];
 	openflproject.CreateOpenFLProject.createOpenFLProject(params,data.projectLocation,function() {
 		var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);
