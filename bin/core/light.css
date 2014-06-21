@@ -98,3 +98,8 @@
 {
 	margin-top: -1px;
 }
+
+.navbar
+{
+	border-bottom: solid #bbb 1px;
+}

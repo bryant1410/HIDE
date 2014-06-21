@@ -11,9 +11,13 @@
 
     ]
     ,"files" : [
-
+         {
+             "path" : "src/Main.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+        }
     ]
-    ,"activeFile" : "libs/css/HIDE.css"
+    ,"activeFile" : "src/Main.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

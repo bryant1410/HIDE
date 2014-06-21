@@ -13767,6 +13767,14 @@ menu.BootstrapMenu.getMenu = function(name,position) {
 		menu1.setPosition(position);
 		menu.BootstrapMenu.addMenuToDocument(menu1);
 		menu.BootstrapMenu.menus.set(name,menu1);
+		new $(window.document).on("mouseenter","#position-navbar .dropdown",function(e) {
+			var self = this;
+			var open = new $(self).siblings(".open");
+			if(open.length > 0) {
+				open.removeClass("open");
+				new $(self).addClass("open");
+			}
+		});
 	} else {
 		menu1 = menu.BootstrapMenu.menus.get(name);
 		if(position != null && menu1.position != position) {

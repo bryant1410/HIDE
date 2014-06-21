@@ -1,4 +1,5 @@
 package menu;
+import jQuery.JQuery;
 import haxe.ds.StringMap.StringMap;
 import js.Browser;
 import js.html.AnchorElement;
@@ -69,7 +70,19 @@ class BootstrapMenu
 
 			addMenuToDocument(menu);
 
-			menus.set(name, menu);		
+			menus.set(name, menu);
+			
+			new JQuery(Browser.window.document).on("mouseenter", "#position-navbar .dropdown", function (e)
+												   {
+													   var self = untyped __js__("this");
+													   
+													    var open = new JQuery(self).siblings(".open");
+														if (open.length > 0) {
+															open.removeClass("open");
+															new JQuery(self).addClass("open");
+														}
+												   }
+												  );
 		}
 		else
 		{

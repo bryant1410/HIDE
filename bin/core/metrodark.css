@@ -1251,3 +1251,8 @@ ul.tabs li:hover
 {
 	color: #999;
 }
+
+.navbar
+{
+	border-bottom: solid #35353A 1px;
+}
