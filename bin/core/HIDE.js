@@ -1563,6 +1563,7 @@ cm.Editor.resize = function() {
 	var panels = new $("#thirdNested").jqxSplitter("panels");
 	var height = window.innerHeight - 34 - new $("ul.tabs").height() - panels[1].element[0].clientHeight - 5;
 	new $(".CodeMirror").css("height",Std.string(height | 0) + "px");
+	new $("#annotationRuler").css("height",Std.string(height - 1 | 0) + "px");
 };
 cm.Editor.loadTheme = function() {
 	var localStorage2 = js.Browser.getLocalStorage();

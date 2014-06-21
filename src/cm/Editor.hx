@@ -714,6 +714,8 @@ class Editor
 
 		var height = Browser.window.innerHeight - 34 - new JQuery("ul.tabs").height() - panels[1].element[0].clientHeight - 5;
 		new JQuery(".CodeMirror").css("height", Std.string(Std.int(height)) + "px");
+		
+		new JQuery("#annotationRuler").css("height", Std.string(Std.int(height - 1)) + "px");
 	}
 	
 	private static function loadTheme() 

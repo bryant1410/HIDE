@@ -278,12 +278,14 @@ welcomeA:hover {
 
 #annotationRuler
 {
-	width: 17px;
+	width: 12px;
 	height: 100%;
-	background-color: #ccc; 
+	background-color: #efefef;
 	position: absolute; 
-	top: 0; 
 	right:0;
+	bottom: 0;
+	border-radius: 3px;
+	border: solid 1px #aaa;
 }
 
 #editor
@@ -292,7 +294,7 @@ welcomeA:hover {
 	position: absolute;
 	top: 0;
 	left: 0;
-	right: 17px;
+	right: 12px;
 	bottom: 0;
 }
 
