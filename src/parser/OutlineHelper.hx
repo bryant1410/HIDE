@@ -11,10 +11,17 @@ import haxeparser.Data.ImportMode;
 import haxeparser.Data.TypeDef;
 import js.Node;
 
+typedef DeclarationPos = 
+{
+	var min:Int;
+	var max:Int;
+}
+
+
 typedef	ClassField =
 {
 	var name:String;
-	var pos:Int;
+	var pos:DeclarationPos;
 }
 
 /**
@@ -88,7 +95,7 @@ class OutlineHelper
         		
         		for (item in data.data)
                 {
-                	items.push( { label: item.name, value: item.pos.min});
+                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max}});
        	     	}
         		
 			case ETypedef(data): 
@@ -146,7 +153,7 @@ class OutlineHelper
 		return fileImports;
 	}
 	
-	static function getClassFields(type:Definition<ClassFlag, Array<Field>>):Array<{name:String, pos:Int}>
+	static function getClassFields(type:Definition<ClassFlag, Array<Field>>):Array<ClassField>
 	{
 		var fields:Array<ClassField> = [];
 		
@@ -172,7 +179,7 @@ class OutlineHelper
 						data += ":" + getFieldType(f.ret);
 					}
 					
-					fields.push( { name: data, pos: type.data[i].pos.min } );
+					fields.push( { name: data, pos: {min: type.data[i].pos.min, max: type.data[i].pos.max} } );
 					
 					//currentFunctionScopeType = getFunctionScope(type.data[i], f);
 					//
@@ -184,7 +191,7 @@ class OutlineHelper
 						//}
 					//}
 				case FVar(t, e):
-					fields.push( { name: getFieldNameAndType(type.data[i].name, t), pos: type.data[i].pos.min } );
+					fields.push( { name: getFieldNameAndType(type.data[i].name, t), pos: {min: type.data[i].pos.min, max: type.data[i].pos.max} } );
 					
 					//TPath( p : TypePath );
 					//TFunction( args : Array<ComplexType>, ret : ComplexType );
@@ -198,7 +205,7 @@ class OutlineHelper
 					//trace(e);
 					//currentFunctionScopeType = SClass;
 				case FProp(get, set, t, e):
-					fields.push({name: type.data[i].name, pos: type.data[i].pos.min});
+					fields.push({name: type.data[i].name, pos: {min: type.data[i].pos.min, max: type.data[i].pos.max}});
 					//completions.push(type.data[i].name);
 					//currentFunctionScopeType = SClass;
 			}
@@ -207,9 +214,9 @@ class OutlineHelper
 		return fields;
 	}    
     
-    static function getTypeDefFields(type:Definition<EnumFlag, ComplexType>):Array<{name:String, pos:Int}>
+    static function getTypeDefFields(type:Definition<EnumFlag, ComplexType>):Array<ClassField>
 	{
-		var typeDefFields:Array<{name:String, pos:Int}> = [];
+		var typeDefFields:Array<ClassField> = [];
 		
         switch (type.data)
         {
@@ -238,9 +245,9 @@ class OutlineHelper
                                 data += ":" + getFieldType(f.ret);
                             }
 
-                            typeDefFields.push( { name: data, pos: field.pos.min } );
+                            typeDefFields.push( { name: data, pos: {min: field.pos.min, max: field.pos.max} } );
                         case FVar(t, e):
-                            typeDefFields.push( { name: getFieldNameAndType(field.name, t), pos: field.pos.min } );
+                            typeDefFields.push( { name: getFieldNameAndType(field.name, t), pos: {min: field.pos.min, max: field.pos.max} } );
 
                             //TPath( p : TypePath );
                             //TFunction( args : Array<ComplexType>, ret : ComplexType );
@@ -254,7 +261,7 @@ class OutlineHelper
                             //trace(e);
                             //currentFunctionScopeType = SClass;
                         case FProp(get, set, t, e):
-                            typeDefFields.push({name: field.name, pos: field.pos.min});
+                            typeDefFields.push({name: field.name, pos: {min: field.pos.min, max: field.pos.max}});
                             //completions.push(type.data[i].name);
                             //currentFunctionScopeType = SClass;
                     }

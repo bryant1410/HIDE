@@ -1,4 +1,6 @@
 package core;
+import haxe.Timer;
+import parser.OutlineHelper;
 import cm.Editor;
 import jQuery.JQuery;
 
@@ -27,12 +29,27 @@ class OutlinePanel
 		{
 			var item = untyped new JQuery('#outline').jqxTree('getSelectedItem');
 			
-			var value = item.value;
+			var value:DeclarationPos = item.value;
+			
+			var cm = Editor.editor;
 			
 			if (value != null) 
 			{
-				var line = Editor.editor.posFromIndex(value).line;
-				Editor.editor.centerOnLine(line);
+				var pos = cm.posFromIndex(value.min);
+				var pos2 = cm.posFromIndex(value.max);
+				var line = pos.line;
+				
+				cm.centerOnLine(line);
+				cm.focus();
+				cm.setCursor(pos2);
+				
+				var marker = cm.markText(pos, pos2, {className: "showDeclaration"});
+				
+				Timer.delay(function ()
+							{
+								marker.clear();
+							}
+							, 1000);
 			}
 		}
 		);

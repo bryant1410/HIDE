@@ -76,6 +76,11 @@ html, body
 	background-color: #E3E8E7;
 }
 
+.showDeclaration
+{
+	background-color: #c8f29e;
+}
+
 /*
  * Globals
  */
@@ -273,7 +278,7 @@ welcomeA:hover {
 
 #annotationRuler
 {
-	width: 2%;
+	width: 17px;
 	height: 100%;
 	background-color: #ccc; 
 	position: absolute; 
@@ -283,7 +288,12 @@ welcomeA:hover {
 
 #editor
 {
-	width: 98%;
+/* 	width: 98%; */
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 17px;
+	bottom: 0;
 }
 
 .CodeMirror-hint 

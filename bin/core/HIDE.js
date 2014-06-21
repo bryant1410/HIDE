@@ -3935,9 +3935,18 @@ core.OutlinePanel.update = function() {
 	new $("#outline").dblclick(function(event) {
 		var item = new $("#outline").jqxTree("getSelectedItem");
 		var value = item.value;
+		var cm1 = cm.Editor.editor;
 		if(value != null) {
-			var line = cm.Editor.editor.posFromIndex(value).line;
-			cm.Editor.editor.centerOnLine(line);
+			var pos = cm1.posFromIndex(value.min);
+			var pos2 = cm1.posFromIndex(value.max);
+			var line = pos.line;
+			cm1.centerOnLine(line);
+			cm1.focus();
+			cm1.setCursor(pos2);
+			var marker = cm1.markText(pos,pos2,{ className : "showDeclaration"});
+			haxe.Timer.delay(function() {
+				marker.clear();
+			},1000);
 		}
 	});
 };
@@ -15446,7 +15455,7 @@ parser.OutlineHelper.parseDeclarations = function(ast) {
 				while(_g31 < _g41.length) {
 					var item1 = _g41[_g31];
 					++_g31;
-					items1.push({ label : item1.name, value : item1.pos.min});
+					items1.push({ label : item1.name, value : { min : item1.pos.min, max : item1.pos.max}});
 				}
 				break;
 			case 4:
@@ -15528,19 +15537,19 @@ parser.OutlineHelper.getClassFields = function(type) {
 				data += args.join(", ");
 				data += ")";
 				if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
-				fields.push({ name : data, pos : type.data[i].pos.min});
+				fields.push({ name : data, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
 				break;
 			case 0:
 				var e = _g2[3];
 				var t = _g2[2];
-				fields.push({ name : parser.OutlineHelper.getFieldNameAndType(type.data[i].name,t), pos : type.data[i].pos.min});
+				fields.push({ name : parser.OutlineHelper.getFieldNameAndType(type.data[i].name,t), pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
 				break;
 			case 2:
 				var e1 = _g2[5];
 				var t1 = _g2[4];
 				var set = _g2[3];
 				var get = _g2[2];
-				fields.push({ name : type.data[i].name, pos : type.data[i].pos.min});
+				fields.push({ name : type.data[i].name, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
 				break;
 			}
 		}
@@ -15582,19 +15591,19 @@ parser.OutlineHelper.getTypeDefFields = function(type) {
 						data += args1.join(", ");
 						data += ")";
 						if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
-						typeDefFields.push({ name : data, pos : field.pos.min});
+						typeDefFields.push({ name : data, pos : { min : field.pos.min, max : field.pos.max}});
 						break;
 					case 0:
 						var e = _g2[3];
 						var t = _g2[2];
-						typeDefFields.push({ name : parser.OutlineHelper.getFieldNameAndType(field.name,t), pos : field.pos.min});
+						typeDefFields.push({ name : parser.OutlineHelper.getFieldNameAndType(field.name,t), pos : { min : field.pos.min, max : field.pos.max}});
 						break;
 					case 2:
 						var e1 = _g2[5];
 						var t1 = _g2[4];
 						var set = _g2[3];
 						var get = _g2[2];
-						typeDefFields.push({ name : field.name, pos : field.pos.min});
+						typeDefFields.push({ name : field.name, pos : { min : field.pos.min, max : field.pos.max}});
 						break;
 					}
 				}
