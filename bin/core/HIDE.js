@@ -1447,6 +1447,7 @@ cm.Editor.load = function() {
 		}
 		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
+		console.log(e2);
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			if(cm.Editor.isValidWordForCompletionOnType()) {
 				var doc2 = tabmanager.TabManager.getCurrentDocument();
@@ -3347,6 +3348,7 @@ $hxClasses["core.Hotkeys"] = core.Hotkeys;
 core.Hotkeys.__name__ = ["core","Hotkeys"];
 core.Hotkeys.prepare = function() {
 	core.Hotkeys.commandKey = core.Utils.os == 2;
+	console.log("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey));
 	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
 	var options = { };
@@ -3368,8 +3370,9 @@ core.Hotkeys.prepare = function() {
 		while(_g < _g1.length) {
 			var hotkey = _g1[_g];
 			++_g;
-			if(hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey) hotkey.onKeyDown();
+			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) hotkey.onKeyDown();
 		}
+		console.log(e);
 	});
 };
 core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
@@ -3379,7 +3382,7 @@ core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
 	if(menuItem == "Source->Show Code Completion") {
 		var hotkey = core.Hotkeys.parseHotkey(hotkeyText);
 		cm.Editor.editor.on("keypress",function(cm,e) {
-			if(hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey) e.preventDefault();
+			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) e.preventDefault();
 		});
 	}
 };
@@ -3411,6 +3414,12 @@ core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 			core.Hotkeys.hotkeys.push(hotkey);
 		}
 	}
+};
+core.Hotkeys.isHotkeyEvent = function(hotkey,e) {
+	var isHotkey = hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || core.Hotkeys.commandKey && e.metaKey) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
+	console.log(e);
+	console.log(isHotkey);
+	return isHotkey;
 };
 core.Hotkeys.parseData = function() {
 	var options = { };
@@ -4647,6 +4656,7 @@ core.Utils.prepare = function() {
 	var platform = js.Node.require("os").platform();
 	core.Utils.os = 3;
 	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
+	console.log("platform is " + (platform == null?"null":"" + platform));
 };
 core.WelcomeScreen = function() { };
 $hxClasses["core.WelcomeScreen"] = core.WelcomeScreen;

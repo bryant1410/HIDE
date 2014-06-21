@@ -33,5 +33,7 @@ class Utils
 		{
 			os = WINDOWS;
 		}
+			
+		trace("platform is " + Std.string(platform));
 	}
 }

@@ -511,6 +511,8 @@ class Editor
 			//}
 			//, 150);
 			
+			trace(e);
+
 			if (["+input", "+delete"].indexOf(e.origin) != -1)
 			{
 // 				Helper.debounce("type", function ():Void

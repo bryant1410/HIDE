@@ -34,6 +34,8 @@ class Hotkeys
 	{
 		commandKey = Utils.os == Utils.MAC;
 		
+		trace("Hotkeys adjusted for Mac OS X " + Std.string(commandKey));
+		
 		pathToData = Node.path.join(SettingsWatcher.pathToFolder,"hotkeys.json");
 		parseData();
 		
@@ -65,7 +67,7 @@ class Hotkeys
 				}
 			}
 										
-// 			trace(e);
+			trace(e);
 		}
 		);
 	}
@@ -155,7 +157,10 @@ class Hotkeys
 	
 	inline static function isHotkeyEvent(hotkey:Dynamic, e:KeyboardEvent):Bool
 	{
-		return hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || (commandKey && e.metaKey)) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
+		var isHotkey:Bool = hotkey.keyCode == e.keyCode && hotkey.ctrl == (e.ctrlKey || (commandKey && e.metaKey)) && hotkey.shift == e.shiftKey && hotkey.alt == e.altKey;
+		trace(e);
+		trace(isHotkey);
+		return isHotkey;
 	}
 	
 	static function parseData():Void
