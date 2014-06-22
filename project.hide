@@ -12,43 +12,34 @@
     ]
     ,"files" : [
          {
-             "path" : "src/filetree/FileTree.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 347
-        }
-        ,{
-             "path" : "libs/css/HIDE.css"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 864
-        }
-        ,{
-             "path" : "src/core/RecentProjectsList.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 107
-        }
-        ,{
              "path" : "src/core/MenuCommands.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 191
+            ,"activeLine" : 0
+        }
+        ,{
+             "path" : "src/core/Completion.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 0
+        }
+        ,{
+             "path" : "src/Main.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 180
         }
     ]
-    ,"activeFile" : "src/core/RecentProjectsList.hx"
+    ,"activeFile" : "src/Main.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
