@@ -131,7 +131,7 @@ class MenuCommands
 		
 		Window.get().on('close', TabManager.saveAll);
 		
-		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
+// 		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
 		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"settings.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", SettingsWatcher.settings.theme)));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"editor.json")));

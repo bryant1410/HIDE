@@ -57,20 +57,14 @@ class Hotkeys
 		}
 		);
 		
-		Browser.window.addEventListener("keyup", function (e:KeyboardEvent)
+		Browser.window.addEventListener("keydown", function (e:KeyboardEvent)
 		{
 			for (hotkey in hotkeys)
 			{
 				if (isHotkeyEvent(hotkey, e))
 				{
 					hotkey.onKeyDown();
-					trace(Std.string(hotkey));
 				}
-			}
-													
-			if (e.keyCode == "S".code)
-			{
-				trace(e);
 			}
 		}
 		);

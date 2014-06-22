@@ -53,7 +53,7 @@ class ClasspathWalker
 				
 				if (pathToHaxeStd != null) 
 				{
-					localStorage2.setItem("pathToHaxe", pathToHaxeStd);
+					localStorage2.setItem("pathToHaxe", envVar);
 					break;
 				}
 			}

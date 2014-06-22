@@ -3365,18 +3365,14 @@ core.Hotkeys.prepare = function() {
 			}
 		}
 	});
-	window.addEventListener("keyup",function(e) {
+	window.addEventListener("keydown",function(e) {
 		var _g = 0;
 		var _g1 = core.Hotkeys.hotkeys;
 		while(_g < _g1.length) {
 			var hotkey = _g1[_g];
 			++_g;
-			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) {
-				hotkey.onKeyDown();
-				console.log(Std.string(hotkey));
-			}
+			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) hotkey.onKeyDown();
 		}
-		if(e.keyCode == 83) console.log(e);
 	});
 };
 core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
@@ -3841,7 +3837,6 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("File").addSeparator();
 	menu.BootstrapMenu.getMenu("File").addMenuItem("Exit",9,nodejs.webkit.App.closeAllWindows);
 	nodejs.webkit.Window.get().on("close",tabmanager.TabManager.saveAll);
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager",1,dialogs.DialogManager.showHaxelibManagerDialog);
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open settings",1,(function(f2,a12) {
 		return function() {
 			return f2(a12);
@@ -4859,9 +4854,6 @@ dialogs.DialogManager.showBrowseFolderDialog = function(title,onComplete,default
 	dialog.setCallback(onComplete);
 	dialog.setDefaultValue(defaultValue);
 	dialog.show();
-};
-dialogs.DialogManager.showHaxelibManagerDialog = function() {
-	dialogs.DialogManager.haxelibManagerDialog.show();
 };
 dialogs.DialogManager.showProjectOptions = function() {
 	dialogs.DialogManager.projectOptionsDialog.show();
@@ -15179,7 +15171,7 @@ parser.ClasspathWalker.load = function() {
 		if(envVar != null) {
 			parser.ClasspathWalker.pathToHaxeStd = parser.ClasspathWalker.getHaxeStdFolder(envVar);
 			if(parser.ClasspathWalker.pathToHaxeStd != null) {
-				localStorage2.setItem("pathToHaxe",parser.ClasspathWalker.pathToHaxeStd);
+				localStorage2.setItem("pathToHaxe",envVar);
 				break;
 			}
 		}
