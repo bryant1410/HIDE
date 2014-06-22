@@ -11,35 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src/core/MenuCommands.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 0
-        }
-        ,{
-             "path" : "src/core/Completion.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 0
-        }
-        ,{
-             "path" : "src/Main.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 180
-        }
     ]
-    ,"activeFile" : "src/Main.hx"
+    ,"activeFile" : "src/core/MenuCommands.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

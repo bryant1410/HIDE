@@ -336,7 +336,7 @@ welcomeA:hover {
 .CodeMirror{
 	width: 100%;
     height: 100%;
-	font-family: monospace, "Courier New", "Ubuntu Mono";
+	font-family: "SourceCodePro-Medium", "Ubuntu Mono", "Courier New", "Courier" monospace;
 }
 
 .CodeMirror {
@@ -846,6 +846,13 @@ input::-webkit-inner-spin-button {
 @font-face {
     font-family: 'SourceSansPro';
     src: url('../fonts/SourceSansPro-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SourceCodePro-Medium';
+    src: url('../fonts/SourceCodePro-Medium.otf');
     font-weight: normal;
     font-style: normal;
 }
