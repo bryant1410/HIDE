@@ -22,3 +22,6 @@
 [submodule "libs/haxeparser"]
 	path = libs/haxeparser
 	url = https://github.com/Simn/haxeparser
+[submodule "bin/node_modules"]
+	path = bin/node_modules
+	url = https://github.com/as3boyan/HIDE-node-modules.git
