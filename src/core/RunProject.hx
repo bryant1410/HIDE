@@ -48,9 +48,20 @@ class RunProject
 		}
 	}
 	
-	public static function setHxmlAsProjectBuildFile():Void
+	/*
+	* Set current document as build file(if it's hxml)
+	*/
+	public static function setHxmlAsProjectBuildFile(?pathToHxml:String):Bool
 	{
-		var path:String = TabManager.getCurrentDocumentPath();
+		var success:Bool = false;
+		
+		var path:String = pathToHxml;
+		
+		if (path == null)
+		{
+			path = TabManager.getCurrentDocumentPath();
+		}
+
 		var extname:String = js.Node.path.extname(path);
 		var isHxml:Bool = (extname == ".hxml");
 		
@@ -58,10 +69,21 @@ class RunProject
 		{
 			var noproject:Bool = ProjectAccess.path == null;
 			
+			var pathToProject = Node.path.basename(path);
+			
 			var project:Project = ProjectAccess.currentProject;
 			project.type = Project.HXML;
-			project.main = Node.path.basename(path);
-			ProjectAccess.path = Node.path.dirname(path);
+			
+			if (noproject)
+			{
+				project.main = pathToProject;
+				ProjectAccess.path = Node.path.dirname(path);
+			}
+			else
+			{
+				project.main = Node.path.relative(ProjectAccess.path, path);
+			}
+			
 			ProjectAccess.save(function ():Void 
 			{
 				if (noproject) 
@@ -70,12 +92,16 @@ class RunProject
 				}
 			}
 			);
+			
 			Alertify.success(LocaleWatcher.getStringSync("Done"));
+			success = true;
 		}
 		else 
 		{
-			Alertify.error(LocaleWatcher.getStringSync("Currently active document is not a hxml file"));
+			Alertify.error(LocaleWatcher.getStringSync("Currently selected document is not a hxml file"));
 		}
+			
+		return success;
 	}
 	
 	public static function runProject():Void

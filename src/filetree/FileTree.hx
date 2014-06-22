@@ -1,4 +1,5 @@
 package filetree;
+import core.RunProject;
 import haxe.ds.StringMap.StringMap;
 import jQuery.JQuery;
 import jQuery.JQueryStatic;
@@ -251,6 +252,17 @@ class FileTree
 		}
 		);
 		
+		appendToContextMenu("Set As Compile Main", function (selectedItem):Void
+		{
+			var path:String = selectedItem.value.path;
+			
+			if (RunProject.setHxmlAsProjectBuildFile(path))
+			{
+				
+			}
+		}
+		);
+		
 		contextMenu = untyped new JQuery("#jqxMenu").jqxMenu({ autoOpenPopup: false, mode: 'popup' });
 		
 		attachContextMenu();
@@ -329,6 +341,34 @@ class FileTree
             });
 	}
 	
+	public static function updateProjectMainHxml()
+	{
+		var noproject = (ProjectAccess.path == null || ProjectAccess.currentProject.main == null);
+		var main = null;
+		
+		if (!noproject)
+		{
+			main = Node.path.resolve(ProjectAccess.path, ProjectAccess.currentProject.main);
+		}
+		
+		var items:Array<Dynamic> = untyped new JQuery('#filetree').jqxTree('getItems');
+				
+		for (item in items)
+		{
+			var li = cast(item.element, LIElement);
+
+			if (!noproject && item.value.path == main)
+			{
+				li.classList.add("mainHxml");
+			}
+			else
+			{
+				li.classList.remove("mainHxml");
+			}
+
+		}
+	}
+
 	static function appendToContextMenu(name:String, onClick:Dynamic)
 	{
 		var li:LIElement = Browser.document.createLIElement();
@@ -504,6 +544,8 @@ class FileTree
 		
 		lastProjectName = projectName;
 		lastProjectPath = path;
+		
+		updateProjectMainHxml();
 	}
 	
 	static function readDirItems(path:String, ?onComplete:Dynamic->Void, ?root:Bool = false)

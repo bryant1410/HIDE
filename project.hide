@@ -12,13 +12,31 @@
     ]
     ,"files" : [
          {
-             "path" : "src/core/Hotkeys.hx"
+             "path" : "src/filetree/FileTree.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 68
+            ,"activeLine" : 347
+        }
+        ,{
+             "path" : "libs/css/HIDE.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 864
+        }
+        ,{
+             "path" : "src/core/RecentProjectsList.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 115
         }
         ,{
              "path" : "src/core/MenuCommands.hx"
@@ -27,28 +45,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 141
-        }
-        ,{
-             "path" : "src/dialogs/DialogManager.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 38
-        }
-        ,{
-             "path" : "src/parser/ClasspathWalker.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 34
+            ,"activeLine" : 191
         }
     ]
-    ,"activeFile" : "src/parser/ClasspathWalker.hx"
+    ,"activeFile" : "src/core/RecentProjectsList.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

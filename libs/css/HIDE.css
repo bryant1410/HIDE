@@ -858,3 +858,9 @@ dropdown-menu,
 {
 	font-family: "Segoe UI", "Lucida Grande", Verdana, Arial, sans-serif;
 }
+
+.mainHxml
+{
+	font-weight: bold;
+	color: #333333;
+}

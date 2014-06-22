@@ -3917,8 +3917,6 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Project",80).addMenuItem("Run",1,core.RunProject.runProject,"F5");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core.RunProject.buildProject,"F8");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Clean",3,core.RunProject.cleanProject,"Shift-F8");
-	menu.BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File",4,core.RunProject.setHxmlAsProjectBuildFile);
-	menu.BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Project Options...",5,function() {
 		if(projectaccess.ProjectAccess.path != null) dialogs.DialogManager.showProjectOptions(); else Alertify.error("Open or create project first");
 	});
@@ -4397,18 +4395,6 @@ core.RecentProjectsList.updateMenu = function() {
 			};
 		})(openproject.OpenProject.openProject,core.RecentProjectsList.projectList[i]));
 	}
-	var submenu1 = menu.BootstrapMenu.getMenu("Project").getSubmenu("Build Recent Project");
-	submenu1.clear();
-	var _g11 = 0;
-	var _g2 = core.RecentProjectsList.projectList.length;
-	while(_g11 < _g2) {
-		var i1 = _g11++;
-		submenu1.addMenuItem(core.RecentProjectsList.projectList[i1],i1 + 1,(function(f1,a11) {
-			return function() {
-				return f1(a11);
-			};
-		})(core.RunProject.buildProject,core.RecentProjectsList.projectList[i1]));
-	}
 };
 core.RecentProjectsList.updateWelcomeScreen = function() {
 	var listGroup;
@@ -4429,16 +4415,6 @@ core.RecentProjectsList.updateWelcomeScreen = function() {
 				openproject.OpenProject.openProject(core.RecentProjectsList.projectList[i[0]]);
 			};
 		})(i);
-		var buildButton = bootstrap.ButtonManager.createButton("Build");
-		buildButton.classList.add("buildButton");
-		buildButton.onclick = (function(i) {
-			return function(e1) {
-				e1.stopPropagation();
-				e1.preventDefault();
-				core.RunProject.buildProject(core.RecentProjectsList.projectList[i[0]]);
-			};
-		})(i);
-		a.appendChild(buildButton);
 		listGroup.appendChild(a);
 	}
 };
@@ -4477,21 +4453,28 @@ core.RunProject.cleanProject = function() {
 		}
 	} else Alertify.error("Open or create project first");
 };
-core.RunProject.setHxmlAsProjectBuildFile = function() {
-	var path = tabmanager.TabManager.getCurrentDocumentPath();
+core.RunProject.setHxmlAsProjectBuildFile = function(pathToHxml) {
+	var success = false;
+	var path = pathToHxml;
+	if(path == null) path = tabmanager.TabManager.getCurrentDocumentPath();
 	var extname = js.Node.require("path").extname(path);
 	var isHxml = extname == ".hxml";
 	if(isHxml) {
 		var noproject = projectaccess.ProjectAccess.path == null;
+		var pathToProject = js.Node.require("path").basename(path);
 		var project = projectaccess.ProjectAccess.currentProject;
 		project.type = 2;
-		project.main = js.Node.require("path").basename(path);
-		projectaccess.ProjectAccess.path = js.Node.require("path").dirname(path);
+		if(noproject) {
+			project.main = pathToProject;
+			projectaccess.ProjectAccess.path = js.Node.require("path").dirname(path);
+		} else project.main = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
 		projectaccess.ProjectAccess.save(function() {
 			if(noproject) openproject.OpenProject.openProject(js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide"));
 		});
 		Alertify.success(watchers.LocaleWatcher.getStringSync("Done"));
-	} else Alertify.error(watchers.LocaleWatcher.getStringSync("Currently active document is not a hxml file"));
+		success = true;
+	} else Alertify.error(watchers.LocaleWatcher.getStringSync("Currently selected document is not a hxml file"));
+	return success;
 };
 core.RunProject.runProject = function() {
 	core.RunProject.buildProject(null,function() {
@@ -5133,6 +5116,11 @@ filetree.FileTree.init = function() {
 			}
 		} else new $("#filetree").jqxTree("removeItem",selectedItem8.element);
 	});
+	filetree.FileTree.appendToContextMenu("Set As Compile Main",function(selectedItem9) {
+		var path4 = selectedItem9.value.path;
+		if(core.RunProject.setHxmlAsProjectBuildFile(path4)) {
+		}
+	});
 	filetree.FileTree.contextMenu = new $("#jqxMenu").jqxMenu({ autoOpenPopup : false, mode : "popup"});
 	filetree.FileTree.attachContextMenu();
 	new $(window.document).on("contextmenu",null,function(e5) {
@@ -5159,19 +5147,19 @@ filetree.FileTree.init = function() {
 		});
 		if(item2) {
 			var parents = new $(item2.element).parents("li");
-			var path4 = "";
+			var path5 = "";
 			$.each(parents,function(index1,value1) {
 				var item3 = new $("#filetree").jqxTree("getItem",value1);
-				if(item3.level > 0) path4 = item3.label + "/" + path4;
+				if(item3.level > 0) path5 = item3.label + "/" + path5;
 			});
 			var topDirectory = new $("#filetree").jqxTree("getItems")[0].value.path;
-			var selectedItem9 = new $("#filetree").jqxTree("getSelectedItem");
-			var previousPath = selectedItem9.value.path;
-			var newPath = js.Node.require("path").join(topDirectory,path4,selectedItem9.label);
+			var selectedItem10 = new $("#filetree").jqxTree("getSelectedItem");
+			var previousPath = selectedItem10.value.path;
+			var newPath = js.Node.require("path").join(topDirectory,path5,selectedItem10.label);
 			js.node.Mv.move(previousPath,newPath,function(error4) {
 				if(error4 == null) {
 					Alertify.success("File were successfully moved to " + newPath);
-					selectedItem9.value.path = newPath;
+					selectedItem10.value.path = newPath;
 					filetree.FileTree.attachContextMenu();
 				} else {
 					Alertify.error("Can't move file from " + previousPath + " to " + newPath);
@@ -5180,6 +5168,20 @@ filetree.FileTree.init = function() {
 			});
 		}
 	});
+};
+filetree.FileTree.updateProjectMainHxml = function() {
+	var noproject = projectaccess.ProjectAccess.path == null || projectaccess.ProjectAccess.currentProject.main == null;
+	var main = null;
+	if(!noproject) main = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectAccess.currentProject.main);
+	var items = new $("#filetree").jqxTree("getItems");
+	var _g = 0;
+	while(_g < items.length) {
+		var item = items[_g];
+		++_g;
+		var li;
+		li = js.Boot.__cast(item.element , HTMLLIElement);
+		if(!noproject && item.value.path == main) li.classList.add("mainHxml"); else li.classList.remove("mainHxml");
+	}
 };
 filetree.FileTree.appendToContextMenu = function(name,onClick) {
 	var li;
@@ -5277,6 +5279,7 @@ filetree.FileTree.load = function(projectName,path) {
 	filetree.FileTree.watcher = Watchr.watch(config);
 	filetree.FileTree.lastProjectName = projectName;
 	filetree.FileTree.lastProjectPath = path;
+	filetree.FileTree.updateProjectMainHxml();
 };
 filetree.FileTree.readDirItems = function(path,onComplete,root) {
 	if(root == null) root = false;

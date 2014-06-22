@@ -188,8 +188,8 @@ class MenuCommands
 		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");
 		BootstrapMenu.getMenu("Project").addMenuItem("Build", 2, RunProject.buildProject, "F8");
 		BootstrapMenu.getMenu("Project").addMenuItem("Clean", 3, RunProject.cleanProject, "Shift-F8");
-		BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File", 4, RunProject.setHxmlAsProjectBuildFile);
-		BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
+// 		BootstrapMenu.getMenu("Project").addMenuItem("Set This Hxml As Project Build File", 4, RunProject.setHxmlAsProjectBuildFile);
+// 		BootstrapMenu.getMenu("Project").addSubmenu("Build Recent Project");
 		BootstrapMenu.getMenu("Project").addMenuItem("Project Options...", 5, function ():Void 
 		{
 			if (ProjectAccess.path != null) 

@@ -107,13 +107,13 @@ class RecentProjectsList
 			submenu.addMenuItem(projectList[i], i + 1, OpenProject.openProject.bind(projectList[i]));
 		}
 		
-		var submenu = BootstrapMenu.getMenu("Project").getSubmenu("Build Recent Project");
-		submenu.clear();
+// 		var submenu = BootstrapMenu.getMenu("Project").getSubmenu("Build Recent Project");
+// 		submenu.clear();
 		
-		for (i in 0...projectList.length) 
-		{
-			submenu.addMenuItem(projectList[i], i + 1, RunProject.buildProject.bind(projectList[i]));
-		}
+// 		for (i in 0...projectList.length) 
+// 		{
+// 			submenu.addMenuItem(projectList[i], i + 1, RunProject.buildProject.bind(projectList[i]));
+// 		}
 	}
 	
 	static function updateWelcomeScreen():Void
@@ -136,18 +136,18 @@ class RecentProjectsList
 				OpenProject.openProject(projectList[i]);
 			};
 			
-			var buildButton = ButtonManager.createButton("Build");
-			buildButton.classList.add("buildButton");
+// 			var buildButton = ButtonManager.createButton("Build");
+// 			buildButton.classList.add("buildButton");
 			
-			buildButton.onclick	= function (e:MouseEvent):Void 
-			{
-				e.stopPropagation();
-				e.preventDefault();
+// 			buildButton.onclick	= function (e:MouseEvent):Void 
+// 			{
+// 				e.stopPropagation();
+// 				e.preventDefault();
 				
-				RunProject.buildProject(projectList[i]);
-			};
+// 				RunProject.buildProject(projectList[i]);
+// 			};
 			
-			a.appendChild(buildButton);
+// 			a.appendChild(buildButton);
 			
 			listGroup.appendChild(a);
 		}
