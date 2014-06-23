@@ -3842,34 +3842,32 @@ core.MenuCommands.add = function() {
 			return f2(a12);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"settings.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,(function(f3,a13) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,function() {
+		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme));
+	});
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file",1,(function(f3,a13) {
 		return function() {
 			return f3(a13);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme)));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file",1,(function(f4,a14) {
-		return function() {
-			return f4(a14);
-		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"editor.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f5,a15,a2) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f4,a14,a2) {
 		return function() {
-			return f5(a15,a2);
+			return f4(a14,a2);
 		};
 	})(filetree.FileTree.load,"templates",js.Node.require("path").join("core","templates")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open localization file",1,(function(f6,a16) {
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open localization file",1,(function(f5,a15) {
+		return function() {
+			return f5(a15);
+		};
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file",1,(function(f6,a16) {
 		return function() {
 			return f6(a16);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file",1,(function(f7,a17) {
+	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json")));
+	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open snippets configuration file",1,(function(f7,a17) {
 		return function() {
 			return f7(a17);
-		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json")));
-	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open snippets configuration file",1,(function(f8,a18) {
-		return function() {
-			return f8(a18);
 		};
 	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
@@ -5331,25 +5329,10 @@ filetree.FileTree.createFileItem = function(path) {
 	var basename = js.Node.require("path").basename(path);
 	var extname = js.Node.require("path").extname(basename);
 	var data = { label : basename, value : { path : path, type : "file"}};
-	switch(extname) {
-	case ".pdf":
-		data.icon = "includes/images/page_white_acrobat.png";
-		break;
-	case ".swf":
-		data.icon = "includes/images/page_white_flash.png";
-		break;
-	case ".jpg":case ".jpeg":case ".png":case ".gif":case ".tga":
-		data.icon = "includes/images/photo.png";
-		break;
-	case ".html":
-		data.icon = "includes/images/html.png";
-		break;
-	default:
-	}
 	return data;
 };
 filetree.FileTree.createFolderItem = function(path,items) {
-	return { label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}, icon : "includes/images/folder.png"};
+	return { label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}};
 };
 haxe.Json = function() { };
 $hxClasses["haxe.Json"] = haxe.Json;

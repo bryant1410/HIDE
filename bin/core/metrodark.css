@@ -140,7 +140,8 @@ ul.tabs li:hover
 /* Annotation ruler styling */
 #annotationRuler
 {
-    background-color: #3E3E42;
+    background-color: #505054;
+	border-color: #35353A;
 }
 
 .errorMarker
@@ -260,13 +261,13 @@ ul.tabs li:hover
     border-radius: 0px;
 }
 .jqx-widget {
-    font-size: 12px; line-height: 17px;
+    font-size: 12px; line-height: 14px;
     color: inherit;
 }
 .jqx-widget-content{font-size: 12px; line-height: 17px;  border-color: #35353A; color: #ffffff; background-color: #252526;}
 .jqx-widget-header{font-size: 12px; line-height: 17px;  color: #ffffff; border-color:#35353A; background-color:#3E3E42;}
 .jqx-fill-state-normal{font-size: 12px; line-height: 17px;  border-color: #35353A; color: #ffffff; background: #3E3E42;}
-.jqx-fill-state-hover{font-size: 12px; line-height: 17px;  border-color:#1C97EA; color: #fff; background-color:#1C97EA;
+.jqx-fill-state-hover{font-size: 12px; line-height: 14px;  border-color:#1C97EA; color: #fff; background-color:#1C97EA;
 
 }
 .jqx-fill-state-focus { border-color: #000; }
@@ -1255,4 +1256,81 @@ ul.tabs li:hover
 .navbar
 {
 	border-bottom: solid #35353A 1px;
+}
+
+.mainHxml
+{
+	font-weight: bold;
+	color: #999;
+}
+
+.showDeclaration
+{
+	background-color: #007ACC;
+}
+
+.jqx-widget-content
+{
+	color: #999;
+}
+
+ul.tabs li {
+	color: #999;
+}
+
+ul.tabs li.selected {
+	color: #cecece;
+}
+
+ul.tabs li:hover {
+	color: #cecece;
+}
+
+.CodeMirror-hints {
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 0;
+  border: 1px solid #3e3e3e;
+  background: #35353A;
+}
+
+.CodeMirror-hint {
+  border-radius: 0;
+  color: #cecece;
+}
+
+.CodeMirror-hint-active {
+  background: #00548d;
+  color: #cecece;
+}
+
+::-webkit-scrollbar {
+    height: 30px;
+    width: 12px;
+    background: #3E3E42;
+	border: solid 5px #3E3E42;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #686868;
+    -webkit-border-radius: 0ex;
+/*     -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75); */
+}
+
+::-webkit-scrollbar-thumb:hover
+{
+	background: #999;	
+}
+
+::-webkit-scrollbar-corner {
+    background: #000;
+}
+
+.CodeMirror-hints-contextInfo {
+/*   border : double rgb(212, 208, 200) 3px;
+  background: #FFFFE1; */
+	background-color: #3E3E42;
+	color: #cecece;
+	border: none;
 }

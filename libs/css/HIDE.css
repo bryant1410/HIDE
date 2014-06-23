@@ -333,10 +333,10 @@ welcomeA:hover {
 	padding = 5px 0px;
 } */
 
-.CodeMirror{
+.CodeMirror, .CodeMirror-hint{
 	width: 100%;
     height: 100%;
-	font-family: monospace, "Courier New", "Ubuntu Mono";
+	font-family: "SourceCodePro-Medium", "Ubuntu Mono", "Courier New", "Courier" monospace;
 }
 
 .CodeMirror {
@@ -843,6 +843,20 @@ input::-webkit-inner-spin-button {
     margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
 }
 
+@font-face {
+    font-family: 'SourceSansPro';
+    src: url('../fonts/SourceSansPro-Regular.ttf');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'SourceCodePro-Medium';
+    src: url('../fonts/SourceCodePro-Medium.otf');
+    font-weight: normal;
+    font-style: normal;
+}
+
 body,
 dropdown-menu,
 .jqx-widget,
@@ -856,11 +870,55 @@ dropdown-menu,
 .jqx-widget .jqx-grid-cell-hover, .jqx-listitem-state-hover, .jqx-menu-item-hover, .jqx-tree-item-hover, .jqx-calendar-cell-hover, .jqx-grid-cell-hover,.jqx-menu-vertical .jqx-menu-item-top-hover, .jqx-input-popup .jqx-fill-state-hover,.jqx-input-button-header, .jqx-input-popup .jqx-fill-state-pressed,.jqx-input-button-header,
 .jqx-widget  .jqx-grid-cell-selected, .jqx-listitem-state-selected, .jqx-menu-item-selected, .jqx-tree-item-selected, .jqx-calendar-cell-selected, .jqx-grid-cell-selected,.jqx-menu-vertical .jqx-menu-item-top-selected, .jqx-grid-selectionarea
 {
-	font-family: "Segoe UI", "Lucida Grande", Verdana, Arial, sans-serif;
+	font-family: "SourceSansPro", "Segoe UI", "Lucida Grande", Verdana, Arial, sans-serif;
 }
 
 .mainHxml
 {
 	font-weight: bold;
 	color: #333333;
+}
+
+/* Project Panel */
+
+
+#panelContentpanelfiletree .jqx-tree-dropdown{
+
+	padding: 0 0 0 10px;
+
+}
+
+
+
+#panelContentpanelfiletree .jqx-tree-item{
+
+	padding:0px
+
+}
+
+
+
+#panelContentpanelfiletree .jqx-tree-item-li{
+
+	line-height:14px;
+
+}
+
+
+
+/* Outline Panel */
+
+
+
+#panelContentpaneloutline .jqx-tree-item{
+
+	padding:0px
+
+}
+
+
+#panelContentpaneloutline .jqx-tree-item-li{
+
+	line-height:14px;
+
 }
