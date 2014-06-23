@@ -54,7 +54,7 @@ class SettingsWatcher
 			
 			var configFiles = Node.fs.readdirSync(pathToConfigFolder);
 			var files = Node.fs.readdirSync(pathToFolder);
-				
+			
 			var options:NodeFsFileOptions = {};
 			options.encoding = NodeC.UTF8;
 			

@@ -11,9 +11,17 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/newprojectdialog/NewProjectDialog.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 170
+        }
     ]
-    ,"activeFile" : "src/core/MenuCommands.hx"
+    ,"activeFile" : "src/newprojectdialog/NewProjectDialog.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

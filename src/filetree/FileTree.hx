@@ -617,25 +617,25 @@ class FileTree
 		
 		var data:TreeItem = { label: basename, value: {path: path, type: "file"} };
 		
-		switch (extname) 
-		{
-			case ".pdf":
-				data.icon = "includes/images/page_white_acrobat.png";
-			case ".swf":
-				data.icon = "includes/images/page_white_flash.png";
-			case ".jpg", ".jpeg", ".png", ".gif", ".tga":
-				data.icon = "includes/images/photo.png";
-			case ".html":
-				data.icon = "includes/images/html.png";
-			default:
+// 		switch (extname) 
+// 		{
+// 			case ".pdf":
+// 				data.icon = "includes/images/page_white_acrobat.png";
+// 			case ".swf":
+// 				data.icon = "includes/images/page_white_flash.png";
+// 			case ".jpg", ".jpeg", ".png", ".gif", ".tga":
+// 				data.icon = "includes/images/photo.png";
+// 			case ".html":
+// 				data.icon = "includes/images/html.png";
+// 			default:
 				
-		}
+// 		}
 		
 		return data;
 	}
     
     static function createFolderItem(path:String, items:Array<TreeItem>):TreeItem
     {
-    	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}, icon: "includes/images/folder.png"}; 
+    	return {label:Node.path.basename(path), items: items, value: {path: path, type: "folder"}}; //icon: "includes/images/folder.png"
     }
 }

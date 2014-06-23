@@ -133,7 +133,11 @@ class MenuCommands
 		
 // 		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
 		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"settings.json")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", SettingsWatcher.settings.theme)));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, function ()
+													 {
+														 TabManager.openFileInNewTab(Node.path.join("core", SettingsWatcher.settings.theme));
+													 }
+													);
 		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"editor.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
