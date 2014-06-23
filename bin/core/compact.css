@@ -104,7 +104,17 @@
 	border-bottom: solid #bbb 1px;
 }
 
+
+/* General */
+.jqx-widget-content{
+	background-color: #e6e6e6;
+}
+
+
 /* Project Panel */
+.jqx-tree-dropdown-root{ 
+	margin-top:10px;
+}
 
 #filetree {
 	background: #e6e6e6;
@@ -128,6 +138,10 @@
 
 /* Outline Panel */
 
+#outline .jqx-widget-content{
+	background: #e6e6e6;
+}
+
 #panelContentpaneloutline .jqx-tree-item{
 	padding:0px
 }
@@ -136,22 +150,26 @@
 	line-height:14px;
 }
 
-/* Scroll bar */
 
-#panelfiletreeverticalScrollBar{
+
+/* Scroll bars */
+
+#panelfiletreeverticalScrollBar, #paneloutlineverticalScrollBar{
 	width: 11px !important;
 	margin-left: 8px;
 }
 
-#jqxScrollBtnUppanelfiletreeverticalScrollBar , #jqxScrollBtnDownpanelfiletreeverticalScrollBar{
+#jqxScrollBtnUppanelfiletreeverticalScrollBar , #jqxScrollBtnDownpanelfiletreeverticalScrollBar, #jqxScrollBtnUppaneloutlineverticalScrollBar , #jqxScrollBtnDownpaneloutlineverticalScrollBar{
 	display:none;
 }
 
-#jqxScrollAreaDownpanelfiletreeverticalScrollBar, #jqxScrollWrappanelfiletreeverticalScrollBar,  #jqxScrollAreaUppanelfiletreeverticalScrollBar, #jqxScrollThumbpanelfiletreeverticalScrollBar{
+#jqxScrollAreaDownpanelfiletreeverticalScrollBar, #jqxScrollWrappanelfiletreeverticalScrollBar,  #jqxScrollAreaUppanelfiletreeverticalScrollBar, #jqxScrollThumbpanelfiletreeverticalScrollBar, 
+#jqxScrollAreaDownpaneloutlineverticalScrollBar, #jqxScrollWrappaneloutlineverticalScrollBar,  #jqxScrollAreaUppaneloutlineverticalScrollBar, #jqxScrollThumbpaneloutlineverticalScrollBar
+{
 	width: 100% !important;
 }
 
-#jqxScrollThumbpanelfiletreeverticalScrollBar{
+#jqxScrollThumbpanelfiletreeverticalScrollBar ,#jqxScrollThumbpaneloutlineverticalScrollBar{
 	width: 4px !important;
 	margin: 2px;
 	background-color: #b4b4a2;
@@ -161,7 +179,7 @@
 
 .jqx-splitter-splitbar-vertical{
 	border: none !important;
-	width: 1px !important;
+	width: 6px !important;
 	
 }
 
@@ -171,13 +189,11 @@
 
 
 /* Code Editor */
+.jqx-widget
 
-.jqx-widget-content{
-	background-color: #858875;
-}
 
 #editor{
-	background-color: #858875;
+	background-color: #000000;
 	
 }
 
@@ -193,6 +209,36 @@ ul.tabs > li{
 	border-color:#46473f;
 }
 
+ul.tabs > li :: hover {
+	color:#ffffff;
+}
+
 .CodeMirror-wrap{
 	border-color: #46473f;
+}
+
+
+/* Results & Output */
+#tabs1 > div.jqx-tabs-headerWrapper{
+	background-color: #cccccc;
+}
+
+#status-bar{
+	background-color: #333333;
+	
+}
+
+#status-cursor{
+	color: #ffffff;
+}
+
+#status-indicators{
+	background-color: #cccccc;
+	padding-left: 20px;
+	padding-right: 10px;
+	font-weight:bold;
+}
+
+#indent-type, #indent-width-label{
+	
 }
