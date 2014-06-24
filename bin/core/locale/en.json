@@ -184,4 +184,5 @@
     ,"Please open or create project first!" : "Please open or create project first!"
     ,"Done" : "Done"
     ,"Currently selected document is not a hxml file" : "Currently selected document is not a hxml file"
+    ,"Go To Declaration" : "Go To Declaration"
 }

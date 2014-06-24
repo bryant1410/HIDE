@@ -63,6 +63,7 @@ class Completion
 	static var RANGE = 500;
 	public static var curWord:String;
 	public static var completions:Array<CompletionItem> = [];
+	public static var declarationPositions:Array<Int> = [];
 	static var completionType:CompletionType = REGULAR;
 	static var completionActive:Bool;
     
@@ -317,7 +318,7 @@ class Completion
 		return {word:curWord, from: {line:cur.line, ch: start}, to: {line:cur.line, ch: end}};
 	}
 	
-	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos):Void
+	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos, ?mode:String, ?moveCursorToStart:Bool = true):Void
 	{        
 		if (ProjectAccess.path != null) 
 		{
@@ -331,15 +332,15 @@ class Completion
 				case Project.HAXE:
 					var pathToHxml:String = project.targetData[project.target].pathToHxml;
 					projectArguments.push(pathToHxml);
-					processArguments(projectArguments, onComplete, _pos);
+					processArguments(projectArguments, onComplete, _pos, mode, moveCursorToStart);
 				case Project.HXML:
 					projectArguments.push(project.main);
-					processArguments(projectArguments, onComplete, _pos);
+					processArguments(projectArguments, onComplete, _pos, mode, moveCursorToStart);
 				case Project.OPENFL:
 					OpenFL.parseOpenFLDisplayParameters(ProjectAccess.path, project.openFLTarget, function (args:Array<String>):Void 
 					{
 						projectArguments = args;
-						processArguments(projectArguments, onComplete, _pos);
+						processArguments(projectArguments, onComplete, _pos, mode, moveCursorToStart);
 					}
 					);
 				default:
@@ -348,7 +349,7 @@ class Completion
 		}
 	}
 	
-	static function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos):Void 
+	static function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos, mode:String, moveCursorToStart:Bool):Void 
 	{
         trace("processArguments");
         
@@ -358,7 +359,7 @@ class Completion
 		var cm:CodeMirror = Editor.editor;
 		cur = _pos;
 		
-		if (_pos == null) 
+		if (cur == null) 
 		{
 			cur = cm.getCursor();
 		}
@@ -369,8 +370,21 @@ class Completion
 		{
 			cur = {line: cur.line,  ch:start};
 		}
+			
+		if (moveCursorToStart == false)
+		{
+			cur.ch = end;
+// 			trace(cm.getRange({line:cur.line, ch: 0}, {line:cur.line, ch:end}));
+		}
 		
-		projectArguments.push(TabManager.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur)));
+		var displayArgs = TabManager.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur));
+		
+		if (mode != null)
+		{
+			displayArgs += "@" + mode;
+		}
+			
+		projectArguments.push(displayArgs);
 		
 		completions = [];
 		
@@ -385,7 +399,7 @@ class Completion
 			if (fast.hasNode.list)
 			{
 				var list = fast.node.list;
-				
+				trace(list);
 				var completion:CompletionItem;
 				
 				if (list.hasNode.i)
@@ -417,6 +431,15 @@ class Completion
 						}
 					}
 				}
+				else if (fast.hasNode.pos)
+				{
+					for (item in fast.nodes.pos)
+					{
+						 trace(item.innerData);
+					}
+
+				}
+
 			}
 			
 			onComplete();

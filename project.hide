@@ -12,16 +12,34 @@
     ]
     ,"files" : [
          {
-             "path" : "src/newprojectdialog/NewProjectDialog.hx"
+             "path" : "src/core/MenuCommands.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 170
+            ,"activeLine" : 183
+        }
+        ,{
+             "path" : "src/completion/GoToDeclaration.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 30
+        }
+        ,{
+             "path" : "src/core/Completion.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 376
         }
     ]
-    ,"activeFile" : "src/newprojectdialog/NewProjectDialog.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"runActionType" : 2
     ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"

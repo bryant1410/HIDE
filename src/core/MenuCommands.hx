@@ -15,6 +15,7 @@ import parser.ClasspathWalker;
 import projectaccess.ProjectAccess;
 import tabmanager.TabManager;
 import watchers.SettingsWatcher;
+import completion.GoToDeclaration;
 
 /**
  * ...
@@ -176,6 +177,14 @@ class MenuCommands
                                                                               Completion.showFileList();
                                                                           }, 10);
                                                       }, "Ctrl-Shift-O");
+		
+		BootstrapMenu.getMenu("Navigate").addMenuItem("Go To Declaration", 4, function ()
+													  {
+														  var goToDeclaration = GoToDeclaration.get();
+														  goToDeclaration.start();
+													  }
+													  , "Ctrl-B");
+		
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion.bind(Editor.editor), "Ctrl-Space");
 		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
@@ -188,7 +197,7 @@ class MenuCommands
             	ImportDefinition.searchImport(TabManager.getCurrentDocument().getValue(), selectedPath);   
             }
 		}, "Ctrl-Shift-1");
-		
+				
 		BootstrapMenu.getMenu("Project", 80).addMenuItem("Run", 1, RunProject.runProject, "F5");
 		BootstrapMenu.getMenu("Project").addMenuItem("Build", 2, RunProject.buildProject, "F8");
 		BootstrapMenu.getMenu("Project").addMenuItem("Clean", 3, RunProject.cleanProject, "Shift-F8");

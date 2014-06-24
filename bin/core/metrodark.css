@@ -1334,3 +1334,42 @@ ul.tabs li:hover {
 	color: #cecece;
 	border: none;
 }
+
+.alertify-dialog {
+color: #999;
+background-color: #252525;
+background: #252526;
+}
+
+.alertify-text {
+background-color: #252526;
+color: #999;
+border-color: #35353A;
+}
+
+#quickOpen
+{
+background-color: #252526;
+color: #999;
+border-color: #35353A;
+}
+
+#quickOpenInputGroup > input
+{
+background-color: #252526;
+color: #999;
+border-color: #35353A;
+text-shadow: none;
+}
+
+#quickOpenListGroup > a.list-group-item
+{
+background-color: #686868;
+color: #999;
+border-color: #35353A;
+}
+
+#quickOpenListGroup > a.list-group-item.active
+{
+background-color: #00548d;
+}

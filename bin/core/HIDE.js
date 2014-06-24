@@ -1865,6 +1865,22 @@ completion.Filter.filterFiles = function(fileList,word) {
 	}
 	return list;
 };
+completion.GoToDeclaration = function() {
+};
+$hxClasses["completion.GoToDeclaration"] = completion.GoToDeclaration;
+completion.GoToDeclaration.__name__ = ["completion","GoToDeclaration"];
+completion.GoToDeclaration.get = function() {
+	if(completion.GoToDeclaration.instance == null) completion.GoToDeclaration.instance = new completion.GoToDeclaration();
+	return completion.GoToDeclaration.instance;
+};
+completion.GoToDeclaration.prototype = {
+	start: function() {
+		var cm1 = cm.Editor.editor;
+		core.Completion.getCompletion(function() {
+		},cm1.getCursor(),"position",false);
+	}
+	,__class__: completion.GoToDeclaration
+};
 completion.Hxml = function() { };
 $hxClasses["completion.Hxml"] = completion.Hxml;
 completion.Hxml.__name__ = ["completion","Hxml"];
@@ -2248,7 +2264,8 @@ core.Completion.getCurrentWord = function(cm,options,pos) {
 	if(core.Completion.start != core.Completion.end) core.Completion.curWord = curLine.substring(core.Completion.start,core.Completion.end);
 	return { word : core.Completion.curWord, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
 };
-core.Completion.getCompletion = function(onComplete,_pos) {
+core.Completion.getCompletion = function(onComplete,_pos,mode,moveCursorToStart) {
+	if(moveCursorToStart == null) moveCursorToStart = true;
 	if(projectaccess.ProjectAccess.path != null) {
 		var projectArguments = [];
 		var project = projectaccess.ProjectAccess.currentProject;
@@ -2257,32 +2274,35 @@ core.Completion.getCompletion = function(onComplete,_pos) {
 		case 0:
 			var pathToHxml = project.targetData[project.target].pathToHxml;
 			projectArguments.push(pathToHxml);
-			core.Completion.processArguments(projectArguments,onComplete,_pos);
+			core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
 			break;
 		case 2:
 			projectArguments.push(project.main);
-			core.Completion.processArguments(projectArguments,onComplete,_pos);
+			core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
 			break;
 		case 1:
 			openproject.OpenFL.parseOpenFLDisplayParameters(projectaccess.ProjectAccess.path,project.openFLTarget,function(args) {
 				projectArguments = args;
-				core.Completion.processArguments(projectArguments,onComplete,_pos);
+				core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
 			});
 			break;
 		default:
 		}
 	}
 };
-core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
+core.Completion.processArguments = function(projectArguments,onComplete,_pos,mode,moveCursorToStart) {
 	console.log("processArguments");
 	projectArguments.push("--no-output");
 	projectArguments.push("--display");
 	var cm1 = cm.Editor.editor;
 	core.Completion.cur = _pos;
-	if(_pos == null) core.Completion.cur = cm1.getCursor();
+	if(core.Completion.cur == null) core.Completion.cur = cm1.getCursor();
 	core.Completion.getCurrentWord(cm1,null,core.Completion.cur);
 	if(core.Completion.curWord != null) core.Completion.cur = { line : core.Completion.cur.line, ch : core.Completion.start};
-	projectArguments.push(tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur)));
+	if(moveCursorToStart == false) core.Completion.cur.ch = core.Completion.end;
+	var displayArgs = tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur));
+	if(mode != null) displayArgs += "@" + mode;
+	projectArguments.push(displayArgs);
 	core.Completion.completions = [];
 	var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
 	core.ProcessHelper.runProcess("haxe",params,null,function(stdout,stderr) {
@@ -2290,6 +2310,7 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
 		var fast = new haxe.xml.Fast(xml);
 		if(fast.hasNode.resolve("list")) {
 			var list = fast.node.resolve("list");
+			console.log(list);
 			var completion;
 			if(list.hasNode.resolve("i")) {
 				var $it0 = list.nodes.resolve("i").iterator();
@@ -2310,6 +2331,12 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos) {
 						if(item.hasNode.resolve("t")) completion.t = item.node.resolve("t").get_innerData();
 						core.Completion.completions.push(completion);
 					}
+				}
+			} else if(fast.hasNode.resolve("pos")) {
+				var $it1 = fast.nodes.resolve("pos").iterator();
+				while( $it1.hasNext() ) {
+					var item1 = $it1.next();
+					console.log(item1.get_innerData());
 				}
 			}
 		}
@@ -3901,6 +3928,10 @@ core.MenuCommands.add = function() {
 			core.Completion.showFileList();
 		},10);
 	},"Ctrl-Shift-O");
+	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Go To Declaration",4,function() {
+		var goToDeclaration = completion.GoToDeclaration.get();
+		goToDeclaration.start();
+	},"Ctrl-B");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,function() {
 		return cm.Editor.triggerCompletion(cm.Editor.editor);
