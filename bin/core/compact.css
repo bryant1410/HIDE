@@ -209,8 +209,8 @@ ul.tabs > li{
 	border-color:#46473f;
 }
 
-ul.tabs > li :: hover {
-	color:#ffffff;
+ul.tabs > li:hover {
+	color:#dedede;
 }
 
 .CodeMirror-wrap{
