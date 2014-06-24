@@ -41,9 +41,7 @@ class Hxml
 			{
 				case Utils.WINDOWS:
 					params.push("start");
-					break;
 				default:
-					break;
 			}
 		}
 		
