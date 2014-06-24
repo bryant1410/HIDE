@@ -42,7 +42,6 @@ class Hxml
 				case Utils.WINDOWS:
 					params.push("start");
 				default:
-					params.push("bash");
 			}
 		}
 		
