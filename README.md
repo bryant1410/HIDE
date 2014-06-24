@@ -42,11 +42,10 @@ I am always thrilled to receive pull requests, and I do my best to process them 
 ###License:
 HIDE is licensed under the terms of the MIT License.
 CodeMirror is licensed under the terms of the MIT License.
-JQuery are licensed under the terms of the MIT License.
-Bootstrap is licensed under the terms of the Apache License Version 2.0
-JQWidgets is licensed under non-commercial license(http://creativecommons.org/licenses/by-nc/3.0/)
+JQuery is licensed under the terms of the MIT License.
+Bootstrap is licensed under the terms of the Apache License Version 2.0.
+JQWidgets is licensed under non-commercial license(http://creativecommons.org/licenses/by-nc/3.0/).
 Completion types is from Tern which is licensed under the terms of the MIT License.
-Completion description CodeMirror addon by @angelozerr
-Code snippets CodeMirror addon by @angelozerr(with minor fixes by @AS3Boyan)
-
+Completion description CodeMirror add-on by @angelozerr.
+Code snippets CodeMirror add-on by @angelozerr (with minor fixes by @AS3Boyan).
 jQueryExtern is released in the public domain.
