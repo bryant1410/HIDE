@@ -1,4 +1,6 @@
 package parser;
+import core.Completion;
+import core.HaxeHelper;
 import core.Hotkeys;
 import core.ProcessHelper;
 import core.Utils;
@@ -22,9 +24,22 @@ import parser.ClassParser.FileData;
  */
 class ClasspathWalker
 {
-	public static var pathToHaxeStd:String;
+	public var pathToHaxeStd:String;
+	public var pathToHaxe:String;
     
-	public static function load():Void 
+	static var instance:ClasspathWalker;
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new ClasspathWalker();
+		}
+			
+		return instance;
+	}
+	
+	public function new():Void 
 	{		
 		var localStorage2 = Browser.getLocalStorage();
 		
@@ -32,7 +47,8 @@ class ClasspathWalker
 		
 		if (localStorage2 != null) 
 		{
-			paths.insert(0, localStorage2.getItem("pathToHaxe"));
+			var path = localStorage2.getItem("pathToHaxe");
+			paths.insert(0, path);
 		}
 		
 		switch (Utils.os) 
@@ -53,7 +69,8 @@ class ClasspathWalker
 				
 				if (pathToHaxeStd != null) 
 				{
-					localStorage2.setItem("pathToHaxe", envVar);
+					pathToHaxe = envVar;
+					localStorage2.setItem("pathToHaxe", pathToHaxe);
 					break;
 				}
 			}
@@ -69,17 +86,17 @@ class ClasspathWalker
 		}
 	}
 	
-	public static function showHaxeDirectoryDialog()
+	public function showHaxeDirectoryDialog()
 	{
 		var localStorage2 = Browser.getLocalStorage();
 		
 		var currentLocation = "";
 		
-		var pathToHaxe = localStorage2.getItem("pathToHaxe");
+		var pathToHaxe2 = localStorage2.getItem("pathToHaxe");
 		
-		if (pathToHaxe != null) 
+		if (pathToHaxe2 != null) 
 		{
-			currentLocation = pathToHaxe;
+			currentLocation = pathToHaxe2;
 		}
 		
 		DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ", function (path:String):Void 
@@ -89,7 +106,8 @@ class ClasspathWalker
 			if (pathToHaxeStd != null)
 			{
 				parseClasspath(pathToHaxeStd, true);
-				localStorage2.setItem("pathToHaxe", pathToHaxeStd);
+				pathToHaxe = path;
+				localStorage2.setItem("pathToHaxe", pathToHaxe);
 				DialogManager.hide();
 			}
 			else 
@@ -99,23 +117,36 @@ class ClasspathWalker
 		}, currentLocation, "Download Haxe", "http://haxe.org/download");
 	}
 	
-	static function getHaxeStdFolder(path:String):String
+	function getHaxeStdFolder(path:String):String
 	{
 		var pathToStd:String = null;
 		
-		if (Node.fs.existsSync(path)) 
+		var fileName = "haxe";
+		
+		switch (Utils.os)
 		{
-			if (Node.fs.existsSync(Node.path.join(path, "Std.hx"))) 
+			case Utils.WINDOWS:
+				fileName += ".exe";
+			default:
+
+		}
+		
+		if (Node.fs.existsSync(Node.path.join(path, fileName)))
+		{
+			if (Node.fs.existsSync(path)) 
 			{
-				pathToStd = path;
-			}
-			else 
-			{
-				path = Node.path.join(path, "std");
-				
-				if (Node.fs.existsSync(path))
+				if (Node.fs.existsSync(Node.path.join(path, "Std.hx"))) 
 				{
-					pathToStd = getHaxeStdFolder(path);
+					pathToStd = path;
+				}
+				else 
+				{
+					path = Node.path.join(path, "std");
+
+					if (Node.fs.existsSync(path))
+					{
+						pathToStd = getHaxeStdFolder(path);
+					}
 				}
 			}
 		}
@@ -123,7 +154,7 @@ class ClasspathWalker
 		return pathToStd;
 	}
 
-	public static function parseProjectArguments():Void 
+	public function parseProjectArguments():Void 
 	{
 		ClassParser.classCompletions = new StringMap();
 		ClassParser.filesList = [];
@@ -167,7 +198,7 @@ class ClasspathWalker
 		walkProjectDirectory(ProjectAccess.path);
 	}
         
-    static function getFileDirectory(relativePath:String):String
+    function getFileDirectory(relativePath:String):String
 	{
         var directory:String = "";
         
@@ -183,7 +214,7 @@ class ClasspathWalker
         return directory;
     }
 	
-	static function getClasspaths(data:Array<String>)
+	function getClasspaths(data:Array<String>)
 	{
 		var classpaths:Array<String> = [];
 		
@@ -203,11 +234,13 @@ class ClasspathWalker
 		processHaxelibs(libs, parseClasspath);
 	}
 	
-	static function processHaxelibs(libs:Array<String>, onPath:String->Bool->Void):Void 
+	function processHaxelibs(libs:Array<String>, onPath:String->Bool->Void):Void 
 	{		
 		for (arg in libs) 
 		{
-			ProcessHelper.runProcess("haxelib", ["path", arg], null, function (stdout:String, stderr:String):Void 
+			var processHelper = ProcessHelper.get();
+			 
+			processHelper.runProcess("haxelib", ["path", arg], null, function (stdout:String, stderr:String):Void 
 			{
 				for (path in stdout.split("\n")) 
 				{
@@ -231,7 +264,7 @@ class ClasspathWalker
 		}
 	}
 	
-	private static function parseArg(args:Array<String>, type:String):Array<String>
+	private function parseArg(args:Array<String>, type:String):Array<String>
 	{
 		var result:Array<String> = [];
 		
@@ -248,7 +281,7 @@ class ClasspathWalker
 		return result;
 	}
 	
-	static function parseClasspath(path:String, ?std:Bool = false):Void
+	function parseClasspath(path:String, ?std:Bool = false):Void
 	{        
         if (Main.sync)
         {
@@ -280,7 +313,7 @@ class ClasspathWalker
         }
 	}
 	
-    static function processFile(path:String, std:Bool)
+    function processFile(path:String, std:Bool)
     {
         addFile(path, std);
 
@@ -300,7 +333,7 @@ class ClasspathWalker
         }
     }
 
-	static function getFileIndex(pathToFile:String, list:Array<FileData>):Int
+	function getFileIndex(pathToFile:String, list:Array<FileData>):Int
 	{
         var index:Int = -1;
             
@@ -316,11 +349,13 @@ class ClasspathWalker
         return index;
     }
 
-	public static function addFile(path:String, ?std:Bool = false)
+	public function addFile(path:String, ?std:Bool = false)
 	{
         var relativePath:String;
         var list:Array<FileData>;
         
+		var completionInstance = Completion.get();
+		
 		if (!SettingsWatcher.isItemInIgnoreList(path) && !ProjectAccess.isItemInIgnoreList(path)) 
 		{            
             if (std)
@@ -338,17 +373,17 @@ class ClasspathWalker
 
                 if (getFileIndex(relativePath, list) == -1)
                 {
-                    list.push({path: relativePath, directory: getFileDirectory(relativePath), displayText: core.Completion.processDisplayText(relativePath), filename: js.Node.path.basename(relativePath)});
+                    list.push({path: relativePath, directory: getFileDirectory(relativePath), displayText: completionInstance.processDisplayText(relativePath), filename: js.Node.path.basename(relativePath)});
                 }
             }
             else if (getFileIndex(path, list) == -1)
             {
-                list.push({path: path, directory: getFileDirectory(path), displayText: core.Completion.processDisplayText(path), filename: js.Node.path.basename(path)});
+                list.push({path: path, directory: getFileDirectory(path), displayText: completionInstance.processDisplayText(path), filename: Node.path.basename(path)});
             }            
 		}
 	}
 	
-	public static function removeFile(path:String)
+	public function removeFile(path:String)
 	{
 		var relativePath;
 		
@@ -377,7 +412,7 @@ class ClasspathWalker
         }
 	}
 	
-	static function walkProjectDirectory(path:String):Void 
+	function walkProjectDirectory(path:String):Void 
 	{
         if (Main.sync)
         {

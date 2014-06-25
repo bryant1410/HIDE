@@ -38,7 +38,9 @@ class HaxeServer
 	{
 		trace("Starting new Haxe server at localhost:5000");
 		
-		haxeServer = ProcessHelper.runPersistentProcess("haxe", ["--wait", "5000"], null, function (code:Int, stdout:String, stderr:String):Void 
+		var processHelper = ProcessHelper.get();
+		
+		haxeServer = processHelper.runPersistentProcess("haxe", ["--wait", "5000"], null, function (code:Int, stdout:String, stderr:String):Void 
 		{
 			trace(stdout);
 			trace(stderr);

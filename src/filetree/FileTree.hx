@@ -31,14 +31,31 @@ import core.OutlinePanel.TreeItem;
 
 class FileTree
 {
-	static var lastProjectName:String;
-	static var lastProjectPath:String;
+	var lastProjectName:String;
+	var lastProjectPath:String;
 	
-	static var contextMenu:Dynamic;
-	static var contextMenuCommandsMap:StringMap<Dynamic>;
-	static var watcher:Dynamic;
+	var contextMenu:Dynamic;
+	var contextMenuCommandsMap:StringMap<Dynamic>;
+	var watcher:Dynamic;
 	
-	public static function init():Void
+	static var instance:FileTree;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new FileTree();
+		}
+			
+		return instance;
+	}
+	
+	public function init():Void
 	{		
 		contextMenuCommandsMap = new StringMap();
 		
@@ -60,7 +77,8 @@ class FileTree
 				if (e) 
 				{
 					var pathToFile:String = js.Node.path.join(path, str);
-					TabManager.createFileInNewTab(pathToFile);
+					var tabManager = TabManager.get();
+					tabManager.createFileInNewTab(pathToFile);
 					untyped new JQuery('#filetree').jqxTree('addTo', createFileItem(pathToFile) , selectedItem.element);
 					attachContextMenu();
 				}
@@ -109,9 +127,11 @@ class FileTree
 		
 		appendToContextMenu("Open Item", function (selectedItem):Void 
 		{
+			var tabManager = TabManager.get();
+			
 			if (selectedItem.value.type == 'file') 
 			{
-				TabManager.openFileInNewTab(selectedItem.value.path);
+				tabManager.openFileInNewTab(selectedItem.value.path);
 			}
 			else
 			{
@@ -142,7 +162,7 @@ class FileTree
 					{
 						if (error == null) 
 						{
-							FileTree.load();
+							load();
 						}
 						else 
 						{
@@ -223,7 +243,7 @@ class FileTree
 				}
 			}
 			
-			FileTree.load();
+			load();
 		}
 		);
 		
@@ -242,7 +262,7 @@ class FileTree
 				else 
 				{
 					ProjectAccess.currentProject.hiddenItems.remove(relativePath);
-					FileTree.load();
+					load();
 				}
 			}
 			else 
@@ -288,7 +308,8 @@ class FileTree
 			
 			if (item.value.type == 'file') 
 			{
-				TabManager.openFileInNewTab(item.value.path);
+				var tabManager = TabManager.get();
+				tabManager.openFileInNewTab(item.value.path);
 			}
 		}
 		);
@@ -333,7 +354,7 @@ class FileTree
 						else 
 						{
 							Alertify.error("Can't move file from " + previousPath + " to " + newPath);
-							FileTree.load();
+							load();
 						}
 					}
 					);
@@ -341,7 +362,7 @@ class FileTree
             });
 	}
 	
-	public static function updateProjectMainHxml()
+	static function updateProjectMainHxml()
 	{
 		var noproject = (ProjectAccess.path == null || ProjectAccess.currentProject.main == null);
 		var main = null;
@@ -369,7 +390,7 @@ class FileTree
 		}
 	}
 
-	static function appendToContextMenu(name:String, onClick:Dynamic)
+	function appendToContextMenu(name:String, onClick:Dynamic)
 	{
 		var li:LIElement = Browser.document.createLIElement();
 		li.textContent = name;
@@ -385,7 +406,7 @@ class FileTree
 		});
 	}
 	
-	static function attachContextMenu() 
+	function attachContextMenu() 
 	{
 		// open the context menu when the user presses the mouse right button.
 		new JQuery("#filetree li").on('mousedown', function (event) {			
@@ -406,7 +427,7 @@ class FileTree
 		});
 	}
 	
-	static function isRightClick(event:Dynamic):Bool
+	function isRightClick(event:Dynamic):Bool
 	{
 		var rightclick = null;
 		if (!event) var event = Browser.window.event;
@@ -415,7 +436,7 @@ class FileTree
 		return rightclick;
 	}
 	
-	public static function load(?projectName:String, ?path:String):Void
+	public function load(?projectName:String, ?path:String):Void
 	{        
 		if (projectName == null)
 		{
@@ -482,6 +503,8 @@ class FileTree
 			watcher = null;
 		}
 		
+		var classpathWalker = ClasspathWalker.get();
+			
 		var config:Config = {
 			path: path,
 			listener:
@@ -507,11 +530,11 @@ class FileTree
 									{
 										if (changeType == 'create') 
 										{
-											ClasspathWalker.addFile(filePath);
+											classpathWalker.addFile(filePath);
 										}
 										else
 										{
-											ClasspathWalker.removeFile(filePath);
+											classpathWalker.removeFile(filePath);
 										}
 									}
 									else if(stat.isDirectory()) 
@@ -530,7 +553,7 @@ class FileTree
                         case 'delete':
                             if (Node.path.extname(filePath) != "")
                             {
-                            	ClasspathWalker.removeFile(filePath);
+                            	classpathWalker.removeFile(filePath);
                     		}
 						default:
 							

@@ -112,7 +112,9 @@ class InstallHaxelibDialog extends ModalDialog
 			
 			var cwd = ProjectAccess.path;
 			
-			ProcessHelper.runPersistentProcess(params.shift(), params, cwd, function (code, stdout, stderr):Void 
+			var processHelper = ProcessHelper.get();
+			
+			processHelper.runPersistentProcess(params.shift(), params, cwd, function (code, stdout, stderr):Void 
 			{
 				if (code == 0) 
 				{

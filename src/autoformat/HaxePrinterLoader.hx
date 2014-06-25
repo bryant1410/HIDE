@@ -12,9 +12,11 @@ class HaxePrinterLoader
 {
 	public static function load():Void
 	{
+		var tabManagerInstance = TabManager.get();
+		
 		BootstrapMenu.getMenu("Source", 5).addMenuItem("Autoformat", 1, function ()
 		{
-			if (js.Node.path.extname(TabManager.getCurrentDocumentPath()) == ".hx") 
+			if (js.Node.path.extname(tabManagerInstance.getCurrentDocumentPath()) == ".hx") 
 			{
 				var data:String = Editor.editor.getValue();
 				
@@ -27,7 +29,7 @@ class HaxePrinterLoader
 		}
 		, "Ctrl-Shift-F");
 		
-		BootstrapMenu.getMenu("Options").addMenuItem("Open autoformat configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "config","autoformat.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open autoformat configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join("core", "config","autoformat.json")));
 	}
 	
 }

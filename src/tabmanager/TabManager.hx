@@ -37,12 +37,29 @@ import watchers.LocaleWatcher;
  */
 class TabManager
 {
-	public static var tabs:UListElement;
-	public static var tabMap:TabMap;
-	public static var selectedPath:String;
-	static var selectedIndex:Int;
+	public var tabs:UListElement;
+	public var tabMap:TabMap;
+	public var selectedPath:String;
+	var selectedIndex:Int;
 	
-	public static function load():Void
+	static var instance:TabManager;
+	
+	public static function get():TabManager
+	{
+		if (instance == null)
+		{
+			instance = new TabManager();
+		}
+			
+		return instance;
+	}
+	
+	public function new():Void
+	{
+		
+	}
+	
+	public function load()
 	{
 		tabs = cast(Browser.document.getElementById("tabs"), UListElement);
 		
@@ -100,7 +117,7 @@ class TabManager
 		
 		indentType.onclick = function (_)
 			{
-				var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+				var selectedFile = ProjectAccess.getFileByPath(getCurrentDocumentPath());
 				
 				if (selectedFile != null)
 				{	
@@ -111,10 +128,11 @@ class TabManager
 				}
 			}
 	}
+
 	
-	static function setIndentationSize(indentSize:Int)
+	function setIndentationSize(indentSize:Int)
 	{
-		var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+		var selectedFile = ProjectAccess.getFileByPath(getCurrentDocumentPath());
 				
 		if (selectedFile != null)
 		{
@@ -125,9 +143,9 @@ class TabManager
 	}
 
 	
-	static function resetIndentationSettings()
+	function resetIndentationSettings()
 	{
-		var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+		var selectedFile = ProjectAccess.getFileByPath(getCurrentDocumentPath());
 				
 		if (selectedFile != null)
 		{	
@@ -136,7 +154,7 @@ class TabManager
 	}
 
 	
-	public static function createNewTab(name:String, path:String, doc:CodeMirror.Doc, ?save:Bool = false):Void
+	public function createNewTab(name:String, path:String, doc:CodeMirror.Doc, ?save:Bool = false):Void
 	{
 		var tab = new Tab(name, path, doc, save);
 		tabMap.add(tab);
@@ -153,13 +171,15 @@ class TabManager
 				ProjectAccess.currentProject.files.push({path: relativePath});
 			}
 		}
+			
 		
-		RecentProjectsList.addFile(path);
+		var recentProjectsList = RecentProjectsList.get();
+		recentProjectsList.addFile(path);
 		
 		Editor.resize();
 	}
 	
-	public static function openFile(path:String, onComplete:String->Void)
+	public function openFile(path:String, onComplete:String->Void)
 	{
 		var options:js.Node.NodeFsFileOptions = { };
 		options.encoding = NodeC.UTF8;
@@ -178,7 +198,7 @@ class TabManager
 		);
 	}
 	
-	public static function openFileInNewTab(path:String, ?show:Bool = true, ?onComplete:Dynamic):Void
+	public function openFileInNewTab(path:String, ?show:Bool = true, ?onComplete:Dynamic):Void
 	{        
 		//Fix opening same file
 		if (Utils.os == Utils.WINDOWS) 
@@ -245,7 +265,7 @@ class TabManager
 		);
 	}
 	
-	public static function createFileInNewTab(?pathToFile:String):Void
+	public function createFileInNewTab(?pathToFile:String):Void
 	{
 		var path:String = pathToFile;
 		
@@ -270,7 +290,7 @@ class TabManager
 		}
 	}
 	
-	private static function createNewFile(path:String):Void
+	function createNewFile(path:String):Void
 	{
 		var name:String = js.Node.path.basename(path);
 		var mode:String = getMode(name);
@@ -310,10 +330,11 @@ class TabManager
 		
 		checkTabsCount();
 		
-		FileTree.load();
+		var fileTreeInstance = FileTree.get();
+		fileTreeInstance.load();
 	}
 	
-	private static function checkTabsCount():Void
+	function checkTabsCount():Void
 	{			
 		if (Browser.document.getElementById("editor").style.display == "none" && tabMap.getTabs().length > 0)
 		{
@@ -328,7 +349,7 @@ class TabManager
 		}
 	}
 	
-	public static function closeAll():Void
+	public function closeAll():Void
 	{
 		for (key in tabMap.keys()) 
 		{
@@ -336,7 +357,7 @@ class TabManager
 		}
 	}
         
-	public static function closeOthers(path:String):Void
+	public function closeOthers(path:String):Void
 	{		
 		for (key in tabMap.keys()) 
 		{
@@ -352,7 +373,7 @@ class TabManager
 		}
 	}
 	
-	public static function closeTab(path:String, ?switchToTab:Bool = true):Void
+	public function closeTab(path:String, ?switchToTab:Bool = true):Void
 	{
 		Editor.saveFoldedRegions();
 		
@@ -377,7 +398,7 @@ class TabManager
 		Editor.resize();
 	}
 	
-	static function removeTab(path:String, ?switchToTab:Bool)
+	function removeTab(path:String, ?switchToTab:Bool)
 	{
 		var tab = tabMap.get(path);
 		tabMap.remove(path);
@@ -406,8 +427,9 @@ class TabManager
 				WelcomeScreen.show();
 			}
 			
-            OutlinePanel.clearFields();
-            OutlinePanel.update();
+			var outlinePanel = OutlinePanel.get();
+            outlinePanel.clearFields();
+            outlinePanel.update();
 		}
 		
 		if (ProjectAccess.path != null) 
@@ -420,7 +442,7 @@ class TabManager
 		}
 	}
 	
-	public static function showPreviousTab() 
+	public function showPreviousTab() 
 	{
 		var index = selectedIndex - 1;
 		var tabArray = tabMap.getTabs();
@@ -433,7 +455,7 @@ class TabManager
 		selectDoc(tabArray[index].path);
 	}
 	
-	public static function showNextTab() 
+	public function showNextTab() 
 	{
 		var index = selectedIndex + 1;
 		var tabArray = tabMap.getTabs();
@@ -446,12 +468,12 @@ class TabManager
 		selectDoc(tabArray[index].path);
 	}
 	
-	public static function closeActiveTab():Void
+	public function closeActiveTab():Void
 	{
 		closeTab(selectedPath);
 	}
 
-	private static function isAlreadyOpened(path:String, ?show:Bool = true):Bool
+	function isAlreadyOpened(path:String, ?show:Bool = true):Bool
 	{
 		var opened:Bool = tabMap.exists(path);
 		
@@ -463,7 +485,7 @@ class TabManager
 		return opened;
 	}
 	
-	private static function getMode(path:String):String
+	function getMode(path:String):String
 	{
 		var mode:String = null;
 				
@@ -498,7 +520,7 @@ class TabManager
 		return mode;
 	}
 	
-	public static function selectDoc(path:String):Void
+	public function selectDoc(path:String):Void
 	{
 		var found = false;
 
@@ -612,7 +634,7 @@ class TabManager
 		}
 	}
 	
-	static function loadIndentationSettings(cm:CodeMirror, selectedFile:FileData)
+	function loadIndentationSettings(cm:CodeMirror, selectedFile:FileData)
 	{
 		cm.setOption("indentWithTabs", selectedFile.useTabs);
 		
@@ -626,7 +648,7 @@ class TabManager
 		}
 	}
 		
-	static function updateIndentationSettings(selectedFile:FileData)
+	function updateIndentationSettings(selectedFile:FileData)
 	{
 		var indentType = Browser.document.getElementById("indent-type");
 
@@ -646,12 +668,12 @@ class TabManager
 		indentWidthLabel.textContent = Std.string(selectedFile.indentSize);
 	}
 		
-	public static function getCurrentDocumentPath():String
+	public function getCurrentDocumentPath():String
 	{
 		return selectedPath;
 	}
 	
-	public static function getCurrentDocument():CodeMirror.Doc
+	public function getCurrentDocument():CodeMirror.Doc
 	{
         var doc:CodeMirror.Doc = null;
         
@@ -668,7 +690,7 @@ class TabManager
 		return doc;
 	}
 	
-	public static function saveDoc(path:String, ?onComplete:Dynamic):Void
+	public function saveDoc(path:String, ?onComplete:Dynamic):Void
 	{
 		if (isChanged(path)) 
 		{
@@ -682,7 +704,7 @@ class TabManager
 		}	
 	}
 	
-	public static function isChanged(path:String):Bool
+	public function isChanged(path:String):Bool
 	{
 		var tab:Tab = tabMap.get(path);
 		
@@ -690,7 +712,7 @@ class TabManager
 		return !tab.doc.isClean();
 	}
 	
-	public static function saveActiveFile(?onComplete:Dynamic):Void
+	public function saveActiveFile(?onComplete:Dynamic):Void
 	{
 		if (selectedPath != null) 
 		{
@@ -702,7 +724,7 @@ class TabManager
         }
 	}
 	
-	public static function saveActiveFileAs():Void
+	public function saveActiveFileAs():Void
 	{		
 		var tab = tabMap.get(selectedPath);
 		
@@ -717,7 +739,7 @@ class TabManager
 		, tab.name);
 	}
 	
-	public static function saveAll(?onComplete:Dynamic):Void
+	public function saveAll(?onComplete:Dynamic):Void
 	{		
 		for (key in tabMap.keys()) 
 		{

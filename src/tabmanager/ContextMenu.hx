@@ -30,29 +30,31 @@ class ContextMenu
 		}
 		);
 		
+		var tabManager = TabManager.get();
+		
 		var ul:UListElement = Browser.document.createUListElement();
 		ul.className = "dropdown-menu";
 		ul.style.display = "block";
 		
-		ul.appendChild(createContextMenuItem("New File...", TabManager.createFileInNewTab));
+		ul.appendChild(createContextMenuItem("New File...", tabManager.createFileInNewTab));
 		
 		ul.appendChild(createDivider());
 		
 		ul.appendChild(createContextMenuItem("Close", function ()
 		{
-			TabManager.closeTab(contextMenu.getAttribute("path"));
+			tabManager.closeTab(contextMenu.getAttribute("path"));
 		}
 		));
 		ul.appendChild(createContextMenuItem("Close All", function ()
 		{
-			TabManager.closeAll();
+			tabManager.closeAll();
 		}
 		));
 		
 		ul.appendChild(createContextMenuItem("Close Other", function ()
 		{
 			var path = contextMenu.getAttribute("path");
-			TabManager.closeOthers(path);
+			tabManager.closeOthers(path);
 		}
 		));
 		

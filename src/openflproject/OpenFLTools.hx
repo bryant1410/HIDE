@@ -11,7 +11,9 @@ class OpenFLTools
 {	
 	public static function getParams(path:String, target:String, onLoaded:String->Void):Void
 	{
-		ProcessHelper.runProcess("haxelib", ["run", "lime", "display", target], path, function (stdout:String, stderr:String):Void 
+		var processHelper = ProcessHelper.get();
+		
+		processHelper.runProcess("haxelib", ["run", "lime", "display", target], path, function (stdout:String, stderr:String):Void 
 		{
 			//onComplete
 			

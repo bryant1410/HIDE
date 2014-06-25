@@ -91,7 +91,9 @@ class ColorPreview
 	
 	public static function update(cm:CodeMirror):Void 
 	{
-		var wordData = Completion.getCurrentWord(cm, { word:~/[A-Fx0-9#]+$/i }, cm.getCursor());
+		var completionInstance = Completion.get();
+		
+		var wordData = completionInstance.getCurrentWord(cm, { word:~/[A-Fx0-9#]+$/i }, cm.getCursor());
 		
 		var word = wordData.word;
 		var color:String = null;

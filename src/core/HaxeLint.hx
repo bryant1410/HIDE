@@ -1,4 +1,5 @@
 package core;
+import parser.OutlineHelper;
 import cm.Xml;
 import cm.Editor;
 import haxe.ds.StringMap.StringMap;
@@ -26,7 +27,8 @@ class HaxeLint
 		{
 			var found = [];
 			
-			var path:String = TabManager.getCurrentDocumentPath();
+			var tabManagerInstance = TabManager.get();
+			var path:String = tabManagerInstance.getCurrentDocumentPath();
 			
 			if (fileData.exists(path)) 
 			{
@@ -51,7 +53,11 @@ class HaxeLint
 	{
 		AnnotationRuler.clearErrorMarkers();
 		
-        var doc = TabManager.getCurrentDocument();
+		var tabManagerInstance = TabManager.get();
+		var outlinePanel = OutlinePanel.get();
+		var outlineHelper = OutlineHelper.get();
+		var xmlInstance = Xml.get();
+        var doc = tabManagerInstance.getCurrentDocument();
         
 		if (doc != null)
 		{
@@ -66,9 +72,9 @@ class HaxeLint
                     trace(e);
                 }
 
-                parser.OutlineHelper.getList(doc.getValue(), TabManager.getCurrentDocumentPath());
-
-                var path:String = TabManager.getCurrentDocumentPath();
+				var path:String = tabManagerInstance.getCurrentDocumentPath();
+					
+                outlineHelper.getList(doc.getValue(), path);
 
                 if (fileData.exists(path)) 
                 {
@@ -85,19 +91,19 @@ class HaxeLint
             }       
             else if (doc.getMode().name == "xml")
             {
-                Xml.generateXmlCompletion();
+                xmlInstance.generateXmlCompletion();
             }
         	else
            	{
-                OutlinePanel.clearFields();
-            	OutlinePanel.update();
+                outlinePanel.clearFields();
+            	outlinePanel.update();
             }
 			
 		}
     	else
         {
-            OutlinePanel.clearFields();
-            OutlinePanel.update();
+            outlinePanel.clearFields();
+            outlinePanel.update();
         }
 	}
 	

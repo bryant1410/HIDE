@@ -69,15 +69,22 @@ class OpenProject
         
 		var filename:String = Node.path.basename(path);
 			
+		var outlinePanel = OutlinePanel.get();
+		var tabManagerInstance = TabManager.get();
+		var fileTree = FileTree.get();
+		var projectOptions = ProjectOptions.get();
+		var recentProjectsList = RecentProjectsList.get();
+		var splitter = Splitter.get();
+		
 		switch (filename) 
 		{
-			case "project.hide":
-                OutlinePanel.clearFields();
-                OutlinePanel.update();
+			case "project.hide":				
+                outlinePanel.clearFields();
+                outlinePanel.update();
                 
 				var options:NodeFsFileOptions = { };
 				options.encoding = NodeC.UTF8;
-                
+				
 				Node.fs.readFile(path, options, function (error:js.Node.NodeErr, data:String):Void
 				{
 					var pathToProject:String = js.Node.path.dirname(path);
@@ -87,7 +94,9 @@ class OpenProject
 					
 					var project = ProjectAccess.currentProject;
 					
-					ClasspathWalker.parseProjectArguments();
+					var classpathWalker = ClasspathWalker.get();
+					
+					classpathWalker.parseProjectArguments();
 					
                     var loadedFilesCount:Int = 0;
                     var totalFilesCount:Int;
@@ -116,7 +125,7 @@ class OpenProject
 							{
 								if (exists) 
 								{
-									TabManager.openFileInNewTab(fullPath, false, function ()
+									tabManagerInstance.openFileInNewTab(fullPath, false, function ()
                                                                {
                                                                    loadedFilesCount++;
                                                                    
@@ -133,7 +142,7 @@ class OpenProject
                                                                                 if (exists) 
                                                                                 {
 										    trace(fullPathToActiveFile);
-                                                                                    TabManager.selectDoc(fullPathToActiveFile);
+                                                                                    tabManagerInstance.selectDoc(fullPathToActiveFile);
                                                                                     cm.Editor.editor.focus();
                                                                                 }
                                                                             }
@@ -167,13 +176,13 @@ class OpenProject
 						}
 					}
 						
-					ProjectOptions.updateProjectOptions();
-					FileTree.load(project.name, pathToProject);
+					projectOptions.updateProjectOptions();
+					fileTree.load(project.name, pathToProject);
 					
-					Splitter.show();
+					splitter.show();
 					
 					Browser.getLocalStorage().setItem("pathToLastProject", path);
-					RecentProjectsList.add(path);
+					recentProjectsList.add(path);
 				}
 				);
 			default:				
@@ -182,8 +191,8 @@ class OpenProject
 				switch (extension) 
 				{
 					case ".hxml":
-                        OutlinePanel.clearFields();
-                        OutlinePanel.update();
+                        outlinePanel.clearFields();
+                        outlinePanel.update();
                         
 						var pathToProject:String = js.Node.path.dirname(path);
 						
@@ -194,23 +203,23 @@ class OpenProject
 						project.main = Node.path.basename(path);
 						
 						ProjectAccess.currentProject = project;
-						ProjectOptions.updateProjectOptions();
+						projectOptions.updateProjectOptions();
 						
 						var pathToProjectHide:String = js.Node.path.join(pathToProject, "project.hide");
 						
 						ProjectAccess.save(function ()
 						{
-							FileTree.load(project.name, pathToProject);
+							fileTree.load(project.name, pathToProject);
 						}
 						);
 						
-						Splitter.show();
+						splitter.show();
 						
 						Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
-						RecentProjectsList.add(pathToProjectHide);
+						recentProjectsList.add(pathToProjectHide);
 					case ".lime", ".xml":
-                        OutlinePanel.clearFields();
-                		OutlinePanel.update();
+                        outlinePanel.clearFields();
+                		outlinePanel.update();
                         
 						var options:NodeFsFileOptions = { };
 						options.encoding = NodeC.UTF8;
@@ -242,7 +251,7 @@ class OpenProject
 						
 				}
 				
-				TabManager.openFileInNewTab(path);
+				tabManagerInstance.openFileInNewTab(path);
 		}
 	}
 	
@@ -257,10 +266,12 @@ class OpenProject
 	
 	public static function closeProject(?sync:Bool = false):Void
 	{
+		var tabManagerInstance = TabManager.get();
+		
 		if (ProjectAccess.path != null) 
 		{
 			ProjectAccess.save(updateProjectData, sync);
-            tabmanager.TabManager.closeAll();
+            tabManagerInstance.closeAll();
 		}
 		else 
 		{
@@ -270,9 +281,11 @@ class OpenProject
 	
 	static function updateProjectData()
 	{
+		var splitter = Splitter.get();
+		
 		ProjectAccess.path = null;
 		ProjectAccess.currentProject = null;
-		Splitter.hide();
+		splitter.hide();
 		Browser.getLocalStorage().removeItem("pathToLastProject");
 	}
 	

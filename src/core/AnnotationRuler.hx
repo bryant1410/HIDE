@@ -16,11 +16,13 @@ class AnnotationRuler
     
 	public static function addErrorMarker(pathToFile:String, line:Int, ch:Int, message:String):Void 
 	{
+		var tabManagerInstance = TabManager.get();
+		
 		var a:AnchorElement = Browser.document.createAnchorElement();
 		a.href = "#";
 		a.onclick = function (e):Void 
 		{
-			TabManager.openFileInNewTab(pathToFile, true, function ():Void 
+			tabManagerInstance.openFileInNewTab(pathToFile, true, function ():Void 
 			{
 				var cm:Dynamic = Editor.editor;
 				cm.centerOnLine(line);
@@ -30,7 +32,7 @@ class AnnotationRuler
 		var div:DivElement = Browser.document.createDivElement();
 		div.className = "errorMarker";
 		
-		var lineCount = TabManager.getCurrentDocument().lineCount();
+		var lineCount = tabManagerInstance.getCurrentDocument().lineCount();
 		
         var targetLine:Float = line / lineCount * 100;
         

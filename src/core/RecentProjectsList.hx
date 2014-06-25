@@ -16,10 +16,22 @@ import tjson.TJSON;
  */
 class RecentProjectsList
 {
-	static var projectList:Array<String> = [];
-	static var fileList:Array<String> = [];
+	var projectList:Array<String> = [];
+	var fileList:Array<String> = [];
+
+	static var instance:RecentProjectsList;
 	
-	public static function load()
+	public static function get():RecentProjectsList
+	{
+		if (instance == null)
+		{
+			instance = new RecentProjectsList();
+		}
+			
+		return instance;
+	}
+	
+	public function new()
 	{
 		var localStorage2 = Browser.getLocalStorage();
 		
@@ -66,7 +78,7 @@ class RecentProjectsList
 		updateRecentFileMenu();
 	}
 	
-	public static function add(path:String):Void
+	public function add(path:String):Void
 	{
 		addItemToList(projectList, path);
 		
@@ -74,13 +86,13 @@ class RecentProjectsList
 		updateWelcomeScreen();
 	}
 	
-	public static function addFile(path:String):Void
+	public function addFile(path:String):Void
 	{
 		addItemToList(fileList, path);
 		updateRecentFileMenu();
 	}
 	
-	static function addItemToList(list:Array<String>, item:String):Void 
+	function addItemToList(list:Array<String>, item:String):Void 
 	{
 		if (list.indexOf(item) == -1) 
 		{
@@ -97,7 +109,7 @@ class RecentProjectsList
 		list.insert(0, item);
 	}
 	
-	static function updateMenu():Void
+	function updateMenu():Void
 	{
 		var submenu = BootstrapMenu.getMenu("File").getSubmenu("Open Recent Project");
 		submenu.clear();
@@ -116,7 +128,7 @@ class RecentProjectsList
 // 		}
 	}
 	
-	static function updateWelcomeScreen():Void
+	function updateWelcomeScreen():Void
 	{
 		var listGroup:DivElement = cast(Browser.document.getElementById("recentProjectsList"), DivElement);
 		
@@ -153,14 +165,15 @@ class RecentProjectsList
 		}
 	}
 	
-	static function updateRecentFileMenu():Void
+	function updateRecentFileMenu():Void
 	{
 		var submenu = BootstrapMenu.getMenu("File").getSubmenu("Open Recent File");
 		submenu.clear();
 		
 		for (i in 0...fileList.length) 
 		{
-			submenu.addMenuItem(fileList[i], i + 1, TabManager.openFileInNewTab.bind(fileList[i]));
+			 var tabManagerInstance = TabManager.get();
+			 submenu.addMenuItem(fileList[i], i + 1, tabManagerInstance.openFileInNewTab.bind(fileList[i]));
 		}
 	}
 }

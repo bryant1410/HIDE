@@ -194,10 +194,12 @@ class HaxeParserProvider
 		var pos = cm.indexFromPos(cm.getCursor());
 		//trace(pos);
 		
-		var doc:CodeMirror.Doc = TabManager.getCurrentDocument();
+		var tabManagerInstance = TabManager.get();
+		
+		var doc:CodeMirror.Doc = tabManagerInstance.getCurrentDocument();
 		
 		var data:String = doc.getValue();
-		var path:String = TabManager.getCurrentDocumentPath();
+		var path:String = tabManagerInstance.getCurrentDocumentPath();
 		
 		var ast = parse(data, path);
 		

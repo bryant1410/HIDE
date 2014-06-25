@@ -33,14 +33,19 @@ class OpenFL
 		
 		ProjectAccess.currentProject = project;
 		
-		ProjectOptions.updateProjectOptions();
+		var projectOptions = ProjectOptions.get();
+		var splitter = Splitter.get();
+		var fileTree = FileTree.get();
+		var recentProjectsList = RecentProjectsList.get();
 		
-		ProjectAccess.save(FileTree.load.bind(project.name, pathToProject));
+		projectOptions.updateProjectOptions();
 		
-		Splitter.show();
+		ProjectAccess.save(fileTree.load.bind(project.name, pathToProject));
+		
+		splitter.show();
 		
 		Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
-		RecentProjectsList.add(pathToProjectHide);
+		recentProjectsList.add(pathToProjectHide);
 	}
 	
 	public static function parseOpenFLDisplayParameters(pathToProject:String, target:String, onComplete:Array<String>->Void):Void

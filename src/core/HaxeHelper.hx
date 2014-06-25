@@ -1,4 +1,5 @@
 package core;
+import parser.ClasspathWalker;
 import haxe.xml.Fast;
 import js.Node;
 
@@ -23,7 +24,9 @@ class HaxeHelper
 		{
 			var data:Array<String> = [];
 		
-			ProcessHelper.runProcess("haxe", ["--help"], null, function (stdout:String, stderr:String):Void 
+			var processHelper = ProcessHelper.get();
+			
+			processHelper.runProcess("haxe", ["--help"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/-+[A-Z-]+ /gim;
 				regex.map(stderr, function (ereg:EReg):String
@@ -48,9 +51,11 @@ class HaxeHelper
 		}
 		else 
 		{
+			var processHelper = ProcessHelper.get();
+			
 			var data:Array<String> = [];
 		
-			ProcessHelper.runProcess("haxe", ["--help-defines"], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess("haxe", ["--help-defines"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/[A-Z-]+ +:/gim;
 				regex.map(stdout, function (ereg:EReg):String
@@ -75,9 +80,11 @@ class HaxeHelper
 		}
 		else 
 		{
+			var processHelper = ProcessHelper.get();
+			
 			var data:Array<String> = [];
 		
-			ProcessHelper.runProcess("haxelib", ["list"], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess("haxelib", ["list"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/^[A-Z-]+:/gim;
 				regex.map(stdout, function (ereg:EReg):String
@@ -102,9 +109,11 @@ class HaxeHelper
 		}
 		else 
 		{
+			var processHelper = ProcessHelper.get();
+			
 			var data:Array<String> = [];
 		
-			ProcessHelper.runProcess("haxelib", ["search", '""'], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess("haxelib", ["search", '""'], null, function (stdout:String, stderr:String):Void 
 			{				
 				var lines:Array<String> = stdout.split("\n");
 				
@@ -124,4 +133,32 @@ class HaxeHelper
 			);
 		}
 	}
+
+	public static function getVersion(onComplete:String->Void):Void
+	{
+		var processHelper = ProcessHelper.get();
+		
+		processHelper.runProcess("haxe", ["-version"], null, function (stdout:String, stderr:String):Void 
+		{
+			onComplete(stdout);
+		}
+		);
+	}
+
+	public static function getPathToHaxe()
+	{
+		var pathToHaxe = "haxe";
+		
+		var classpathWalker = ClasspathWalker.get();
+		
+		var pathToHaxeDirectory = classpathWalker.pathToHaxe;
+		
+		if (pathToHaxeDirectory != null)
+		{
+			pathToHaxe = Node.path.join(pathToHaxeDirectory, pathToHaxe);
+		}
+			
+		return pathToHaxe;
+	}
+
 }

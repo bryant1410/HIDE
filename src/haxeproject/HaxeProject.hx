@@ -20,11 +20,23 @@ import tabmanager.TabManager;
  */
 class HaxeProject
 {
-	static var code:String;
-	static var indexPageCode:String;
+	var code:String;
+	var indexPageCode:String;
+	
+	static var instance:HaxeProject;
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new HaxeProject();
+		}
+			
+		return instance;
+	}
 	
 	//If this plugin is selected as active in HIDE, then HIDE will call this function once on load	
-	public static function load():Void
+	public function new():Void
 	{
 			NewProjectDialog.getCategory("Haxe", 1).addItem("Flash Project", createFlashProject);			
 			NewProjectDialog.getCategory("Haxe").addItem("JavaScript Project", createJavaScriptProject);
@@ -71,47 +83,47 @@ class HaxeProject
 			);
 	}
 	
-	static function createPythonProject(data:Dynamic):Void  
+	function createPythonProject(data:Dynamic):Void  
 	{
 		createHaxeProject(data, Project.PYTHON);
 	}
 	
-	static function createCSharpProject(data:Dynamic):Void 
+	function createCSharpProject(data:Dynamic):Void 
 	{
 		createHaxeProject(data, Project.CSHARP);
 	}
 	
-	static function createJavaProject(data:Dynamic):Void
+	function createJavaProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.JAVA);
 	}
 	
-	static function createCppProject(data:Dynamic):Void
+	function createCppProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.CPP);
 	}
 	
-	static function createPhpProject(data:Dynamic):Void
+	function createPhpProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.PHP);
 	}
 	
-	static function createNekoProject(data:Dynamic):Void
+	function createNekoProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.NEKO);
 	}
 	
-	static function createFlashProject(data:Dynamic):Void
+	function createFlashProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.FLASH);
 	}
 	
-	static function createJavaScriptProject(data:Dynamic):Void
+	function createJavaScriptProject(data:Dynamic):Void
 	{
 		createHaxeProject(data, Project.JAVASCRIPT);
 	}
 	
-	static function createHaxeProject(data:Dynamic, target:Int):Void
+	function createHaxeProject(data:Dynamic, target:Int):Void
 	{
 		var pathToSrc:String = Node.path.join(data.projectLocation, data.projectName, "src");
 		
@@ -139,7 +151,8 @@ class HaxeProject
 				{
 					if (exists)
 					{
-						TabManager.openFileInNewTab(pathToMain);
+						var tabManagerInstance = TabManager.get();
+						tabManagerInstance.openFileInNewTab(pathToMain);
 					}
 					else 
 					{

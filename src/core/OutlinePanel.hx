@@ -19,9 +19,26 @@ typedef TreeItem = {
  
 class OutlinePanel
 {
-	static var source:Array<TreeItem> = [];
+	static var instance:OutlinePanel;
 	
-	public static function update():Void
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new OutlinePanel();
+		}
+			
+		return instance;
+	}
+	
+	var source:Array<TreeItem> = [];
+	
+	public function update():Void
 	{
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		
@@ -43,24 +60,18 @@ class OutlinePanel
 				cm.focus();
 				cm.setCursor(pos2);
 				
-				var marker = cm.markText(pos, pos2, {className: "showDeclaration"});
 				
-				Timer.delay(function ()
-							{
-								marker.clear();
-							}
-							, 1000);
 			}
 		}
 		);
 	}
 	
-	public static function addField(item:TreeItem):Void
+	public function addField(item:TreeItem):Void
 	{
 		source.push(item);
 	}
 	
-	public static function clearFields():Void 
+	public function clearFields():Void 
 	{
 		source = [];
 	}

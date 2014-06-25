@@ -32,7 +32,8 @@ class DragAndDrop
 				{
 					if (stats.isDirectory())
 					{
-						FileTree.load(js.Node.path.basename(path), path);
+						var filetreeInstance = FileTree.get();
+						filetreeInstance.load(js.Node.path.basename(path), path);
 					}
 					else 
 					{

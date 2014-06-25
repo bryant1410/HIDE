@@ -299,7 +299,8 @@ Main.main = function() {
 	Main.sync = true;
 	core.PreserveWindowState.init();
 	window.addEventListener("load",function(e) {
-		core.Splitter.load();
+		var splitter = core.Splitter.get();
+		splitter.load();
 		watchers.SettingsWatcher.load();
 		watchers.SnippetsWatcher.load();
 		core.Utils.prepare();
@@ -307,30 +308,35 @@ Main.main = function() {
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
 		cm.Zoom.load();
-		filetree.FileTree.init();
-		projectaccess.ProjectOptions.create();
+		var fileTreeInstance = filetree.FileTree.get();
+		fileTreeInstance.init();
+		var projectOptions = projectaccess.ProjectOptions.get();
+		projectOptions.create();
 		dialogs.DialogManager.load();
 		core.FileDialog.create();
-		tabmanager.TabManager.load();
+		var tabManagerInstance = tabmanager.TabManager.get();
+		tabManagerInstance.load();
 		core.HaxeLint.load();
 		cm.Editor.load();
 		core.MenuCommands.add();
-		core.Completion.registerHelper();
+		var completionInstance = core.Completion.get();
+		completionInstance.load();
 		autoformat.HaxePrinterLoader.load();
 		projectaccess.ProjectAccess.registerSaveOnCloseListener();
-		haxeproject.HaxeProject.load();
-		openflproject.OpenFLProject.load();
+		var haxeProject = haxeproject.HaxeProject.get();
+		var openFLProject = openflproject.OpenFLProject.get();
 		kha.KhaProject.load();
 		core.CompilationOutput.load();
-		core.RecentProjectsList.load();
+		var recentProjectsList = core.RecentProjectsList.get();
 		openproject.OpenProject.searchForLastProject();
 		core.DragAndDrop.prepare();
-		parser.ClasspathWalker.load();
+		var classWalker = parser.ClasspathWalker.get();
 		core.WelcomeScreen.load();
-		core.QuickOpen.load();
+		var quickOpen = core.QuickOpen.get();
 		Main.sync = false;
 		Main.currentTime = new Date().getTime();
-		core.ProcessHelper.checkProcessInstalled("haxe",["-v"],function(installed) {
+		var processHelper = core.ProcessHelper.get();
+		processHelper.checkProcessInstalled("haxe",["-v"],function(installed) {
 			if(installed) {
 				core.HaxeServer.check();
 				pluginloader.PluginManager.loadPlugins();
@@ -339,18 +345,18 @@ Main.main = function() {
 				pluginloader.PluginManager.loadPlugins(false);
 			}
 		});
-		core.ProcessHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
+		processHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
 			console.log("npm installed " + (installed1 == null?"null":"" + installed1));
-			if(installed1) core.ProcessHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
+			if(installed1) processHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
 				console.log("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
 			},function(code,stdout1,stderr1) {
 				console.log("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1));
 			});
 		});
-		core.ProcessHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
+		processHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
 			console.log("lime installed " + (installed2 == null?"null":"" + installed2));
 		});
-		core.ProcessHelper.checkProcessInstalled("git",["--version"],function(installed3) {
+		processHelper.checkProcessInstalled("git",["--version"],function(installed3) {
 			console.log("git installed " + (installed3 == null?"null":"" + installed3));
 		});
 		Main.window.show();
@@ -841,8 +847,9 @@ autoformat.HaxePrinterLoader = function() { };
 $hxClasses["autoformat.HaxePrinterLoader"] = autoformat.HaxePrinterLoader;
 autoformat.HaxePrinterLoader.__name__ = ["autoformat","HaxePrinterLoader"];
 autoformat.HaxePrinterLoader.load = function() {
+	var tabManagerInstance = tabmanager.TabManager.get();
 	menu.BootstrapMenu.getMenu("Source",5).addMenuItem("Autoformat",1,function() {
-		if(js.Node.require("path").extname(tabmanager.TabManager.getCurrentDocumentPath()) == ".hx") {
+		if(js.Node.require("path").extname(tabManagerInstance.getCurrentDocumentPath()) == ".hx") {
 			var data = cm.Editor.editor.getValue();
 			if(data != "") {
 				data = autoformat.HaxePrinter.formatSource(data);
@@ -854,7 +861,7 @@ autoformat.HaxePrinterLoader.load = function() {
 		return function() {
 			return f(a1);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","config","autoformat.json")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join("core","config","autoformat.json")));
 };
 var bootstrap = {};
 bootstrap.ButtonManager = function() { };
@@ -1037,15 +1044,16 @@ build.Hxml.buildHxml = function(dirname,filename,useCompilationServer,startComma
 			params.push("start");
 			break;
 		default:
-			params.push("bash");
 		}
 	}
-	params = params.concat(["haxe","--cwd",dirname]);
+	var pathToHaxe = core.HaxeHelper.getPathToHaxe();
+	params = params.concat([pathToHaxe,"--cwd",dirname]);
 	if(useCompilationServer) params = params.concat(["--connect","5000"]);
 	params.push(filename);
 	var process = params.shift();
 	var cwd = projectaccess.ProjectAccess.path;
-	core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
+	var processHelper = core.ProcessHelper.get();
+	processHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
 };
 var byte = {};
 byte.js = {};
@@ -1112,7 +1120,8 @@ cm.ColorPreview.create = function(cm1) {
 	});
 };
 cm.ColorPreview.update = function(cm1) {
-	var wordData = core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Fx0-9#]+$","i")},cm1.getCursor());
+	var completionInstance = core.Completion.get();
+	var wordData = completionInstance.getCurrentWord(cm1,{ word : new EReg("[A-Fx0-9#]+$","i")},cm1.getCursor());
 	var word = wordData.word;
 	var color = null;
 	if(word != null && word.length > 2) {
@@ -1207,12 +1216,15 @@ cm.Editor.load = function() {
 		} else throw(err);
 	}
 	cm.Editor.walk(options);
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var completionInstance = core.Completion.get();
+	var xmlInstance = cm.Xml.get();
 	options.extraKeys = { '.' : (function($this) {
 		var $r;
 		var passAndHint = function(cm1) {
-			if(tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+			if(tabManagerInstance.getCurrentDocument().getMode().name == "haxe") {
 				var completionActive = cm.Editor.editor.state.completionActive;
-				var completionType = core.Completion.getCompletionType();
+				var completionType = completionInstance.getCompletionType();
 				if((completionType == core.CompletionType.REGULAR || completionType == core.CompletionType.CLASSLIST) && completionActive != null && completionActive.widget != null) completionActive.widget.pick();
 			}
 			return CodeMirror.Pass;
@@ -1233,15 +1245,15 @@ cm.Editor.load = function() {
 	}(this)), '=' : (function($this) {
 		var $r;
 		var passAndHint2 = function(cm2) {
-			var mode = tabmanager.TabManager.getCurrentDocument().getMode().name;
-			if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe" || mode == "xml") {
+			var mode = tabManagerInstance.getCurrentDocument().getMode().name;
+			if(completionInstance.getCompletionType() == core.CompletionType.REGULAR && mode == "haxe" || mode == "xml") {
 				var completionActive1 = cm2.state.completionActive;
 				if(completionActive1 != null && completionActive1.widget != null) completionActive1.widget.pick();
 				if(mode == "xml") {
 					var cur = cm2.getCursor();
 					cm2.replaceRange("=\"\"",cur,cur);
 					cm2.execCommand("goCharLeft");
-					cm.Xml.completeIfInTag(cm2);
+					xmlInstance.completeIfInTag(cm2);
 				} else {
 					return CodeMirror.Pass;
 				}
@@ -1254,7 +1266,7 @@ cm.Editor.load = function() {
 	}(this)), '\'<\'' : (function($this) {
 		var $r;
 		var passAndHint3 = function(cm21) {
-			cm.Xml.completeAfter(cm21);
+			xmlInstance.completeAfter(cm21);
 			return CodeMirror.Pass;
 		};
 		$r = passAndHint3;
@@ -1262,7 +1274,7 @@ cm.Editor.load = function() {
 	}(this)), '\'/\'' : (function($this) {
 		var $r;
 		var passAndHint4 = function(cm22) {
-			cm.Xml.completeIfAfterLt(cm22);
+			xmlInstance.completeIfAfterLt(cm22);
 			return CodeMirror.Pass;
 		};
 		$r = passAndHint4;
@@ -1270,7 +1282,7 @@ cm.Editor.load = function() {
 	}(this)), '\' \'' : (function($this) {
 		var $r;
 		var passAndHint5 = function(cm23) {
-			cm.Xml.completeIfInTag(cm23);
+			xmlInstance.completeIfInTag(cm23);
 			return CodeMirror.Pass;
 		};
 		$r = passAndHint5;
@@ -1280,7 +1292,7 @@ cm.Editor.load = function() {
 	cm.Editor.editor.on("keypress",function(cm3,e) {
 		if(e.shiftKey) {
 			if(e.keyCode == 40 || e.keyCode == 62) {
-				if(core.Completion.getCompletionType() == core.CompletionType.REGULAR && tabmanager.TabManager.getCurrentDocument().getMode().name == "haxe") {
+				if(completionInstance.getCompletionType() == core.CompletionType.REGULAR && tabManagerInstance.getCurrentDocument().getMode().name == "haxe") {
 					var completionActive2 = cm.Editor.editor.state.completionActive;
 					if(completionActive2 != null && completionActive2.widget != null) completionActive2.widget.pick();
 				}
@@ -1324,7 +1336,7 @@ cm.Editor.load = function() {
 			cm.ColorPreview.update(cm4);
 			cm.ERegPreview.update(cm4);
 		},100);
-		var doc = tabmanager.TabManager.getCurrentDocument();
+		var doc = tabManagerInstance.getCurrentDocument();
 		if(doc != null) {
 			var pos = doc.getCursor();
 			window.document.getElementById("status-cursor").textContent = "Line " + Std.string(pos.line + 1) + ", Column " + Std.string(pos.ch + 1);
@@ -1344,7 +1356,7 @@ cm.Editor.load = function() {
 				cm6.indentLine(line2);
 			}
 		}
-		var doc1 = tabmanager.TabManager.getCurrentDocument();
+		var doc1 = tabManagerInstance.getCurrentDocument();
 		var modeName = doc1.getMode().name;
 		if(modeName == "haxe") {
 			core.Helper.debounce("change",function() {
@@ -1403,27 +1415,28 @@ cm.Editor.load = function() {
 							});
 						}
 						suggestions.push("new " + type);
-						core.Completion.showCodeSuggestions(suggestions);
+						completionInstance.showCodeSuggestions(suggestions);
 					} else {
+						console.log(name);
 						var ereg1 = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$","gm");
 						ereg1.map(value1,function(ereg32) {
 							var text2 = StringTools.trim(ereg32.matched(1));
 							if(text2 != "" && HxOverrides.indexOf(suggestions,text2,0) == -1) suggestions.push(text2);
 							return "";
 						});
-						if(suggestions.length > 0) core.Completion.showCodeSuggestions(suggestions);
+						if(suggestions.length > 0) completionInstance.showCodeSuggestions(suggestions);
 					}
 				}
 			} else if(lastChar == ":") {
-				if(data.charAt(cursor1.ch - 2) == "@") core.Completion.showMetaTagsCompletion(); else {
+				if(data.charAt(cursor1.ch - 2) == "@") completionInstance.showMetaTagsCompletion(); else {
 					var pos1 = { line : cursor1.line, ch : cursor1.ch - 1};
-					var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9\\.]+$","i")},pos1);
+					var word = completionInstance.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9\\.]+$","i")},pos1);
 					if(word.word == null || word.word != "default") {
 						var len = 0;
 						if(word.word != null) len = word.word.length;
 						var dataBeforeWord = data.substring(0,pos1.ch - len);
 						dataBeforeWord = StringTools.trim(dataBeforeWord);
-						if(!StringTools.endsWith(dataBeforeWord,"case")) core.Completion.showClassList();
+						if(!StringTools.endsWith(dataBeforeWord,"case")) completionInstance.showClassList();
 					}
 				}
 			} else if(lastChar == "<") {
@@ -1432,28 +1445,28 @@ cm.Editor.load = function() {
 					var type1 = basicTypes[_g8];
 					++_g8;
 					if(StringTools.endsWith(HxOverrides.substr(data,0,cursor1.ch - 1),type1)) {
-						core.Completion.showClassList();
+						completionInstance.showClassList();
 						break;
 					}
 				}
-			} else if(StringTools.endsWith(data,"import ")) core.Completion.showClassList(true); else if(StringTools.endsWith(data,"in )")) {
+			} else if(StringTools.endsWith(data,"import ")) completionInstance.showClassList(true); else if(StringTools.endsWith(data,"in )")) {
 				var ereg4 = new EReg("for[\t ]*\\([a-z_0-9]+[\t ]+in[\t ]+\\)","gi");
 				if(ereg4.match(data)) cm.Editor.triggerCompletion(cm.Editor.editor,false);
 			}
 		} else if(modeName == "hxml") {
 			var cursor2 = cm6.getCursor();
 			var data1 = cm6.getLine(cursor2.line);
-			if(data1 == "-") core.Completion.showHxmlCompletion(); else if(data1 == "-cp ") core.Completion.showFileList(false,true); else if(data1 == "-dce ") core.Completion.showHxmlCompletion(); else if(data1 == "--macro ") core.Completion.showClassList(true);
+			if(data1 == "-") completionInstance.showHxmlCompletion(); else if(data1 == "-cp ") completionInstance.showFileList(false,true); else if(data1 == "-dce ") completionInstance.showHxmlCompletion(); else if(data1 == "--macro ") completionInstance.showClassList(true);
 		}
-		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
+		var tab = tabManagerInstance.tabMap.get(tabManagerInstance.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
 		console.log(e2);
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			if(cm.Editor.isValidWordForCompletionOnType()) {
-				var doc2 = tabmanager.TabManager.getCurrentDocument();
+				var doc2 = tabManagerInstance.getCurrentDocument();
 				var pos2 = doc2.getCursor();
-				core.Completion.getCompletion(function() {
-					if(cm.Editor.isValidWordForCompletionOnType()) core.Completion.showRegularCompletion(false);
+				completionInstance.getCompletion(function() {
+					if(cm.Editor.isValidWordForCompletionOnType()) completionInstance.showRegularCompletion(false);
 				},pos2);
 			}
 		}
@@ -1468,12 +1481,14 @@ cm.Editor.load = function() {
 cm.Editor.isValidWordForCompletionOnType = function() {
 	var isValid = false;
 	var cm1 = cm.Editor.editor;
-	var doc = tabmanager.TabManager.getCurrentDocument();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var completionInstance = core.Completion.get();
+	var doc = tabManagerInstance.getCurrentDocument();
 	if(doc != null && doc.getMode().name == "haxe") {
 		var completionActive = cm.Editor.editor.state.completionActive;
 		if(completionActive == null) {
 			var pos = doc.getCursor();
-			var word = core.Completion.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
+			var word = completionInstance.getCurrentWord(cm.Editor.editor,{ word : new EReg("[A-Z_0-9]+$","i")},pos);
 			var type = cm1.getTokenTypeAt(pos);
 			var eregDigit = new EReg("[0-9]+$","i");
 			if(word.word != null && type != "string" && type != "string-2") {
@@ -1488,7 +1503,8 @@ cm.Editor.isValidWordForCompletionOnType = function() {
 	return isValid;
 };
 cm.Editor.saveFoldedRegions = function() {
-	var doc = tabmanager.TabManager.getCurrentDocument();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var doc = tabManagerInstance.getCurrentDocument();
 	if(doc != null && projectaccess.ProjectAccess.currentProject != null) {
 		var cm1 = cm.Editor.editor;
 		var cursor = doc.getCursor();
@@ -1501,7 +1517,7 @@ cm.Editor.saveFoldedRegions = function() {
 			var pos = marker.find().from;
 			if(cm1.isFolded(pos)) foldedRegions.push(pos);
 		}
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabManagerInstance.getCurrentDocumentPath());
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
@@ -1512,15 +1528,17 @@ cm.Editor.saveFoldedRegions = function() {
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
 	console.log("triggerCompletion");
-	var modeName = tabmanager.TabManager.getCurrentDocument().getMode().name;
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var completionInstance = core.Completion.get();
+	var modeName = tabManagerInstance.getCurrentDocument().getMode().name;
 	switch(modeName) {
 	case "haxe":
-		if(!dot || cm.Editor.regenerateCompletionOnDot || dot && !cm1.state.completionActive) tabmanager.TabManager.saveActiveFile(function() {
-			core.Completion.showRegularCompletion();
+		if(!dot || cm.Editor.regenerateCompletionOnDot || dot && !cm1.state.completionActive) tabManagerInstance.saveActiveFile(function() {
+			completionInstance.showRegularCompletion();
 		});
 		break;
 	case "hxml":
-		core.Completion.showHxmlCompletion();
+		completionInstance.showHxmlCompletion();
 		break;
 	case "xml":
 		cm1.showHint({ completeSingle : false});
@@ -1596,74 +1614,100 @@ cm.Editor.setTheme = function(theme) {
 	cm.Editor.editor.setOption("theme",theme);
 	js.Browser.getLocalStorage().setItem("theme",theme);
 };
-cm.Xml = function() { };
+cm.HighlightRange = function() {
+};
+$hxClasses["cm.HighlightRange"] = cm.HighlightRange;
+cm.HighlightRange.__name__ = ["cm","HighlightRange"];
+cm.HighlightRange.get = function() {
+	if(cm.HighlightRange.instance == null) cm.HighlightRange.instance = new cm.HighlightRange();
+	return cm.HighlightRange.instance;
+};
+cm.HighlightRange.prototype = {
+	highlight: function(cm,from,to) {
+		var marker = cm.markText(from,to,{ className : "showDeclaration"});
+		haxe.Timer.delay(function() {
+			marker.clear();
+		},1000);
+	}
+	,__class__: cm.HighlightRange
+};
+cm.Xml = function() {
+};
 $hxClasses["cm.Xml"] = cm.Xml;
 cm.Xml.__name__ = ["cm","Xml"];
-cm.Xml.generateXmlCompletion = function() {
-	var data = tabmanager.TabManager.getCurrentDocument().getValue();
-	var xml = null;
-	try {
-		xml = haxe.xml.Parser.parse(data);
-	} catch( unknown ) {
-		console.log(unknown);
-	}
-	var tags = { '!attrs' : { }};
-	if(xml != null) {
-		var fast = new haxe.xml.Fast(xml);
-		cm.Xml.walkThroughElements(tags,fast);
-		cm.Editor.editor.setOption("hintOptions",{ schemaInfo : tags});
-	}
+cm.Xml.get = function() {
+	if(cm.Xml.instance == null) cm.Xml.instance = new cm.Xml();
+	return cm.Xml.instance;
 };
-cm.Xml.walkThroughElements = function(tags,fast) {
-	var $it0 = fast.get_elements();
-	while( $it0.hasNext() ) {
-		var element = $it0.next();
-		if(Reflect.field(tags,element.get_name()) == null) Reflect.setField(tags,element.get_name(),{ attrs : { }});
-		var attrs = Reflect.field(tags,element.get_name()).attrs;
-		var $it1 = element.x.attributes();
-		while( $it1.hasNext() ) {
-			var attribute = $it1.next();
-			var values;
-			if(Reflect.field(attrs,attribute) == null) {
-				values = [];
-				attrs[attribute] = values;
-				if(attribute == "path") {
-					var _g = 0;
-					var _g1 = parser.ClassParser.filesList;
-					while(_g < _g1.length) {
-						var item = _g1[_g];
-						++_g;
-						values.push(item.path);
-					}
-				}
-			} else values = Reflect.field(attrs,attribute);
-			var value = element.att.resolve(attribute);
-			if(HxOverrides.indexOf(values,value,0) == -1) values.push(value);
+cm.Xml.prototype = {
+	generateXmlCompletion: function() {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var data = tabManagerInstance.getCurrentDocument().getValue();
+		var xml = null;
+		try {
+			xml = haxe.xml.Parser.parse(data);
+		} catch( unknown ) {
+			console.log(unknown);
 		}
-		Reflect.setField(tags,element.get_name(),{ attrs : attrs});
-		cm.Xml.walkThroughElements(tags,element);
+		var tags = { '!attrs' : { }};
+		if(xml != null) {
+			var fast = new haxe.xml.Fast(xml);
+			this.walkThroughElements(tags,fast);
+			cm.Editor.editor.setOption("hintOptions",{ schemaInfo : tags});
+		}
 	}
-};
-cm.Xml.completeAfter = function(cm,pred) {
-	var cur = cm.getCursor();
-	if(pred == null || pred() != null) haxe.Timer.delay(function() {
-		if(cm.state.completionActive == null) cm.showHint({ completeSingle : false});
-	},100);
-	return CodeMirror.Pass;
-};
-cm.Xml.completeIfAfterLt = function(cm1) {
-	return cm.Xml.completeAfter(cm1,function() {
-		var cur = cm1.getCursor();
-		return cm1.getRange({ line : cur.line, ch : cur.ch - 1},cur) == "<";
-	});
-};
-cm.Xml.completeIfInTag = function(cm1) {
-	return cm.Xml.completeAfter(cm1,function() {
-		var tok = cm1.getTokenAt(cm1.getCursor());
-		if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
-		var inner = CodeMirror.innerMode(cm1.getMode(),tok.state).state;
-		return inner.tagName;
-	});
+	,walkThroughElements: function(tags,fast) {
+		var $it0 = fast.get_elements();
+		while( $it0.hasNext() ) {
+			var element = $it0.next();
+			if(Reflect.field(tags,element.get_name()) == null) Reflect.setField(tags,element.get_name(),{ attrs : { }});
+			var attrs = Reflect.field(tags,element.get_name()).attrs;
+			var $it1 = element.x.attributes();
+			while( $it1.hasNext() ) {
+				var attribute = $it1.next();
+				var values;
+				if(Reflect.field(attrs,attribute) == null) {
+					values = [];
+					attrs[attribute] = values;
+					if(attribute == "path") {
+						var _g = 0;
+						var _g1 = parser.ClassParser.filesList;
+						while(_g < _g1.length) {
+							var item = _g1[_g];
+							++_g;
+							values.push(item.path);
+						}
+					}
+				} else values = Reflect.field(attrs,attribute);
+				var value = element.att.resolve(attribute);
+				if(HxOverrides.indexOf(values,value,0) == -1) values.push(value);
+			}
+			Reflect.setField(tags,element.get_name(),{ attrs : attrs});
+			this.walkThroughElements(tags,element);
+		}
+	}
+	,completeAfter: function(cm,pred) {
+		var cur = cm.getCursor();
+		if(pred == null || pred() != null) haxe.Timer.delay(function() {
+			if(cm.state.completionActive == null) cm.showHint({ completeSingle : false});
+		},100);
+		return CodeMirror.Pass;
+	}
+	,completeIfAfterLt: function(cm) {
+		return this.completeAfter(cm,function() {
+			var cur = cm.getCursor();
+			return cm.getRange({ line : cur.line, ch : cur.ch - 1},cur) == "<";
+		});
+	}
+	,completeIfInTag: function(cm) {
+		return this.completeAfter(cm,function() {
+			var tok = cm.getTokenAt(cm.getCursor());
+			if(tok.type == "string" && (!new EReg("['\"]","").match(tok.string.charAt(tok.string.length - 1)) || tok.string.length == 1)) return false;
+			var inner = CodeMirror.innerMode(cm.getMode(),tok.state).state;
+			return inner.tagName;
+		});
+	}
+	,__class__: cm.Xml
 };
 cm.Zoom = function() { };
 $hxClasses["cm.Zoom"] = cm.Zoom;
@@ -1876,7 +1920,8 @@ completion.GoToDeclaration.get = function() {
 completion.GoToDeclaration.prototype = {
 	start: function() {
 		var cm1 = cm.Editor.editor;
-		core.Completion.getCompletion(function() {
+		var completionInstance = core.Completion.get();
+		completionInstance.getCompletion(function() {
 		},cm1.getCursor(),"position",false);
 	}
 	,__class__: completion.GoToDeclaration
@@ -1954,7 +1999,8 @@ $hxClasses["completion.MetaTags"] = completion.MetaTags;
 completion.MetaTags.__name__ = ["completion","MetaTags"];
 completion.MetaTags.load = function() {
 	completion.MetaTags.completions = [];
-	core.ProcessHelper.runProcess("haxe",["--help-metas"],null,function(stdout,stderr) {
+	var processHelper = core.ProcessHelper.get();
+	processHelper.runProcess("haxe",["--help-metas"],null,function(stdout,stderr) {
 		var regex = new EReg("@:[A-Z]+ ","gim");
 		regex.map(stdout,function(ereg) {
 			completion.MetaTags.completions.push({ text : StringTools.trim(ereg.matched(0))});
@@ -1993,12 +2039,13 @@ core.AnnotationRuler = function() { };
 $hxClasses["core.AnnotationRuler"] = core.AnnotationRuler;
 core.AnnotationRuler.__name__ = ["core","AnnotationRuler"];
 core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
+	var tabManagerInstance = tabmanager.TabManager.get();
 	var a;
 	var _this = window.document;
 	a = _this.createElement("a");
 	a.href = "#";
 	a.onclick = function(e) {
-		tabmanager.TabManager.openFileInNewTab(pathToFile,true,function() {
+		tabManagerInstance.openFileInNewTab(pathToFile,true,function() {
 			var cm1 = cm.Editor.editor;
 			cm1.centerOnLine(line);
 		});
@@ -2007,7 +2054,7 @@ core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
 	var _this1 = window.document;
 	div = _this1.createElement("div");
 	div.className = "errorMarker";
-	var lineCount = tabmanager.TabManager.getCurrentDocument().lineCount();
+	var lineCount = tabManagerInstance.getCurrentDocument().lineCount();
 	var targetLine = line / lineCount * 100;
 	while(HxOverrides.indexOf(core.AnnotationRuler.positions,targetLine,0) != -1) targetLine++;
 	div.style.top = (targetLine == null?"null":"" + targetLine) + "%";
@@ -2056,280 +2103,315 @@ core.CompletionType.HXML.__enum__ = core.CompletionType;
 core.CompletionType.METATAGS = ["METATAGS",6];
 core.CompletionType.METATAGS.toString = $estr;
 core.CompletionType.METATAGS.__enum__ = core.CompletionType;
-core.Completion = function() { };
+core.Completion = function() {
+	this.completionType = core.CompletionType.REGULAR;
+	this.completions = [];
+	this.RANGE = 500;
+	this.WORD = new EReg("[A-Z_0-9]+$","i");
+};
 $hxClasses["core.Completion"] = core.Completion;
 core.Completion.__name__ = ["core","Completion"];
-core.Completion.registerHelper = function() {
-	completion.Hxml.load();
-	completion.MetaTags.load();
-	completion.SnippetsCompletion.load();
-	core.Completion.completionActive = false;
-	cm.Editor.editor.on("endCompletion",function() {
-		core.Completion.completionActive = false;
-	});
+core.Completion.get = function() {
+	if(core.Completion.instance == null) core.Completion.instance = new core.Completion();
+	return core.Completion.instance;
 };
-core.Completion.getHints = function(cm1,options) {
-	core.Completion.word = null;
-	core.Completion.range = null;
-	if(options != null && options.range != null) core.Completion.range = options.range; else if(core.Completion.RANGE != null) core.Completion.range = core.Completion.RANGE;
-	core.Completion.list = new Array();
-	var _g = core.Completion.completionType;
-	switch(_g[1]) {
-	case 0:
-		var _g1 = 0;
-		var _g2 = core.Completion.completions;
-		while(_g1 < _g2.length) {
-			var completion1 = _g2[_g1];
-			++_g1;
-			var completionItem = core.Completion.generateCompletionItem(completion1.n,completion1.t,completion1.d);
-			core.Completion.list.push(completionItem);
-		}
-		core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9.]+$","i")});
-		var className = "CodeMirror-Tern-completion";
-		if(core.Completion.curWord == null || core.Completion.curWord.indexOf(".") == -1) {
-			var doc = tabmanager.TabManager.getCurrentDocument();
-			if(doc != null) {
-				var data = doc.getRange({ line : 0, ch : 0},{ line : cm1.getCursor().line + 1, ch : 0});
-				var functionParams = parser.RegexParser.getFunctionParameters(data,doc.getCursor());
-				var _g11 = 0;
-				while(_g11 < functionParams.length) {
-					var item = functionParams[_g11];
-					++_g11;
-					var completionItem1 = core.Completion.generateCompletionItem(item.name,item.type);
-					core.Completion.list.push(completionItem1);
-				}
-				var variableDeclarations = parser.RegexParser.getVariableDeclarations(data);
-				var _g12 = 0;
-				while(_g12 < variableDeclarations.length) {
-					var item1 = variableDeclarations[_g12];
-					++_g12;
-					var completionItem2 = core.Completion.generateCompletionItem(item1.name,item1.type);
-					core.Completion.list.push(completionItem2);
-				}
-				var functionDeclarations = parser.RegexParser.getFunctionDeclarations(doc.getValue());
-				var _g13 = 0;
-				while(_g13 < functionDeclarations.length) {
-					var item2 = functionDeclarations[_g13];
-					++_g13;
-					var completionData = core.Completion.generateFunctionCompletionItem(item2.name,item2.params);
-					var completionItem3 = core.Completion.createCompletionItem(item2.name,null,completionData);
-					core.Completion.list.push(completionItem3);
-				}
-			}
-			core.Completion.list = core.Completion.list.concat(completion.SnippetsCompletion.getCompletion());
-			var classList = core.Completion.getClassList();
-			var packages = [];
-			var _g14 = 0;
-			var _g21 = classList.topLevelClassList;
-			while(_g14 < _g21.length) {
-				var item3 = _g21[_g14];
-				++_g14;
-				var completion1 = { text : item3.name};
-				completion1.className = className + " CodeMirror-Tern-completion-class";
-				core.Completion.list.push(completion1);
-			}
-			var _g15 = 0;
-			var _g22 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-			while(_g15 < _g22.length) {
-				var list = _g22[_g15];
-				++_g15;
-				var _g3 = 0;
-				while(_g3 < list.length) {
-					var item4 = list[_g3];
-					++_g3;
-					var str = item4.split(".")[0];
-					if(HxOverrides.indexOf(packages,str,0) == -1 && str.charAt(0) == str.charAt(0).toLowerCase()) packages.push(str);
-				}
-			}
-			var _g16 = 0;
-			while(_g16 < packages.length) {
-				var item5 = packages[_g16];
-				++_g16;
-				var completion2 = { text : item5};
-				completion2.className = className + " CodeMirror-Tern-completion-package";
-				core.Completion.list.push(completion2);
-			}
-		}
-		break;
-	case 6:
-		core.Completion.list = completion.MetaTags.getCompletion();
-		break;
-	case 5:
-		var _this = completion.Hxml.getCompletion();
-		core.Completion.list = _this.slice();
-		var _g17 = 0;
-		var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-		while(_g17 < _g23.length) {
-			var list2 = _g23[_g17];
-			++_g17;
-			var _g31 = 0;
-			while(_g31 < list2.length) {
-				var item6 = list2[_g31];
-				++_g31;
-				core.Completion.list.push({ text : item6});
-			}
-		}
-		break;
-	case 1:
-		var displayText;
-		var _g18 = 0;
-		var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-		while(_g18 < _g24.length) {
-			var list21 = _g24[_g18];
-			++_g18;
-			var _g32 = 0;
-			while(_g32 < list21.length) {
-				var item7 = list21[_g32];
-				++_g32;
-				core.Completion.list.push({ text : item7.path, displayText : core.Completion.processDisplayText(item7.path)});
-			}
-		}
-		break;
-	case 2:
-		var displayText1;
-		var _g19 = 0;
-		var _g25 = parser.ClassParser.filesList;
-		while(_g19 < _g25.length) {
-			var item8 = _g25[_g19];
-			++_g19;
-			core.Completion.list.push({ text : item8.directory, displayText : core.Completion.processDisplayText(item8.path)});
-		}
-		break;
-	case 4:
-		var classList1 = core.Completion.getClassList();
-		var className1 = "CodeMirror-Tern-completion";
-		var _g110 = 0;
-		var _g26 = classList1.topLevelClassList;
-		while(_g110 < _g26.length) {
-			var item9 = _g26[_g110];
-			++_g110;
-			var completion3 = { text : item9.name};
-			completion3.className = className1 + " CodeMirror-Tern-completion-class";
-			core.Completion.list.push(completion3);
-		}
-		var _g111 = 0;
-		var _g27 = classList1.importsList;
-		while(_g111 < _g27.length) {
-			var item10 = _g27[_g111];
-			++_g111;
-			var completion4 = { text : item10};
-			completion4.className = className1 + " CodeMirror-Tern-completion-class";
-			core.Completion.list.push(completion4);
-		}
-		break;
-	default:
+core.Completion.prototype = {
+	list: null
+	,word: null
+	,range: null
+	,cur: null
+	,end: null
+	,start: null
+	,WORD: null
+	,RANGE: null
+	,curWord: null
+	,completions: null
+	,completionType: null
+	,completionActive: null
+	,load: function() {
+		var _g = this;
+		completion.Hxml.load();
+		completion.MetaTags.load();
+		completion.SnippetsCompletion.load();
+		this.completionActive = false;
+		cm.Editor.editor.on("endCompletion",function() {
+			_g.completionActive = false;
+		});
 	}
-	core.Completion.getCurrentWord(cm1,options);
-	core.Completion.list = completion.Filter.filter(core.Completion.list,core.Completion.curWord,core.Completion.completionType);
-	var data1 = { list : core.Completion.list, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
-	CodeMirror.attachContextInfo(cm.Editor.editor,data1);
-	var _g4 = core.Completion.completionType;
-	switch(_g4[1]) {
-	case 0:case 4:
-		CodeMirror.on(data1,"pick",core.Completion.searchForImport);
-		break;
-	default:
-	}
-	return data1;
-};
-core.Completion.searchForImport = function(completion) {
-	var cm1 = cm.Editor.editor;
-	var cursor = cm1.getCursor();
-	var curLine = cm1.getLine(cursor.line);
-	var word = new EReg("[A-Z_0-9\\.]+$","i");
-	var importStart = cursor.ch;
-	var importEnd = importStart;
-	while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
-	if(importStart != importEnd) {
-		var fullImport = curLine.substring(importStart,importEnd);
-		if(fullImport.indexOf(".") != -1) {
-			var topLevelClassList = core.Completion.getClassList().topLevelClassList;
-			core.ImportDefinition.searchImportByText(topLevelClassList,fullImport,{ line : cursor.line, ch : importStart},{ line : cursor.line, ch : importEnd},false);
-		}
-	}
-};
-core.Completion.processDisplayText = function(displayText) {
-	if(displayText.length > 70) displayText = HxOverrides.substr(displayText,0,35) + " ... " + HxOverrides.substr(displayText,displayText.length - 35,null);
-	return displayText;
-};
-core.Completion.getCurrentWord = function(cm,options,pos) {
-	if(options != null && options.word != null) core.Completion.word = options.word; else if(core.Completion.WORD != null) core.Completion.word = core.Completion.WORD;
-	if(pos != null) core.Completion.cur = pos;
-	var curLine = cm.getLine(core.Completion.cur.line);
-	core.Completion.start = core.Completion.cur.ch;
-	core.Completion.end = core.Completion.start;
-	while(core.Completion.end < curLine.length && core.Completion.word.match(curLine.charAt(core.Completion.end))) ++core.Completion.end;
-	while(core.Completion.start > 0 && core.Completion.word.match(curLine.charAt(core.Completion.start - 1))) --core.Completion.start;
-	core.Completion.curWord = null;
-	if(core.Completion.start != core.Completion.end) core.Completion.curWord = curLine.substring(core.Completion.start,core.Completion.end);
-	return { word : core.Completion.curWord, from : { line : core.Completion.cur.line, ch : core.Completion.start}, to : { line : core.Completion.cur.line, ch : core.Completion.end}};
-};
-core.Completion.getCompletion = function(onComplete,_pos,mode,moveCursorToStart) {
-	if(moveCursorToStart == null) moveCursorToStart = true;
-	if(projectaccess.ProjectAccess.path != null) {
-		var projectArguments = [];
-		var project = projectaccess.ProjectAccess.currentProject;
-		var _g = project.type;
-		switch(_g) {
+	,getHints: function(cm1,options) {
+		this.word = null;
+		this.range = null;
+		if(options != null && options.range != null) this.range = options.range; else if(this.RANGE != null) this.range = this.RANGE;
+		this.list = new Array();
+		var _g = this.completionType;
+		switch(_g[1]) {
 		case 0:
-			var pathToHxml = project.targetData[project.target].pathToHxml;
-			projectArguments.push(pathToHxml);
-			core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
+			var _g1 = 0;
+			var _g2 = this.completions;
+			while(_g1 < _g2.length) {
+				var completion1 = _g2[_g1];
+				++_g1;
+				var completionItem = this.generateCompletionItem(completion1.n,completion1.t,completion1.d);
+				this.list.push(completionItem);
+			}
+			this.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9.]+$","i")});
+			var className = "CodeMirror-Tern-completion";
+			if(this.curWord == null || this.curWord.indexOf(".") == -1) {
+				var tabManagerInstance = tabmanager.TabManager.get();
+				var doc = tabManagerInstance.getCurrentDocument();
+				if(doc != null) {
+					var data = doc.getRange({ line : 0, ch : 0},{ line : cm1.getCursor().line + 1, ch : 0});
+					var functionParams = parser.RegexParser.getFunctionParameters(data,doc.getCursor());
+					var _g11 = 0;
+					while(_g11 < functionParams.length) {
+						var item = functionParams[_g11];
+						++_g11;
+						var completionItem1 = this.generateCompletionItem(item.name,item.type);
+						this.list.push(completionItem1);
+					}
+					var variableDeclarations = parser.RegexParser.getVariableDeclarations(data);
+					var _g12 = 0;
+					while(_g12 < variableDeclarations.length) {
+						var item1 = variableDeclarations[_g12];
+						++_g12;
+						var completionItem2 = this.generateCompletionItem(item1.name,item1.type);
+						this.list.push(completionItem2);
+					}
+					var functionDeclarations = parser.RegexParser.getFunctionDeclarations(doc.getValue());
+					var _g13 = 0;
+					while(_g13 < functionDeclarations.length) {
+						var item2 = functionDeclarations[_g13];
+						++_g13;
+						var completionData = this.generateFunctionCompletionItem(item2.name,item2.params);
+						var completionItem3 = this.createCompletionItem(item2.name,null,completionData);
+						this.list.push(completionItem3);
+					}
+				}
+				this.list = this.list.concat(completion.SnippetsCompletion.getCompletion());
+				var classList = this.getClassList();
+				var packages = [];
+				var _g14 = 0;
+				var _g21 = classList.topLevelClassList;
+				while(_g14 < _g21.length) {
+					var item3 = _g21[_g14];
+					++_g14;
+					var completion1 = { text : item3.name};
+					completion1.className = className + " CodeMirror-Tern-completion-class";
+					this.list.push(completion1);
+				}
+				var _g15 = 0;
+				var _g22 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+				while(_g15 < _g22.length) {
+					var list = _g22[_g15];
+					++_g15;
+					var _g3 = 0;
+					while(_g3 < list.length) {
+						var item4 = list[_g3];
+						++_g3;
+						var str = item4.split(".")[0];
+						if(HxOverrides.indexOf(packages,str,0) == -1 && str.charAt(0) == str.charAt(0).toLowerCase()) packages.push(str);
+					}
+				}
+				var _g16 = 0;
+				while(_g16 < packages.length) {
+					var item5 = packages[_g16];
+					++_g16;
+					var completion2 = { text : item5};
+					completion2.className = className + " CodeMirror-Tern-completion-package";
+					this.list.push(completion2);
+				}
+			}
 			break;
-		case 2:
-			projectArguments.push(project.main);
-			core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
+		case 6:
+			this.list = completion.MetaTags.getCompletion();
+			break;
+		case 5:
+			var _this = completion.Hxml.getCompletion();
+			this.list = _this.slice();
+			var _g17 = 0;
+			var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+			while(_g17 < _g23.length) {
+				var list2 = _g23[_g17];
+				++_g17;
+				var _g31 = 0;
+				while(_g31 < list2.length) {
+					var item6 = list2[_g31];
+					++_g31;
+					this.list.push({ text : item6});
+				}
+			}
 			break;
 		case 1:
-			openproject.OpenFL.parseOpenFLDisplayParameters(projectaccess.ProjectAccess.path,project.openFLTarget,function(args) {
-				projectArguments = args;
-				core.Completion.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
-			});
+			var displayText;
+			var _g18 = 0;
+			var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+			while(_g18 < _g24.length) {
+				var list21 = _g24[_g18];
+				++_g18;
+				var _g32 = 0;
+				while(_g32 < list21.length) {
+					var item7 = list21[_g32];
+					++_g32;
+					this.list.push({ text : item7.path, displayText : this.processDisplayText(item7.path)});
+				}
+			}
+			break;
+		case 2:
+			var displayText1;
+			var _g19 = 0;
+			var _g25 = parser.ClassParser.filesList;
+			while(_g19 < _g25.length) {
+				var item8 = _g25[_g19];
+				++_g19;
+				this.list.push({ text : item8.directory, displayText : this.processDisplayText(item8.path)});
+			}
+			break;
+		case 4:
+			var classList1 = this.getClassList();
+			var className1 = "CodeMirror-Tern-completion";
+			var _g110 = 0;
+			var _g26 = classList1.topLevelClassList;
+			while(_g110 < _g26.length) {
+				var item9 = _g26[_g110];
+				++_g110;
+				var completion3 = { text : item9.name};
+				completion3.className = className1 + " CodeMirror-Tern-completion-class";
+				this.list.push(completion3);
+			}
+			var _g111 = 0;
+			var _g27 = classList1.importsList;
+			while(_g111 < _g27.length) {
+				var item10 = _g27[_g111];
+				++_g111;
+				var completion4 = { text : item10};
+				completion4.className = className1 + " CodeMirror-Tern-completion-class";
+				this.list.push(completion4);
+			}
 			break;
 		default:
 		}
+		this.getCurrentWord(cm1,options);
+		this.list = completion.Filter.filter(this.list,this.curWord,this.completionType);
+		var data1 = { list : this.list, from : { line : this.cur.line, ch : this.start}, to : { line : this.cur.line, ch : this.end}};
+		CodeMirror.attachContextInfo(cm.Editor.editor,data1);
+		var _g4 = this.completionType;
+		switch(_g4[1]) {
+		case 0:case 4:
+			CodeMirror.on(data1,"pick",$bind(this,this.searchForImport));
+			break;
+		default:
+		}
+		return data1;
 	}
-};
-core.Completion.processArguments = function(projectArguments,onComplete,_pos,mode,moveCursorToStart) {
-	console.log("processArguments");
-	projectArguments.push("--no-output");
-	projectArguments.push("--display");
-	var cm1 = cm.Editor.editor;
-	core.Completion.cur = _pos;
-	if(core.Completion.cur == null) core.Completion.cur = cm1.getCursor();
-	core.Completion.getCurrentWord(cm1,null,core.Completion.cur);
-	if(core.Completion.curWord != null) core.Completion.cur = { line : core.Completion.cur.line, ch : core.Completion.start};
-	if(moveCursorToStart == false) core.Completion.cur.ch = core.Completion.end;
-	var displayArgs = tabmanager.TabManager.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(core.Completion.cur));
-	if(mode != null) displayArgs += "@" + mode;
-	projectArguments.push(displayArgs);
-	core.Completion.completions = [];
-	var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
-	core.ProcessHelper.runProcess("haxe",params,null,function(stdout,stderr) {
-		var xml = Xml.parse(stderr);
-		var fast = new haxe.xml.Fast(xml);
-		if(fast.hasNode.resolve("list")) {
-			var list = fast.node.resolve("list");
-			console.log(list);
-			var completion;
-			if(list.hasNode.resolve("i")) {
-				var $it0 = list.nodes.resolve("i").iterator();
-				while( $it0.hasNext() ) {
-					var item = $it0.next();
-					if(item.has.resolve("n")) {
-						completion = { n : item.att.resolve("n")};
-						if(item.hasNode.resolve("d")) {
-							var str = StringTools.trim(item.node.resolve("d").get_innerHTML());
-							str = StringTools.replace(str,"\t","");
-							str = StringTools.replace(str,"\n","");
-							str = StringTools.replace(str,"*","");
-							str = StringTools.replace(str,"&lt;","<");
-							str = StringTools.replace(str,"&gt;",">");
-							str = StringTools.trim(str);
-							completion.d = str;
+	,searchForImport: function(completion) {
+		var cm1 = cm.Editor.editor;
+		var cursor = cm1.getCursor();
+		var curLine = cm1.getLine(cursor.line);
+		var word = new EReg("[A-Z_0-9\\.]+$","i");
+		var importStart = cursor.ch;
+		var importEnd = importStart;
+		while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
+		if(importStart != importEnd) {
+			var fullImport = curLine.substring(importStart,importEnd);
+			if(fullImport.indexOf(".") != -1) {
+				var topLevelClassList = this.getClassList().topLevelClassList;
+				core.ImportDefinition.searchImportByText(topLevelClassList,fullImport,{ line : cursor.line, ch : importStart},{ line : cursor.line, ch : importEnd},false);
+			}
+		}
+	}
+	,processDisplayText: function(displayText) {
+		if(displayText.length > 70) displayText = HxOverrides.substr(displayText,0,35) + " ... " + HxOverrides.substr(displayText,displayText.length - 35,null);
+		return displayText;
+	}
+	,getCurrentWord: function(cm,options,pos) {
+		if(options != null && options.word != null) this.word = options.word; else if(this.WORD != null) this.word = this.WORD;
+		if(pos != null) this.cur = pos;
+		var curLine = cm.getLine(this.cur.line);
+		this.start = this.cur.ch;
+		this.end = this.start;
+		while(this.end < curLine.length && this.word.match(curLine.charAt(this.end))) ++this.end;
+		while(this.start > 0 && this.word.match(curLine.charAt(this.start - 1))) --this.start;
+		this.curWord = null;
+		if(this.start != this.end) this.curWord = curLine.substring(this.start,this.end);
+		return { word : this.curWord, from : { line : this.cur.line, ch : this.start}, to : { line : this.cur.line, ch : this.end}};
+	}
+	,getCompletion: function(onComplete,_pos,mode,moveCursorToStart) {
+		if(moveCursorToStart == null) moveCursorToStart = true;
+		var _g1 = this;
+		if(projectaccess.ProjectAccess.path != null) {
+			var projectArguments = [];
+			var project = projectaccess.ProjectAccess.currentProject;
+			var _g = project.type;
+			switch(_g) {
+			case 0:
+				var pathToHxml = project.targetData[project.target].pathToHxml;
+				projectArguments.push(pathToHxml);
+				this.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
+				break;
+			case 2:
+				projectArguments.push(project.main);
+				this.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
+				break;
+			case 1:
+				openproject.OpenFL.parseOpenFLDisplayParameters(projectaccess.ProjectAccess.path,project.openFLTarget,function(args) {
+					projectArguments = args;
+					_g1.processArguments(projectArguments,onComplete,_pos,mode,moveCursorToStart);
+				});
+				break;
+			default:
+			}
+		}
+	}
+	,processArguments: function(projectArguments,onComplete,_pos,mode,moveCursorToStart) {
+		var _g = this;
+		console.log("processArguments");
+		projectArguments.push("--no-output");
+		projectArguments.push("--display");
+		var cm1 = cm.Editor.editor;
+		this.cur = _pos;
+		if(this.cur == null) this.cur = cm1.getCursor();
+		this.getCurrentWord(cm1,null,this.cur);
+		if(this.curWord != null) this.cur = { line : this.cur.line, ch : this.start};
+		if(moveCursorToStart == false) {
+			this.cur.ch = this.end;
+			if(mode == "position") this.cur.ch += 1;
+		}
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var displayArgs = tabManagerInstance.getCurrentDocumentPath() + "@" + Std.string(cm1.indexFromPos(this.cur));
+		if(mode != null) displayArgs += "@" + mode;
+		projectArguments.push(displayArgs);
+		this.completions = [];
+		var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
+		console.log(params);
+		var pathToHaxe = core.HaxeHelper.getPathToHaxe();
+		var processHelper = core.ProcessHelper.get();
+		processHelper.runProcess(pathToHaxe,params,null,function(stdout,stderr) {
+			console.log(stdout);
+			console.log(stderr);
+			var xml = Xml.parse(stderr);
+			var fast = new haxe.xml.Fast(xml);
+			if(fast.hasNode.resolve("list")) {
+				var list = fast.node.resolve("list");
+				var completion;
+				if(list.hasNode.resolve("i")) {
+					var $it0 = list.nodes.resolve("i").iterator();
+					while( $it0.hasNext() ) {
+						var item = $it0.next();
+						if(item.has.resolve("n")) {
+							completion = { n : item.att.resolve("n")};
+							if(item.hasNode.resolve("d")) {
+								var str = StringTools.trim(item.node.resolve("d").get_innerHTML());
+								str = StringTools.replace(str,"\t","");
+								str = StringTools.replace(str,"\n","");
+								str = StringTools.replace(str,"*","");
+								str = StringTools.replace(str,"&lt;","<");
+								str = StringTools.replace(str,"&gt;",">");
+								str = StringTools.trim(str);
+								completion.d = str;
+							}
+							if(item.hasNode.resolve("t")) completion.t = item.node.resolve("t").get_innerData();
+							_g.completions.push(completion);
 						}
-						if(item.hasNode.resolve("t")) completion.t = item.node.resolve("t").get_innerData();
-						core.Completion.completions.push(completion);
 					}
 				}
 			} else if(fast.hasNode.resolve("pos")) {
@@ -2339,296 +2421,301 @@ core.Completion.processArguments = function(projectArguments,onComplete,_pos,mod
 					console.log(item1.get_innerData());
 				}
 			}
-		}
-		onComplete();
-	},function(code,stdout1,stderr1) {
-		console.log(code);
-		console.log(stderr1);
-		onComplete();
-	});
-};
-core.Completion.getHintAsync = function(cm,c) {
-	if(core.Completion.completionActive) c(core.Completion.getHints(cm)); else {
-		core.Completion.getCompletion(function() {
-			c(core.Completion.getHints(cm));
+			onComplete();
+		},function(code,stdout1,stderr1) {
+			console.log(code);
+			console.log(stderr1);
+			onComplete();
 		});
-		core.Completion.completionActive = true;
 	}
-};
-core.Completion.isEditorVisible = function() {
-	var editor;
-	editor = js.Boot.__cast(window.document.getElementById("editor") , HTMLDivElement);
-	return editor.style.display != "none";
-};
-core.Completion.showRegularCompletion = function(getCompletionFromHaxeCompiler) {
-	if(getCompletionFromHaxeCompiler == null) getCompletionFromHaxeCompiler = true;
-	if(core.Completion.isEditorVisible()) {
-		cm.Editor.regenerateCompletionOnDot = true;
-		core.Completion.WORD = new EReg("[A-Z_0-9]+$","i");
-		core.Completion.completionType = core.CompletionType.REGULAR;
-		var cm1 = cm.Editor.editor;
-		if(!getCompletionFromHaxeCompiler) core.Completion.completionActive = true;
-		var hint = core.Completion.getHintAsync;
-		hint.async = true;
-		cm1.showHint({ hint : hint, completeSingle : false});
-	}
-};
-core.Completion.showMetaTagsCompletion = function() {
-	if(core.Completion.isEditorVisible()) {
-		core.Completion.cur = cm.Editor.editor.getCursor();
-		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z_0-9@:]+$","i");
-		core.Completion.completionType = core.CompletionType.METATAGS;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[\s()\[\]{};>,]/});
-	}
-};
-core.Completion.showHxmlCompletion = function() {
-	if(core.Completion.isEditorVisible()) {
-		core.Completion.cur = cm.Editor.editor.getCursor();
-		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z_0-9- \\.\\\\/]+$","i");
-		core.Completion.completionType = core.CompletionType.HXML;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : /[()\[\]{};:>,]/});
-	}
-};
-core.Completion.showFileList = function(openFile,insertDirectory) {
-	if(insertDirectory == null) insertDirectory = false;
-	if(openFile == null) openFile = true;
-	if(openFile) {
-		core.Completion.completionType = core.CompletionType.OPENFILE;
-		core.QuickOpen.show(parser.ClassParser.filesList.slice().concat(parser.ClassParser.haxeStdFileList));
-	} else if(core.Completion.isEditorVisible()) {
-		core.Completion.cur = cm.Editor.editor.getCursor();
-		cm.Editor.regenerateCompletionOnDot = false;
-		core.Completion.WORD = new EReg("[A-Z_0-9-\\.\\\\/]+$","i");
-		if(insertDirectory == false) core.Completion.completionType = core.CompletionType.FILELIST; else core.Completion.completionType = core.CompletionType.PASTEFOLDER;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints);
-	}
-};
-core.Completion.showClassList = function(ignoreWhitespace) {
-	if(ignoreWhitespace == null) ignoreWhitespace = false;
-	if(core.Completion.isEditorVisible()) {
-		core.Completion.cur = cm.Editor.editor.getCursor();
-		cm.Editor.regenerateCompletionOnDot = true;
-		core.Completion.WORD = new EReg("[A-Z_0-9\\.]+$","i");
-		core.Completion.completionType = core.CompletionType.CLASSLIST;
-		var closeCharacters = /[\s()\[\]{};>,]/;
-		if(ignoreWhitespace) closeCharacters = /[()\[\]{};>,]/;
-		CodeMirror.showHint(cm.Editor.editor,core.Completion.getHints,{ closeCharacters : closeCharacters});
-	}
-};
-core.Completion.searchImage = function(name,type,description) {
-	var functionData = core.FunctionParametersHelper.parseFunctionParams(name,type,description);
-	var info = null;
-	var className = "CodeMirror-Tern-completion";
-	if(functionData.parameters != null) {
-		var data = core.Completion.generateFunctionCompletionItem(name,functionData.parameters);
-		className = data.className;
-		info = data.info + ":" + functionData.retType;
-	} else if(type != null) {
-		info = type;
-		switch(info) {
-		case "Bool":
-			className += " CodeMirror-Tern-completion-bool";
-			break;
-		case "Float":case "Int":case "UInt":
-			className += " CodeMirror-Tern-completion-number";
-			break;
-		case "String":
-			className += " CodeMirror-Tern-completion-string";
-			break;
-		default:
-			if(info.indexOf("Array") != -1) className += " CodeMirror-Tern-completion-array"; else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) className += " CodeMirror-Tern-completion-map"; else className += " CodeMirror-Tern-completion-object";
+	,getHintAsync: function(cm,c) {
+		var _g = this;
+		if(this.completionActive) c(this.getHints(cm)); else {
+			this.getCompletion(function() {
+				c(_g.getHints(cm));
+			});
+			this.completionActive = true;
 		}
 	}
-	return { className : className, info : info};
-};
-core.Completion.generateFunctionCompletionItem = function(name,params) {
-	var info = null;
-	var className = "CodeMirror-Tern-completion";
-	info = name + "(";
-	if(params != null) info += params.join(", ");
-	info += ")";
-	className += " CodeMirror-Tern-completion-fn";
-	return { className : className, info : info};
-};
-core.Completion.generateCompletionItem = function(name,type,description) {
-	var completionData = core.Completion.searchImage(name,type,description);
-	return core.Completion.createCompletionItem(name,description,completionData);
-};
-core.Completion.createCompletionItem = function(name,description,completionData) {
-	var completionItem = { text : name};
-	completionItem.className = completionData.className;
-	var infoSpan;
-	var _this = window.document;
-	infoSpan = _this.createElement("span");
-	if(completionData.info != null) {
-		var infoTypeSpan;
-		var _this1 = window.document;
-		infoTypeSpan = _this1.createElement("span");
-		infoTypeSpan.textContent = completionData.info;
-		infoSpan.appendChild(infoTypeSpan);
-		infoSpan.appendChild(window.document.createElement("br"));
-		infoSpan.appendChild(window.document.createElement("br"));
+	,isEditorVisible: function() {
+		var editor;
+		editor = js.Boot.__cast(window.document.getElementById("editor") , HTMLDivElement);
+		return editor.style.display != "none";
 	}
-	if(description != null) {
-		var infoDescriptionSpan;
-		var _this2 = window.document;
-		infoDescriptionSpan = _this2.createElement("span");
-		infoDescriptionSpan.className = "completionDescription";
-		infoDescriptionSpan.innerHTML = description;
-		infoSpan.appendChild(infoDescriptionSpan);
-	}
-	if(completionData.info != null || description != null) completionItem.info = function(completionItem1) {
-		return infoSpan;
-	};
-	return completionItem;
-};
-core.Completion.showImportDefinition = function(importsSuggestions,from,to) {
-	var cm1 = cm.Editor.editor;
-	CodeMirror.showHint(cm1,function() {
-		var completions = [];
-		var completion;
-		var _g = 0;
-		while(_g < importsSuggestions.length) {
-			var item = importsSuggestions[_g];
-			++_g;
-			completion = { };
-			completion.text = item;
-			completion.displayText = "import " + item;
-			completion.hint = (function(f,a1,to1) {
-				return function(cm1,a2,a3) {
-					return f(a1,to1,cm1,a2,a3);
-				};
-			})(core.ImportDefinition.importClassHint,from,to);
-			completions.push(completion);
+	,showRegularCompletion: function(getCompletionFromHaxeCompiler) {
+		if(getCompletionFromHaxeCompiler == null) getCompletionFromHaxeCompiler = true;
+		if(this.isEditorVisible()) {
+			cm.Editor.regenerateCompletionOnDot = true;
+			this.WORD = new EReg("[A-Z_0-9]+$","i");
+			this.completionType = core.CompletionType.REGULAR;
+			var cm1 = cm.Editor.editor;
+			if(!getCompletionFromHaxeCompiler) this.completionActive = true;
+			var hint = $bind(this,this.getHintAsync);
+			hint.async = true;
+			cm1.showHint({ hint : hint, completeSingle : false});
 		}
-		var pos = cm1.getCursor();
-		var data = { list : completions, from : pos, to : pos};
-		return data;
-	},{ completeSingle : false});
-};
-core.Completion.showActions = function(completions) {
-	var cm1 = cm.Editor.editor;
-	CodeMirror.showHint(cm1,function() {
-		var pos = cm1.getCursor();
-		var data = { list : completions, from : pos, to : pos};
-		return data;
-	},{ completeSingle : false});
-};
-core.Completion.showCodeSuggestions = function(suggestions) {
-	var cm1 = cm.Editor.editor;
-	CodeMirror.showHint(cm1,function() {
-		var completions = [];
-		var completion;
-		var pos = cm1.getCursor();
-		var word = core.Completion.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9]+$","i")},pos).word;
-		var _g = 0;
-		while(_g < suggestions.length) {
-			var item = suggestions[_g];
-			++_g;
-			if(word == null || StringTools.startsWith(item,word)) {
-				completion = { };
-				completion.text = item;
-				completions.push(completion);
+	}
+	,showMetaTagsCompletion: function() {
+		if(this.isEditorVisible()) {
+			this.cur = cm.Editor.editor.getCursor();
+			cm.Editor.regenerateCompletionOnDot = false;
+			this.WORD = new EReg("[A-Z_0-9@:]+$","i");
+			this.completionType = core.CompletionType.METATAGS;
+			CodeMirror.showHint(cm.Editor.editor,$bind(this,this.getHints),{ closeCharacters : /[\s()\[\]{};>,]/});
+		}
+	}
+	,showHxmlCompletion: function() {
+		if(this.isEditorVisible()) {
+			this.cur = cm.Editor.editor.getCursor();
+			cm.Editor.regenerateCompletionOnDot = false;
+			this.WORD = new EReg("[A-Z_0-9- \\.\\\\/]+$","i");
+			this.completionType = core.CompletionType.HXML;
+			CodeMirror.showHint(cm.Editor.editor,$bind(this,this.getHints),{ closeCharacters : /[()\[\]{};:>,]/});
+		}
+	}
+	,showFileList: function(openFile,insertDirectory) {
+		if(insertDirectory == null) insertDirectory = false;
+		if(openFile == null) openFile = true;
+		if(openFile) {
+			this.completionType = core.CompletionType.OPENFILE;
+			var quickOpen = core.QuickOpen.get();
+			quickOpen.show(parser.ClassParser.filesList.slice().concat(parser.ClassParser.haxeStdFileList));
+		} else if(this.isEditorVisible()) {
+			this.cur = cm.Editor.editor.getCursor();
+			cm.Editor.regenerateCompletionOnDot = false;
+			this.WORD = new EReg("[A-Z_0-9-\\.\\\\/]+$","i");
+			if(insertDirectory == false) this.completionType = core.CompletionType.FILELIST; else this.completionType = core.CompletionType.PASTEFOLDER;
+			CodeMirror.showHint(cm.Editor.editor,$bind(this,this.getHints));
+		}
+	}
+	,showClassList: function(ignoreWhitespace) {
+		if(ignoreWhitespace == null) ignoreWhitespace = false;
+		if(this.isEditorVisible()) {
+			this.cur = cm.Editor.editor.getCursor();
+			cm.Editor.regenerateCompletionOnDot = true;
+			this.WORD = new EReg("[A-Z_0-9\\.]+$","i");
+			this.completionType = core.CompletionType.CLASSLIST;
+			var closeCharacters = /[\s()\[\]{};>,]/;
+			if(ignoreWhitespace) closeCharacters = /[()\[\]{};>,]/;
+			CodeMirror.showHint(cm.Editor.editor,$bind(this,this.getHints),{ closeCharacters : closeCharacters});
+		}
+	}
+	,searchImage: function(name,type,description) {
+		var functionData = core.FunctionParametersHelper.parseFunctionParams(name,type,description);
+		var info = null;
+		var className = "CodeMirror-Tern-completion";
+		if(functionData.parameters != null) {
+			var data = this.generateFunctionCompletionItem(name,functionData.parameters);
+			className = data.className;
+			info = data.info + ":" + functionData.retType;
+		} else if(type != null) {
+			info = type;
+			switch(info) {
+			case "Bool":
+				className += " CodeMirror-Tern-completion-bool";
+				break;
+			case "Float":case "Int":case "UInt":
+				className += " CodeMirror-Tern-completion-number";
+				break;
+			case "String":
+				className += " CodeMirror-Tern-completion-string";
+				break;
+			default:
+				if(info.indexOf("Array") != -1) className += " CodeMirror-Tern-completion-array"; else if(info.indexOf("Map") != -1 || info.indexOf("StringMap") != -1) className += " CodeMirror-Tern-completion-map"; else className += " CodeMirror-Tern-completion-object";
 			}
 		}
-		var data = { list : completions, from : pos, to : pos};
-		return data;
-	},{ completeSingle : false});
-};
-core.Completion.getClassList = function() {
-	var value = tabmanager.TabManager.getCurrentDocument().getValue();
-	var mainClass = js.Node.require("path").basename(tabmanager.TabManager.getCurrentDocumentPath(),".hx");
-	var filePackage = parser.RegexParser.getFilePackage(value);
-	var fileImports = parser.RegexParser.getFileImportsList(value);
-	var topLevelClassList = [];
-	var importsList = [];
-	var relativeImport = null;
-	var parentPackages = [];
-	if(filePackage.filePackage != null && filePackage.filePackage != "") {
-		var packages = filePackage.filePackage.split(".");
-		var parentPackage;
-		while(packages.length > 0) {
-			parentPackage = packages.join(".");
-			packages.pop();
-			parentPackages.push(parentPackage);
-		}
+		return { className : className, info : info};
 	}
-	var found;
-	var _g = 0;
-	var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-	while(_g < _g1.length) {
-		var list2 = _g1[_g];
-		++_g;
-		var _g2 = 0;
-		while(_g2 < list2.length) {
-			var item = list2[_g2];
-			++_g2;
+	,generateFunctionCompletionItem: function(name,params) {
+		var info = null;
+		var className = "CodeMirror-Tern-completion";
+		info = name + "(";
+		if(params != null) info += params.join(", ");
+		info += ")";
+		className += " CodeMirror-Tern-completion-fn";
+		return { className : className, info : info};
+	}
+	,generateCompletionItem: function(name,type,description) {
+		var completionData = this.searchImage(name,type,description);
+		return this.createCompletionItem(name,description,completionData);
+	}
+	,createCompletionItem: function(name,description,completionData) {
+		var completionItem = { text : name};
+		completionItem.className = completionData.className;
+		var infoSpan;
+		var _this = window.document;
+		infoSpan = _this.createElement("span");
+		if(completionData.info != null) {
+			var infoTypeSpan;
+			var _this1 = window.document;
+			infoTypeSpan = _this1.createElement("span");
+			infoTypeSpan.textContent = completionData.info;
+			infoSpan.appendChild(infoTypeSpan);
+			infoSpan.appendChild(window.document.createElement("br"));
+			infoSpan.appendChild(window.document.createElement("br"));
+		}
+		if(description != null) {
+			var infoDescriptionSpan;
+			var _this2 = window.document;
+			infoDescriptionSpan = _this2.createElement("span");
+			infoDescriptionSpan.className = "completionDescription";
+			infoDescriptionSpan.innerHTML = description;
+			infoSpan.appendChild(infoDescriptionSpan);
+		}
+		if(completionData.info != null || description != null) completionItem.info = function(completionItem1) {
+			return infoSpan;
+		};
+		return completionItem;
+	}
+	,showImportDefinition: function(importsSuggestions,from,to) {
+		var cm1 = cm.Editor.editor;
+		CodeMirror.showHint(cm1,function() {
+			var completions = [];
+			var completion;
+			var _g = 0;
+			while(_g < importsSuggestions.length) {
+				var item = importsSuggestions[_g];
+				++_g;
+				completion = { };
+				completion.text = item;
+				completion.displayText = "import " + item;
+				completion.hint = (function(f,a1,to1) {
+					return function(cm1,a2,a3) {
+						return f(a1,to1,cm1,a2,a3);
+					};
+				})(core.ImportDefinition.importClassHint,from,to);
+				completions.push(completion);
+			}
+			var pos = cm1.getCursor();
+			var data = { list : completions, from : pos, to : pos};
+			return data;
+		},{ completeSingle : false});
+	}
+	,showActions: function(completions) {
+		var cm1 = cm.Editor.editor;
+		CodeMirror.showHint(cm1,function() {
+			var pos = cm1.getCursor();
+			var data = { list : completions, from : pos, to : pos};
+			return data;
+		},{ completeSingle : false});
+	}
+	,showCodeSuggestions: function(suggestions) {
+		var _g = this;
+		var cm1 = cm.Editor.editor;
+		CodeMirror.showHint(cm1,function() {
+			var completions = [];
+			var completion;
+			var pos = cm1.getCursor();
+			var word = _g.getCurrentWord(cm1,{ word : new EReg("[A-Z_0-9]+$","i")},pos).word;
+			var _g1 = 0;
+			while(_g1 < suggestions.length) {
+				var item = suggestions[_g1];
+				++_g1;
+				if(word == null || StringTools.startsWith(item,word)) {
+					completion = { };
+					completion.text = item;
+					completions.push(completion);
+				}
+			}
+			var data = { list : completions, from : { line : pos.line, ch : _g.start}, to : { line : pos.line, ch : _g.end}};
+			return data;
+		},{ completeSingle : false});
+	}
+	,getClassList: function() {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var value = tabManagerInstance.getCurrentDocument().getValue();
+		var mainClass = js.Node.require("path").basename(tabManagerInstance.getCurrentDocumentPath(),".hx");
+		var filePackage = parser.RegexParser.getFilePackage(value);
+		var fileImports = parser.RegexParser.getFileImportsList(value);
+		var topLevelClassList = [];
+		var importsList = [];
+		var relativeImport = null;
+		var parentPackages = [];
+		if(filePackage.filePackage != null && filePackage.filePackage != "") {
+			var packages = filePackage.filePackage.split(".");
+			var parentPackage;
+			while(packages.length > 0) {
+				parentPackage = packages.join(".");
+				packages.pop();
+				parentPackages.push(parentPackage);
+			}
+		}
+		var found;
+		var _g = 0;
+		var _g1 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+		while(_g < _g1.length) {
+			var list2 = _g1[_g];
+			++_g;
+			var _g2 = 0;
+			while(_g2 < list2.length) {
+				var item = list2[_g2];
+				++_g2;
+				found = false;
+				var _g3 = 0;
+				while(_g3 < parentPackages.length) {
+					var parentPackage1 = parentPackages[_g3];
+					++_g3;
+					if(StringTools.startsWith(item,parentPackage1 + ".") && item.indexOf(".",parentPackage1.length + 1) == -1) {
+						relativeImport = HxOverrides.substr(item,parentPackage1.length + 1,null);
+						topLevelClassList.push({ name : relativeImport, fullName : item});
+						found = true;
+						break;
+					}
+				}
+				if(!found) {
+					if(HxOverrides.indexOf(fileImports,item,0) != -1) {
+						relativeImport = item.split(".").pop();
+						topLevelClassList.push({ name : relativeImport, fullName : item});
+					} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
+						relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
+						console.log(relativeImport);
+						if(StringTools.startsWith(relativeImport,mainClass + ".")) {
+							relativeImport = HxOverrides.substr(relativeImport,mainClass.length + 1,null);
+							console.log(relativeImport);
+							topLevelClassList.push({ name : relativeImport, fullName : item});
+						} else importsList.push(relativeImport);
+					} else {
+						relativeImport = item;
+						importsList.push(relativeImport);
+					}
+				}
+			}
+		}
+		var _g4 = 0;
+		var _g11 = [parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.topLevelClassList];
+		while(_g4 < _g11.length) {
+			var list21 = _g11[_g4];
+			++_g4;
+			var _g21 = 0;
+			while(_g21 < list21.length) {
+				var item1 = list21[_g21];
+				++_g21;
+				topLevelClassList.push({ name : item1});
+			}
+		}
+		var _g5 = 0;
+		while(_g5 < fileImports.length) {
+			var item2 = fileImports[_g5];
+			++_g5;
 			found = false;
-			var _g3 = 0;
-			while(_g3 < parentPackages.length) {
-				var parentPackage1 = parentPackages[_g3];
-				++_g3;
-				if(StringTools.startsWith(item,parentPackage1 + ".") && item.indexOf(".",parentPackage1.length + 1) == -1) {
-					relativeImport = HxOverrides.substr(item,parentPackage1.length + 1,null);
-					topLevelClassList.push({ name : relativeImport, fullName : item});
+			relativeImport = item2.split(".").pop();
+			var _g12 = 0;
+			while(_g12 < topLevelClassList.length) {
+				var topLevelItem = topLevelClassList[_g12];
+				++_g12;
+				if(topLevelItem.name == relativeImport) {
 					found = true;
 					break;
 				}
 			}
-			if(!found) {
-				if(HxOverrides.indexOf(fileImports,item,0) != -1) {
-					relativeImport = item.split(".").pop();
-					topLevelClassList.push({ name : relativeImport, fullName : item});
-				} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
-					relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-					console.log(relativeImport);
-					if(StringTools.startsWith(relativeImport,mainClass + ".")) {
-						relativeImport = HxOverrides.substr(relativeImport,mainClass.length + 1,null);
-						console.log(relativeImport);
-						topLevelClassList.push({ name : relativeImport, fullName : item});
-					} else importsList.push(relativeImport);
-				} else {
-					relativeImport = item;
-					importsList.push(relativeImport);
-				}
-			}
+			if(!found) topLevelClassList.push({ name : relativeImport, fullName : item2});
 		}
+		return { topLevelClassList : topLevelClassList, importsList : importsList};
 	}
-	var _g4 = 0;
-	var _g11 = [parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.topLevelClassList];
-	while(_g4 < _g11.length) {
-		var list21 = _g11[_g4];
-		++_g4;
-		var _g21 = 0;
-		while(_g21 < list21.length) {
-			var item1 = list21[_g21];
-			++_g21;
-			topLevelClassList.push({ name : item1});
-		}
+	,getCompletionType: function() {
+		return this.completionType;
 	}
-	var _g5 = 0;
-	while(_g5 < fileImports.length) {
-		var item2 = fileImports[_g5];
-		++_g5;
-		found = false;
-		relativeImport = item2.split(".").pop();
-		var _g12 = 0;
-		while(_g12 < topLevelClassList.length) {
-			var topLevelItem = topLevelClassList[_g12];
-			++_g12;
-			if(topLevelItem.name == relativeImport) {
-				found = true;
-				break;
-			}
-		}
-		if(!found) topLevelClassList.push({ name : relativeImport, fullName : item2});
-	}
-	return { topLevelClassList : topLevelClassList, importsList : importsList};
-};
-core.Completion.getCompletionType = function() {
-	return core.Completion.completionType;
+	,__class__: core.Completion
 };
 core.DragAndDrop = function() { };
 $hxClasses["core.DragAndDrop"] = core.DragAndDrop;
@@ -2649,7 +2736,10 @@ core.DragAndDrop.prepare = function() {
 			var path = [e1.dataTransfer.files[i].path];
 			js.Node.require("fs").stat(path[0],(function(path) {
 				return function(err,stats) {
-					if(stats.isDirectory()) filetree.FileTree.load(js.Node.require("path").basename(path[0]),path[0]); else openproject.OpenProject.openProject(path[0]);
+					if(stats.isDirectory()) {
+						var filetreeInstance = filetree.FileTree.get();
+						filetreeInstance.load(js.Node.require("path").basename(path[0]),path[0]);
+					} else openproject.OpenProject.openProject(path[0]);
 				};
 			})(path));
 		}
@@ -2719,7 +2809,8 @@ core.FunctionParametersHelper.clear = function() {
 	core.FunctionParametersHelper.widgets = [];
 };
 core.FunctionParametersHelper.update = function(cm) {
-	var doc = tabmanager.TabManager.getCurrentDocument();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var doc = tabManagerInstance.getCurrentDocument();
 	if(doc != null) {
 		var modeName = doc.getMode().name;
 		if(modeName == "haxe" && !cm.state.completionActive) {
@@ -2759,12 +2850,13 @@ core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
 };
 core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
 	var posBeforeBracket = { line : pos.line, ch : pos.ch - 1};
-	var word = core.Completion.getCurrentWord(cm,{ },posBeforeBracket).word;
-	core.Completion.getCompletion(function() {
+	var completionInstance = core.Completion.get();
+	var word = completionInstance.getCurrentWord(cm,{ },posBeforeBracket).word;
+	completionInstance.getCompletion(function() {
 		var found = false;
 		core.FunctionParametersHelper.clear();
 		var _g = 0;
-		var _g1 = core.Completion.completions;
+		var _g1 = completionInstance.completions;
 		while(_g < _g1.length) {
 			var completion = _g1[_g];
 			++_g;
@@ -2828,13 +2920,28 @@ core.FunctionParametersHelper.parseFunctionParams = function(name,type,descripti
 	}
 	return { parameters : parameters, retType : retType};
 };
-core.GoToLine = function() { };
+core.GoToLine = function() {
+};
 $hxClasses["core.GoToLine"] = core.GoToLine;
 core.GoToLine.__name__ = ["core","GoToLine"];
-core.GoToLine.show = function() {
-	if(tabmanager.TabManager.selectedPath != null) Alertify.prompt("Go to Line",function(e,str) {
-		cm.Editor.editor.centerOnLine(Std.parseInt(str));
-	});
+core.GoToLine.get = function() {
+	if(core.GoToLine.instance == null) core.GoToLine.instance = new core.GoToLine();
+	return core.GoToLine.instance;
+};
+core.GoToLine.prototype = {
+	show: function() {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		if(tabManagerInstance.selectedPath != null) Alertify.prompt("Go to Line",function(e,str) {
+			var cm2 = cm.Editor.editor;
+			var lineNumber = Std.parseInt(str);
+			cm2.centerOnLine(lineNumber);
+			var highlightRange = cm.HighlightRange.get();
+			var from = { line : lineNumber, ch : 0};
+			var to = { line : lineNumber, ch : cm2.getLine(lineNumber).length};
+			highlightRange.highlight(cm2,from,to);
+		});
+	}
+	,__class__: core.GoToLine
 };
 core.HaxeHelper = function() { };
 $hxClasses["core.HaxeHelper"] = core.HaxeHelper;
@@ -2842,7 +2949,8 @@ core.HaxeHelper.__name__ = ["core","HaxeHelper"];
 core.HaxeHelper.getArguments = function(onComplete) {
 	if(core.HaxeHelper.haxeArguments != null) onComplete(core.HaxeHelper.haxeArguments); else {
 		var data = [];
-		core.ProcessHelper.runProcess("haxe",["--help"],null,function(stdout,stderr) {
+		var processHelper = core.ProcessHelper.get();
+		processHelper.runProcess("haxe",["--help"],null,function(stdout,stderr) {
 			var regex = new EReg("-+[A-Z-]+ ","gim");
 			regex.map(stderr,function(ereg) {
 				var str = ereg.matched(0);
@@ -2856,8 +2964,9 @@ core.HaxeHelper.getArguments = function(onComplete) {
 };
 core.HaxeHelper.getDefines = function(onComplete) {
 	if(core.HaxeHelper.haxeDefines != null) onComplete(core.HaxeHelper.haxeDefines); else {
+		var processHelper = core.ProcessHelper.get();
 		var data = [];
-		core.ProcessHelper.runProcess("haxe",["--help-defines"],null,function(stdout,stderr) {
+		processHelper.runProcess("haxe",["--help-defines"],null,function(stdout,stderr) {
 			var regex = new EReg("[A-Z-]+ +:","gim");
 			regex.map(stdout,function(ereg) {
 				var str = ereg.matched(0);
@@ -2871,8 +2980,9 @@ core.HaxeHelper.getDefines = function(onComplete) {
 };
 core.HaxeHelper.getInstalledHaxelibList = function(onComplete) {
 	if(core.HaxeHelper.installedHaxelibs != null) onComplete(core.HaxeHelper.installedHaxelibs); else {
+		var processHelper = core.ProcessHelper.get();
 		var data = [];
-		core.ProcessHelper.runProcess("haxelib",["list"],null,function(stdout,stderr) {
+		processHelper.runProcess("haxelib",["list"],null,function(stdout,stderr) {
 			var regex = new EReg("^[A-Z-]+:","gim");
 			regex.map(stdout,function(ereg) {
 				var str = ereg.matched(0);
@@ -2886,8 +2996,9 @@ core.HaxeHelper.getInstalledHaxelibList = function(onComplete) {
 };
 core.HaxeHelper.getHaxelibList = function(onComplete) {
 	if(core.HaxeHelper.haxelibHaxelibs != null) onComplete(core.HaxeHelper.haxelibHaxelibs); else {
+		var processHelper = core.ProcessHelper.get();
 		var data = [];
-		core.ProcessHelper.runProcess("haxelib",["search","\"\""],null,function(stdout,stderr) {
+		processHelper.runProcess("haxelib",["search","\"\""],null,function(stdout,stderr) {
 			var lines = stdout.split("\n");
 			var _g = 0;
 			while(_g < lines.length) {
@@ -2900,6 +3011,13 @@ core.HaxeHelper.getHaxelibList = function(onComplete) {
 			onComplete(core.HaxeHelper.haxelibHaxelibs);
 		});
 	}
+};
+core.HaxeHelper.getPathToHaxe = function() {
+	var pathToHaxe = "haxe";
+	var classpathWalker = parser.ClasspathWalker.get();
+	var pathToHaxeDirectory = classpathWalker.pathToHaxe;
+	if(pathToHaxeDirectory != null) pathToHaxe = js.Node.require("path").join(pathToHaxeDirectory,pathToHaxe);
+	return pathToHaxe;
 };
 var haxe = {};
 haxe.ds = {};
@@ -2949,7 +3067,8 @@ core.HaxeLint.__name__ = ["core","HaxeLint"];
 core.HaxeLint.load = function() {
 	CodeMirror.registerHelper("lint","haxe",function(text) {
 		var found = [];
-		var path = tabmanager.TabManager.getCurrentDocumentPath();
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var path = tabManagerInstance.getCurrentDocumentPath();
 		if(core.HaxeLint.fileData.exists(path)) {
 			var data = core.HaxeLint.fileData.get(path);
 			found = found.concat(data);
@@ -2963,7 +3082,11 @@ core.HaxeLint.load = function() {
 };
 core.HaxeLint.updateLinting = function() {
 	core.AnnotationRuler.clearErrorMarkers();
-	var doc = tabmanager.TabManager.getCurrentDocument();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var outlinePanel = core.OutlinePanel.get();
+	var outlineHelper = parser.OutlineHelper.get();
+	var xmlInstance = cm.Xml.get();
+	var doc = tabManagerInstance.getCurrentDocument();
 	if(doc != null) {
 		if(doc.getMode().name == "haxe") {
 			try {
@@ -2971,8 +3094,8 @@ core.HaxeLint.updateLinting = function() {
 			} catch( e ) {
 				console.log(e);
 			}
-			parser.OutlineHelper.getList(doc.getValue(),tabmanager.TabManager.getCurrentDocumentPath());
-			var path = tabmanager.TabManager.getCurrentDocumentPath();
+			var path = tabManagerInstance.getCurrentDocumentPath();
+			outlineHelper.getList(doc.getValue(),path);
 			if(core.HaxeLint.fileData.exists(path)) {
 				var data = core.HaxeLint.fileData.get(path);
 				var _g = 0;
@@ -2984,13 +3107,13 @@ core.HaxeLint.updateLinting = function() {
 			}
 			cm.Editor.editor.setOption("lint",false);
 			cm.Editor.editor.setOption("lint",true);
-		} else if(doc.getMode().name == "xml") cm.Xml.generateXmlCompletion(); else {
-			core.OutlinePanel.clearFields();
-			core.OutlinePanel.update();
+		} else if(doc.getMode().name == "xml") xmlInstance.generateXmlCompletion(); else {
+			outlinePanel.clearFields();
+			outlinePanel.update();
 		}
 	} else {
-		core.OutlinePanel.clearFields();
-		core.OutlinePanel.update();
+		outlinePanel.clearFields();
+		outlinePanel.update();
 	}
 };
 core.FunctionScopeType = $hxClasses["core.FunctionScopeType"] = { __ename__ : ["core","FunctionScopeType"], __constructs__ : ["SClass","SStatic","SRegular"] };
@@ -3222,9 +3345,10 @@ core.HaxeParserProvider.getFunctionScope = function(field,f) {
 core.HaxeParserProvider.getClassName = function() {
 	var cm1 = cm.Editor.editor;
 	var pos = cm1.indexFromPos(cm1.getCursor());
-	var doc = tabmanager.TabManager.getCurrentDocument();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var doc = tabManagerInstance.getCurrentDocument();
 	var data = doc.getValue();
-	var path = tabmanager.TabManager.getCurrentDocumentPath();
+	var path = tabManagerInstance.getCurrentDocumentPath();
 	var ast = core.HaxeParserProvider.parse(data,path);
 	if(ast != null) {
 		var classPackage = ast.pack;
@@ -3345,7 +3469,8 @@ core.HaxeServer.check = function() {
 };
 core.HaxeServer.start = function() {
 	console.log("Starting new Haxe server at localhost:5000");
-	core.HaxeServer.haxeServer = core.ProcessHelper.runPersistentProcess("haxe",["--wait","5000"],null,function(code,stdout,stderr) {
+	var processHelper = core.ProcessHelper.get();
+	core.HaxeServer.haxeServer = processHelper.runPersistentProcess("haxe",["--wait","5000"],null,function(code,stdout,stderr) {
 		console.log(stdout);
 		console.log(stderr);
 	});
@@ -3555,7 +3680,8 @@ core.ImportDefinition.searchImport = function(data,path) {
 		}
 	} else if(token.type != null && token.string != "") mode = "token";
 	if(mode != null) {
-		topLevelClassList = core.Completion.getClassList().topLevelClassList;
+		var completionInstance = core.Completion.get();
+		topLevelClassList = completionInstance.getClassList().topLevelClassList;
 		switch(mode) {
 		case "token":
 			core.ImportDefinition.checkImport(cm1,topLevelClassList,token);
@@ -3592,7 +3718,10 @@ core.ImportDefinition.searchImportByText = function(topLevelClassList,text,from,
 		}
 	}
 	if(!alreadyAdded) {
-		if(found) core.ImportDefinition.importClass(cm1,text,from,to); else if(suggestImport) core.Completion.showImportDefinition([text],from,to);
+		if(found) core.ImportDefinition.importClass(cm1,text,from,to); else if(suggestImport) {
+			var completionInstance = core.Completion.get();
+			completionInstance.showImportDefinition([text],from,to);
+		}
 	} else core.ImportDefinition.updateImport(cm1,text.split(".").pop(),from,to);
 };
 core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
@@ -3637,7 +3766,10 @@ core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 			}
 		}
 	}
-	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) core.Completion.showImportDefinition(foundImports); else {
+	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) {
+		var completionInstance = core.Completion.get();
+		completionInstance.showImportDefinition(foundImports);
+	} else {
 		var cursor = cm.getCursor();
 		var lineData = cm.getLine(cursor.line);
 		var ereg = new EReg("var[\t ]*([^ =]+):([^ =;\n]+)","gim");
@@ -3656,7 +3788,8 @@ core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 			variableDeclarationString = StringTools.trim(variableDeclarationString);
 			if(!StringTools.endsWith(variableDeclarationString,";")) variableDeclarationString += ";";
 		}
-		var classDeclarations = parser.RegexParser.getClassDeclarations(tabmanager.TabManager.getCurrentDocument().getValue());
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var classDeclarations = parser.RegexParser.getClassDeclarations(tabManagerInstance.getCurrentDocument().getValue());
 		var currentClassDeclaration = null;
 		var _g4 = 0;
 		while(_g4 < classDeclarations.length) {
@@ -3681,7 +3814,8 @@ core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 				var to = cm1.posFromIndex(index + pos.pos + pos.len + variableDeclarationString.length + 1);
 				cm1.replaceRange(variableName,from,to);
 			};
-			core.Completion.showActions([completionItem]);
+			var completionInstance1 = core.Completion.get();
+			completionInstance1.showActions([completionItem]);
 		} else {
 			var info = "Unable to find additional imports for '" + token.string + "'.";
 			if(alreadyImported.length > 0) info += " Already imported:\n" + Std.string(alreadyImported);
@@ -3693,7 +3827,8 @@ core.ImportDefinition.importClassHint = function(from,to,cm,data,completion) {
 	core.ImportDefinition.importClass(cm,completion.text,from,to);
 };
 core.ImportDefinition.importClass = function(cm,text,from,to) {
-	var value = tabmanager.TabManager.getCurrentDocument().getValue();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var value = tabManagerInstance.getCurrentDocument().getValue();
 	var filePackage = parser.RegexParser.getFilePackage(value);
 	if(from != null && to != null) core.ImportDefinition.updateImport(cm,text,from,to);
 	var pos;
@@ -3798,11 +3933,14 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("View",3).addMenuItem("Toggle Fullscreen",1,function() {
 		$window.toggleFullscreen();
 	},"F11");
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var completionInstance = core.Completion.get();
+	var fileTreeInstance = filetree.FileTree.get();
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("changelog",1,(function(f,a1) {
 		return function() {
 			return f(a1);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","changes.md")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join("core","changes.md")));
 	menu.BootstrapMenu.getMenu("Developer Tools",100).addMenuItem("Reload IDE",1,$bind($window,$window.reloadIgnoringCache),"Ctrl-Shift-R");
 	menu.BootstrapMenu.getMenu("Developer Tools").addMenuItem("Compile plugins and reload IDE",2,function() {
 		HIDE.compilePlugins(function() {
@@ -3815,7 +3953,7 @@ core.MenuCommands.add = function() {
 		return function() {
 			return f1(a11);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","bindings.txt")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join("core","bindings.txt")));
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub",2,function() {
 		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
 	});
@@ -3844,11 +3982,11 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...",5,function() {
 		return HIDE.openPageInNewWindow(null,"about.html",{ toolbar : false});
 	});
-	core.Hotkeys.add("Tab Manager->Show Next Tab","Ctrl-Tab",null,tabmanager.TabManager.showNextTab);
-	core.Hotkeys.add("Tab Manager->Show Previous Tab","Ctrl-Shift-Tab",null,tabmanager.TabManager.showPreviousTab);
-	core.Hotkeys.add("Tab Manager->Close File","Ctrl-W",null,tabmanager.TabManager.closeActiveTab);
+	core.Hotkeys.add("Tab Manager->Show Next Tab","Ctrl-Tab",null,$bind(tabManagerInstance,tabManagerInstance.showNextTab));
+	core.Hotkeys.add("Tab Manager->Show Previous Tab","Ctrl-Shift-Tab",null,$bind(tabManagerInstance,tabManagerInstance.showPreviousTab));
+	core.Hotkeys.add("Tab Manager->Close File","Ctrl-W",null,$bind(tabManagerInstance,tabManagerInstance.closeActiveTab));
 	menu.BootstrapMenu.getMenu("File",1).addMenuItem("New Project...",1,newprojectdialog.NewProjectDialog.show,"Ctrl-Shift-N");
-	menu.BootstrapMenu.getMenu("File").addMenuItem("New File...",2,tabmanager.TabManager.createFileInNewTab,"Ctrl-N");
+	menu.BootstrapMenu.getMenu("File").addMenuItem("New File...",2,$bind(tabManagerInstance,tabManagerInstance.createFileInNewTab),"Ctrl-N");
 	menu.BootstrapMenu.getMenu("File").addSeparator();
 	menu.BootstrapMenu.getMenu("File").addMenuItem("Open Project...",3,function() {
 		return openproject.OpenProject.openProject(null,true);
@@ -3858,46 +3996,47 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("File").addMenuItem("Open File...",5,openproject.OpenProject.openProject,"Ctrl-O");
 	menu.BootstrapMenu.getMenu("File").addSubmenu("Open Recent File");
 	menu.BootstrapMenu.getMenu("File").addSeparator();
-	menu.BootstrapMenu.getMenu("File").addMenuItem("Save",6,tabmanager.TabManager.saveActiveFile,"Ctrl-S");
-	menu.BootstrapMenu.getMenu("File").addMenuItem("Save As...",7,tabmanager.TabManager.saveActiveFileAs,"Ctrl-Shift-S");
-	menu.BootstrapMenu.getMenu("File").addMenuItem("Save All",8,tabmanager.TabManager.saveAll);
+	menu.BootstrapMenu.getMenu("File").addMenuItem("Save",6,$bind(tabManagerInstance,tabManagerInstance.saveActiveFile),"Ctrl-S");
+	menu.BootstrapMenu.getMenu("File").addMenuItem("Save As...",7,$bind(tabManagerInstance,tabManagerInstance.saveActiveFileAs),"Ctrl-Shift-S");
+	menu.BootstrapMenu.getMenu("File").addMenuItem("Save All",8,$bind(tabManagerInstance,tabManagerInstance.saveAll));
 	menu.BootstrapMenu.getMenu("File").addSeparator();
 	menu.BootstrapMenu.getMenu("File").addMenuItem("Exit",9,nodejs.webkit.App.closeAllWindows);
-	nodejs.webkit.Window.get().on("close",tabmanager.TabManager.saveAll);
+	nodejs.webkit.Window.get().on("close",$bind(tabManagerInstance,tabManagerInstance.saveAll));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open settings",1,(function(f2,a12) {
 		return function() {
 			return f2(a12);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"settings.json")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"settings.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet",1,function() {
-		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme));
+		tabManagerInstance.openFileInNewTab(js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme));
 	});
+	var classpathWalker = parser.ClasspathWalker.get();
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file",1,(function(f3,a13) {
 		return function() {
 			return f3(a13);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"editor.json")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"editor.json")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder",1,(function(f4,a14,a2) {
 		return function() {
 			return f4(a14,a2);
 		};
-	})(filetree.FileTree.load,"templates",js.Node.require("path").join("core","templates")));
+	})($bind(fileTreeInstance,fileTreeInstance.load),"templates",js.Node.require("path").join("core","templates")));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open localization file",1,(function(f5,a15) {
 		return function() {
 			return f5(a15);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join("core","locale",watchers.SettingsWatcher.settings.locale)));
 	menu.BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file",1,(function(f6,a16) {
 		return function() {
 			return f6(a16);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json")));
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json")));
 	menu.BootstrapMenu.getMenu("Options",90).addMenuItem("Open snippets configuration file",1,(function(f7,a17) {
 		return function() {
 			return f7(a17);
 		};
-	})(tabmanager.TabManager.openFileInNewTab,js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,parser.ClasspathWalker.showHaxeDirectoryDialog);
+	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json")));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,$bind(classpathWalker,classpathWalker.showHaxeDirectoryDialog));
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
 	});
@@ -3922,17 +4061,18 @@ core.MenuCommands.add = function() {
 	menu.BootstrapMenu.getMenu("Edit").addMenuItem("Replace...",1,function() {
 		return cm.Editor.editor.execCommand("replace");
 	});
-	menu.BootstrapMenu.getMenu("Navigate",4).addMenuItem("Go to Line",2,core.GoToLine.show,"Ctrl-G");
+	var goToLine = core.GoToLine.get();
+	menu.BootstrapMenu.getMenu("Navigate",4).addMenuItem("Go to Line",2,$bind(goToLine,goToLine.show),"Ctrl-G");
 	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Open File",3,function() {
 		haxe.Timer.delay(function() {
-			core.Completion.showFileList();
+			completionInstance.showFileList();
 		},10);
 	},"Ctrl-Shift-O");
 	menu.BootstrapMenu.getMenu("Navigate").addMenuItem("Go To Declaration",4,function() {
 		var goToDeclaration = completion.GoToDeclaration.get();
 		goToDeclaration.start();
 	},"Ctrl-B");
-	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,core.Completion.showClassList,"Ctrl-Shift-P");
+	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Class List",4,$bind(completionInstance,completionInstance.showClassList),"Ctrl-Shift-P");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion",5,function() {
 		return cm.Editor.triggerCompletion(cm.Editor.editor);
 	},"Ctrl-Space");
@@ -3940,8 +4080,8 @@ core.MenuCommands.add = function() {
 		return cm.Editor.editor.execCommand("toggleComment");
 	},"Ctrl-Q");
 	menu.BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition",6,function() {
-		var selectedPath = tabmanager.TabManager.getCurrentDocumentPath();
-		if(selectedPath != null) core.ImportDefinition.searchImport(tabmanager.TabManager.getCurrentDocument().getValue(),selectedPath);
+		var selectedPath = tabManagerInstance.getCurrentDocumentPath();
+		if(selectedPath != null) core.ImportDefinition.searchImport(tabManagerInstance.getCurrentDocument().getValue(),selectedPath);
 	},"Ctrl-Shift-1");
 	menu.BootstrapMenu.getMenu("Project",80).addMenuItem("Run",1,core.RunProject.runProject,"F5");
 	menu.BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core.RunProject.buildProject,"F8");
@@ -3950,34 +4090,40 @@ core.MenuCommands.add = function() {
 		if(projectaccess.ProjectAccess.path != null) dialogs.DialogManager.showProjectOptions(); else Alertify.error("Open or create project first");
 	});
 };
-core.OutlinePanel = function() { };
+core.OutlinePanel = function() {
+	this.source = [];
+};
 $hxClasses["core.OutlinePanel"] = core.OutlinePanel;
 core.OutlinePanel.__name__ = ["core","OutlinePanel"];
-core.OutlinePanel.update = function() {
-	new $("#outline").jqxTree({ source : core.OutlinePanel.source});
-	new $("#outline").dblclick(function(event) {
-		var item = new $("#outline").jqxTree("getSelectedItem");
-		var value = item.value;
-		var cm1 = cm.Editor.editor;
-		if(value != null) {
-			var pos = cm1.posFromIndex(value.min);
-			var pos2 = cm1.posFromIndex(value.max);
-			var line = pos.line;
-			cm1.centerOnLine(line);
-			cm1.focus();
-			cm1.setCursor(pos2);
-			var marker = cm1.markText(pos,pos2,{ className : "showDeclaration"});
-			haxe.Timer.delay(function() {
-				marker.clear();
-			},1000);
-		}
-	});
+core.OutlinePanel.get = function() {
+	if(core.OutlinePanel.instance == null) core.OutlinePanel.instance = new core.OutlinePanel();
+	return core.OutlinePanel.instance;
 };
-core.OutlinePanel.addField = function(item) {
-	core.OutlinePanel.source.push(item);
-};
-core.OutlinePanel.clearFields = function() {
-	core.OutlinePanel.source = [];
+core.OutlinePanel.prototype = {
+	source: null
+	,update: function() {
+		new $("#outline").jqxTree({ source : this.source});
+		new $("#outline").dblclick(function(event) {
+			var item = new $("#outline").jqxTree("getSelectedItem");
+			var value = item.value;
+			var cm1 = cm.Editor.editor;
+			if(value != null) {
+				var pos = cm1.posFromIndex(value.min);
+				var pos2 = cm1.posFromIndex(value.max);
+				var line = pos.line;
+				cm1.centerOnLine(line);
+				cm1.focus();
+				cm1.setCursor(pos2);
+			}
+		});
+	}
+	,addField: function(item) {
+		this.source.push(item);
+	}
+	,clearFields: function() {
+		this.source = [];
+	}
+	,__class__: core.OutlinePanel
 };
 var nodejs = {};
 nodejs.webkit = {};
@@ -4046,420 +4192,472 @@ core.PreserveWindowState.saveWindowState = function() {
 	core.PreserveWindowState.dumpWindowState();
 	js.Browser.getLocalStorage().setItem("windowState",js.Node.stringify(core.PreserveWindowState.winState));
 };
-core.ProcessHelper = function() { };
+core.ProcessHelper = function() {
+};
 $hxClasses["core.ProcessHelper"] = core.ProcessHelper;
 core.ProcessHelper.__name__ = ["core","ProcessHelper"];
-core.ProcessHelper.runProcess = function(process,params,path,onComplete,onFailed) {
-	var command = core.ProcessHelper.processParamsToCommand(process,params);
-	var options = { };
-	if(path != null) options.cwd = path;
-	var process1 = js.Node.require("child_process").exec(command,options,function(error,stdout,stderr) {
-		if(error == null) onComplete(stdout,stderr); else if(onFailed != null) onFailed(error.code,stdout,stderr);
-	});
-	return process1;
+core.ProcessHelper.get = function() {
+	if(core.ProcessHelper.instance == null) core.ProcessHelper.instance = new core.ProcessHelper();
+	return core.ProcessHelper.instance;
 };
-core.ProcessHelper.runProcessAndPrintOutputToConsole = function(process,params,cwd,onComplete) {
-	var command = core.ProcessHelper.processParamsToCommand(process,params);
-	new $("#outputTab").click();
-	var textarea;
-	textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
-	textarea.value = "Build started\n";
-	textarea.value += command + "\n";
-	new $("#errors").html("");
-	var process1 = core.ProcessHelper.runPersistentProcess(process,params,cwd,function(code,stdout,stderr) {
-		core.ProcessHelper.processOutput(code,core.ProcessHelper.processStdout,core.ProcessHelper.processStderr,onComplete);
-	});
-	return process1;
-};
-core.ProcessHelper.processOutput = function(code,stdout,stderr,onComplete) {
-	var textarea;
-	textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
-	if(StringTools.trim(stdout) != "") {
-		textarea.value += "stdout:\n" + stdout;
-		console.log("stdout:\n" + stdout);
+core.ProcessHelper.prototype = {
+	processStdout: null
+	,processStderr: null
+	,runProcess: function(process,params,path,onComplete,onFailed) {
+		var command = this.processParamsToCommand(process,params);
+		var options = { };
+		if(path != null) options.cwd = path;
+		var process1 = js.Node.require("child_process").exec(command,options,function(error,stdout,stderr) {
+			if(error == null) onComplete(stdout,stderr); else if(onFailed != null) onFailed(error.code,stdout,stderr);
+		});
+		return process1;
 	}
-	core.HaxeLint.fileData = new haxe.ds.StringMap();
-	var switchToResultsTab = false;
-	if(stderr != "") {
-		var lines = stderr.split("\n");
-		var _g = 0;
-		while(_g < lines.length) {
-			var line = lines[_g];
-			++_g;
-			line = StringTools.trim(line);
-			if(line.indexOf("Error:") == 0) {
-				Alertify.error(line);
-				if(line.indexOf("unknown option `-python'") != -1) Alertify.log("You may need to install latest version of Haxe to compile to Python target","",10000);
-			} else if(line.indexOf(":") != 0) {
-				var args = line.split(":");
-				if(args.length > 3) {
-					var relativePath = args[0];
-					var fullPath = [js.Node.require("path").join(projectaccess.ProjectAccess.path,relativePath)];
-					if(!core.HaxeLint.fileData.exists(fullPath[0])) core.HaxeLint.fileData.set(fullPath[0],[]);
-					var data = core.HaxeLint.fileData.get(fullPath[0]);
-					core.HaxeLint.fileData.set(fullPath[0],data);
-					var lineNumber = [Std.parseInt(args[1]) - 1];
-					var charsData = null;
-					if(args[2].indexOf(" ") != -1) {
-						var data1 = StringTools.trim(args[2]).split(" ");
-						if(data1.length > 1 && data1[1].indexOf("-") != -1) charsData = data1[1].split("-");
-					}
-					if(charsData != null) {
-						var start = Std.parseInt(charsData[0]);
-						var end = Std.parseInt(charsData[1]);
-						var message = "";
-						var _g2 = 3;
-						var _g1 = args.length;
-						while(_g2 < _g1) {
-							var i = _g2++;
-							message += args[i];
-							if(i != args.length - 1) message += ":";
+	,runProcessAndPrintOutputToConsole: function(process,params,cwd,onComplete) {
+		var _g = this;
+		var command = this.processParamsToCommand(process,params);
+		new $("#outputTab").click();
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
+		textarea.value = "Build started\n";
+		textarea.value += command + "\n";
+		new $("#errors").html("");
+		var process1 = this.runPersistentProcess(process,params,cwd,function(code,stdout,stderr) {
+			_g.processOutput(code,_g.processStdout,_g.processStderr,onComplete);
+		});
+		return process1;
+	}
+	,processOutput: function(code,stdout,stderr,onComplete) {
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
+		if(StringTools.trim(stdout) != "") {
+			textarea.value += "stdout:\n" + stdout;
+			console.log("stdout:\n" + stdout);
+		}
+		core.HaxeLint.fileData = new haxe.ds.StringMap();
+		var switchToResultsTab = false;
+		if(stderr != "") {
+			var lines = stderr.split("\n");
+			var _g = 0;
+			while(_g < lines.length) {
+				var line = lines[_g];
+				++_g;
+				line = StringTools.trim(line);
+				if(line.indexOf("Error:") == 0) {
+					Alertify.error(line);
+					if(line.indexOf("unknown option `-python'") != -1) Alertify.log("You may need to install latest version of Haxe to compile to Python target","",10000);
+				} else if(line.indexOf(":") != 0) {
+					var args = line.split(":");
+					if(args.length > 3) {
+						var relativePath = args[0];
+						var fullPath = [js.Node.require("path").join(projectaccess.ProjectAccess.path,relativePath)];
+						if(!core.HaxeLint.fileData.exists(fullPath[0])) core.HaxeLint.fileData.set(fullPath[0],[]);
+						var data = core.HaxeLint.fileData.get(fullPath[0]);
+						core.HaxeLint.fileData.set(fullPath[0],data);
+						var lineNumber = [Std.parseInt(args[1]) - 1];
+						var charsData = null;
+						if(args[2].indexOf(" ") != -1) {
+							var data1 = StringTools.trim(args[2]).split(" ");
+							if(data1.length > 1 && data1[1].indexOf("-") != -1) charsData = data1[1].split("-");
 						}
-						var a;
-						var _this = window.document;
-						a = _this.createElement("a");
-						a.href = "#";
-						a.className = "list-group-item";
-						a.innerText = line;
-						a.onclick = (function(lineNumber,fullPath) {
-							return function(e) {
-								tabmanager.TabManager.openFileInNewTab(fullPath[0],true,(function(lineNumber) {
-									return function() {
-										var cm1 = cm.Editor.editor;
-										cm1.centerOnLine(lineNumber[0]);
-									};
-								})(lineNumber));
-							};
-						})(lineNumber,fullPath);
-						new $("#errors").append(a);
-						var info = { from : { line : lineNumber[0], ch : start}, to : { line : lineNumber[0], ch : end}, message : message, severity : "error"};
-						data.push(info);
-						switchToResultsTab = true;
-						tabmanager.TabManager.openFileInNewTab(fullPath[0],false);
+						if(charsData != null) {
+							var start = Std.parseInt(charsData[0]);
+							var end = Std.parseInt(charsData[1]);
+							var message = "";
+							var _g2 = 3;
+							var _g1 = args.length;
+							while(_g2 < _g1) {
+								var i = _g2++;
+								message += args[i];
+								if(i != args.length - 1) message += ":";
+							}
+							var tabManagerInstance = [tabmanager.TabManager.get()];
+							var a;
+							var _this = window.document;
+							a = _this.createElement("a");
+							a.href = "#";
+							a.className = "list-group-item";
+							a.innerText = line;
+							a.onclick = (function(tabManagerInstance,lineNumber,fullPath) {
+								return function(e) {
+									tabManagerInstance[0].openFileInNewTab(fullPath[0],true,(function(lineNumber) {
+										return function() {
+											var cm1 = cm.Editor.editor;
+											cm1.centerOnLine(lineNumber[0]);
+										};
+									})(lineNumber));
+								};
+							})(tabManagerInstance,lineNumber,fullPath);
+							new $("#errors").append(a);
+							var info = { from : { line : lineNumber[0], ch : start}, to : { line : lineNumber[0], ch : end}, message : message, severity : "error"};
+							data.push(info);
+							switchToResultsTab = true;
+							tabManagerInstance[0].openFileInNewTab(fullPath[0],false);
+						}
 					}
 				}
+				var lib = null;
+				var ereg = new EReg("haxelib install ([^']+)","gim");
+				if(ereg.match(line)) lib = ereg.matched(1);
+				var ereg2 = new EReg("library ([^ ]+) is not installed","gim");
+				if(ereg2.match(line)) lib = ereg2.matched(1);
+				if(lib != null) {
+					var pathToHxml = projectaccess.ProjectAccess.getPathToHxml();
+					dialogs.DialogManager.showInstallHaxelibDialog(lib,pathToHxml);
+				}
 			}
-			var lib = null;
-			var ereg = new EReg("haxelib install ([^']+)","gim");
-			if(ereg.match(line)) lib = ereg.matched(1);
-			var ereg2 = new EReg("library ([^ ]+) is not installed","gim");
-			if(ereg2.match(line)) lib = ereg2.matched(1);
-			if(lib != null) {
-				var pathToHxml = projectaccess.ProjectAccess.getPathToHxml();
-				dialogs.DialogManager.showInstallHaxelibDialog(lib,pathToHxml);
+			textarea.value += "stderr:\n" + stderr;
+			console.log("stderr:\n" + stderr);
+		}
+		if(code == 0) {
+			Alertify.success("Build complete!");
+			textarea.value += "Build complete\n";
+			if(onComplete != null) onComplete();
+			new $("#buildStatus").fadeIn(250);
+		} else {
+			if(switchToResultsTab) new $("#resultsTab").click();
+			Alertify.error("Build failed");
+			textarea.value += "Build failed (exit code: " + (code == null?"null":"" + code) + ")\n";
+			new $("#buildStatus").fadeOut(250);
+		}
+		core.HaxeLint.updateLinting();
+	}
+	,runPersistentProcess: function(process,params,cwd,onClose,redirectToOutput) {
+		if(redirectToOutput == null) redirectToOutput = false;
+		var _g = this;
+		var textarea;
+		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
+		this.processStdout = "";
+		this.processStderr = "";
+		var process1 = js.Node.require("child_process").spawn(process,params,{ cwd : cwd});
+		process1.stdout.setEncoding("utf8");
+		process1.stdout.on("data",function(data) {
+			_g.processStdout += data;
+			if(redirectToOutput) {
+				textarea.value += data;
+				textarea.scrollTop = textarea.scrollHeight;
 			}
-		}
-		textarea.value += "stderr:\n" + stderr;
-		console.log("stderr:\n" + stderr);
+		});
+		process1.stderr.setEncoding("utf8");
+		process1.stderr.on("data",function(data1) {
+			_g.processStderr += data1;
+			if(redirectToOutput) {
+				textarea.value += data1;
+				textarea.scrollTop = textarea.scrollHeight;
+			}
+		});
+		process1.on("error",function(e) {
+			console.log(e);
+		});
+		process1.on("close",function(code) {
+			console.log(_g.processStdout);
+			console.log(_g.processStderr);
+			if(onClose != null) onClose(code,_g.processStdout,_g.processStderr);
+			if(code != 0) process1 = null;
+			console.log("started process quit with exit code " + code);
+		});
+		return process1;
 	}
-	if(code == 0) {
-		Alertify.success("Build complete!");
-		textarea.value += "Build complete\n";
-		if(onComplete != null) onComplete();
-		new $("#buildStatus").fadeIn(250);
-	} else {
-		if(switchToResultsTab) new $("#resultsTab").click();
-		Alertify.error("Build failed");
-		textarea.value += "Build failed (exit code: " + (code == null?"null":"" + code) + ")\n";
-		new $("#buildStatus").fadeOut(250);
+	,checkProcessInstalled: function(process,params,onComplete) {
+		var installed;
+		js.Node.require("child_process").exec(this.processParamsToCommand(process,params),{ },function(error,stdout,stderr) {
+			if(error == null) installed = true; else {
+				console.log(error);
+				console.log(stdout);
+				console.log(stderr);
+				installed = false;
+			}
+			onComplete(installed);
+		});
 	}
-	core.HaxeLint.updateLinting();
+	,processParamsToCommand: function(process,params) {
+		return [process].concat(params).join(" ");
+	}
+	,__class__: core.ProcessHelper
 };
-core.ProcessHelper.runPersistentProcess = function(process,params,cwd,onClose,redirectToOutput) {
-	if(redirectToOutput == null) redirectToOutput = false;
-	var textarea;
-	textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
-	core.ProcessHelper.processStdout = "";
-	core.ProcessHelper.processStderr = "";
-	var process1 = js.Node.require("child_process").spawn(process,params,{ cwd : cwd});
-	process1.stdout.setEncoding("utf8");
-	process1.stdout.on("data",function(data) {
-		core.ProcessHelper.processStdout += data;
-		if(redirectToOutput) {
-			textarea.value += data;
-			textarea.scrollTop = textarea.scrollHeight;
-		}
-	});
-	process1.stderr.setEncoding("utf8");
-	process1.stderr.on("data",function(data1) {
-		core.ProcessHelper.processStderr += data1;
-		if(redirectToOutput) {
-			textarea.value += data1;
-			textarea.scrollTop = textarea.scrollHeight;
-		}
-	});
-	process1.on("error",function(e) {
-		console.log(e);
-	});
-	process1.on("close",function(code) {
-		console.log(core.ProcessHelper.processStdout);
-		console.log(core.ProcessHelper.processStderr);
-		if(onClose != null) onClose(code,core.ProcessHelper.processStdout,core.ProcessHelper.processStderr);
-		if(code != 0) process1 = null;
-		console.log("started process quit with exit code " + code);
-	});
-	return process1;
+core.QuickOpen = function() {
+	var _this = window.document;
+	this.panel = _this.createElement("div");
+	this.panel.className = "panel panel-default";
+	this.panel.id = "quickOpen";
+	var _this1 = window.document;
+	this.panelBody = _this1.createElement("div");
+	this.panelBody.className = "panel-body";
+	this.panel.appendChild(this.panelBody);
+	var _this2 = window.document;
+	this.div = _this2.createElement("div");
+	this.inputGroup = new bootstrap.InputGroup();
+	this.inputGroup.getElement().id = "quickOpenInputGroup";
+	this.input = this.inputGroup.getInput();
+	this.listGroup = new bootstrap.ListGroup();
+	this.listGroup.getElement().id = "quickOpenListGroup";
+	this.div.appendChild(this.inputGroup.getElement());
+	this.div.appendChild(this.listGroup.getElement());
+	this.panel.style.display = "none";
+	this.panelBody.appendChild(this.div);
+	new $(window.document.body).append(this.panel);
 };
-core.ProcessHelper.checkProcessInstalled = function(process,params,onComplete) {
-	var installed;
-	js.Node.require("child_process").exec(core.ProcessHelper.processParamsToCommand(process,params),{ },function(error,stdout,stderr) {
-		if(error == null) installed = true; else {
-			console.log(error);
-			console.log(stdout);
-			console.log(stderr);
-			installed = false;
-		}
-		onComplete(installed);
-	});
-};
-core.ProcessHelper.processParamsToCommand = function(process,params) {
-	return [process].concat(params).join(" ");
-};
-core.QuickOpen = function() { };
 $hxClasses["core.QuickOpen"] = core.QuickOpen;
 core.QuickOpen.__name__ = ["core","QuickOpen"];
-core.QuickOpen.load = function() {
-	var _this = window.document;
-	core.QuickOpen.panel = _this.createElement("div");
-	core.QuickOpen.panel.className = "panel panel-default";
-	core.QuickOpen.panel.id = "quickOpen";
-	var _this1 = window.document;
-	core.QuickOpen.panelBody = _this1.createElement("div");
-	core.QuickOpen.panelBody.className = "panel-body";
-	core.QuickOpen.panel.appendChild(core.QuickOpen.panelBody);
-	var _this2 = window.document;
-	core.QuickOpen.div = _this2.createElement("div");
-	core.QuickOpen.inputGroup = new bootstrap.InputGroup();
-	core.QuickOpen.inputGroup.getElement().id = "quickOpenInputGroup";
-	core.QuickOpen.input = core.QuickOpen.inputGroup.getInput();
-	core.QuickOpen.listGroup = new bootstrap.ListGroup();
-	core.QuickOpen.listGroup.getElement().id = "quickOpenListGroup";
-	core.QuickOpen.div.appendChild(core.QuickOpen.inputGroup.getElement());
-	core.QuickOpen.div.appendChild(core.QuickOpen.listGroup.getElement());
-	core.QuickOpen.panel.style.display = "none";
-	core.QuickOpen.panelBody.appendChild(core.QuickOpen.div);
-	new $(window.document.body).append(core.QuickOpen.panel);
+core.QuickOpen.get = function() {
+	if(core.QuickOpen.instance == null) core.QuickOpen.instance = new core.QuickOpen();
+	return core.QuickOpen.instance;
 };
-core.QuickOpen.show = function(list) {
-	core.QuickOpen.activeItemIndex = 0;
-	core.QuickOpen.fileList = completion.Filter.sortFileList(list);
-	core.QuickOpen.currentList = core.QuickOpen.fileList;
-	core.QuickOpen.input.value = "";
-	core.QuickOpen.update();
-	core.QuickOpen.panel.style.display = "";
-	core.QuickOpen.input.focus();
-	core.QuickOpen.registerListeners();
-};
-core.QuickOpen.onKeyUp = function(e) {
-	var _g = e.keyCode;
-	switch(_g) {
-	case 27:
-		core.QuickOpen.hide();
-		break;
-	default:
+core.QuickOpen.prototype = {
+	div: null
+	,panel: null
+	,panelBody: null
+	,inputGroup: null
+	,listGroup: null
+	,input: null
+	,activeItemIndex: null
+	,fileList: null
+	,currentList: null
+	,show: function(list) {
+		this.activeItemIndex = 0;
+		this.fileList = completion.Filter.sortFileList(list);
+		this.currentList = this.fileList;
+		this.input.value = "";
+		this.update();
+		this.panel.style.display = "";
+		this.input.focus();
+		this.registerListeners();
 	}
-};
-core.QuickOpen.onInput = function(e) {
-	core.QuickOpen.activeItemIndex = 0;
-	core.Helper.debounce("openfilecompletion",function() {
-		core.QuickOpen.currentList = completion.Filter.filterFiles(core.QuickOpen.fileList,core.QuickOpen.input.value);
-		core.QuickOpen.update();
-	},100);
-};
-core.QuickOpen.onKeyDown = function(e) {
-	var _g = e.keyCode;
-	switch(_g) {
-	case 38:
-		e.preventDefault();
-		core.QuickOpen.activeItemIndex--;
-		if(core.QuickOpen.activeItemIndex < 0) core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
-		core.QuickOpen.makeSureActiveItemVisible();
-		break;
-	case 40:
-		e.preventDefault();
-		core.QuickOpen.activeItemIndex++;
-		if(core.QuickOpen.activeItemIndex >= core.QuickOpen.currentList.length) core.QuickOpen.activeItemIndex = 0;
-		core.QuickOpen.makeSureActiveItemVisible();
-		break;
-	case 33:
-		e.preventDefault();
-		core.QuickOpen.activeItemIndex += -5;
-		if(core.QuickOpen.activeItemIndex < 0) core.QuickOpen.activeItemIndex = 0;
-		core.QuickOpen.makeSureActiveItemVisible();
-		break;
-	case 34:
-		e.preventDefault();
-		core.QuickOpen.activeItemIndex += 5;
-		if(core.QuickOpen.activeItemIndex >= core.QuickOpen.currentList.length) core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
-		core.QuickOpen.makeSureActiveItemVisible();
-		break;
-	case 35:
-		if(!e.shiftKey) {
-			e.preventDefault();
-			core.QuickOpen.activeItemIndex = core.QuickOpen.currentList.length - 1;
-			core.QuickOpen.makeSureActiveItemVisible();
+	,onKeyUp: function(e) {
+		var _g = e.keyCode;
+		switch(_g) {
+		case 27:
+			this.hide();
+			break;
+		default:
 		}
-		break;
-	case 36:
-		if(!e.shiftKey) {
+	}
+	,onInput: function(e) {
+		var _g = this;
+		this.activeItemIndex = 0;
+		core.Helper.debounce("openfilecompletion",function() {
+			var value = StringTools.trim(_g.input.value);
+			var values = value.split(" ");
+			_g.currentList = _g.fileList;
+			var _g1 = 0;
+			while(_g1 < values.length) {
+				var item = values[_g1];
+				++_g1;
+				_g.currentList = completion.Filter.filterFiles(_g.currentList,item);
+			}
+			_g.update();
+		},100);
+	}
+	,onKeyDown: function(e) {
+		var _g = e.keyCode;
+		switch(_g) {
+		case 38:
 			e.preventDefault();
-			core.QuickOpen.activeItemIndex = 0;
-			core.QuickOpen.makeSureActiveItemVisible();
+			this.activeItemIndex--;
+			if(this.activeItemIndex < 0) this.activeItemIndex = this.currentList.length - 1;
+			this.makeSureActiveItemVisible();
+			break;
+		case 40:
+			e.preventDefault();
+			this.activeItemIndex++;
+			if(this.activeItemIndex >= this.currentList.length) this.activeItemIndex = 0;
+			this.makeSureActiveItemVisible();
+			break;
+		case 33:
+			e.preventDefault();
+			this.activeItemIndex += -5;
+			if(this.activeItemIndex < 0) this.activeItemIndex = 0;
+			this.makeSureActiveItemVisible();
+			break;
+		case 34:
+			e.preventDefault();
+			this.activeItemIndex += 5;
+			if(this.activeItemIndex >= this.currentList.length) this.activeItemIndex = this.currentList.length - 1;
+			this.makeSureActiveItemVisible();
+			break;
+		case 35:
+			if(!e.shiftKey) {
+				e.preventDefault();
+				this.activeItemIndex = this.currentList.length - 1;
+				this.makeSureActiveItemVisible();
+			}
+			break;
+		case 36:
+			if(!e.shiftKey) {
+				e.preventDefault();
+				this.activeItemIndex = 0;
+				this.makeSureActiveItemVisible();
+			}
+			break;
+		case 13:
+			e.preventDefault();
+			this.listGroup.getItems()[this.activeItemIndex].click();
+			break;
 		}
-		break;
-	case 13:
-		e.preventDefault();
-		core.QuickOpen.listGroup.getItems()[core.QuickOpen.activeItemIndex].click();
-		break;
 	}
-};
-core.QuickOpen.onClick = function(e) {
-	core.QuickOpen.hide();
-};
-core.QuickOpen.registerListeners = function() {
-	window.document.addEventListener("keyup",core.QuickOpen.onKeyUp);
-	window.document.addEventListener("click",core.QuickOpen.onClick);
-	core.QuickOpen.input.addEventListener("input",core.QuickOpen.onInput);
-	core.QuickOpen.input.addEventListener("keydown",core.QuickOpen.onKeyDown);
-};
-core.QuickOpen.unregisterListeners = function() {
-	window.document.removeEventListener("keyup",core.QuickOpen.onKeyUp);
-	window.document.removeEventListener("click",core.QuickOpen.onClick);
-	core.QuickOpen.input.removeEventListener("input",core.QuickOpen.onInput);
-	core.QuickOpen.input.removeEventListener("keydown",core.QuickOpen.onKeyDown);
-};
-core.QuickOpen.hide = function() {
-	core.QuickOpen.panel.style.display = "none";
-	core.QuickOpen.unregisterListeners();
-	if(tabmanager.TabManager.selectedPath != null) cm.Editor.editor.focus();
-};
-core.QuickOpen.update = function() {
-	core.QuickOpen.listGroup.clear();
-	var _g = 0;
-	var _g1 = core.QuickOpen.currentList;
-	while(_g < _g1.length) {
-		var item = _g1[_g];
-		++_g;
-		core.QuickOpen.listGroup.addItem(item.filename,item.displayText,(function(f,a1) {
-			return function() {
-				return f(a1);
-			};
-		})(core.QuickOpen.openFile,item.path));
+	,onClick: function(e) {
+		this.hide();
 	}
-	core.QuickOpen.makeSureActiveItemVisible();
-};
-core.QuickOpen.makeSureActiveItemVisible = function() {
-	var items = core.QuickOpen.listGroup.getItems();
-	var _g1 = 0;
-	var _g = items.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(i != core.QuickOpen.activeItemIndex) {
-			if(items[i].classList.contains("active")) items[i].classList.remove("active");
-		} else if(!items[i].classList.contains("active")) items[i].classList.add("active");
+	,registerListeners: function() {
+		window.document.addEventListener("keyup",$bind(this,this.onKeyUp));
+		window.document.addEventListener("click",$bind(this,this.onClick));
+		this.input.addEventListener("input",$bind(this,this.onInput));
+		this.input.addEventListener("keydown",$bind(this,this.onKeyDown));
 	}
-	var container = core.QuickOpen.listGroup.getElement();
-	if(core.QuickOpen.activeItemIndex > 0) {
-		var node = items[core.QuickOpen.activeItemIndex];
-		if(node.offsetTop - node.offsetHeight < container.scrollTop) container.scrollTop = node.offsetTop - 48; else if(node.offsetTop > container.scrollTop + container.clientHeight) container.scrollTop = node.offsetTop - container.clientHeight;
-	} else container.scrollTop = 0;
+	,unregisterListeners: function() {
+		window.document.removeEventListener("keyup",$bind(this,this.onKeyUp));
+		window.document.removeEventListener("click",$bind(this,this.onClick));
+		this.input.removeEventListener("input",$bind(this,this.onInput));
+		this.input.removeEventListener("keydown",$bind(this,this.onKeyDown));
+	}
+	,hide: function() {
+		this.panel.style.display = "none";
+		this.unregisterListeners();
+		var tabManagerInstance = tabmanager.TabManager.get();
+		if(tabManagerInstance.selectedPath != null) cm.Editor.editor.focus();
+	}
+	,update: function() {
+		this.listGroup.clear();
+		var _g = 0;
+		var _g1 = this.currentList;
+		while(_g < _g1.length) {
+			var item = _g1[_g];
+			++_g;
+			this.listGroup.addItem(item.filename,item.displayText,(function(f,a1) {
+				return function() {
+					return f(a1);
+				};
+			})($bind(this,this.openFile),item.path));
+		}
+		this.makeSureActiveItemVisible();
+	}
+	,makeSureActiveItemVisible: function() {
+		var items = this.listGroup.getItems();
+		var _g1 = 0;
+		var _g = items.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(i != this.activeItemIndex) {
+				if(items[i].classList.contains("active")) items[i].classList.remove("active");
+			} else if(!items[i].classList.contains("active")) items[i].classList.add("active");
+		}
+		var container = this.listGroup.getElement();
+		if(this.activeItemIndex > 0) {
+			var node = items[this.activeItemIndex];
+			if(node.offsetTop - node.offsetHeight < container.scrollTop) container.scrollTop = node.offsetTop - 48; else if(node.offsetTop > container.scrollTop + container.clientHeight) container.scrollTop = node.offsetTop - container.clientHeight;
+		} else container.scrollTop = 0;
+	}
+	,openFile: function(path) {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
+		tabManagerInstance.openFileInNewTab(path);
+	}
+	,__class__: core.QuickOpen
 };
-core.QuickOpen.openFile = function(path) {
-	if(projectaccess.ProjectAccess.path != null) path = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,path);
-	tabmanager.TabManager.openFileInNewTab(path);
-};
-core.RecentProjectsList = function() { };
-$hxClasses["core.RecentProjectsList"] = core.RecentProjectsList;
-core.RecentProjectsList.__name__ = ["core","RecentProjectsList"];
-core.RecentProjectsList.load = function() {
+core.RecentProjectsList = function() {
+	this.fileList = [];
+	this.projectList = [];
+	var _g = this;
 	var localStorage2 = js.Browser.getLocalStorage();
 	if(localStorage2 != null) {
 		var recentProjectsData = localStorage2.getItem("recentProjects");
 		var recentFilesData = localStorage2.getItem("recentFiles");
 		var recentFilesData1 = localStorage2.getItem("recentFiles");
 		if(recentProjectsData != null) try {
-			core.RecentProjectsList.projectList = tjson.TJSON.parse(recentProjectsData);
+			this.projectList = tjson.TJSON.parse(recentProjectsData);
 		} catch( unknown ) {
 			console.log(unknown);
 		}
 		if(recentFilesData1 != null) try {
-			core.RecentProjectsList.fileList = tjson.TJSON.parse(recentFilesData1);
+			this.fileList = tjson.TJSON.parse(recentFilesData1);
 		} catch( unknown1 ) {
 			console.log(unknown1);
 		}
 	}
 	nodejs.webkit.Window.get().on("close",function() {
-		localStorage2.setItem("recentProjects",tjson.TJSON.encode(core.RecentProjectsList.projectList));
-		localStorage2.setItem("recentFiles",tjson.TJSON.encode(core.RecentProjectsList.fileList));
+		localStorage2.setItem("recentProjects",tjson.TJSON.encode(_g.projectList));
+		localStorage2.setItem("recentFiles",tjson.TJSON.encode(_g.fileList));
 	});
-	core.RecentProjectsList.updateMenu();
-	core.RecentProjectsList.updateWelcomeScreen();
-	core.RecentProjectsList.updateRecentFileMenu();
+	this.updateMenu();
+	this.updateWelcomeScreen();
+	this.updateRecentFileMenu();
 };
-core.RecentProjectsList.add = function(path) {
-	core.RecentProjectsList.addItemToList(core.RecentProjectsList.projectList,path);
-	core.RecentProjectsList.updateMenu();
-	core.RecentProjectsList.updateWelcomeScreen();
+$hxClasses["core.RecentProjectsList"] = core.RecentProjectsList;
+core.RecentProjectsList.__name__ = ["core","RecentProjectsList"];
+core.RecentProjectsList.get = function() {
+	if(core.RecentProjectsList.instance == null) core.RecentProjectsList.instance = new core.RecentProjectsList();
+	return core.RecentProjectsList.instance;
 };
-core.RecentProjectsList.addFile = function(path) {
-	core.RecentProjectsList.addItemToList(core.RecentProjectsList.fileList,path);
-	core.RecentProjectsList.updateRecentFileMenu();
-};
-core.RecentProjectsList.addItemToList = function(list,item) {
-	if(HxOverrides.indexOf(list,item,0) == -1) {
-		if(list.length >= 10) list.pop();
-	} else HxOverrides.remove(list,item);
-	list.splice(0,0,item);
-};
-core.RecentProjectsList.updateMenu = function() {
-	var submenu = menu.BootstrapMenu.getMenu("File").getSubmenu("Open Recent Project");
-	submenu.clear();
-	var _g1 = 0;
-	var _g = core.RecentProjectsList.projectList.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		submenu.addMenuItem(core.RecentProjectsList.projectList[i],i + 1,(function(f,a1) {
-			return function() {
-				return f(a1);
-			};
-		})(openproject.OpenProject.openProject,core.RecentProjectsList.projectList[i]));
+core.RecentProjectsList.prototype = {
+	projectList: null
+	,fileList: null
+	,add: function(path) {
+		this.addItemToList(this.projectList,path);
+		this.updateMenu();
+		this.updateWelcomeScreen();
 	}
-};
-core.RecentProjectsList.updateWelcomeScreen = function() {
-	var listGroup;
-	listGroup = js.Boot.__cast(window.document.getElementById("recentProjectsList") , HTMLDivElement);
-	while(listGroup.firstChild != null) listGroup.removeChild(listGroup.firstChild);
-	var _g1 = 0;
-	var _g = core.RecentProjectsList.projectList.length;
-	while(_g1 < _g) {
-		var i = [_g1++];
-		var a;
-		var _this = window.document;
-		a = _this.createElement("a");
-		a.href = "#";
-		a.className = "list-group-item recentProject";
-		a.textContent = core.RecentProjectsList.projectList[i[0]];
-		a.onclick = (function(i) {
-			return function(e) {
-				openproject.OpenProject.openProject(core.RecentProjectsList.projectList[i[0]]);
-			};
-		})(i);
-		listGroup.appendChild(a);
+	,addFile: function(path) {
+		this.addItemToList(this.fileList,path);
+		this.updateRecentFileMenu();
 	}
-};
-core.RecentProjectsList.updateRecentFileMenu = function() {
-	var submenu = menu.BootstrapMenu.getMenu("File").getSubmenu("Open Recent File");
-	submenu.clear();
-	var _g1 = 0;
-	var _g = core.RecentProjectsList.fileList.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		submenu.addMenuItem(core.RecentProjectsList.fileList[i],i + 1,(function(f,a1) {
-			return function() {
-				return f(a1);
-			};
-		})(tabmanager.TabManager.openFileInNewTab,core.RecentProjectsList.fileList[i]));
+	,addItemToList: function(list,item) {
+		if(HxOverrides.indexOf(list,item,0) == -1) {
+			if(list.length >= 10) list.pop();
+		} else HxOverrides.remove(list,item);
+		list.splice(0,0,item);
 	}
+	,updateMenu: function() {
+		var submenu = menu.BootstrapMenu.getMenu("File").getSubmenu("Open Recent Project");
+		submenu.clear();
+		var _g1 = 0;
+		var _g = this.projectList.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			submenu.addMenuItem(this.projectList[i],i + 1,(function(f,a1) {
+				return function() {
+					return f(a1);
+				};
+			})(openproject.OpenProject.openProject,this.projectList[i]));
+		}
+	}
+	,updateWelcomeScreen: function() {
+		var _g2 = this;
+		var listGroup;
+		listGroup = js.Boot.__cast(window.document.getElementById("recentProjectsList") , HTMLDivElement);
+		while(listGroup.firstChild != null) listGroup.removeChild(listGroup.firstChild);
+		var _g1 = 0;
+		var _g = this.projectList.length;
+		while(_g1 < _g) {
+			var i = [_g1++];
+			var a;
+			var _this = window.document;
+			a = _this.createElement("a");
+			a.href = "#";
+			a.className = "list-group-item recentProject";
+			a.textContent = this.projectList[i[0]];
+			a.onclick = (function(i) {
+				return function(e) {
+					openproject.OpenProject.openProject(_g2.projectList[i[0]]);
+				};
+			})(i);
+			listGroup.appendChild(a);
+		}
+	}
+	,updateRecentFileMenu: function() {
+		var submenu = menu.BootstrapMenu.getMenu("File").getSubmenu("Open Recent File");
+		submenu.clear();
+		var _g1 = 0;
+		var _g = this.fileList.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var tabManagerInstance = tabmanager.TabManager.get();
+			submenu.addMenuItem(this.fileList[i],i + 1,(function(f,a1) {
+				return function() {
+					return f(a1);
+				};
+			})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),this.fileList[i]));
+		}
+	}
+	,__class__: core.RecentProjectsList
 };
 core.RunProject = function() { };
 $hxClasses["core.RunProject"] = core.RunProject;
@@ -4485,7 +4683,8 @@ core.RunProject.cleanProject = function() {
 core.RunProject.setHxmlAsProjectBuildFile = function(pathToHxml) {
 	var success = false;
 	var path = pathToHxml;
-	if(path == null) path = tabmanager.TabManager.getCurrentDocumentPath();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	if(path == null) path = tabManagerInstance.getCurrentDocumentPath();
 	var extname = js.Node.require("path").extname(path);
 	var isHxml = extname == ".hxml";
 	if(isHxml) {
@@ -4553,7 +4752,8 @@ core.RunProject.runProject = function() {
 };
 core.RunProject.killRunningProcessAndRunNew = function(process,params,cwd) {
 	core.RunProject.killRunProcess();
-	return core.ProcessHelper.runPersistentProcess(process,params,cwd,null,true);
+	var processHelper = core.ProcessHelper.get();
+	return processHelper.runPersistentProcess(process,params,cwd,null,true);
 };
 core.RunProject.killRunProcess = function() {
 	console.log(core.RunProject.runProcess);
@@ -4582,8 +4782,11 @@ core.RunProject.buildProject = function(pathToProject,onComplete) {
 	core.RunProject.buildSpecifiedProject(project,pathToProject,onComplete);
 };
 core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplete) {
-	if(pathToProject == null) Alertify.error(watchers.LocaleWatcher.getStringSync("Please open or create project first!")); else tabmanager.TabManager.saveAll(function() {
-		var path = tabmanager.TabManager.getCurrentDocumentPath();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var projectOptions = projectaccess.ProjectOptions.get();
+	var processHelper = core.ProcessHelper.get();
+	if(pathToProject == null) Alertify.error(watchers.LocaleWatcher.getStringSync("Please open or create project first!")); else tabManagerInstance.saveAll(function() {
+		var path = tabManagerInstance.getCurrentDocumentPath();
 		var extname = js.Node.require("path").extname(path);
 		var buildHxml = extname == ".hxml";
 		var dirname = js.Node.require("path").dirname(path);
@@ -4615,57 +4818,67 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 				build.Hxml.checkHxml(dirname,filename,hxmlData,onComplete);
 			}
 		} else {
-			projectaccess.ProjectOptions.updateOpenFLBuildCommand();
+			projectOptions.updateOpenFLBuildCommand();
 			var command = project.buildActionCommand;
 			command = build.CommandPreprocessor.preprocess(command,pathToProject);
 			var params = build.CommandPreprocessor.preprocess(command,pathToProject).split(" ");
 			var process = params.shift();
 			var cwd = projectaccess.ProjectAccess.path;
-			core.ProcessHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
+			processHelper.runProcessAndPrintOutputToConsole(process,params,cwd,onComplete);
 		}
 	});
 };
-core.Splitter = function() { };
+core.Splitter = function() {
+};
 $hxClasses["core.Splitter"] = core.Splitter;
 core.Splitter.__name__ = ["core","Splitter"];
-core.Splitter.load = function() {
-	core.Splitter.hide();
+core.Splitter.get = function() {
+	if(core.Splitter.instance == null) core.Splitter.instance = new core.Splitter();
+	return core.Splitter.instance;
 };
-core.Splitter.show = function() {
-	if(core.Splitter.visible == false) {
-		core.Splitter.visible = true;
-		new $("#mainSplitter").jqxSplitter({ resizable : true});
-		new $("#mainSplitter").jqxSplitter("expand");
-		new $("#mainSplitter").jqxSplitter({ showSplitBar : true});
-		new $("#thirdNested").jqxSplitter({ resizable : true});
-		var panels = [{ size : "85%"},{ size : "15%"}];
-		panels[0].collapsible = false;
-		panels[1].collapsible = true;
-		new $("#thirdNested").jqxSplitter({ panels : panels});
-		new $("#thirdNested").jqxSplitter("expand");
-		new $("#thirdNested").jqxSplitter({ showSplitBar : true});
-		new $("#annotationRuler").fadeIn(250);
-		core.WelcomeScreen.hide();
+core.Splitter.prototype = {
+	visible: null
+	,load: function() {
+		this.hide();
 	}
-};
-core.Splitter.hide = function() {
-	core.Splitter.visible = false;
-	var panels = [{ size : 170},{ size : 170}];
-	panels[0].collapsible = true;
-	panels[1].collapsible = false;
-	new $("#mainSplitter").jqxSplitter({ panels : panels});
-	new $("#mainSplitter").jqxSplitter("collapse");
-	new $("#mainSplitter").jqxSplitter({ resizable : false});
-	new $("#mainSplitter").jqxSplitter({ showSplitBar : false});
-	var panels1 = [{ size : "85%"},{ size : "15%"}];
-	panels1[0].collapsible = false;
-	panels1[1].collapsible = true;
-	new $("#thirdNested").jqxSplitter({ panels : panels1});
-	new $("#thirdNested").jqxSplitter("collapse");
-	new $("#thirdNested").jqxSplitter({ resizable : false});
-	new $("#thirdNested").jqxSplitter({ showSplitBar : false});
-	new $("#annotationRuler").fadeOut(250);
-	if(tabmanager.TabManager.tabMap != null && tabmanager.TabManager.tabMap.getTabs().length == 0) core.WelcomeScreen.show();
+	,show: function() {
+		if(this.visible == false) {
+			this.visible = true;
+			new $("#mainSplitter").jqxSplitter({ resizable : true});
+			new $("#mainSplitter").jqxSplitter("expand");
+			new $("#mainSplitter").jqxSplitter({ showSplitBar : true});
+			new $("#thirdNested").jqxSplitter({ resizable : true});
+			var panels = [{ size : "85%"},{ size : "15%"}];
+			panels[0].collapsible = false;
+			panels[1].collapsible = true;
+			new $("#thirdNested").jqxSplitter({ panels : panels});
+			new $("#thirdNested").jqxSplitter("expand");
+			new $("#thirdNested").jqxSplitter({ showSplitBar : true});
+			new $("#annotationRuler").fadeIn(250);
+			core.WelcomeScreen.hide();
+		}
+	}
+	,hide: function() {
+		this.visible = false;
+		var panels = [{ size : 170},{ size : 170}];
+		panels[0].collapsible = true;
+		panels[1].collapsible = false;
+		new $("#mainSplitter").jqxSplitter({ panels : panels});
+		new $("#mainSplitter").jqxSplitter("collapse");
+		new $("#mainSplitter").jqxSplitter({ resizable : false});
+		new $("#mainSplitter").jqxSplitter({ showSplitBar : false});
+		var panels1 = [{ size : "85%"},{ size : "15%"}];
+		panels1[0].collapsible = false;
+		panels1[1].collapsible = true;
+		new $("#thirdNested").jqxSplitter({ panels : panels1});
+		new $("#thirdNested").jqxSplitter("collapse");
+		new $("#thirdNested").jqxSplitter({ resizable : false});
+		new $("#thirdNested").jqxSplitter({ showSplitBar : false});
+		new $("#annotationRuler").fadeOut(250);
+		var tabManagerInstance = tabmanager.TabManager.get();
+		if(tabManagerInstance.tabMap != null && tabManagerInstance.tabMap.getTabs().length == 0) core.WelcomeScreen.show();
+	}
+	,__class__: core.Splitter
 };
 core.Utils = function() { };
 $hxClasses["core.Utils"] = core.Utils;
@@ -4983,7 +5196,8 @@ dialogs.InstallHaxelibDialog = function() {
 		Alertify.log("Running command: " + _g.input.value);
 		var params = StringTools.trim(_g.input.value).split(" ");
 		var cwd = projectaccess.ProjectAccess.path;
-		core.ProcessHelper.runPersistentProcess(params.shift(),params,cwd,function(code,stdout,stderr) {
+		var processHelper = core.ProcessHelper.get();
+		processHelper.runPersistentProcess(params.shift(),params,cwd,function(code,stdout,stderr) {
 			if(code == 0) Alertify.success(_g.lib + " install complete(" + _g.input.value + ")."); else {
 				Alertify.error("Error on running command " + _g.input.value);
 				Alertify.error(stdout);
@@ -5032,7 +5246,8 @@ dialogs.InstallHaxelibDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 });
 dialogs.ProjectOptionsDialog = function() {
 	dialogs.ModalDialog.call(this,"Project Options");
-	this.getBody().appendChild(projectaccess.ProjectOptions.page);
+	var projectOptions = projectaccess.ProjectOptions.get();
+	this.getBody().appendChild(projectOptions.page);
 	this.getFooter().appendChild(bootstrap.ButtonManager.createButton("OK",false,true,true));
 };
 $hxClasses["dialogs.ProjectOptionsDialog"] = dialogs.ProjectOptionsDialog;
@@ -5042,161 +5257,13 @@ dialogs.ProjectOptionsDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 	__class__: dialogs.ProjectOptionsDialog
 });
 var filetree = {};
-filetree.FileTree = function() { };
+filetree.FileTree = function() {
+};
 $hxClasses["filetree.FileTree"] = filetree.FileTree;
 filetree.FileTree.__name__ = ["filetree","FileTree"];
-filetree.FileTree.init = function() {
-	filetree.FileTree.contextMenuCommandsMap = new haxe.ds.StringMap();
-	filetree.FileTree.appendToContextMenu("New File...",function(selectedItem) {
-		var path;
-		if(selectedItem.value.type == "folder") path = selectedItem.value.path; else path = js.Node.require("path").dirname(selectedItem.value.path);
-		Alertify.prompt(watchers.LocaleWatcher.getStringSync("Filename:"),function(e,str) {
-			if(e) {
-				var pathToFile = js.Node.require("path").join(path,str);
-				tabmanager.TabManager.createFileInNewTab(pathToFile);
-				new $("#filetree").jqxTree("addTo",filetree.FileTree.createFileItem(pathToFile),selectedItem.element);
-				filetree.FileTree.attachContextMenu();
-			}
-		},"New.hx");
-	});
-	filetree.FileTree.appendToContextMenu("New Folder...",function(selectedItem1) {
-		var path1;
-		if(selectedItem1.value.type == "folder") path1 = selectedItem1.value.path; else path1 = js.Node.require("path").dirname(selectedItem1.value.path);
-		Alertify.prompt("Folder name:",function(e1,str1) {
-			if(e1) {
-				var dirname = str1;
-				if(dirname != null) {
-					var pathToFolder = js.Node.require("path").join(path1,dirname);
-					js.Node.require("fs").mkdir(pathToFolder,null,function(error) {
-						if(error == null) {
-							new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}, icon : "includes/images/folder.png"},selectedItem1.element);
-							filetree.FileTree.attachContextMenu();
-						} else Alertify.error(error);
-					});
-				}
-			}
-		},"New Folder");
-	});
-	filetree.FileTree.appendToContextMenu("Open Item",function(selectedItem2) {
-		if(selectedItem2.value.type == "file") tabmanager.TabManager.openFileInNewTab(selectedItem2.value.path); else new $("#filetree").jqxTree("expandItem",selectedItem2.element);
-	});
-	filetree.FileTree.appendToContextMenu("Open using OS",function(selectedItem3) {
-		nodejs.webkit.Shell.openItem(selectedItem3.value.path);
-	});
-	filetree.FileTree.appendToContextMenu("Show Item In Folder",function(selectedItem4) {
-		nodejs.webkit.Shell.showItemInFolder(selectedItem4.value.path);
-	});
-	filetree.FileTree.appendToContextMenu("Rename...",function(selectedItem5) {
-		var path2 = selectedItem5.value.path;
-		Alertify.prompt(watchers.LocaleWatcher.getStringSync("Please enter new name for ") + path2,function(e2,str2) {
-			if(e2) {
-				var currentDirectory = js.Node.require("path").dirname(path2);
-				js.node.Mv.move(path2,js.Node.require("path").join(currentDirectory,str2),function(error1) {
-					if(error1 == null) filetree.FileTree.load(); else Alertify.error(error1);
-				});
-			}
-		},js.Node.require("path").basename(path2));
-	});
-	filetree.FileTree.appendToContextMenu("Delete...",function(selectedItem6) {
-		var path3 = selectedItem6.value.path;
-		var _g = selectedItem6.value.type;
-		switch(_g) {
-		case "file":
-			Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove file ") + path3 + " ?",function(e3) {
-				if(e3) js.Node.require("fs").unlink(path3,function(error2) {
-					if(error2 == null) {
-						new $("#filetree").jqxTree("removeItem",selectedItem6.element);
-						filetree.FileTree.attachContextMenu();
-					} else Alertify.error(error2);
-				});
-			});
-			break;
-		case "folder":
-			Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove folder ") + path3 + " ?",function(e4) {
-				if(e4) js.node.Remove.removeAsync(path3,{ },function(error3) {
-					if(error3 == null) {
-						new $("#filetree").jqxTree("removeItem",selectedItem6.element);
-						filetree.FileTree.attachContextMenu();
-					} else Alertify.error(error3);
-				});
-			});
-			break;
-		default:
-		}
-	});
-	filetree.FileTree.appendToContextMenu("Toggle Hidden Items Visibility",function(selectedItem7) {
-		if(projectaccess.ProjectAccess.path != null) {
-			projectaccess.ProjectAccess.currentProject.showHiddenItems = !projectaccess.ProjectAccess.currentProject.showHiddenItems;
-			Alertify.success(watchers.LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess.ProjectAccess.currentProject.showHiddenItems));
-			if(!projectaccess.ProjectAccess.currentProject.showHiddenItems) Alertify.log("Hidden Items: \n" + Std.string(projectaccess.ProjectAccess.currentProject.hiddenItems));
-		}
-		filetree.FileTree.load();
-	});
-	filetree.FileTree.appendToContextMenu("Toggle Item Visibility",function(selectedItem8) {
-		if(projectaccess.ProjectAccess.path != null) {
-			var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem8.value.path);
-			if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) == -1) {
-				projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
-				new $("#filetree").jqxTree("removeItem",selectedItem8.element);
-				filetree.FileTree.attachContextMenu();
-			} else {
-				HxOverrides.remove(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath);
-				filetree.FileTree.load();
-			}
-		} else new $("#filetree").jqxTree("removeItem",selectedItem8.element);
-	});
-	filetree.FileTree.appendToContextMenu("Set As Compile Main",function(selectedItem9) {
-		var path4 = selectedItem9.value.path;
-		if(core.RunProject.setHxmlAsProjectBuildFile(path4)) {
-		}
-	});
-	filetree.FileTree.contextMenu = new $("#jqxMenu").jqxMenu({ autoOpenPopup : false, mode : "popup"});
-	filetree.FileTree.attachContextMenu();
-	new $(window.document).on("contextmenu",null,function(e5) {
-		if(new $(e5.target).parents(".jqx-tree").length > 0) return false;
-		return true;
-	});
-	new $("#jqxMenu").on("itemclick",null,function(event) {
-		var item = $.trim(new $(event.args).text());
-		(filetree.FileTree.contextMenuCommandsMap.get(item))();
-	});
-	new $("#filetree").dblclick(function(event1) {
-		var item1 = new $("#filetree").jqxTree("getSelectedItem");
-		if(item1.value.type == "file") tabmanager.TabManager.openFileInNewTab(item1.value.path);
-	});
-	new $("#filetree").bind("dragEnd",function(event2) {
-		var target = event2.args.originalEvent.target;
-		var targetParents = new $(target).parents();
-		var item2 = null;
-		$.each(new $("#filetree").jqxTree("getItems"),function(index,value) {
-			if(value.label == event2.args.label && value.value == event2.args.value) {
-				item2 = value;
-				return false;
-			}
-		});
-		if(item2) {
-			var parents = new $(item2.element).parents("li");
-			var path5 = "";
-			$.each(parents,function(index1,value1) {
-				var item3 = new $("#filetree").jqxTree("getItem",value1);
-				if(item3.level > 0) path5 = item3.label + "/" + path5;
-			});
-			var topDirectory = new $("#filetree").jqxTree("getItems")[0].value.path;
-			var selectedItem10 = new $("#filetree").jqxTree("getSelectedItem");
-			var previousPath = selectedItem10.value.path;
-			var newPath = js.Node.require("path").join(topDirectory,path5,selectedItem10.label);
-			js.node.Mv.move(previousPath,newPath,function(error4) {
-				if(error4 == null) {
-					Alertify.success("File were successfully moved to " + newPath);
-					selectedItem10.value.path = newPath;
-					filetree.FileTree.attachContextMenu();
-				} else {
-					Alertify.error("Can't move file from " + previousPath + " to " + newPath);
-					filetree.FileTree.load();
-				}
-			});
-		}
-	});
+filetree.FileTree.get = function() {
+	if(filetree.FileTree.instance == null) filetree.FileTree.instance = new filetree.FileTree();
+	return filetree.FileTree.instance;
 };
 filetree.FileTree.updateProjectMainHxml = function() {
 	var noproject = projectaccess.ProjectAccess.path == null || projectaccess.ProjectAccess.currentProject.main == null;
@@ -5211,104 +5278,6 @@ filetree.FileTree.updateProjectMainHxml = function() {
 		li = js.Boot.__cast(item.element , HTMLLIElement);
 		if(!noproject && item.value.path == main) li.classList.add("mainHxml"); else li.classList.remove("mainHxml");
 	}
-};
-filetree.FileTree.appendToContextMenu = function(name,onClick) {
-	var li;
-	var _this = window.document;
-	li = _this.createElement("li");
-	li.textContent = name;
-	new $("#filetreemenu").append(li);
-	filetree.FileTree.contextMenuCommandsMap.set(name,function() {
-		var selectedItem = new $("#filetree").jqxTree("getSelectedItem");
-		if(selectedItem != null) onClick(selectedItem);
-	});
-};
-filetree.FileTree.attachContextMenu = function() {
-	new $("#filetree li").on("mousedown",null,function(event) {
-		var target = new $(event.target).parents("li:first")[0];
-		var rightClick = filetree.FileTree.isRightClick(event);
-		if(rightClick && target != null) {
-			new $("#filetree").jqxTree("selectItem",target);
-			var scrollTop = new $(window).scrollTop();
-			var scrollLeft = new $(window).scrollLeft();
-			filetree.FileTree.contextMenu.jqxMenu("open",Std.parseInt(event.clientX) + 5 + scrollLeft,Std.parseInt(event.clientY) + 5 + scrollTop);
-			return false;
-		} else return true;
-	});
-};
-filetree.FileTree.isRightClick = function(event) {
-	var rightclick = null;
-	if(!event) {
-		var event1 = window.event;
-	}
-	if(event.which) rightclick = event.which == 3; else if(event.button) rightclick = event.button == 2;
-	return rightclick;
-};
-filetree.FileTree.load = function(projectName,path) {
-	if(projectName == null) projectName = filetree.FileTree.lastProjectName;
-	if(path == null) path = filetree.FileTree.lastProjectPath;
-	var filetree1 = new $("#filetree");
-	filetree1.on("expand",function(event) {
-		var label = filetree1.jqxTree("getItem",event.args.element).label;
-		var element2 = new $(event.args.element);
-		var loader = false;
-		var loaderItem = null;
-		var children = element2.find("ul:first").children();
-		$.each(children,function(index,value) {
-			var item = filetree1.jqxTree("getItem",value);
-			if(item != null && item.label == "Loading...") {
-				loaderItem = item;
-				loader = true;
-				return false;
-			}
-		});
-		if(loader) {
-			var pathToItem = loaderItem.value;
-			var items = filetree.FileTree.readDir2(pathToItem);
-			filetree1.jqxTree("addTo",items,element2[0]);
-			filetree1.jqxTree("removeItem",loaderItem.element);
-			filetree.FileTree.attachContextMenu();
-		}
-	});
-	filetree.FileTree.readDirItems(path,function(source) {
-		new $("#filetree").jqxTree({ source : [source]});
-		filetree.FileTree.attachContextMenu();
-	},true);
-	if(filetree.FileTree.watcher != null) {
-		filetree.FileTree.watcher.close();
-		filetree.FileTree.watcher = null;
-	}
-	var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
-		console.log(changeType);
-		console.log(filePath);
-		console.log(fileCurrentStat);
-		console.log(filePreviousStat);
-		switch(changeType) {
-		case "create":
-			console.log(changeType);
-			console.log(filePath);
-			js.Node.require("fs").stat(filePath,function(error,stat) {
-				if(error == null) {
-					if(stat.isFile()) {
-						if(changeType == "create") parser.ClasspathWalker.addFile(filePath); else parser.ClasspathWalker.removeFile(filePath);
-					} else if(stat.isDirectory()) {
-						console.log(changeType);
-						console.log(filePath);
-					}
-				} else console.log(error);
-			});
-			break;
-		case "delete":
-			if(js.Node.require("path").extname(filePath) != "") parser.ClasspathWalker.removeFile(filePath);
-			break;
-		default:
-		}
-	}};
-	config.interval = 3000;
-	filetree.FileTree.watcher = Watchr.watch(config);
-	filetree.FileTree.lastProjectName = projectName;
-	filetree.FileTree.lastProjectPath = path;
-	filetree.FileTree.updateProjectMainHxml();
 };
 filetree.FileTree.readDirItems = function(path,onComplete,root) {
 	if(root == null) root = false;
@@ -5364,6 +5333,274 @@ filetree.FileTree.createFileItem = function(path) {
 };
 filetree.FileTree.createFolderItem = function(path,items) {
 	return { label : js.Node.require("path").basename(path), items : items, value : { path : path, type : "folder"}};
+};
+filetree.FileTree.prototype = {
+	lastProjectName: null
+	,lastProjectPath: null
+	,contextMenu: null
+	,contextMenuCommandsMap: null
+	,watcher: null
+	,init: function() {
+		var _g = this;
+		this.contextMenuCommandsMap = new haxe.ds.StringMap();
+		this.appendToContextMenu("New File...",function(selectedItem) {
+			var path;
+			if(selectedItem.value.type == "folder") path = selectedItem.value.path; else path = js.Node.require("path").dirname(selectedItem.value.path);
+			Alertify.prompt(watchers.LocaleWatcher.getStringSync("Filename:"),function(e,str) {
+				if(e) {
+					var pathToFile = js.Node.require("path").join(path,str);
+					var tabManager = tabmanager.TabManager.get();
+					tabManager.createFileInNewTab(pathToFile);
+					new $("#filetree").jqxTree("addTo",filetree.FileTree.createFileItem(pathToFile),selectedItem.element);
+					_g.attachContextMenu();
+				}
+			},"New.hx");
+		});
+		this.appendToContextMenu("New Folder...",function(selectedItem1) {
+			var path1;
+			if(selectedItem1.value.type == "folder") path1 = selectedItem1.value.path; else path1 = js.Node.require("path").dirname(selectedItem1.value.path);
+			Alertify.prompt("Folder name:",function(e1,str1) {
+				if(e1) {
+					var dirname = str1;
+					if(dirname != null) {
+						var pathToFolder = js.Node.require("path").join(path1,dirname);
+						js.Node.require("fs").mkdir(pathToFolder,null,function(error) {
+							if(error == null) {
+								new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}, icon : "includes/images/folder.png"},selectedItem1.element);
+								_g.attachContextMenu();
+							} else Alertify.error(error);
+						});
+					}
+				}
+			},"New Folder");
+		});
+		this.appendToContextMenu("Open Item",function(selectedItem2) {
+			var tabManager1 = tabmanager.TabManager.get();
+			if(selectedItem2.value.type == "file") tabManager1.openFileInNewTab(selectedItem2.value.path); else new $("#filetree").jqxTree("expandItem",selectedItem2.element);
+		});
+		this.appendToContextMenu("Open using OS",function(selectedItem3) {
+			nodejs.webkit.Shell.openItem(selectedItem3.value.path);
+		});
+		this.appendToContextMenu("Show Item In Folder",function(selectedItem4) {
+			nodejs.webkit.Shell.showItemInFolder(selectedItem4.value.path);
+		});
+		this.appendToContextMenu("Rename...",function(selectedItem5) {
+			var path2 = selectedItem5.value.path;
+			Alertify.prompt(watchers.LocaleWatcher.getStringSync("Please enter new name for ") + path2,function(e2,str2) {
+				if(e2) {
+					var currentDirectory = js.Node.require("path").dirname(path2);
+					js.node.Mv.move(path2,js.Node.require("path").join(currentDirectory,str2),function(error1) {
+						if(error1 == null) _g.load(); else Alertify.error(error1);
+					});
+				}
+			},js.Node.require("path").basename(path2));
+		});
+		this.appendToContextMenu("Delete...",function(selectedItem6) {
+			var path3 = selectedItem6.value.path;
+			var _g1 = selectedItem6.value.type;
+			switch(_g1) {
+			case "file":
+				Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove file ") + path3 + " ?",function(e3) {
+					if(e3) js.Node.require("fs").unlink(path3,function(error2) {
+						if(error2 == null) {
+							new $("#filetree").jqxTree("removeItem",selectedItem6.element);
+							_g.attachContextMenu();
+						} else Alertify.error(error2);
+					});
+				});
+				break;
+			case "folder":
+				Alertify.confirm(watchers.LocaleWatcher.getStringSync("Remove folder ") + path3 + " ?",function(e4) {
+					if(e4) js.node.Remove.removeAsync(path3,{ },function(error3) {
+						if(error3 == null) {
+							new $("#filetree").jqxTree("removeItem",selectedItem6.element);
+							_g.attachContextMenu();
+						} else Alertify.error(error3);
+					});
+				});
+				break;
+			default:
+			}
+		});
+		this.appendToContextMenu("Toggle Hidden Items Visibility",function(selectedItem7) {
+			if(projectaccess.ProjectAccess.path != null) {
+				projectaccess.ProjectAccess.currentProject.showHiddenItems = !projectaccess.ProjectAccess.currentProject.showHiddenItems;
+				Alertify.success(watchers.LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess.ProjectAccess.currentProject.showHiddenItems));
+				if(!projectaccess.ProjectAccess.currentProject.showHiddenItems) Alertify.log("Hidden Items: \n" + Std.string(projectaccess.ProjectAccess.currentProject.hiddenItems));
+			}
+			_g.load();
+		});
+		this.appendToContextMenu("Toggle Item Visibility",function(selectedItem8) {
+			if(projectaccess.ProjectAccess.path != null) {
+				var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem8.value.path);
+				if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) == -1) {
+					projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
+					new $("#filetree").jqxTree("removeItem",selectedItem8.element);
+					_g.attachContextMenu();
+				} else {
+					HxOverrides.remove(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath);
+					_g.load();
+				}
+			} else new $("#filetree").jqxTree("removeItem",selectedItem8.element);
+		});
+		this.appendToContextMenu("Set As Compile Main",function(selectedItem9) {
+			var path4 = selectedItem9.value.path;
+			if(core.RunProject.setHxmlAsProjectBuildFile(path4)) {
+			}
+		});
+		this.contextMenu = new $("#jqxMenu").jqxMenu({ autoOpenPopup : false, mode : "popup"});
+		this.attachContextMenu();
+		new $(window.document).on("contextmenu",null,function(e5) {
+			if(new $(e5.target).parents(".jqx-tree").length > 0) return false;
+			return true;
+		});
+		new $("#jqxMenu").on("itemclick",null,function(event) {
+			var item = $.trim(new $(event.args).text());
+			(_g.contextMenuCommandsMap.get(item))();
+		});
+		new $("#filetree").dblclick(function(event1) {
+			var item1 = new $("#filetree").jqxTree("getSelectedItem");
+			if(item1.value.type == "file") {
+				var tabManager2 = tabmanager.TabManager.get();
+				tabManager2.openFileInNewTab(item1.value.path);
+			}
+		});
+		new $("#filetree").bind("dragEnd",function(event2) {
+			var target = event2.args.originalEvent.target;
+			var targetParents = new $(target).parents();
+			var item2 = null;
+			$.each(new $("#filetree").jqxTree("getItems"),function(index,value) {
+				if(value.label == event2.args.label && value.value == event2.args.value) {
+					item2 = value;
+					return false;
+				}
+			});
+			if(item2) {
+				var parents = new $(item2.element).parents("li");
+				var path5 = "";
+				$.each(parents,function(index1,value1) {
+					var item3 = new $("#filetree").jqxTree("getItem",value1);
+					if(item3.level > 0) path5 = item3.label + "/" + path5;
+				});
+				var topDirectory = new $("#filetree").jqxTree("getItems")[0].value.path;
+				var selectedItem10 = new $("#filetree").jqxTree("getSelectedItem");
+				var previousPath = selectedItem10.value.path;
+				var newPath = js.Node.require("path").join(topDirectory,path5,selectedItem10.label);
+				js.node.Mv.move(previousPath,newPath,function(error4) {
+					if(error4 == null) {
+						Alertify.success("File were successfully moved to " + newPath);
+						selectedItem10.value.path = newPath;
+						_g.attachContextMenu();
+					} else {
+						Alertify.error("Can't move file from " + previousPath + " to " + newPath);
+						_g.load();
+					}
+				});
+			}
+		});
+	}
+	,appendToContextMenu: function(name,onClick) {
+		var li;
+		var _this = window.document;
+		li = _this.createElement("li");
+		li.textContent = name;
+		new $("#filetreemenu").append(li);
+		this.contextMenuCommandsMap.set(name,function() {
+			var selectedItem = new $("#filetree").jqxTree("getSelectedItem");
+			if(selectedItem != null) onClick(selectedItem);
+		});
+	}
+	,attachContextMenu: function() {
+		var _g = this;
+		new $("#filetree li").on("mousedown",null,function(event) {
+			var target = new $(event.target).parents("li:first")[0];
+			var rightClick = _g.isRightClick(event);
+			if(rightClick && target != null) {
+				new $("#filetree").jqxTree("selectItem",target);
+				var scrollTop = new $(window).scrollTop();
+				var scrollLeft = new $(window).scrollLeft();
+				_g.contextMenu.jqxMenu("open",Std.parseInt(event.clientX) + 5 + scrollLeft,Std.parseInt(event.clientY) + 5 + scrollTop);
+				return false;
+			} else return true;
+		});
+	}
+	,isRightClick: function(event) {
+		var rightclick = null;
+		if(!event) {
+			var event1 = window.event;
+		}
+		if(event.which) rightclick = event.which == 3; else if(event.button) rightclick = event.button == 2;
+		return rightclick;
+	}
+	,load: function(projectName,path) {
+		var _g = this;
+		if(projectName == null) projectName = this.lastProjectName;
+		if(path == null) path = this.lastProjectPath;
+		var filetree1 = new $("#filetree");
+		filetree1.on("expand",function(event) {
+			var label = filetree1.jqxTree("getItem",event.args.element).label;
+			var element2 = new $(event.args.element);
+			var loader = false;
+			var loaderItem = null;
+			var children = element2.find("ul:first").children();
+			$.each(children,function(index,value) {
+				var item = filetree1.jqxTree("getItem",value);
+				if(item != null && item.label == "Loading...") {
+					loaderItem = item;
+					loader = true;
+					return false;
+				}
+			});
+			if(loader) {
+				var pathToItem = loaderItem.value;
+				var items = filetree.FileTree.readDir2(pathToItem);
+				filetree1.jqxTree("addTo",items,element2[0]);
+				filetree1.jqxTree("removeItem",loaderItem.element);
+				_g.attachContextMenu();
+			}
+		});
+		filetree.FileTree.readDirItems(path,function(source) {
+			new $("#filetree").jqxTree({ source : [source]});
+			_g.attachContextMenu();
+		},true);
+		if(this.watcher != null) {
+			this.watcher.close();
+			this.watcher = null;
+		}
+		var classpathWalker = parser.ClasspathWalker.get();
+		var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
+			console.log(changeType);
+			console.log(filePath);
+			console.log(fileCurrentStat);
+			console.log(filePreviousStat);
+			switch(changeType) {
+			case "create":
+				console.log(changeType);
+				console.log(filePath);
+				js.Node.require("fs").stat(filePath,function(error,stat) {
+					if(error == null) {
+						if(stat.isFile()) {
+							if(changeType == "create") classpathWalker.addFile(filePath); else classpathWalker.removeFile(filePath);
+						} else if(stat.isDirectory()) {
+							console.log(changeType);
+							console.log(filePath);
+						}
+					} else console.log(error);
+				});
+				break;
+			case "delete":
+				if(js.Node.require("path").extname(filePath) != "") classpathWalker.removeFile(filePath);
+				break;
+			default:
+			}
+		}};
+		config.interval = 3000;
+		this.watcher = Watchr.watch(config);
+		this.lastProjectName = projectName;
+		this.lastProjectPath = path;
+		filetree.FileTree.updateProjectMainHxml();
+	}
+	,__class__: filetree.FileTree
 };
 haxe.Json = function() { };
 $hxClasses["haxe.Json"] = haxe.Json;
@@ -13488,156 +13725,169 @@ haxeprinter.Style.SModifier = ["SModifier",8];
 haxeprinter.Style.SModifier.toString = $estr;
 haxeprinter.Style.SModifier.__enum__ = haxeprinter.Style;
 var haxeproject = {};
-haxeproject.HaxeProject = function() { };
-$hxClasses["haxeproject.HaxeProject"] = haxeproject.HaxeProject;
-haxeproject.HaxeProject.__name__ = ["haxeproject","HaxeProject"];
-haxeproject.HaxeProject.load = function() {
-	newprojectdialog.NewProjectDialog.getCategory("Haxe",1).addItem("Flash Project",haxeproject.HaxeProject.createFlashProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("JavaScript Project",haxeproject.HaxeProject.createJavaScriptProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Neko Project",haxeproject.HaxeProject.createNekoProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("PHP Project",haxeproject.HaxeProject.createPhpProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C++ Project",haxeproject.HaxeProject.createCppProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Java Project",haxeproject.HaxeProject.createJavaProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C# Project",haxeproject.HaxeProject.createCSharpProject);
-	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Python Project",haxeproject.HaxeProject.createPythonProject);
+haxeproject.HaxeProject = function() {
+	var _g = this;
+	newprojectdialog.NewProjectDialog.getCategory("Haxe",1).addItem("Flash Project",$bind(this,this.createFlashProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("JavaScript Project",$bind(this,this.createJavaScriptProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Neko Project",$bind(this,this.createNekoProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("PHP Project",$bind(this,this.createPhpProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C++ Project",$bind(this,this.createCppProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Java Project",$bind(this,this.createJavaProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("C# Project",$bind(this,this.createCSharpProject));
+	newprojectdialog.NewProjectDialog.getCategory("Haxe").addItem("Python Project",$bind(this,this.createPythonProject));
 	var options = { };
 	options.encoding = "utf8";
 	var path = js.Node.require("path").join("core","templates","Main.hx");
 	js.Node.require("fs").readFile(path,options,function(error,data) {
-		if(error == null) haxeproject.HaxeProject.code = data; else {
+		if(error == null) _g.code = data; else {
 			console.log(error);
 			Alertify.error("Can't load template " + path);
 		}
 	});
 	path = js.Node.require("path").join("core","templates","index.html");
 	js.Node.require("fs").readFile(path,options,function(error1,data1) {
-		if(error1 == null) haxeproject.HaxeProject.indexPageCode = data1; else {
+		if(error1 == null) _g.indexPageCode = data1; else {
 			console.log(error1);
 			Alertify.error("Can't load template " + path);
 		}
 	});
 };
-haxeproject.HaxeProject.createPythonProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,7);
+$hxClasses["haxeproject.HaxeProject"] = haxeproject.HaxeProject;
+haxeproject.HaxeProject.__name__ = ["haxeproject","HaxeProject"];
+haxeproject.HaxeProject.get = function() {
+	if(haxeproject.HaxeProject.instance == null) haxeproject.HaxeProject.instance = new haxeproject.HaxeProject();
+	return haxeproject.HaxeProject.instance;
 };
-haxeproject.HaxeProject.createCSharpProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,6);
-};
-haxeproject.HaxeProject.createJavaProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,5);
-};
-haxeproject.HaxeProject.createCppProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,4);
-};
-haxeproject.HaxeProject.createPhpProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,3);
-};
-haxeproject.HaxeProject.createNekoProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,2);
-};
-haxeproject.HaxeProject.createFlashProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,0);
-};
-haxeproject.HaxeProject.createJavaScriptProject = function(data) {
-	haxeproject.HaxeProject.createHaxeProject(data,1);
-};
-haxeproject.HaxeProject.createHaxeProject = function(data,target) {
-	var pathToSrc = js.Node.require("path").join(data.projectLocation,data.projectName,"src");
-	js.node.Mkdirp.mkdirp(pathToSrc,function(err,made) {
-		var pathToProject = data.projectLocation;
-		if(data.createDirectory) pathToProject = js.Node.require("path").join(pathToProject,data.projectName);
-		var pathToMain;
-		pathToMain = js.Node.require("path").join(pathToProject,"src","Main.hx");
-		js.Node.require("fs").writeFile(pathToMain,haxeproject.HaxeProject.code,null,function(error) {
-			if(error != null) Alertify.error("Write file error" + error);
-			js.Node.require("fs").exists(pathToMain,function(exists) {
-				if(exists) tabmanager.TabManager.openFileInNewTab(pathToMain); else console.log(pathToMain + " file was not generated");
-			});
-		});
-		var project = new projectaccess.Project();
-		project.name = data.projectName;
-		project.projectPackage = data.projectPackage;
-		project.company = data.projectCompany;
-		project.license = data.projectLicense;
-		project.url = data.projectURL;
-		project.type = 0;
-		project.target = target;
-		projectaccess.ProjectAccess.path = pathToProject;
-		var filenames = ["flash","javascript","neko","php","cpp","java","csharp","python"];
-		var pathToProjectTemplates = js.Node.require("path").join("core","templates","project");
-		var _g1 = 0;
-		var _g = filenames.length;
-		while(_g1 < _g) {
-			var i = _g1++;
-			var targetData = { };
-			targetData.pathToHxml = filenames[i] + ".hxml";
-			var options = { };
-			options.encoding = "utf8";
-			var templateCode = js.Node.require("fs").readFileSync(js.Node.require("path").join(pathToProjectTemplates,targetData.pathToHxml),options);
-			var pathToFile;
-			switch(i) {
-			case 0:
-				pathToFile = "bin/" + project.name + ".swf";
-				targetData.runActionType = 1;
-				targetData.runActionText = pathToFile;
-				break;
-			case 1:
-				pathToFile = "bin/" + project.name + ".js";
-				targetData.runActionType = 1;
-				targetData.runActionText = js.Node.require("path").join("bin","index.html");
-				break;
-			case 2:
-				pathToFile = "bin/" + project.name + ".n";
-				targetData.runActionType = 2;
-				targetData.runActionText = "neko " + pathToFile;
-				break;
-			case 3:
-				pathToFile = "bin/" + project.name + ".php";
-				break;
-			case 4:
-				pathToFile = "bin";
-				targetData.runActionType = 2;
-				targetData.runActionText = "bin/" + project.name + "-debug";
-				if(core.Utils.os == 0) targetData.runActionText += ".exe";
-				break;
-			case 5:
-				pathToFile = "bin/" + project.name + ".jar";
-				break;
-			case 6:
-				pathToFile = "bin/" + project.name + ".exe";
-				break;
-			case 7:
-				pathToFile = "bin/" + project.name + ".py";
-				targetData.runActionType = 2;
-				targetData.runActionText = "python " + pathToFile;
-				break;
-			default:
-				throw "Path to file is null";
-			}
-			templateCode = mustache.Mustache.render(templateCode,{ file : pathToFile});
-			js.Node.require("fs").writeFileSync(js.Node.require("path").join(pathToProject,targetData.pathToHxml),templateCode,"utf8");
-			project.targetData.push(targetData);
-		}
-		js.Node.require("fs").mkdir(js.Node.require("path").join(pathToProject,"bin"),null,function(error1) {
-			if(error1 == null) {
-				var updatedPageCode = mustache.Mustache.render(haxeproject.HaxeProject.indexPageCode,{ title : project.name, script : project.name + ".js"});
-				var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
-				js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
-					if(error2 != null) {
-						console.log(error2);
-						Alertify.error("Generate web page error: " + error2);
-					}
+haxeproject.HaxeProject.prototype = {
+	code: null
+	,indexPageCode: null
+	,createPythonProject: function(data) {
+		this.createHaxeProject(data,7);
+	}
+	,createCSharpProject: function(data) {
+		this.createHaxeProject(data,6);
+	}
+	,createJavaProject: function(data) {
+		this.createHaxeProject(data,5);
+	}
+	,createCppProject: function(data) {
+		this.createHaxeProject(data,4);
+	}
+	,createPhpProject: function(data) {
+		this.createHaxeProject(data,3);
+	}
+	,createNekoProject: function(data) {
+		this.createHaxeProject(data,2);
+	}
+	,createFlashProject: function(data) {
+		this.createHaxeProject(data,0);
+	}
+	,createJavaScriptProject: function(data) {
+		this.createHaxeProject(data,1);
+	}
+	,createHaxeProject: function(data,target) {
+		var _g = this;
+		var pathToSrc = js.Node.require("path").join(data.projectLocation,data.projectName,"src");
+		js.node.Mkdirp.mkdirp(pathToSrc,function(err,made) {
+			var pathToProject = data.projectLocation;
+			if(data.createDirectory) pathToProject = js.Node.require("path").join(pathToProject,data.projectName);
+			var pathToMain;
+			pathToMain = js.Node.require("path").join(pathToProject,"src","Main.hx");
+			js.Node.require("fs").writeFile(pathToMain,_g.code,null,function(error) {
+				if(error != null) Alertify.error("Write file error" + error);
+				js.Node.require("fs").exists(pathToMain,function(exists) {
+					if(exists) {
+						var tabManagerInstance = tabmanager.TabManager.get();
+						tabManagerInstance.openFileInNewTab(pathToMain);
+					} else console.log(pathToMain + " file was not generated");
 				});
-			} else Alertify.error("Folder creation error: " + error1);
+			});
+			var project = new projectaccess.Project();
+			project.name = data.projectName;
+			project.projectPackage = data.projectPackage;
+			project.company = data.projectCompany;
+			project.license = data.projectLicense;
+			project.url = data.projectURL;
+			project.type = 0;
+			project.target = target;
+			projectaccess.ProjectAccess.path = pathToProject;
+			var filenames = ["flash","javascript","neko","php","cpp","java","csharp","python"];
+			var pathToProjectTemplates = js.Node.require("path").join("core","templates","project");
+			var _g2 = 0;
+			var _g1 = filenames.length;
+			while(_g2 < _g1) {
+				var i = _g2++;
+				var targetData = { };
+				targetData.pathToHxml = filenames[i] + ".hxml";
+				var options = { };
+				options.encoding = "utf8";
+				var templateCode = js.Node.require("fs").readFileSync(js.Node.require("path").join(pathToProjectTemplates,targetData.pathToHxml),options);
+				var pathToFile;
+				switch(i) {
+				case 0:
+					pathToFile = "bin/" + project.name + ".swf";
+					targetData.runActionType = 1;
+					targetData.runActionText = pathToFile;
+					break;
+				case 1:
+					pathToFile = "bin/" + project.name + ".js";
+					targetData.runActionType = 1;
+					targetData.runActionText = js.Node.require("path").join("bin","index.html");
+					break;
+				case 2:
+					pathToFile = "bin/" + project.name + ".n";
+					targetData.runActionType = 2;
+					targetData.runActionText = "neko " + pathToFile;
+					break;
+				case 3:
+					pathToFile = "bin/" + project.name + ".php";
+					break;
+				case 4:
+					pathToFile = "bin";
+					targetData.runActionType = 2;
+					targetData.runActionText = "bin/" + project.name + "-debug";
+					if(core.Utils.os == 0) targetData.runActionText += ".exe";
+					break;
+				case 5:
+					pathToFile = "bin/" + project.name + ".jar";
+					break;
+				case 6:
+					pathToFile = "bin/" + project.name + ".exe";
+					break;
+				case 7:
+					pathToFile = "bin/" + project.name + ".py";
+					targetData.runActionType = 2;
+					targetData.runActionText = "python " + pathToFile;
+					break;
+				default:
+					throw "Path to file is null";
+				}
+				templateCode = mustache.Mustache.render(templateCode,{ file : pathToFile});
+				js.Node.require("fs").writeFileSync(js.Node.require("path").join(pathToProject,targetData.pathToHxml),templateCode,"utf8");
+				project.targetData.push(targetData);
+			}
+			js.Node.require("fs").mkdir(js.Node.require("path").join(pathToProject,"bin"),null,function(error1) {
+				if(error1 == null) {
+					var updatedPageCode = mustache.Mustache.render(_g.indexPageCode,{ title : project.name, script : project.name + ".js"});
+					var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
+					js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
+						if(error2 != null) {
+							console.log(error2);
+							Alertify.error("Generate web page error: " + error2);
+						}
+					});
+				} else Alertify.error("Folder creation error: " + error1);
+			});
+			var path = js.Node.require("path").join(pathToProject,"project.hide");
+			projectaccess.ProjectAccess.currentProject = project;
+			projectaccess.ProjectAccess.save((function(f,a1) {
+				return function() {
+					return f(a1);
+				};
+			})(openproject.OpenProject.openProject,path));
 		});
-		var path = js.Node.require("path").join(pathToProject,"project.hide");
-		projectaccess.ProjectAccess.currentProject = project;
-		projectaccess.ProjectAccess.save((function(f,a1) {
-			return function() {
-				return f(a1);
-			};
-		})(openproject.OpenProject.openProject,path));
-	});
+	}
+	,__class__: haxeproject.HaxeProject
 };
 hxparse.LexerTokenSource = function(lexer,ruleset) {
 	this.lexer = lexer;
@@ -14751,72 +15001,84 @@ $hxClasses["openflproject.CreateOpenFLProject"] = openflproject.CreateOpenFLProj
 openflproject.CreateOpenFLProject.__name__ = ["openflproject","CreateOpenFLProject"];
 openflproject.CreateOpenFLProject.createOpenFLProject = function(params,path,onComplete) {
 	var processParams = ["run","lime","create"].concat(params);
-	core.ProcessHelper.runProcess("haxelib",processParams,path,onComplete,function(code,stdout,stderr) {
+	var processHelper = core.ProcessHelper.get();
+	processHelper.runProcess("haxelib",processParams,path,onComplete,function(code,stdout,stderr) {
 		Alertify.error(["haxelib"].concat(processParams).join(" ") + " " + (code == null?"null":"" + code));
 		if(stdout != "") Alertify.error("stdout:\n" + stdout);
 		if(stderr != "") Alertify.error("stderr:\n" + stderr);
 	});
 };
-openflproject.OpenFLProject = function() { };
-$hxClasses["openflproject.OpenFLProject"] = openflproject.OpenFLProject;
-openflproject.OpenFLProject.__name__ = ["openflproject","OpenFLProject"];
-openflproject.OpenFLProject.load = function() {
-	newprojectdialog.NewProjectDialog.getCategory("OpenFL",2).addItem("OpenFL Project",openflproject.OpenFLProject.createOpenFLProject,false);
-	newprojectdialog.NewProjectDialog.getCategory("OpenFL").addItem("OpenFL Extension",openflproject.OpenFLProject.createOpenFLExtension,false);
+openflproject.OpenFLProject = function() {
+	var _g1 = this;
+	newprojectdialog.NewProjectDialog.getCategory("OpenFL",2).addItem("OpenFL Project",$bind(this,this.createOpenFLProject),false);
+	newprojectdialog.NewProjectDialog.getCategory("OpenFL").addItem("OpenFL Extension",$bind(this,this.createOpenFLExtension),false);
 	var samples = ["ActuateExample","AddingAnimation","AddingText","DisplayingABitmap","HandlingKeyboardEvents","HandlingMouseEvent","HerokuShaders","PiratePig","PlayingSound","SimpleBox2D","SimpleOpenGLView"];
 	var _g = 0;
 	while(_g < samples.length) {
 		var sample = samples[_g];
 		++_g;
 		newprojectdialog.NewProjectDialog.getCategory("OpenFL").getCategory("Samples").addItem(sample,function(data) {
-			openflproject.OpenFLProject.createOpenFLProject(data,true);
+			_g1.createOpenFLProject(data,true);
 		},false,true);
 	}
 };
-openflproject.OpenFLProject.createOpenFLProject = function(data,sample) {
-	if(sample == null) sample = false;
-	var params;
-	if(!sample) {
-		var str = "";
-		if(data.projectPackage != "") str = data.projectPackage + ".";
-		params = ["openfl:project","\"" + str + data.projectName + "\""];
-	} else params = [data.projectName];
-	openflproject.CreateOpenFLProject.createOpenFLProject(params,data.projectLocation,function() {
+$hxClasses["openflproject.OpenFLProject"] = openflproject.OpenFLProject;
+openflproject.OpenFLProject.__name__ = ["openflproject","OpenFLProject"];
+openflproject.OpenFLProject.get = function() {
+	if(openflproject.OpenFLProject.instance == null) openflproject.OpenFLProject.instance = new openflproject.OpenFLProject();
+	return openflproject.OpenFLProject.instance;
+};
+openflproject.OpenFLProject.prototype = {
+	createOpenFLProject: function(data,sample) {
+		if(sample == null) sample = false;
+		var _g = this;
+		var params;
+		if(!sample) {
+			var str = "";
+			if(data.projectPackage != "") str = data.projectPackage + ".";
+			params = ["openfl:project","\"" + str + data.projectName + "\""];
+		} else params = [data.projectName];
+		openflproject.CreateOpenFLProject.createOpenFLProject(params,data.projectLocation,function() {
+			var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);
+			_g.createProject(data);
+			var tabManagerInstance = tabmanager.TabManager.get();
+			tabManagerInstance.openFileInNewTab(js.Node.require("path").join(pathToProject,"Source","Main.hx"));
+		});
+	}
+	,createOpenFLExtension: function(data) {
+		var _g = this;
+		openflproject.CreateOpenFLProject.createOpenFLProject(["extension",data.projectName],data.projectLocation,function() {
+			_g.createProject(data);
+		});
+	}
+	,createProject: function(data) {
 		var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);
-		openflproject.OpenFLProject.createProject(data);
-		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").join(pathToProject,"Source","Main.hx"));
-	});
-};
-openflproject.OpenFLProject.createOpenFLExtension = function(data) {
-	openflproject.CreateOpenFLProject.createOpenFLProject(["extension",data.projectName],data.projectLocation,function() {
-		openflproject.OpenFLProject.createProject(data);
-	});
-};
-openflproject.OpenFLProject.createProject = function(data) {
-	var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);
-	var project = new projectaccess.Project();
-	project.name = data.projectName;
-	project.projectPackage = data.projectPackage;
-	project.company = data.projectCompany;
-	project.license = data.projectLicense;
-	project.url = data.projectURL;
-	project.type = 1;
-	project.openFLTarget = "flash";
-	projectaccess.ProjectAccess.path = pathToProject;
-	project.buildActionCommand = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget,"--connect","5000"].join(" ");
-	project.runActionType = 2;
-	project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
-	projectaccess.ProjectAccess.currentProject = project;
-	projectaccess.ProjectAccess.save(function() {
-		var path = js.Node.require("path").join(pathToProject,"project.hide");
-		openproject.OpenProject.openProject(path);
-	});
+		var project = new projectaccess.Project();
+		project.name = data.projectName;
+		project.projectPackage = data.projectPackage;
+		project.company = data.projectCompany;
+		project.license = data.projectLicense;
+		project.url = data.projectURL;
+		project.type = 1;
+		project.openFLTarget = "flash";
+		projectaccess.ProjectAccess.path = pathToProject;
+		project.buildActionCommand = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget,"--connect","5000"].join(" ");
+		project.runActionType = 2;
+		project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
+		projectaccess.ProjectAccess.currentProject = project;
+		projectaccess.ProjectAccess.save(function() {
+			var path = js.Node.require("path").join(pathToProject,"project.hide");
+			openproject.OpenProject.openProject(path);
+		});
+	}
+	,__class__: openflproject.OpenFLProject
 };
 openflproject.OpenFLTools = function() { };
 $hxClasses["openflproject.OpenFLTools"] = openflproject.OpenFLTools;
 openflproject.OpenFLTools.__name__ = ["openflproject","OpenFLTools"];
 openflproject.OpenFLTools.getParams = function(path,target,onLoaded) {
-	core.ProcessHelper.runProcess("haxelib",["run","lime","display",target],path,function(stdout,stderr) {
+	var processHelper = core.ProcessHelper.get();
+	processHelper.runProcess("haxelib",["run","lime","display",target],path,function(stdout,stderr) {
 		if(onLoaded != null) onLoaded(stdout);
 		openflproject.OpenFLTools.printStderr(stderr);
 	},function(code,stdout1,stderr1) {
@@ -14846,15 +15108,19 @@ openproject.OpenFL.open = function(path) {
 	project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
 	var pathToProjectHide = js.Node.require("path").join(pathToProject,"project.hide");
 	projectaccess.ProjectAccess.currentProject = project;
-	projectaccess.ProjectOptions.updateProjectOptions();
+	var projectOptions = projectaccess.ProjectOptions.get();
+	var splitter = core.Splitter.get();
+	var fileTree = filetree.FileTree.get();
+	var recentProjectsList = core.RecentProjectsList.get();
+	projectOptions.updateProjectOptions();
 	projectaccess.ProjectAccess.save((function(f,a1,a2) {
 		return function() {
 			return f(a1,a2);
 		};
-	})(filetree.FileTree.load,project.name,pathToProject));
-	core.Splitter.show();
+	})($bind(fileTree,fileTree.load),project.name,pathToProject));
+	splitter.show();
 	js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
-	core.RecentProjectsList.add(pathToProjectHide);
+	recentProjectsList.add(pathToProjectHide);
 };
 openproject.OpenFL.parseOpenFLDisplayParameters = function(pathToProject,target,onComplete) {
 	openflproject.OpenFLTools.getParams(pathToProject,target,function(stdout) {
@@ -14889,10 +15155,16 @@ openproject.OpenProject.parseProject = function(path) {
 	console.log("open: " + path);
 	openproject.OpenProject.closeProject(true);
 	var filename = js.Node.require("path").basename(path);
+	var outlinePanel = core.OutlinePanel.get();
+	var tabManagerInstance = tabmanager.TabManager.get();
+	var fileTree = filetree.FileTree.get();
+	var projectOptions = projectaccess.ProjectOptions.get();
+	var recentProjectsList = core.RecentProjectsList.get();
+	var splitter = core.Splitter.get();
 	switch(filename) {
 	case "project.hide":
-		core.OutlinePanel.clearFields();
-		core.OutlinePanel.update();
+		outlinePanel.clearFields();
+		outlinePanel.update();
 		var options = { };
 		options.encoding = "utf8";
 		js.Node.require("fs").readFile(path,options,function(error,data) {
@@ -14900,7 +15172,8 @@ openproject.OpenProject.parseProject = function(path) {
 			projectaccess.ProjectAccess.currentProject = openproject.OpenProject.parseProjectData(data);
 			projectaccess.ProjectAccess.path = pathToProject;
 			var project = projectaccess.ProjectAccess.currentProject;
-			parser.ClasspathWalker.parseProjectArguments();
+			var classpathWalker = parser.ClasspathWalker.get();
+			classpathWalker.parseProjectArguments();
 			var loadedFilesCount = 0;
 			var totalFilesCount;
 			if(project.files == null) project.files = []; else {
@@ -14918,7 +15191,7 @@ openproject.OpenProject.parseProject = function(path) {
 					var fullPath = [js.Node.require("path").join(pathToProject,file.path)];
 					js.Node.require("fs").exists(fullPath[0],(function(fullPath) {
 						return function(exists) {
-							if(exists) tabmanager.TabManager.openFileInNewTab(fullPath[0],false,(function() {
+							if(exists) tabManagerInstance.openFileInNewTab(fullPath[0],false,(function() {
 								return function() {
 									loadedFilesCount++;
 									if(loadedFilesCount == totalFilesCount) {
@@ -14929,7 +15202,7 @@ openproject.OpenProject.parseProject = function(path) {
 												return function(exists1) {
 													if(exists1) {
 														console.log(fullPathToActiveFile);
-														tabmanager.TabManager.selectDoc(fullPathToActiveFile);
+														tabManagerInstance.selectDoc(fullPathToActiveFile);
 														cm.Editor.editor.focus();
 													}
 												};
@@ -14947,19 +15220,19 @@ openproject.OpenProject.parseProject = function(path) {
 			if(project.type == 1) {
 				if(project.openFLBuildMode == null) project.openFLBuildMode = "Debug";
 			}
-			projectaccess.ProjectOptions.updateProjectOptions();
-			filetree.FileTree.load(project.name,pathToProject);
-			core.Splitter.show();
+			projectOptions.updateProjectOptions();
+			fileTree.load(project.name,pathToProject);
+			splitter.show();
 			js.Browser.getLocalStorage().setItem("pathToLastProject",path);
-			core.RecentProjectsList.add(path);
+			recentProjectsList.add(path);
 		});
 		break;
 	default:
 		var extension = js.Node.require("path").extname(filename);
 		switch(extension) {
 		case ".hxml":
-			core.OutlinePanel.clearFields();
-			core.OutlinePanel.update();
+			outlinePanel.clearFields();
+			outlinePanel.update();
 			var pathToProject1 = js.Node.require("path").dirname(path);
 			var project1 = new projectaccess.Project();
 			var pos = pathToProject1.lastIndexOf(js.Node.require("path").sep);
@@ -14968,18 +15241,18 @@ openproject.OpenProject.parseProject = function(path) {
 			projectaccess.ProjectAccess.path = pathToProject1;
 			project1.main = js.Node.require("path").basename(path);
 			projectaccess.ProjectAccess.currentProject = project1;
-			projectaccess.ProjectOptions.updateProjectOptions();
+			projectOptions.updateProjectOptions();
 			var pathToProjectHide = js.Node.require("path").join(pathToProject1,"project.hide");
 			projectaccess.ProjectAccess.save(function() {
-				filetree.FileTree.load(project1.name,pathToProject1);
+				fileTree.load(project1.name,pathToProject1);
 			});
-			core.Splitter.show();
+			splitter.show();
 			js.Browser.getLocalStorage().setItem("pathToLastProject",pathToProjectHide);
-			core.RecentProjectsList.add(pathToProjectHide);
+			recentProjectsList.add(pathToProjectHide);
 			break;
 		case ".lime":case ".xml":
-			core.OutlinePanel.clearFields();
-			core.OutlinePanel.update();
+			outlinePanel.clearFields();
+			outlinePanel.update();
 			var options1 = { };
 			options1.encoding = "utf8";
 			js.Node.require("fs").readFile(path,options1,function(error1,data1) {
@@ -14995,7 +15268,7 @@ openproject.OpenProject.parseProject = function(path) {
 			break;
 		default:
 		}
-		tabmanager.TabManager.openFileInNewTab(path);
+		tabManagerInstance.openFileInNewTab(path);
 	}
 };
 openproject.OpenProject.searchForLastProject = function() {
@@ -15004,15 +15277,17 @@ openproject.OpenProject.searchForLastProject = function() {
 };
 openproject.OpenProject.closeProject = function(sync) {
 	if(sync == null) sync = false;
+	var tabManagerInstance = tabmanager.TabManager.get();
 	if(projectaccess.ProjectAccess.path != null) {
 		projectaccess.ProjectAccess.save(openproject.OpenProject.updateProjectData,sync);
-		tabmanager.TabManager.closeAll();
+		tabManagerInstance.closeAll();
 	} else openproject.OpenProject.updateProjectData();
 };
 openproject.OpenProject.updateProjectData = function() {
+	var splitter = core.Splitter.get();
 	projectaccess.ProjectAccess.path = null;
 	projectaccess.ProjectAccess.currentProject = null;
-	core.Splitter.hide();
+	splitter.hide();
 	js.Browser.getLocalStorage().removeItem("pathToLastProject");
 };
 openproject.OpenProject.parseProjectData = function(data) {
@@ -15161,15 +15436,12 @@ parser.ClassParser.addClassName = function(name,std) {
 		if(HxOverrides.indexOf(list,name,0) == -1) list.push(name);
 	}
 };
-parser.ClasspathWalker = function() { };
-$hxClasses["parser.ClasspathWalker"] = parser.ClasspathWalker;
-parser.ClasspathWalker.__name__ = ["parser","ClasspathWalker"];
-parser.ClasspathWalker.load = function() {
+parser.ClasspathWalker = function() {
 	var localStorage2 = js.Browser.getLocalStorage();
 	var paths = [js.Node.process.env.HAXEPATH,js.Node.process.env.HAXE_STD_PATH,js.Node.process.env.HAXE_HOME];
 	if(localStorage2 != null) {
-		var x = localStorage2.getItem("pathToHaxe");
-		paths.splice(0,0,x);
+		var path = localStorage2.getItem("pathToHaxe");
+		paths.splice(0,0,path);
 	}
 	var _g = core.Utils.os;
 	switch(_g) {
@@ -15186,485 +15458,524 @@ parser.ClasspathWalker.load = function() {
 		var envVar = paths[_g1];
 		++_g1;
 		if(envVar != null) {
-			parser.ClasspathWalker.pathToHaxeStd = parser.ClasspathWalker.getHaxeStdFolder(envVar);
-			if(parser.ClasspathWalker.pathToHaxeStd != null) {
-				localStorage2.setItem("pathToHaxe",envVar);
+			this.pathToHaxeStd = this.getHaxeStdFolder(envVar);
+			if(this.pathToHaxeStd != null) {
+				this.pathToHaxe = envVar;
+				localStorage2.setItem("pathToHaxe",this.pathToHaxe);
 				break;
 			}
 		}
 	}
-	if(parser.ClasspathWalker.pathToHaxeStd == null) parser.ClasspathWalker.showHaxeDirectoryDialog(); else parser.ClasspathWalker.parseClasspath(parser.ClasspathWalker.pathToHaxeStd,true);
+	if(this.pathToHaxeStd == null) this.showHaxeDirectoryDialog(); else this.parseClasspath(this.pathToHaxeStd,true);
 };
-parser.ClasspathWalker.showHaxeDirectoryDialog = function() {
-	var localStorage2 = js.Browser.getLocalStorage();
-	var currentLocation = "";
-	var pathToHaxe = localStorage2.getItem("pathToHaxe");
-	if(pathToHaxe != null) currentLocation = pathToHaxe;
-	dialogs.DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ",function(path) {
-		parser.ClasspathWalker.pathToHaxeStd = parser.ClasspathWalker.getHaxeStdFolder(path);
-		if(parser.ClasspathWalker.pathToHaxeStd != null) {
-			parser.ClasspathWalker.parseClasspath(parser.ClasspathWalker.pathToHaxeStd,true);
-			localStorage2.setItem("pathToHaxe",parser.ClasspathWalker.pathToHaxeStd);
-			dialogs.DialogManager.hide();
-		} else Alertify.error(watchers.LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
-	},currentLocation,"Download Haxe","http://haxe.org/download");
+$hxClasses["parser.ClasspathWalker"] = parser.ClasspathWalker;
+parser.ClasspathWalker.__name__ = ["parser","ClasspathWalker"];
+parser.ClasspathWalker.get = function() {
+	if(parser.ClasspathWalker.instance == null) parser.ClasspathWalker.instance = new parser.ClasspathWalker();
+	return parser.ClasspathWalker.instance;
 };
-parser.ClasspathWalker.getHaxeStdFolder = function(path) {
-	var pathToStd = null;
-	if(js.Node.require("fs").existsSync(path)) {
-		if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,"Std.hx"))) pathToStd = path; else {
-			path = js.Node.require("path").join(path,"std");
-			if(js.Node.require("fs").existsSync(path)) pathToStd = parser.ClasspathWalker.getHaxeStdFolder(path);
-		}
+parser.ClasspathWalker.prototype = {
+	pathToHaxeStd: null
+	,pathToHaxe: null
+	,showHaxeDirectoryDialog: function() {
+		var _g = this;
+		var localStorage2 = js.Browser.getLocalStorage();
+		var currentLocation = "";
+		var pathToHaxe2 = localStorage2.getItem("pathToHaxe");
+		if(pathToHaxe2 != null) currentLocation = pathToHaxe2;
+		dialogs.DialogManager.showBrowseFolderDialog("Please specify path to Haxe compiler(parent folder of std): ",function(path) {
+			_g.pathToHaxeStd = _g.getHaxeStdFolder(path);
+			if(_g.pathToHaxeStd != null) {
+				_g.parseClasspath(_g.pathToHaxeStd,true);
+				_g.pathToHaxe = path;
+				localStorage2.setItem("pathToHaxe",_g.pathToHaxe);
+				dialogs.DialogManager.hide();
+			} else Alertify.error(watchers.LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
+		},currentLocation,"Download Haxe","http://haxe.org/download");
 	}
-	return pathToStd;
-};
-parser.ClasspathWalker.parseProjectArguments = function() {
-	parser.ClassParser.classCompletions = new haxe.ds.StringMap();
-	parser.ClassParser.filesList = [];
-	parser.ClassParser.topLevelClassList = [];
-	parser.ClassParser.importsList = [];
-	if(projectaccess.ProjectAccess.path != null) {
-		var project = projectaccess.ProjectAccess.currentProject;
-		var _g = project.type;
+	,getHaxeStdFolder: function(path) {
+		var pathToStd = null;
+		var fileName = "haxe";
+		var _g = core.Utils.os;
 		switch(_g) {
-		case 0:case 2:
-			var path;
-			if(project.type == 0) path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.targetData[project.target].pathToHxml); else path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.main);
-			var options = { };
-			options.encoding = "utf8";
-			var data = js.Node.require("fs").readFileSync(path,options);
-			parser.ClasspathWalker.getClasspaths(data.split("\n"));
-			break;
-		case 1:
-			openflproject.OpenFLTools.getParams(projectaccess.ProjectAccess.path,project.openFLTarget,function(stdout) {
-				parser.ClasspathWalker.getClasspaths(stdout.split("\n"));
-			});
+		case 0:
+			fileName += ".exe";
 			break;
 		default:
 		}
-	}
-	parser.ClasspathWalker.walkProjectDirectory(projectaccess.ProjectAccess.path);
-};
-parser.ClasspathWalker.getFileDirectory = function(relativePath) {
-	var directory = "";
-	if(relativePath.indexOf("/") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("/")); else if(relativePath.indexOf("\\") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("\\"));
-	return directory;
-};
-parser.ClasspathWalker.getClasspaths = function(data) {
-	var classpaths = [];
-	var _g = 0;
-	var _g1 = parser.ClasspathWalker.parseArg(data,"-cp");
-	while(_g < _g1.length) {
-		var arg = _g1[_g];
-		++_g;
-		var classpath = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,arg);
-		classpaths.push(classpath);
-	}
-	var _g2 = 0;
-	while(_g2 < classpaths.length) {
-		var path = classpaths[_g2];
-		++_g2;
-		parser.ClasspathWalker.parseClasspath(path);
-	}
-	var libs = parser.ClasspathWalker.parseArg(data,"-lib");
-	parser.ClasspathWalker.processHaxelibs(libs,parser.ClasspathWalker.parseClasspath);
-};
-parser.ClasspathWalker.processHaxelibs = function(libs,onPath) {
-	var _g = 0;
-	while(_g < libs.length) {
-		var arg = libs[_g];
-		++_g;
-		core.ProcessHelper.runProcess("haxelib",["path",arg],null,(function() {
-			return function(stdout,stderr) {
-				var _g1 = 0;
-				var _g2 = stdout.split("\n");
-				while(_g1 < _g2.length) {
-					var path = [_g2[_g1]];
-					++_g1;
-					if(path[0].indexOf(js.Node.require("path").sep) != -1) {
-						path[0] = StringTools.trim(path[0]);
-						path[0] = js.Node.require("path").normalize(path[0]);
-						js.Node.require("fs").exists(path[0],(function(path) {
-							return function(exists) {
-								if(exists) onPath(path[0],false);
-							};
-						})(path));
-					}
+		if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,fileName))) {
+			if(js.Node.require("fs").existsSync(path)) {
+				if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,"Std.hx"))) pathToStd = path; else {
+					path = js.Node.require("path").join(path,"std");
+					if(js.Node.require("fs").existsSync(path)) pathToStd = this.getHaxeStdFolder(path);
 				}
-			};
-		})());
-	}
-};
-parser.ClasspathWalker.parseArg = function(args,type) {
-	var result = [];
-	var _g = 0;
-	while(_g < args.length) {
-		var arg = args[_g];
-		++_g;
-		arg = StringTools.trim(arg);
-		if(StringTools.startsWith(arg,type)) result.push(HxOverrides.substr(arg,type.length + 1,null));
-	}
-	return result;
-};
-parser.ClasspathWalker.parseClasspath = function(path,std) {
-	if(std == null) std = false;
-	if(Main.sync) {
-		var _g = 0;
-		var _g1 = Walkdir.walkSync(path);
-		while(_g < _g1.length) {
-			var pathToFile = _g1[_g];
-			++_g;
-			var stat = js.Node.require("fs").lstatSync(pathToFile);
-			if(stat.isFile()) parser.ClasspathWalker.processFile(pathToFile,std);
+			}
 		}
-	} else {
-		var emitter = Walkdir.walk(path,{ });
-		emitter.on("file",function(pathToFile1,stat1) {
-			parser.ClasspathWalker.processFile(pathToFile1,std);
-		});
-		emitter.on("error",function(pathToFile2,stat2) {
-			console.log(pathToFile2);
-		});
+		return pathToStd;
 	}
-};
-parser.ClasspathWalker.processFile = function(path,std) {
-	parser.ClasspathWalker.addFile(path,std);
-	var options = { };
-	options.encoding = "utf8";
-	if(js.Node.require("path").extname(path) == ".hx") js.Node.require("fs").readFile(path,options,function(error,data) {
-		if(error == null) parser.ClassParser.processFile(data,path,std);
-	});
-};
-parser.ClasspathWalker.getFileIndex = function(pathToFile,list) {
-	var index = -1;
-	var _g1 = 0;
-	var _g = list.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(list[i].path == pathToFile) {
-			index = i;
-			break;
-		}
-	}
-	return index;
-};
-parser.ClasspathWalker.addFile = function(path,std) {
-	if(std == null) std = false;
-	var relativePath;
-	var list;
-	if(!watchers.SettingsWatcher.isItemInIgnoreList(path) && !projectaccess.ProjectAccess.isItemInIgnoreList(path)) {
-		if(std) list = parser.ClassParser.haxeStdFileList; else list = parser.ClassParser.filesList;
-		if(projectaccess.ProjectAccess.path != null && (core.Utils.os == 0 || !std)) {
-			relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-			if(parser.ClasspathWalker.getFileIndex(relativePath,list) == -1) list.push({ path : relativePath, directory : parser.ClasspathWalker.getFileDirectory(relativePath), displayText : core.Completion.processDisplayText(relativePath), filename : js.Node.require("path").basename(relativePath)});
-		} else if(parser.ClasspathWalker.getFileIndex(path,list) == -1) list.push({ path : path, directory : parser.ClasspathWalker.getFileDirectory(path), displayText : core.Completion.processDisplayText(path), filename : js.Node.require("path").basename(path)});
-	}
-};
-parser.ClasspathWalker.removeFile = function(path) {
-	var relativePath;
-	var index = -1;
-	var _g = 0;
-	var _g1 = [parser.ClassParser.haxeStdFileList,parser.ClassParser.filesList];
-	while(_g < _g1.length) {
-		var list = _g1[_g];
-		++_g;
+	,parseProjectArguments: function() {
+		var _g1 = this;
+		parser.ClassParser.classCompletions = new haxe.ds.StringMap();
+		parser.ClassParser.filesList = [];
+		parser.ClassParser.topLevelClassList = [];
+		parser.ClassParser.importsList = [];
 		if(projectaccess.ProjectAccess.path != null) {
-			relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-			index = parser.ClasspathWalker.getFileIndex(relativePath,list);
-			if(index != -1) HxOverrides.remove(list,list[index]);
+			var project = projectaccess.ProjectAccess.currentProject;
+			var _g = project.type;
+			switch(_g) {
+			case 0:case 2:
+				var path;
+				if(project.type == 0) path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.targetData[project.target].pathToHxml); else path = js.Node.require("path").join(projectaccess.ProjectAccess.path,project.main);
+				var options = { };
+				options.encoding = "utf8";
+				var data = js.Node.require("fs").readFileSync(path,options);
+				this.getClasspaths(data.split("\n"));
+				break;
+			case 1:
+				openflproject.OpenFLTools.getParams(projectaccess.ProjectAccess.path,project.openFLTarget,function(stdout) {
+					_g1.getClasspaths(stdout.split("\n"));
+				});
+				break;
+			default:
+			}
 		}
-		index = parser.ClasspathWalker.getFileIndex(path,list);
-		if(index != -1) HxOverrides.remove(list,list[index]);
+		this.walkProjectDirectory(projectaccess.ProjectAccess.path);
 	}
-};
-parser.ClasspathWalker.walkProjectDirectory = function(path) {
-	if(Main.sync) Walkdir.walkSync(path,{ },function(path1,stat) {
-		if(stat.isFile()) parser.ClasspathWalker.addFile(path1);
-	}); else {
-		var emitter = Walkdir.walk(path,{ });
+	,getFileDirectory: function(relativePath) {
+		var directory = "";
+		if(relativePath.indexOf("/") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("/")); else if(relativePath.indexOf("\\") != -1) directory = relativePath.substring(0,relativePath.lastIndexOf("\\"));
+		return directory;
+	}
+	,getClasspaths: function(data) {
+		var classpaths = [];
+		var _g = 0;
+		var _g1 = this.parseArg(data,"-cp");
+		while(_g < _g1.length) {
+			var arg = _g1[_g];
+			++_g;
+			var classpath = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,arg);
+			classpaths.push(classpath);
+		}
+		var _g2 = 0;
+		while(_g2 < classpaths.length) {
+			var path = classpaths[_g2];
+			++_g2;
+			this.parseClasspath(path);
+		}
+		var libs = this.parseArg(data,"-lib");
+		this.processHaxelibs(libs,$bind(this,this.parseClasspath));
+	}
+	,processHaxelibs: function(libs,onPath) {
+		var _g = 0;
+		while(_g < libs.length) {
+			var arg = libs[_g];
+			++_g;
+			var processHelper = core.ProcessHelper.get();
+			processHelper.runProcess("haxelib",["path",arg],null,(function() {
+				return function(stdout,stderr) {
+					var _g1 = 0;
+					var _g2 = stdout.split("\n");
+					while(_g1 < _g2.length) {
+						var path = [_g2[_g1]];
+						++_g1;
+						if(path[0].indexOf(js.Node.require("path").sep) != -1) {
+							path[0] = StringTools.trim(path[0]);
+							path[0] = js.Node.require("path").normalize(path[0]);
+							js.Node.require("fs").exists(path[0],(function(path) {
+								return function(exists) {
+									if(exists) onPath(path[0],false);
+								};
+							})(path));
+						}
+					}
+				};
+			})());
+		}
+	}
+	,parseArg: function(args,type) {
+		var result = [];
+		var _g = 0;
+		while(_g < args.length) {
+			var arg = args[_g];
+			++_g;
+			arg = StringTools.trim(arg);
+			if(StringTools.startsWith(arg,type)) result.push(HxOverrides.substr(arg,type.length + 1,null));
+		}
+		return result;
+	}
+	,parseClasspath: function(path,std) {
+		if(std == null) std = false;
+		var _g = this;
+		if(Main.sync) {
+			var _g1 = 0;
+			var _g11 = Walkdir.walkSync(path);
+			while(_g1 < _g11.length) {
+				var pathToFile = _g11[_g1];
+				++_g1;
+				var stat = js.Node.require("fs").lstatSync(pathToFile);
+				if(stat.isFile()) this.processFile(pathToFile,std);
+			}
+		} else {
+			var emitter = Walkdir.walk(path,{ });
+			emitter.on("file",function(pathToFile1,stat1) {
+				_g.processFile(pathToFile1,std);
+			});
+			emitter.on("error",function(pathToFile2,stat2) {
+				console.log(pathToFile2);
+			});
+		}
+	}
+	,processFile: function(path,std) {
+		this.addFile(path,std);
 		var options = { };
 		options.encoding = "utf8";
-		emitter.on("file",function(path2,stat1) {
-			parser.ClasspathWalker.addFile(path2);
-		});
-		emitter.on("error",function(path3,stat2) {
-			console.log(path3);
+		if(js.Node.require("path").extname(path) == ".hx") js.Node.require("fs").readFile(path,options,function(error,data) {
+			if(error == null) parser.ClassParser.processFile(data,path,std);
 		});
 	}
+	,getFileIndex: function(pathToFile,list) {
+		var index = -1;
+		var _g1 = 0;
+		var _g = list.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(list[i].path == pathToFile) {
+				index = i;
+				break;
+			}
+		}
+		return index;
+	}
+	,addFile: function(path,std) {
+		if(std == null) std = false;
+		var relativePath;
+		var list;
+		var completionInstance = core.Completion.get();
+		if(!watchers.SettingsWatcher.isItemInIgnoreList(path) && !projectaccess.ProjectAccess.isItemInIgnoreList(path)) {
+			if(std) list = parser.ClassParser.haxeStdFileList; else list = parser.ClassParser.filesList;
+			if(projectaccess.ProjectAccess.path != null && (core.Utils.os == 0 || !std)) {
+				relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+				if(this.getFileIndex(relativePath,list) == -1) list.push({ path : relativePath, directory : this.getFileDirectory(relativePath), displayText : completionInstance.processDisplayText(relativePath), filename : js.Node.require("path").basename(relativePath)});
+			} else if(this.getFileIndex(path,list) == -1) list.push({ path : path, directory : this.getFileDirectory(path), displayText : completionInstance.processDisplayText(path), filename : js.Node.require("path").basename(path)});
+		}
+	}
+	,removeFile: function(path) {
+		var relativePath;
+		var index = -1;
+		var _g = 0;
+		var _g1 = [parser.ClassParser.haxeStdFileList,parser.ClassParser.filesList];
+		while(_g < _g1.length) {
+			var list = _g1[_g];
+			++_g;
+			if(projectaccess.ProjectAccess.path != null) {
+				relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+				index = this.getFileIndex(relativePath,list);
+				if(index != -1) HxOverrides.remove(list,list[index]);
+			}
+			index = this.getFileIndex(path,list);
+			if(index != -1) HxOverrides.remove(list,list[index]);
+		}
+	}
+	,walkProjectDirectory: function(path) {
+		var _g = this;
+		if(Main.sync) Walkdir.walkSync(path,{ },function(path1,stat) {
+			if(stat.isFile()) _g.addFile(path1);
+		}); else {
+			var emitter = Walkdir.walk(path,{ });
+			var options = { };
+			options.encoding = "utf8";
+			emitter.on("file",function(path2,stat1) {
+				_g.addFile(path2);
+			});
+			emitter.on("error",function(path3,stat2) {
+				console.log(path3);
+			});
+		}
+	}
+	,__class__: parser.ClasspathWalker
 };
-parser.OutlineHelper = function() { };
+parser.OutlineHelper = function() {
+};
 $hxClasses["parser.OutlineHelper"] = parser.OutlineHelper;
 parser.OutlineHelper.__name__ = ["parser","OutlineHelper"];
-parser.OutlineHelper.getList = function(data,path) {
-	var ast = parser.ClassParser.parse(data,path);
-	if(ast != null) {
-		var parsedData = parser.OutlineHelper.parseDeclarations(ast);
-		var mainClass = js.Node.require("path").basename(path);
-		var rootItem = { label : mainClass};
-		rootItem.items = parsedData.treeItems;
-		rootItem.expanded = true;
-		parser.OutlineHelper.pathToLastFile = path;
-		core.OutlinePanel.clearFields();
-		core.OutlinePanel.addField(rootItem);
-		core.OutlinePanel.update();
-	} else if(parser.OutlineHelper.pathToLastFile != path) {
-		core.OutlinePanel.clearFields();
-		core.OutlinePanel.update();
-	}
+parser.OutlineHelper.get = function() {
+	if(parser.OutlineHelper.instance == null) parser.OutlineHelper.instance = new parser.OutlineHelper();
+	return parser.OutlineHelper.instance;
 };
-parser.OutlineHelper.parseDeclarations = function(ast) {
-	var fileImports = [];
-	var treeItems = [];
-	var _g = 0;
-	var _g1 = ast.decls;
-	while(_g < _g1.length) {
-		var decl = _g1[_g];
-		++_g;
-		{
-			var _g2 = decl.decl;
-			switch(_g2[1]) {
-			case 3:
-				var mode = _g2[3];
-				var sl = _g2[2];
-				fileImports = fileImports.concat(parser.OutlineHelper.parseImports(sl,mode));
-				break;
-			case 5:
-				var path = _g2[2];
-				break;
-			case 2:
-				var data = _g2[2];
-				var treeItem = { label : data.name};
-				treeItem.expanded = true;
-				treeItems.push(treeItem);
-				break;
-			case 0:
-				var data1 = _g2[2];
-				var treeItem1 = { label : data1.name};
-				var items = [];
-				treeItem1.items = items;
-				treeItem1.expanded = true;
-				var _g3 = 0;
-				var _g4 = parser.OutlineHelper.getClassFields(data1);
-				while(_g3 < _g4.length) {
-					var item = _g4[_g3];
-					++_g3;
-					items.push({ label : item.name, value : item.pos});
-				}
-				treeItems.push(treeItem1);
-				break;
-			case 1:
-				var data2 = _g2[2];
-				var treeItem2 = { label : data2.name};
-				var items1 = [];
-				treeItem2.items = items1;
-				treeItem2.expanded = true;
-				treeItems.push(treeItem2);
-				var _g31 = 0;
-				var _g41 = data2.data;
-				while(_g31 < _g41.length) {
-					var item1 = _g41[_g31];
-					++_g31;
-					items1.push({ label : item1.name, value : { min : item1.pos.min, max : item1.pos.max}});
-				}
-				break;
-			case 4:
-				var data3 = _g2[2];
-				var treeItem3 = { label : data3.name};
-				var items2 = [];
-				treeItem3.items = items2;
-				treeItem3.expanded = true;
-				treeItems.push(treeItem3);
-				var _g32 = 0;
-				var _g42 = parser.OutlineHelper.getTypeDefFields(data3);
-				while(_g32 < _g42.length) {
-					var item2 = _g42[_g32];
-					++_g32;
-					items2.push({ label : item2.name, value : item2.pos});
-				}
-				break;
-			}
+parser.OutlineHelper.prototype = {
+	pathToLastFile: null
+	,getList: function(data,path) {
+		var ast = parser.ClassParser.parse(data,path);
+		var outlinePanel = core.OutlinePanel.get();
+		if(ast != null) {
+			var parsedData = this.parseDeclarations(ast);
+			var mainClass = js.Node.require("path").basename(path);
+			var rootItem = { label : mainClass};
+			rootItem.items = parsedData.treeItems;
+			rootItem.expanded = true;
+			this.pathToLastFile = path;
+			outlinePanel.clearFields();
+			outlinePanel.addField(rootItem);
+			outlinePanel.update();
+		} else if(this.pathToLastFile != path) {
+			outlinePanel.clearFields();
+			outlinePanel.update();
 		}
 	}
-	return { fileImports : fileImports, treeItems : treeItems};
-};
-parser.OutlineHelper.parseImports = function(sl,mode) {
-	var fileImports = [];
-	var importPackages = [];
-	var _g = 0;
-	while(_g < sl.length) {
-		var item = sl[_g];
-		++_g;
-		importPackages.push(item.pack);
-	}
-	var fullImportName = importPackages.join(".");
-	switch(mode[1]) {
-	case 0:
-		fileImports.push(fullImportName);
-		break;
-	case 1:
-		var s = mode[2];
-		fileImports.push(s);
-		break;
-	case 2:
-		fileImports.push(fullImportName);
-		var _g1 = 0;
-		var _g11 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
-		while(_g1 < _g11.length) {
-			var list = _g11[_g1];
-			++_g1;
-			var _g2 = 0;
-			while(_g2 < list.length) {
-				var item1 = list[_g2];
-				++_g2;
-				if(item1.indexOf(fullImportName) == 0) fileImports.push(item1);
-			}
-		}
-		break;
-	}
-	return fileImports;
-};
-parser.OutlineHelper.getClassFields = function(type) {
-	var fields = [];
-	var _g1 = 0;
-	var _g = type.data.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		{
-			var _g2 = type.data[i].kind;
-			switch(_g2[1]) {
-			case 1:
-				var f = _g2[2];
-				var data = type.data[i].name + "(";
-				var args = [];
-				var _g3 = 0;
-				var _g4 = f.args;
-				while(_g3 < _g4.length) {
-					var item = _g4[_g3];
-					++_g3;
-					args.push(parser.OutlineHelper.getFieldNameAndType(item.name,item.type));
+	,parseDeclarations: function(ast) {
+		var fileImports = [];
+		var treeItems = [];
+		var _g = 0;
+		var _g1 = ast.decls;
+		while(_g < _g1.length) {
+			var decl = _g1[_g];
+			++_g;
+			{
+				var _g2 = decl.decl;
+				switch(_g2[1]) {
+				case 3:
+					var mode = _g2[3];
+					var sl = _g2[2];
+					fileImports = fileImports.concat(this.parseImports(sl,mode));
+					break;
+				case 5:
+					var path = _g2[2];
+					break;
+				case 2:
+					var data = _g2[2];
+					var treeItem = { label : data.name};
+					treeItem.expanded = true;
+					treeItems.push(treeItem);
+					break;
+				case 0:
+					var data1 = _g2[2];
+					var treeItem1 = { label : data1.name};
+					var items = [];
+					treeItem1.items = items;
+					treeItem1.expanded = true;
+					var _g3 = 0;
+					var _g4 = this.getClassFields(data1);
+					while(_g3 < _g4.length) {
+						var item = _g4[_g3];
+						++_g3;
+						items.push({ label : item.name, value : item.pos});
+					}
+					treeItems.push(treeItem1);
+					break;
+				case 1:
+					var data2 = _g2[2];
+					var treeItem2 = { label : data2.name};
+					var items1 = [];
+					treeItem2.items = items1;
+					treeItem2.expanded = true;
+					treeItems.push(treeItem2);
+					var _g31 = 0;
+					var _g41 = data2.data;
+					while(_g31 < _g41.length) {
+						var item1 = _g41[_g31];
+						++_g31;
+						items1.push({ label : item1.name, value : { min : item1.pos.min, max : item1.pos.max}});
+					}
+					break;
+				case 4:
+					var data3 = _g2[2];
+					var treeItem3 = { label : data3.name};
+					var items2 = [];
+					treeItem3.items = items2;
+					treeItem3.expanded = true;
+					treeItems.push(treeItem3);
+					var _g32 = 0;
+					var _g42 = this.getTypeDefFields(data3);
+					while(_g32 < _g42.length) {
+						var item2 = _g42[_g32];
+						++_g32;
+						items2.push({ label : item2.name, value : item2.pos});
+					}
+					break;
 				}
-				data += args.join(", ");
-				data += ")";
-				if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
-				fields.push({ name : data, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
-				break;
-			case 0:
-				var e = _g2[3];
-				var t = _g2[2];
-				fields.push({ name : parser.OutlineHelper.getFieldNameAndType(type.data[i].name,t), pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
-				break;
-			case 2:
-				var e1 = _g2[5];
-				var t1 = _g2[4];
-				var set = _g2[3];
-				var get = _g2[2];
-				fields.push({ name : type.data[i].name, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
-				break;
 			}
 		}
+		return { fileImports : fileImports, treeItems : treeItems};
 	}
-	return fields;
-};
-parser.OutlineHelper.getTypeDefFields = function(type) {
-	var typeDefFields = [];
-	{
-		var _g = type.data;
-		switch(_g[1]) {
+	,parseImports: function(sl,mode) {
+		var fileImports = [];
+		var importPackages = [];
+		var _g = 0;
+		while(_g < sl.length) {
+			var item = sl[_g];
+			++_g;
+			importPackages.push(item.pack);
+		}
+		var fullImportName = importPackages.join(".");
+		switch(mode[1]) {
 		case 0:
-			var p = _g[2];
+			fileImports.push(fullImportName);
 			break;
 		case 1:
-			var ret = _g[3];
-			var args = _g[2];
+			var s = mode[2];
+			fileImports.push(s);
 			break;
 		case 2:
-			var fields = _g[2];
+			fileImports.push(fullImportName);
 			var _g1 = 0;
-			while(_g1 < fields.length) {
-				var field = fields[_g1];
+			var _g11 = [parser.ClassParser.importsList,parser.ClassParser.haxeStdImports];
+			while(_g1 < _g11.length) {
+				var list = _g11[_g1];
 				++_g1;
-				{
-					var _g2 = field.kind;
-					switch(_g2[1]) {
-					case 1:
-						var f = _g2[2];
-						var data = field.name + "(";
-						var args1 = [];
-						var _g3 = 0;
-						var _g4 = f.args;
-						while(_g3 < _g4.length) {
-							var item = _g4[_g3];
-							++_g3;
-							args1.push(parser.OutlineHelper.getFieldNameAndType(item.name,item.type));
-						}
-						data += args1.join(", ");
-						data += ")";
-						if(f.ret != null) data += ":" + parser.OutlineHelper.getFieldType(f.ret);
-						typeDefFields.push({ name : data, pos : { min : field.pos.min, max : field.pos.max}});
-						break;
-					case 0:
-						var e = _g2[3];
-						var t = _g2[2];
-						typeDefFields.push({ name : parser.OutlineHelper.getFieldNameAndType(field.name,t), pos : { min : field.pos.min, max : field.pos.max}});
-						break;
-					case 2:
-						var e1 = _g2[5];
-						var t1 = _g2[4];
-						var set = _g2[3];
-						var get = _g2[2];
-						typeDefFields.push({ name : field.name, pos : { min : field.pos.min, max : field.pos.max}});
-						break;
-					}
+				var _g2 = 0;
+				while(_g2 < list.length) {
+					var item1 = list[_g2];
+					++_g2;
+					if(item1.indexOf(fullImportName) == 0) fileImports.push(item1);
 				}
 			}
 			break;
+		}
+		return fileImports;
+	}
+	,getClassFields: function(type) {
+		var fields = [];
+		var _g1 = 0;
+		var _g = type.data.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			{
+				var _g2 = type.data[i].kind;
+				switch(_g2[1]) {
+				case 1:
+					var f = _g2[2];
+					var data = type.data[i].name + "(";
+					var args = [];
+					var _g3 = 0;
+					var _g4 = f.args;
+					while(_g3 < _g4.length) {
+						var item = _g4[_g3];
+						++_g3;
+						args.push(this.getFieldNameAndType(item.name,item.type));
+					}
+					data += args.join(", ");
+					data += ")";
+					if(f.ret != null) data += ":" + this.getFieldType(f.ret);
+					fields.push({ name : data, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
+					break;
+				case 0:
+					var e = _g2[3];
+					var t = _g2[2];
+					fields.push({ name : this.getFieldNameAndType(type.data[i].name,t), pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
+					break;
+				case 2:
+					var e1 = _g2[5];
+					var t1 = _g2[4];
+					var set = _g2[3];
+					var get = _g2[2];
+					fields.push({ name : type.data[i].name, pos : { min : type.data[i].pos.min, max : type.data[i].pos.max}});
+					break;
+				}
+			}
+		}
+		return fields;
+	}
+	,getTypeDefFields: function(type) {
+		var typeDefFields = [];
+		{
+			var _g = type.data;
+			switch(_g[1]) {
+			case 0:
+				var p = _g[2];
+				break;
+			case 1:
+				var ret = _g[3];
+				var args = _g[2];
+				break;
+			case 2:
+				var fields = _g[2];
+				var _g1 = 0;
+				while(_g1 < fields.length) {
+					var field = fields[_g1];
+					++_g1;
+					{
+						var _g2 = field.kind;
+						switch(_g2[1]) {
+						case 1:
+							var f = _g2[2];
+							var data = field.name + "(";
+							var args1 = [];
+							var _g3 = 0;
+							var _g4 = f.args;
+							while(_g3 < _g4.length) {
+								var item = _g4[_g3];
+								++_g3;
+								args1.push(this.getFieldNameAndType(item.name,item.type));
+							}
+							data += args1.join(", ");
+							data += ")";
+							if(f.ret != null) data += ":" + this.getFieldType(f.ret);
+							typeDefFields.push({ name : data, pos : { min : field.pos.min, max : field.pos.max}});
+							break;
+						case 0:
+							var e = _g2[3];
+							var t = _g2[2];
+							typeDefFields.push({ name : this.getFieldNameAndType(field.name,t), pos : { min : field.pos.min, max : field.pos.max}});
+							break;
+						case 2:
+							var e1 = _g2[5];
+							var t1 = _g2[4];
+							var set = _g2[3];
+							var get = _g2[2];
+							typeDefFields.push({ name : field.name, pos : { min : field.pos.min, max : field.pos.max}});
+							break;
+						}
+					}
+				}
+				break;
+			case 3:
+				var t2 = _g[2];
+				break;
+			case 4:
+				var fields1 = _g[3];
+				var p1 = _g[2];
+				break;
+			case 5:
+				var t3 = _g[2];
+				break;
+			}
+		}
+		return typeDefFields;
+	}
+	,getFieldType: function(t) {
+		var name = null;
+		if(t != null) switch(t[1]) {
+		case 0:
+			var p = t[2];
+			name = p.name;
+			break;
+		case 1:
+			var ret = t[3];
+			var args = t[2];
+			break;
+		case 2:
+			var fields = t[2];
+			break;
 		case 3:
-			var t2 = _g[2];
+			var t1 = t[2];
 			break;
 		case 4:
-			var fields1 = _g[3];
-			var p1 = _g[2];
+			var fields1 = t[3];
+			var p1 = t[2];
 			break;
 		case 5:
-			var t3 = _g[2];
+			var t2 = t[2];
 			break;
 		}
+		return name;
 	}
-	return typeDefFields;
-};
-parser.OutlineHelper.getFieldType = function(t) {
-	var name = null;
-	if(t != null) switch(t[1]) {
-	case 0:
-		var p = t[2];
-		name = p.name;
-		break;
-	case 1:
-		var ret = t[3];
-		var args = t[2];
-		break;
-	case 2:
-		var fields = t[2];
-		break;
-	case 3:
-		var t1 = t[2];
-		break;
-	case 4:
-		var fields1 = t[3];
-		var p1 = t[2];
-		break;
-	case 5:
-		var t2 = t[2];
-		break;
+	,getFieldNameAndType: function(name,type) {
+		var nameAndType = name;
+		var fieldType = this.getFieldType(type);
+		if(fieldType != null) nameAndType += ":" + fieldType;
+		return nameAndType;
 	}
-	return name;
-};
-parser.OutlineHelper.getFieldNameAndType = function(name,type) {
-	var nameAndType = name;
-	var fieldType = parser.OutlineHelper.getFieldType(type);
-	if(fieldType != null) nameAndType += ":" + fieldType;
-	return nameAndType;
+	,__class__: parser.OutlineHelper
 };
 parser.RegexParser = function() { };
 $hxClasses["parser.RegexParser"] = parser.RegexParser;
@@ -15982,8 +16293,9 @@ $hxClasses["projectaccess.ProjectAccess"] = projectaccess.ProjectAccess;
 projectaccess.ProjectAccess.__name__ = ["projectaccess","ProjectAccess"];
 projectaccess.ProjectAccess.registerSaveOnCloseListener = function() {
 	var $window = nodejs.webkit.Window.get();
+	var tabManagerInstance = tabmanager.TabManager.get();
 	$window.on("close",function() {
-		if(projectaccess.ProjectAccess.currentProject != null && tabmanager.TabManager.getCurrentDocumentPath() != null) cm.Editor.saveFoldedRegions();
+		if(projectaccess.ProjectAccess.currentProject != null && tabManagerInstance.getCurrentDocumentPath() != null) cm.Editor.saveFoldedRegions();
 		projectaccess.ProjectAccess.save(null,true);
 		$window.close();
 	});
@@ -16036,361 +16348,392 @@ projectaccess.ProjectAccess.getFileByPath = function(path) {
 	}
 	return selectedFile;
 };
-projectaccess.ProjectOptions = function() { };
+projectaccess.ProjectOptions = function() {
+};
 $hxClasses["projectaccess.ProjectOptions"] = projectaccess.ProjectOptions;
 projectaccess.ProjectOptions.__name__ = ["projectaccess","ProjectOptions"];
-projectaccess.ProjectOptions.create = function() {
-	var _this = window.document;
-	projectaccess.ProjectOptions.page = _this.createElement("div");
-	projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects();
-	var _this1 = window.document;
-	projectaccess.ProjectOptions.projectTargetText = _this1.createElement("p");
-	projectaccess.ProjectOptions.projectTargetText.textContent = watchers.LocaleWatcher.getStringSync("Project target:");
-	projectaccess.ProjectOptions.projectTargetText.setAttribute("localeString","Project target:");
-	projectaccess.ProjectOptions.projectTargetText.className = "custom-font-size";
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.projectTargetText);
-	var _this2 = window.document;
-	projectaccess.ProjectOptions.projectTargetList = _this2.createElement("select");
-	projectaccess.ProjectOptions.projectTargetList.id = "project-options-project-target";
-	projectaccess.ProjectOptions.projectTargetList.className = "custom-font-size";
-	projectaccess.ProjectOptions.projectTargetList.style.width = "100%";
-	var _this3 = window.document;
-	projectaccess.ProjectOptions.openFLTargetList = _this3.createElement("select");
-	projectaccess.ProjectOptions.openFLTargetList.id = "project-options-openfl-target";
-	projectaccess.ProjectOptions.openFLTargetList.className = "custom-font-size";
-	projectaccess.ProjectOptions.openFLTargetList.style.width = "100%";
-	var _this4 = window.document;
-	projectaccess.ProjectOptions.openFLTargetText = _this4.createElement("p");
-	projectaccess.ProjectOptions.openFLTargetText.textContent = watchers.LocaleWatcher.getStringSync("OpenFL target:");
-	projectaccess.ProjectOptions.openFLTargetText.setAttribute("localeString","OpenFL target:");
-	projectaccess.ProjectOptions.openFLTargetText.className = "custom-font-size";
-	var _this5 = window.document;
-	projectaccess.ProjectOptions.openFLBuildModeList = _this5.createElement("select");
-	projectaccess.ProjectOptions.openFLBuildModeList.id = "project-options-openfl-build-mode";
-	projectaccess.ProjectOptions.openFLBuildModeList.className = "custom-font-size";
-	projectaccess.ProjectOptions.openFLBuildModeList.style.width = "100%";
-	var _this6 = window.document;
-	projectaccess.ProjectOptions.openFLBuildModeText = _this6.createElement("p");
-	projectaccess.ProjectOptions.openFLBuildModeText.textContent = watchers.LocaleWatcher.getStringSync("Build mode:");
-	projectaccess.ProjectOptions.openFLBuildModeText.setAttribute("localeString","Build mode:");
-	projectaccess.ProjectOptions.openFLBuildModeText.className = "custom-font-size";
-	var _g = 0;
-	var _g1 = ["Flash","JavaScript","Neko","OpenFL","PHP","C++","Java","C#","Python"];
-	while(_g < _g1.length) {
-		var target = _g1[_g];
-		++_g;
-		projectaccess.ProjectOptions.projectTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target));
+projectaccess.ProjectOptions.get = function() {
+	if(projectaccess.ProjectOptions.instance == null) projectaccess.ProjectOptions.instance = new projectaccess.ProjectOptions();
+	return projectaccess.ProjectOptions.instance;
+};
+projectaccess.ProjectOptions.prototype = {
+	page: null
+	,projectTargetList: null
+	,projectTargetText: null
+	,openFLTargetList: null
+	,openFLTargetText: null
+	,openFLTargets: null
+	,openFLBuildModeList: null
+	,openFLBuildModeText: null
+	,buildModes: null
+	,buildActionDescription: null
+	,buildActionTextArea: null
+	,actionTextArea: null
+	,runActionList: null
+	,runActionTextAreaDescription: null
+	,runActionDescription: null
+	,pathToHxmlDescription: null
+	,inputGroupButton: null
+	,pathToHxmlInput: null
+	,create: function() {
+		var _g = this;
+		var _this = window.document;
+		this.page = _this.createElement("div");
+		this.createOptionsForMultipleHxmlProjects();
+		var _this1 = window.document;
+		this.projectTargetText = _this1.createElement("p");
+		this.projectTargetText.textContent = watchers.LocaleWatcher.getStringSync("Project target:");
+		this.projectTargetText.setAttribute("localeString","Project target:");
+		this.projectTargetText.className = "custom-font-size";
+		this.page.appendChild(this.projectTargetText);
+		var _this2 = window.document;
+		this.projectTargetList = _this2.createElement("select");
+		this.projectTargetList.id = "project-options-project-target";
+		this.projectTargetList.className = "custom-font-size";
+		this.projectTargetList.style.width = "100%";
+		var _this3 = window.document;
+		this.openFLTargetList = _this3.createElement("select");
+		this.openFLTargetList.id = "project-options-openfl-target";
+		this.openFLTargetList.className = "custom-font-size";
+		this.openFLTargetList.style.width = "100%";
+		var _this4 = window.document;
+		this.openFLTargetText = _this4.createElement("p");
+		this.openFLTargetText.textContent = watchers.LocaleWatcher.getStringSync("OpenFL target:");
+		this.openFLTargetText.setAttribute("localeString","OpenFL target:");
+		this.openFLTargetText.className = "custom-font-size";
+		var _this5 = window.document;
+		this.openFLBuildModeList = _this5.createElement("select");
+		this.openFLBuildModeList.id = "project-options-openfl-build-mode";
+		this.openFLBuildModeList.className = "custom-font-size";
+		this.openFLBuildModeList.style.width = "100%";
+		var _this6 = window.document;
+		this.openFLBuildModeText = _this6.createElement("p");
+		this.openFLBuildModeText.textContent = watchers.LocaleWatcher.getStringSync("Build mode:");
+		this.openFLBuildModeText.setAttribute("localeString","Build mode:");
+		this.openFLBuildModeText.className = "custom-font-size";
+		var _g1 = 0;
+		var _g11 = ["Flash","JavaScript","Neko","OpenFL","PHP","C++","Java","C#","Python"];
+		while(_g1 < _g11.length) {
+			var target = _g11[_g1];
+			++_g1;
+			this.projectTargetList.appendChild(this.createListItem(target));
+		}
+		this.projectTargetList.onchange = function(e) {
+			var project = projectaccess.ProjectAccess.currentProject;
+			var _g12 = _g.projectTargetList.value;
+			switch(_g12) {
+			case "Flash":
+				project.target = 0;
+				break;
+			case "JavaScript":
+				project.target = 1;
+				break;
+			case "Neko":
+				project.target = 2;
+				break;
+			case "OpenFL":
+				project.target = 1;
+				break;
+			case "PHP":
+				project.target = 3;
+				break;
+			case "C++":
+				project.target = 4;
+				break;
+			case "Java":
+				project.target = 5;
+				break;
+			case "C#":
+				project.target = 6;
+				break;
+			default:
+				throw "Unknown target";
+			}
+			var classpathWalker = parser.ClasspathWalker.get();
+			classpathWalker.parseProjectArguments();
+			_g.updateProjectOptions();
+		};
+		this.openFLTargets = ["flash","html5","neko","android","blackberry","emscripten","webos","tizen","ios","windows","mac","linux"];
+		var _g2 = 0;
+		var _g13 = this.openFLTargets;
+		while(_g2 < _g13.length) {
+			var target1 = _g13[_g2];
+			++_g2;
+			this.openFLTargetList.appendChild(this.createListItem(target1));
+		}
+		this.openFLTargetList.onchange = function(_) {
+			var project1 = projectaccess.ProjectAccess.currentProject;
+			_g.updateOpenFLBuildCommand();
+			project1.runActionType = 2;
+			project1.runActionText = ["haxelib","run","lime","run","\"%path%\"",project1.openFLTarget].join(" ");
+			var classpathWalker1 = parser.ClasspathWalker.get();
+			classpathWalker1.parseProjectArguments();
+			_g.updateProjectOptions();
+		};
+		this.buildModes = ["Debug","Release"];
+		var _g3 = 0;
+		var _g14 = this.buildModes;
+		while(_g3 < _g14.length) {
+			var mode = _g14[_g3];
+			++_g3;
+			this.openFLBuildModeList.appendChild(this.createListItem(mode));
+		}
+		this.openFLBuildModeList.onchange = function(_1) {
+			var mode1 = _g.buildModes[_g.openFLBuildModeList.selectedIndex];
+			var project2 = projectaccess.ProjectAccess.currentProject;
+			project2.openFLBuildMode = mode1;
+			_g.updateOpenFLBuildCommand();
+		};
+		var _this7 = window.document;
+		this.runActionDescription = _this7.createElement("p");
+		this.runActionDescription.className = "custom-font-size";
+		this.runActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Run action:");
+		this.runActionDescription.setAttribute("localeString","Run action:");
+		var _this8 = window.document;
+		this.runActionTextAreaDescription = _this8.createElement("p");
+		this.runActionTextAreaDescription.textContent = watchers.LocaleWatcher.getStringSync("URL:");
+		this.runActionTextAreaDescription.setAttribute("localeString","URL:");
+		this.runActionTextAreaDescription.className = "custom-font-size";
+		var actions = ["Open URL","Open File","Run command"];
+		var _this9 = window.document;
+		this.runActionList = _this9.createElement("select");
+		this.runActionList.style.width = "100%";
+		this.runActionList.onchange = $bind(this,this.update);
+		var _g4 = 0;
+		while(_g4 < actions.length) {
+			var action = actions[_g4];
+			++_g4;
+			this.runActionList.appendChild(this.createListItem(action));
+		}
+		var _this10 = window.document;
+		this.actionTextArea = _this10.createElement("textarea");
+		this.actionTextArea.id = "project-options-action-textarea";
+		this.actionTextArea.className = "custom-font-size";
+		this.actionTextArea.onchange = function(e1) {
+			var project3 = projectaccess.ProjectAccess.currentProject;
+			if(project3.type == 0) {
+				var targetData = project3.targetData[project3.target];
+				targetData.runActionText = _g.actionTextArea.value;
+			} else project3.runActionText = _g.actionTextArea.value;
+			_g.update(null);
+		};
+		var _this11 = window.document;
+		this.buildActionDescription = _this11.createElement("p");
+		this.buildActionDescription.className = "custom-font-size";
+		this.buildActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Build command:");
+		this.buildActionDescription.setAttribute("localeString","Build command:");
+		var _this12 = window.document;
+		this.buildActionTextArea = _this12.createElement("textarea");
+		this.buildActionTextArea.id = "project-options-build-action-textarea";
+		this.buildActionTextArea.className = "custom-font-size";
+		this.buildActionTextArea.onchange = function(e2) {
+			projectaccess.ProjectAccess.currentProject.buildActionCommand = _g.buildActionTextArea.value;
+			projectaccess.ProjectAccess.save();
+		};
+		this.page.appendChild(this.projectTargetList);
+		this.page.appendChild(this.buildActionDescription);
+		this.page.appendChild(this.buildActionTextArea);
+		this.page.appendChild(this.pathToHxmlDescription);
+		this.page.appendChild(this.inputGroupButton.getElement());
+		this.page.appendChild(this.openFLTargetText);
+		this.page.appendChild(this.openFLTargetList);
+		this.page.appendChild(this.openFLBuildModeText);
+		this.page.appendChild(this.openFLBuildModeList);
+		this.page.appendChild(this.runActionDescription);
+		this.page.appendChild(this.runActionList);
+		this.page.appendChild(this.runActionTextAreaDescription);
+		this.page.appendChild(this.actionTextArea);
 	}
-	projectaccess.ProjectOptions.projectTargetList.onchange = function(e) {
+	,updateOpenFLBuildCommand: function() {
 		var project = projectaccess.ProjectAccess.currentProject;
-		var _g2 = projectaccess.ProjectOptions.projectTargetList.value;
-		switch(_g2) {
-		case "Flash":
-			project.target = 0;
-			break;
-		case "JavaScript":
-			project.target = 1;
-			break;
-		case "Neko":
-			project.target = 2;
-			break;
-		case "OpenFL":
-			project.target = 1;
-			break;
-		case "PHP":
-			project.target = 3;
-			break;
-		case "C++":
-			project.target = 4;
-			break;
-		case "Java":
-			project.target = 5;
-			break;
-		case "C#":
-			project.target = 6;
+		project.openFLTarget = this.openFLTargets[this.openFLTargetList.selectedIndex];
+		var buildParams = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget];
+		if(project.openFLBuildMode == "Debug") {
+			buildParams.push("-debug");
+			if(project.openFLTarget == "flash") buildParams.push("-Dfdb");
+		}
+		var _g = project.openFLTarget;
+		switch(_g) {
+		case "flash":case "html5":case "neko":
+			buildParams = buildParams.concat(["--connect","5000"]);
 			break;
 		default:
-			throw "Unknown target";
 		}
-		parser.ClasspathWalker.parseProjectArguments();
-		projectaccess.ProjectOptions.updateProjectOptions();
-	};
-	projectaccess.ProjectOptions.openFLTargets = ["flash","html5","neko","android","blackberry","emscripten","webos","tizen","ios","windows","mac","linux"];
-	var _g3 = 0;
-	var _g11 = projectaccess.ProjectOptions.openFLTargets;
-	while(_g3 < _g11.length) {
-		var target1 = _g11[_g3];
-		++_g3;
-		projectaccess.ProjectOptions.openFLTargetList.appendChild(projectaccess.ProjectOptions.createListItem(target1));
+		project.buildActionCommand = buildParams.join(" ");
 	}
-	projectaccess.ProjectOptions.openFLTargetList.onchange = function(_) {
-		var project1 = projectaccess.ProjectAccess.currentProject;
-		projectaccess.ProjectOptions.updateOpenFLBuildCommand();
-		project1.runActionType = 2;
-		project1.runActionText = ["haxelib","run","lime","run","\"%path%\"",project1.openFLTarget].join(" ");
-		parser.ClasspathWalker.parseProjectArguments();
-		projectaccess.ProjectOptions.updateProjectOptions();
-	};
-	projectaccess.ProjectOptions.buildModes = ["Debug","Release"];
-	var _g4 = 0;
-	var _g12 = projectaccess.ProjectOptions.buildModes;
-	while(_g4 < _g12.length) {
-		var mode = _g12[_g4];
-		++_g4;
-		projectaccess.ProjectOptions.openFLBuildModeList.appendChild(projectaccess.ProjectOptions.createListItem(mode));
+	,createOptionsForMultipleHxmlProjects: function() {
+		var _g = this;
+		var _this = window.document;
+		this.pathToHxmlDescription = _this.createElement("p");
+		this.pathToHxmlDescription.textContent = watchers.LocaleWatcher.getStringSync("Path to Hxml:");
+		this.pathToHxmlDescription.setAttribute("localeString","Path to Hxml:");
+		this.pathToHxmlDescription.className = "custom-font-size";
+		this.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
+		this.pathToHxmlInput = this.inputGroupButton.getInput();
+		this.pathToHxmlInput.onchange = function(e) {
+			if(js.Node.require("fs").existsSync(_g.pathToHxmlInput.value)) {
+				var project = projectaccess.ProjectAccess.currentProject;
+				project.targetData[project.target].pathToHxml = _g.pathToHxmlInput.value;
+				projectaccess.ProjectAccess.save();
+			} else Alertify.error(_g.pathToHxmlInput.value + " is not found");
+		};
+		var browseButton = this.inputGroupButton.getButton();
+		browseButton.onclick = function(e1) {
+			core.FileDialog.openFile(function(path) {
+				_g.pathToHxmlInput.value = path;
+				var project1 = projectaccess.ProjectAccess.currentProject;
+				project1.targetData[project1.target].pathToHxml = _g.pathToHxmlInput.value;
+				projectaccess.ProjectAccess.save();
+			},".hxml");
+		};
+		var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
+		editButton.onclick = function(e2) {
+			var tabManagerInstance = tabmanager.TabManager.get();
+			tabManagerInstance.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,_g.pathToHxmlInput.value));
+		};
+		this.inputGroupButton.getSpan().appendChild(editButton);
 	}
-	projectaccess.ProjectOptions.openFLBuildModeList.onchange = function(_1) {
-		var mode1 = projectaccess.ProjectOptions.buildModes[projectaccess.ProjectOptions.openFLBuildModeList.selectedIndex];
-		var project2 = projectaccess.ProjectAccess.currentProject;
-		project2.openFLBuildMode = mode1;
-		projectaccess.ProjectOptions.updateOpenFLBuildCommand();
-	};
-	var _this7 = window.document;
-	projectaccess.ProjectOptions.runActionDescription = _this7.createElement("p");
-	projectaccess.ProjectOptions.runActionDescription.className = "custom-font-size";
-	projectaccess.ProjectOptions.runActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Run action:");
-	projectaccess.ProjectOptions.runActionDescription.setAttribute("localeString","Run action:");
-	var _this8 = window.document;
-	projectaccess.ProjectOptions.runActionTextAreaDescription = _this8.createElement("p");
-	projectaccess.ProjectOptions.runActionTextAreaDescription.textContent = watchers.LocaleWatcher.getStringSync("URL:");
-	projectaccess.ProjectOptions.runActionTextAreaDescription.setAttribute("localeString","URL:");
-	projectaccess.ProjectOptions.runActionTextAreaDescription.className = "custom-font-size";
-	var actions = ["Open URL","Open File","Run command"];
-	var _this9 = window.document;
-	projectaccess.ProjectOptions.runActionList = _this9.createElement("select");
-	projectaccess.ProjectOptions.runActionList.style.width = "100%";
-	projectaccess.ProjectOptions.runActionList.onchange = projectaccess.ProjectOptions.update;
-	var _g5 = 0;
-	while(_g5 < actions.length) {
-		var action = actions[_g5];
-		++_g5;
-		projectaccess.ProjectOptions.runActionList.appendChild(projectaccess.ProjectOptions.createListItem(action));
-	}
-	var _this10 = window.document;
-	projectaccess.ProjectOptions.actionTextArea = _this10.createElement("textarea");
-	projectaccess.ProjectOptions.actionTextArea.id = "project-options-action-textarea";
-	projectaccess.ProjectOptions.actionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.actionTextArea.onchange = function(e1) {
-		var project3 = projectaccess.ProjectAccess.currentProject;
-		if(project3.type == 0) {
-			var targetData = project3.targetData[project3.target];
-			targetData.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
-		} else project3.runActionText = projectaccess.ProjectOptions.actionTextArea.value;
-		projectaccess.ProjectOptions.update(null);
-	};
-	var _this11 = window.document;
-	projectaccess.ProjectOptions.buildActionDescription = _this11.createElement("p");
-	projectaccess.ProjectOptions.buildActionDescription.className = "custom-font-size";
-	projectaccess.ProjectOptions.buildActionDescription.textContent = watchers.LocaleWatcher.getStringSync("Build command:");
-	projectaccess.ProjectOptions.buildActionDescription.setAttribute("localeString","Build command:");
-	var _this12 = window.document;
-	projectaccess.ProjectOptions.buildActionTextArea = _this12.createElement("textarea");
-	projectaccess.ProjectOptions.buildActionTextArea.id = "project-options-build-action-textarea";
-	projectaccess.ProjectOptions.buildActionTextArea.className = "custom-font-size";
-	projectaccess.ProjectOptions.buildActionTextArea.onchange = function(e2) {
-		projectaccess.ProjectAccess.currentProject.buildActionCommand = projectaccess.ProjectOptions.buildActionTextArea.value;
-		projectaccess.ProjectAccess.save();
-	};
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.projectTargetList);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.buildActionDescription);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.buildActionTextArea);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.pathToHxmlDescription);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.inputGroupButton.getElement());
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLTargetText);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLTargetList);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLBuildModeText);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.openFLBuildModeList);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionDescription);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionList);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.runActionTextAreaDescription);
-	projectaccess.ProjectOptions.page.appendChild(projectaccess.ProjectOptions.actionTextArea);
-};
-projectaccess.ProjectOptions.updateOpenFLBuildCommand = function() {
-	var project = projectaccess.ProjectAccess.currentProject;
-	project.openFLTarget = projectaccess.ProjectOptions.openFLTargets[projectaccess.ProjectOptions.openFLTargetList.selectedIndex];
-	var buildParams = ["haxelib","run","lime","build","\"%path%\"",project.openFLTarget];
-	if(project.openFLBuildMode == "Debug") {
-		buildParams.push("-debug");
-		if(project.openFLTarget == "flash") buildParams.push("-Dfdb");
-	}
-	var _g = project.openFLTarget;
-	switch(_g) {
-	case "flash":case "html5":case "neko":
-		buildParams = buildParams.concat(["--connect","5000"]);
-		break;
-	default:
-	}
-	project.buildActionCommand = buildParams.join(" ");
-};
-projectaccess.ProjectOptions.createOptionsForMultipleHxmlProjects = function() {
-	var _this = window.document;
-	projectaccess.ProjectOptions.pathToHxmlDescription = _this.createElement("p");
-	projectaccess.ProjectOptions.pathToHxmlDescription.textContent = watchers.LocaleWatcher.getStringSync("Path to Hxml:");
-	projectaccess.ProjectOptions.pathToHxmlDescription.setAttribute("localeString","Path to Hxml:");
-	projectaccess.ProjectOptions.pathToHxmlDescription.className = "custom-font-size";
-	projectaccess.ProjectOptions.inputGroupButton = new bootstrap.InputGroupButton("Browse...");
-	projectaccess.ProjectOptions.pathToHxmlInput = projectaccess.ProjectOptions.inputGroupButton.getInput();
-	projectaccess.ProjectOptions.pathToHxmlInput.onchange = function(e) {
-		if(js.Node.require("fs").existsSync(projectaccess.ProjectOptions.pathToHxmlInput.value)) {
-			var project = projectaccess.ProjectAccess.currentProject;
-			project.targetData[project.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
-			projectaccess.ProjectAccess.save();
-		} else Alertify.error(projectaccess.ProjectOptions.pathToHxmlInput.value + " is not found");
-	};
-	var browseButton = projectaccess.ProjectOptions.inputGroupButton.getButton();
-	browseButton.onclick = function(e1) {
-		core.FileDialog.openFile(function(path) {
-			projectaccess.ProjectOptions.pathToHxmlInput.value = path;
-			var project1 = projectaccess.ProjectAccess.currentProject;
-			project1.targetData[project1.target].pathToHxml = projectaccess.ProjectOptions.pathToHxmlInput.value;
-			projectaccess.ProjectAccess.save();
-		},".hxml");
-	};
-	var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
-	editButton.onclick = function(e2) {
-		tabmanager.TabManager.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectOptions.pathToHxmlInput.value));
-	};
-	projectaccess.ProjectOptions.inputGroupButton.getSpan().appendChild(editButton);
-};
-projectaccess.ProjectOptions.update = function(_) {
-	var project = projectaccess.ProjectAccess.currentProject;
-	if(project.type == 1) {
-		projectaccess.ProjectOptions.openFLTargetList.style.display = "";
-		projectaccess.ProjectOptions.openFLTargetText.style.display = "";
-		projectaccess.ProjectOptions.openFLBuildModeList.style.display = "";
-		projectaccess.ProjectOptions.openFLBuildModeText.style.display = "";
-	} else {
-		projectaccess.ProjectOptions.openFLTargetList.style.display = "none";
-		projectaccess.ProjectOptions.openFLTargetText.style.display = "none";
-		projectaccess.ProjectOptions.openFLBuildModeList.style.display = "none";
-		projectaccess.ProjectOptions.openFLBuildModeText.style.display = "none";
-	}
-	if(project.type == 2) {
-		projectaccess.ProjectOptions.buildActionTextArea.style.display = "none";
-		projectaccess.ProjectOptions.buildActionDescription.style.display = "none";
-		projectaccess.ProjectOptions.projectTargetList.style.display = "none";
-		projectaccess.ProjectOptions.projectTargetText.style.display = "none";
-	} else {
-		projectaccess.ProjectOptions.buildActionTextArea.style.display = "none";
-		projectaccess.ProjectOptions.buildActionDescription.style.display = "none";
-		projectaccess.ProjectOptions.runActionTextAreaDescription.style.display = "";
-		projectaccess.ProjectOptions.runActionList.style.display = "";
-		projectaccess.ProjectOptions.runActionDescription.style.display = "";
-		projectaccess.ProjectOptions.projectTargetList.style.display = "";
-		projectaccess.ProjectOptions.projectTargetText.style.display = "";
-		projectaccess.ProjectOptions.actionTextArea.style.display = "";
-	}
-	if(project.type == 0) {
-		projectaccess.ProjectOptions.pathToHxmlDescription.style.display = "";
-		projectaccess.ProjectOptions.inputGroupButton.getElement().style.display = "";
-	} else {
-		projectaccess.ProjectOptions.pathToHxmlDescription.style.display = "none";
-		projectaccess.ProjectOptions.inputGroupButton.getElement().style.display = "none";
-	}
-	var runActionType;
-	var _g = projectaccess.ProjectOptions.runActionList.selectedIndex;
-	switch(_g) {
-	case 0:
-		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("URL: ");
-		runActionType = 0;
-		break;
-	case 1:
-		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Path: ");
-		runActionType = 1;
-		break;
-	case 2:
-		projectaccess.ProjectOptions.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Command: ");
-		runActionType = 2;
-		break;
-	default:
-		runActionType = 0;
-	}
-	var _g1 = project.type;
-	switch(_g1) {
-	case 0:
-		var targetData = project.targetData[project.target];
-		targetData.runActionType = runActionType;
-		break;
-	default:
-		project.runActionType = runActionType;
-	}
-	projectaccess.ProjectAccess.save();
-};
-projectaccess.ProjectOptions.updateProjectOptions = function() {
-	var project = projectaccess.ProjectAccess.currentProject;
-	var runActionType;
-	var runActionText;
-	var _g = project.type;
-	switch(_g) {
-	case 0:
-		var targetData = project.targetData[project.target];
-		runActionType = targetData.runActionType;
-		runActionText = targetData.runActionText;
-		projectaccess.ProjectOptions.pathToHxmlInput.value = targetData.pathToHxml;
-		break;
-	default:
-		runActionType = project.runActionType;
-		runActionText = project.runActionText;
-	}
-	if(project.type == 1) {
-		projectaccess.ProjectOptions.projectTargetList.selectedIndex = 3;
-		var i = Lambda.indexOf(projectaccess.ProjectOptions.openFLTargets,project.openFLTarget);
-		if(i != -1) projectaccess.ProjectOptions.openFLTargetList.selectedIndex = i; else projectaccess.ProjectOptions.openFLTargetList.selectedIndex = 0;
-		projectaccess.ProjectOptions.openFLBuildModeList.selectedIndex = HxOverrides.indexOf(projectaccess.ProjectOptions.buildModes,project.openFLBuildMode,0);
-	} else {
-		var _g1 = project.target;
-		switch(_g1) {
+	,update: function(_) {
+		var project = projectaccess.ProjectAccess.currentProject;
+		if(project.type == 1) {
+			this.openFLTargetList.style.display = "";
+			this.openFLTargetText.style.display = "";
+			this.openFLBuildModeList.style.display = "";
+			this.openFLBuildModeText.style.display = "";
+		} else {
+			this.openFLTargetList.style.display = "none";
+			this.openFLTargetText.style.display = "none";
+			this.openFLBuildModeList.style.display = "none";
+			this.openFLBuildModeText.style.display = "none";
+		}
+		if(project.type == 2) {
+			this.buildActionTextArea.style.display = "none";
+			this.buildActionDescription.style.display = "none";
+			this.projectTargetList.style.display = "none";
+			this.projectTargetText.style.display = "none";
+		} else {
+			this.buildActionTextArea.style.display = "none";
+			this.buildActionDescription.style.display = "none";
+			this.runActionTextAreaDescription.style.display = "";
+			this.runActionList.style.display = "";
+			this.runActionDescription.style.display = "";
+			this.projectTargetList.style.display = "";
+			this.projectTargetText.style.display = "";
+			this.actionTextArea.style.display = "";
+		}
+		if(project.type == 0) {
+			this.pathToHxmlDescription.style.display = "";
+			this.inputGroupButton.getElement().style.display = "";
+		} else {
+			this.pathToHxmlDescription.style.display = "none";
+			this.inputGroupButton.getElement().style.display = "none";
+		}
+		var runActionType;
+		var _g = this.runActionList.selectedIndex;
+		switch(_g) {
 		case 0:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 0;
+			this.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("URL: ");
+			runActionType = 0;
 			break;
 		case 1:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 1;
+			this.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Path: ");
+			runActionType = 1;
 			break;
 		case 2:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 2;
+			this.runActionTextAreaDescription.innerText = watchers.LocaleWatcher.getStringSync("Command: ");
+			runActionType = 2;
 			break;
-		case 3:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 4;
+		default:
+			runActionType = 0;
+		}
+		var _g1 = project.type;
+		switch(_g1) {
+		case 0:
+			var targetData = project.targetData[project.target];
+			targetData.runActionType = runActionType;
 			break;
-		case 4:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 5;
+		default:
+			project.runActionType = runActionType;
+		}
+		projectaccess.ProjectAccess.save();
+	}
+	,updateProjectOptions: function() {
+		var project = projectaccess.ProjectAccess.currentProject;
+		var runActionType;
+		var runActionText;
+		var _g = project.type;
+		switch(_g) {
+		case 0:
+			var targetData = project.targetData[project.target];
+			runActionType = targetData.runActionType;
+			runActionText = targetData.runActionText;
+			this.pathToHxmlInput.value = targetData.pathToHxml;
 			break;
-		case 5:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 6;
+		default:
+			runActionType = project.runActionType;
+			runActionText = project.runActionText;
+		}
+		if(project.type == 1) {
+			this.projectTargetList.selectedIndex = 3;
+			var i = Lambda.indexOf(this.openFLTargets,project.openFLTarget);
+			if(i != -1) this.openFLTargetList.selectedIndex = i; else this.openFLTargetList.selectedIndex = 0;
+			this.openFLBuildModeList.selectedIndex = HxOverrides.indexOf(this.buildModes,project.openFLBuildMode,0);
+		} else {
+			var _g1 = project.target;
+			switch(_g1) {
+			case 0:
+				this.projectTargetList.selectedIndex = 0;
+				break;
+			case 1:
+				this.projectTargetList.selectedIndex = 1;
+				break;
+			case 2:
+				this.projectTargetList.selectedIndex = 2;
+				break;
+			case 3:
+				this.projectTargetList.selectedIndex = 4;
+				break;
+			case 4:
+				this.projectTargetList.selectedIndex = 5;
+				break;
+			case 5:
+				this.projectTargetList.selectedIndex = 6;
+				break;
+			case 6:
+				this.projectTargetList.selectedIndex = 7;
+				break;
+			case 7:
+				this.projectTargetList.selectedIndex = 8;
+				break;
+			default:
+			}
+		}
+		this.buildActionTextArea.value = project.buildActionCommand;
+		switch(runActionType) {
+		case 0:
+			this.runActionList.selectedIndex = 0;
 			break;
-		case 6:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 7;
+		case 1:
+			this.runActionList.selectedIndex = 1;
 			break;
-		case 7:
-			projectaccess.ProjectOptions.projectTargetList.selectedIndex = 8;
+		case 2:
+			this.runActionList.selectedIndex = 2;
 			break;
 		default:
 		}
+		if(runActionText == null) runActionText = "";
+		this.actionTextArea.value = runActionText;
+		this.update(null);
 	}
-	projectaccess.ProjectOptions.buildActionTextArea.value = project.buildActionCommand;
-	switch(runActionType) {
-	case 0:
-		projectaccess.ProjectOptions.runActionList.selectedIndex = 0;
-		break;
-	case 1:
-		projectaccess.ProjectOptions.runActionList.selectedIndex = 1;
-		break;
-	case 2:
-		projectaccess.ProjectOptions.runActionList.selectedIndex = 2;
-		break;
-	default:
+	,createListItem: function(text) {
+		var option;
+		var _this = window.document;
+		option = _this.createElement("option");
+		option.textContent = watchers.LocaleWatcher.getStringSync(text);
+		option.value = text;
+		return option;
 	}
-	if(runActionText == null) runActionText = "";
-	projectaccess.ProjectOptions.actionTextArea.value = runActionText;
-	projectaccess.ProjectOptions.update(null);
-};
-projectaccess.ProjectOptions.createListItem = function(text) {
-	var option;
-	var _this = window.document;
-	option = _this.createElement("option");
-	option.textContent = watchers.LocaleWatcher.getStringSync(text);
-	option.value = text;
-	return option;
+	,__class__: projectaccess.ProjectOptions
 };
 var tabmanager = {};
 tabmanager.ContextMenu = function() { };
@@ -16405,22 +16748,23 @@ tabmanager.ContextMenu.createContextMenu = function() {
 	window.document.addEventListener("click",function(e) {
 		tabmanager.ContextMenu.contextMenu.style.display = "none";
 	});
+	var tabManager = tabmanager.TabManager.get();
 	var ul;
 	var _this1 = window.document;
 	ul = _this1.createElement("ul");
 	ul.className = "dropdown-menu";
 	ul.style.display = "block";
-	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("New File...",tabmanager.TabManager.createFileInNewTab));
+	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("New File...",$bind(tabManager,tabManager.createFileInNewTab)));
 	ul.appendChild(tabmanager.ContextMenu.createDivider());
 	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("Close",function() {
-		tabmanager.TabManager.closeTab(tabmanager.ContextMenu.contextMenu.getAttribute("path"));
+		tabManager.closeTab(tabmanager.ContextMenu.contextMenu.getAttribute("path"));
 	}));
 	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("Close All",function() {
-		tabmanager.TabManager.closeAll();
+		tabManager.closeAll();
 	}));
 	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("Close Other",function() {
 		var path = tabmanager.ContextMenu.contextMenu.getAttribute("path");
-		tabmanager.TabManager.closeOthers(path);
+		tabManager.closeOthers(path);
 	}));
 	ul.appendChild(tabmanager.ContextMenu.createDivider());
 	ul.appendChild(tabmanager.ContextMenu.createContextMenuItem("Show Item In Folder",function() {
@@ -16469,11 +16813,12 @@ tabmanager.Tab = function(_name,_path,_doc,_save) {
 	this.li = _this.createElement("li");
 	this.li.title = this.path;
 	this.li.setAttribute("path",this.path);
+	var tabManagerInstance = tabmanager.TabManager.get();
 	var _this1 = window.document;
 	this.span3 = _this1.createElement("span");
 	this.span3.textContent = this.name + "\t";
 	this.span3.addEventListener("click",function(e) {
-		tabmanager.TabManager.selectDoc(_g.path);
+		tabManagerInstance.selectDoc(_g.path);
 	});
 	this.li.addEventListener("contextmenu",function(e1) {
 		tabmanager.ContextMenu.showMenu(_g.path,e1);
@@ -16485,7 +16830,7 @@ tabmanager.Tab = function(_name,_path,_doc,_save) {
 	span.style.position = "relative";
 	span.style.top = "2px";
 	span.addEventListener("click",function(e2) {
-		tabmanager.TabManager.closeTab(_g.path);
+		tabManagerInstance.closeTab(_g.path);
 	});
 	var span2;
 	var _this3 = window.document;
@@ -16515,7 +16860,8 @@ tabmanager.Tab.prototype = {
 	}
 	,reloadFile: function() {
 		var _g = this;
-		tabmanager.TabManager.openFile(this.path,function(code) {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		tabManagerInstance.openFile(this.path,function(code) {
 			_g.doc.setValue(code);
 			_g.doc.markClean();
 			_g.setChanged(false);
@@ -16541,382 +16887,402 @@ tabmanager.Tab.prototype = {
 	}
 	,__class__: tabmanager.Tab
 };
-tabmanager.TabManager = function() { };
+tabmanager.TabManager = function() {
+};
 $hxClasses["tabmanager.TabManager"] = tabmanager.TabManager;
 tabmanager.TabManager.__name__ = ["tabmanager","TabManager"];
-tabmanager.TabManager.load = function() {
-	tabmanager.TabManager.tabs = js.Boot.__cast(window.document.getElementById("tabs") , HTMLUListElement);
-	tabmanager.TabManager.tabMap = new tabmanager.TabMap();
-	tabmanager.ContextMenu.createContextMenu();
-	var options = { };
-	options.labels = { };
-	options.labels.ok = watchers.LocaleWatcher.getStringSync("Yes");
-	options.labels.cancel = watchers.LocaleWatcher.getStringSync("No");
-	Alertify.set(options);
-	var indentWidthLabel;
-	indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
-	var indentWidthInput;
-	indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
-	indentWidthLabel.onclick = function(e) {
-		indentWidthLabel.classList.add("hidden");
-		indentWidthInput.classList.remove("hidden");
-		indentWidthInput.focus();
-		indentWidthInput.select();
-		indentWidthInput.onblur = function(_) {
-			indentWidthLabel.classList.remove("hidden");
-			indentWidthInput.classList.add("hidden");
-			indentWidthInput.onblur = null;
-			indentWidthInput.onkeyup = null;
-			cm.Editor.editor.focus();
-			tabmanager.TabManager.setIndentationSize(Std.parseInt(indentWidthInput.value));
+tabmanager.TabManager.get = function() {
+	if(tabmanager.TabManager.instance == null) tabmanager.TabManager.instance = new tabmanager.TabManager();
+	return tabmanager.TabManager.instance;
+};
+tabmanager.TabManager.prototype = {
+	tabs: null
+	,tabMap: null
+	,selectedPath: null
+	,selectedIndex: null
+	,load: function() {
+		var _g = this;
+		this.tabs = js.Boot.__cast(window.document.getElementById("tabs") , HTMLUListElement);
+		this.tabMap = new tabmanager.TabMap();
+		tabmanager.ContextMenu.createContextMenu();
+		var options = { };
+		options.labels = { };
+		options.labels.ok = watchers.LocaleWatcher.getStringSync("Yes");
+		options.labels.cancel = watchers.LocaleWatcher.getStringSync("No");
+		Alertify.set(options);
+		var indentWidthLabel;
+		indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
+		var indentWidthInput;
+		indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
+		indentWidthLabel.onclick = function(e) {
+			indentWidthLabel.classList.add("hidden");
+			indentWidthInput.classList.remove("hidden");
+			indentWidthInput.focus();
+			indentWidthInput.select();
+			indentWidthInput.onblur = function(_) {
+				indentWidthLabel.classList.remove("hidden");
+				indentWidthInput.classList.add("hidden");
+				indentWidthInput.onblur = null;
+				indentWidthInput.onkeyup = null;
+				cm.Editor.editor.focus();
+				_g.setIndentationSize(Std.parseInt(indentWidthInput.value));
+			};
+			indentWidthInput.onkeyup = function(event) {
+				if(event.keyCode == 13) indentWidthInput.blur(); else if(event.keyCode == 27) _g.resetIndentationSettings();
+			};
 		};
-		indentWidthInput.onkeyup = function(event) {
-			if(event.keyCode == 13) indentWidthInput.blur(); else if(event.keyCode == 27) tabmanager.TabManager.resetIndentationSettings();
+		var indentType = window.document.getElementById("indent-type");
+		indentType.onclick = function(_1) {
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(_g.getCurrentDocumentPath());
+			if(selectedFile != null) {
+				selectedFile.useTabs = !selectedFile.useTabs;
+				console.log(selectedFile.useTabs);
+				_g.updateIndentationSettings(selectedFile);
+				_g.loadIndentationSettings(cm.Editor.editor,selectedFile);
+			}
 		};
-	};
-	var indentType = window.document.getElementById("indent-type");
-	indentType.onclick = function(_1) {
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
+	}
+	,setIndentationSize: function(indentSize) {
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(this.getCurrentDocumentPath());
 		if(selectedFile != null) {
-			selectedFile.useTabs = !selectedFile.useTabs;
-			console.log(selectedFile.useTabs);
-			tabmanager.TabManager.updateIndentationSettings(selectedFile);
-			tabmanager.TabManager.loadIndentationSettings(cm.Editor.editor,selectedFile);
+			selectedFile.indentSize = indentSize;
+			this.updateIndentationSettings(selectedFile);
+			this.loadIndentationSettings(cm.Editor.editor,selectedFile);
 		}
-	};
-};
-tabmanager.TabManager.setIndentationSize = function(indentSize) {
-	var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
-	if(selectedFile != null) {
-		selectedFile.indentSize = indentSize;
-		tabmanager.TabManager.updateIndentationSettings(selectedFile);
-		tabmanager.TabManager.loadIndentationSettings(cm.Editor.editor,selectedFile);
 	}
-};
-tabmanager.TabManager.resetIndentationSettings = function() {
-	var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.getCurrentDocumentPath());
-	if(selectedFile != null) tabmanager.TabManager.updateIndentationSettings(selectedFile);
-};
-tabmanager.TabManager.createNewTab = function(name,path,doc,save) {
-	if(save == null) save = false;
-	var tab = new tabmanager.Tab(name,path,doc,save);
-	tabmanager.TabManager.tabMap.add(tab);
-	tabmanager.TabManager.tabs.appendChild(tab.getElement());
-	if(projectaccess.ProjectAccess.path != null) {
-		var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
-		if(selectedFile == null) projectaccess.ProjectAccess.currentProject.files.push({ path : relativePath});
+	,resetIndentationSettings: function() {
+		var selectedFile = projectaccess.ProjectAccess.getFileByPath(this.getCurrentDocumentPath());
+		if(selectedFile != null) this.updateIndentationSettings(selectedFile);
 	}
-	core.RecentProjectsList.addFile(path);
-	cm.Editor.resize();
-};
-tabmanager.TabManager.openFile = function(path,onComplete) {
-	var options = { };
-	options.encoding = "utf8";
-	js.Node.require("fs").readFile(path,options,function(error,code) {
-		if(error != null) console.log(error); else onComplete(code);
-	});
-};
-tabmanager.TabManager.openFileInNewTab = function(path,show,onComplete) {
-	if(show == null) show = true;
-	if(core.Utils.os == 0) {
-		var ereg = new EReg("[a-z]:\\\\","i");
-		if(ereg.match(path)) path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
+	,createNewTab: function(name,path,doc,save) {
+		if(save == null) save = false;
+		var tab = new tabmanager.Tab(name,path,doc,save);
+		this.tabMap.add(tab);
+		this.tabs.appendChild(tab.getElement());
+		if(projectaccess.ProjectAccess.path != null) {
+			var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
+			if(selectedFile == null) projectaccess.ProjectAccess.currentProject.files.push({ path : relativePath});
+		}
+		var recentProjectsList = core.RecentProjectsList.get();
+		recentProjectsList.addFile(path);
+		cm.Editor.resize();
 	}
-	path = StringTools.replace(path,"\\",js.Node.require("path").sep);
-	if(tabmanager.TabManager.isAlreadyOpened(path,show)) {
-		if(onComplete != null) onComplete();
-		return;
+	,openFile: function(path,onComplete) {
+		var options = { };
+		options.encoding = "utf8";
+		js.Node.require("fs").readFile(path,options,function(error,code) {
+			if(error != null) console.log(error); else onComplete(code);
+		});
 	}
-	tabmanager.TabManager.openFile(path,function(code) {
-		if(tabmanager.TabManager.isAlreadyOpened(path,show)) {
+	,openFileInNewTab: function(path,show,onComplete) {
+		if(show == null) show = true;
+		var _g = this;
+		if(core.Utils.os == 0) {
+			var ereg = new EReg("[a-z]:\\\\","i");
+			if(ereg.match(path)) path = HxOverrides.substr(path,0,3).toLowerCase() + HxOverrides.substr(path,3,null);
+		}
+		path = StringTools.replace(path,"\\",js.Node.require("path").sep);
+		if(this.isAlreadyOpened(path,show)) {
 			if(onComplete != null) onComplete();
 			return;
 		}
-		if(code != null) {
-			var mode = tabmanager.TabManager.getMode(path);
-			var name = js.Node.require("path").basename(path);
-			var doc = new CodeMirror.Doc(code,mode);
-			tabmanager.TabManager.createNewTab(name,path,doc);
-			if(show) tabmanager.TabManager.selectDoc(path);
-			tabmanager.TabManager.checkTabsCount();
-			if(onComplete != null) onComplete();
-		} else console.log("tab-manager: can't load file " + path);
-	});
-};
-tabmanager.TabManager.createFileInNewTab = function(pathToFile) {
-	var path = pathToFile;
-	if(path == null) core.FileDialog.saveFile(function(_selectedPath) {
-		tabmanager.TabManager.createNewFile(_selectedPath);
-	}); else tabmanager.TabManager.createNewFile(path);
-};
-tabmanager.TabManager.createNewFile = function(path) {
-	var name = js.Node.require("path").basename(path);
-	var mode = tabmanager.TabManager.getMode(name);
-	var code = "";
-	var extname = js.Node.require("path").extname(name);
-	switch(extname) {
-	case ".hx":
-		path = HxOverrides.substr(path,0,path.length - name.length) + HxOverrides.substr(name,0,1).toUpperCase() + HxOverrides.substr(name,1,null);
-		var options = { };
-		options.encoding = "utf8";
-		var pathToTemplate = js.Node.require("path").join("core","templates","New.hx");
-		var templateCode = js.Node.require("fs").readFileSync(pathToTemplate,options);
-		code = mustache.Mustache.render(templateCode,{ name : js.Node.require("path").basename(name,extname), pack : "", author : ""});
-		break;
-	case ".hxml":
-		var options1 = { };
-		options1.encoding = "utf8";
-		var pathToTemplate1 = js.Node.require("path").join("core","templates","build.hxml");
-		var templateCode1 = js.Node.require("fs").readFileSync(pathToTemplate1,options1);
-		code = templateCode1;
-		break;
-	default:
+		this.openFile(path,function(code) {
+			if(_g.isAlreadyOpened(path,show)) {
+				if(onComplete != null) onComplete();
+				return;
+			}
+			if(code != null) {
+				var mode = _g.getMode(path);
+				var name = js.Node.require("path").basename(path);
+				var doc = new CodeMirror.Doc(code,mode);
+				_g.createNewTab(name,path,doc);
+				if(show) _g.selectDoc(path);
+				_g.checkTabsCount();
+				if(onComplete != null) onComplete();
+			} else console.log("tab-manager: can't load file " + path);
+		});
 	}
-	var doc = new CodeMirror.Doc(code,mode);
-	tabmanager.TabManager.createNewTab(name,path,doc,true);
-	tabmanager.TabManager.selectDoc(path);
-	tabmanager.TabManager.checkTabsCount();
-	filetree.FileTree.load();
-};
-tabmanager.TabManager.checkTabsCount = function() {
-	if(window.document.getElementById("editor").style.display == "none" && tabmanager.TabManager.tabMap.getTabs().length > 0) {
-		new $("#editor").show(0);
-		core.WelcomeScreen.hide();
-		cm.Editor.editor.refresh();
+	,createFileInNewTab: function(pathToFile) {
+		var _g = this;
+		var path = pathToFile;
+		if(path == null) core.FileDialog.saveFile(function(_selectedPath) {
+			_g.createNewFile(_selectedPath);
+		}); else this.createNewFile(path);
+	}
+	,createNewFile: function(path) {
+		var name = js.Node.require("path").basename(path);
+		var mode = this.getMode(name);
+		var code = "";
+		var extname = js.Node.require("path").extname(name);
+		switch(extname) {
+		case ".hx":
+			path = HxOverrides.substr(path,0,path.length - name.length) + HxOverrides.substr(name,0,1).toUpperCase() + HxOverrides.substr(name,1,null);
+			var options = { };
+			options.encoding = "utf8";
+			var pathToTemplate = js.Node.require("path").join("core","templates","New.hx");
+			var templateCode = js.Node.require("fs").readFileSync(pathToTemplate,options);
+			code = mustache.Mustache.render(templateCode,{ name : js.Node.require("path").basename(name,extname), pack : "", author : ""});
+			break;
+		case ".hxml":
+			var options1 = { };
+			options1.encoding = "utf8";
+			var pathToTemplate1 = js.Node.require("path").join("core","templates","build.hxml");
+			var templateCode1 = js.Node.require("fs").readFileSync(pathToTemplate1,options1);
+			code = templateCode1;
+			break;
+		default:
+		}
+		var doc = new CodeMirror.Doc(code,mode);
+		this.createNewTab(name,path,doc,true);
+		this.selectDoc(path);
+		this.checkTabsCount();
+		var fileTreeInstance = filetree.FileTree.get();
+		fileTreeInstance.load();
+	}
+	,checkTabsCount: function() {
+		if(window.document.getElementById("editor").style.display == "none" && this.tabMap.getTabs().length > 0) {
+			new $("#editor").show(0);
+			core.WelcomeScreen.hide();
+			cm.Editor.editor.refresh();
+			cm.Editor.resize();
+		}
+	}
+	,closeAll: function() {
+		var _g = 0;
+		var _g1 = this.tabMap.keys();
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			this.closeTab(key,false);
+		}
+	}
+	,closeOthers: function(path) {
+		var _g = 0;
+		var _g1 = this.tabMap.keys();
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			if(key != path) this.closeTab(key,false);
+		}
+		if(this.tabMap.getTabs().length == 1) this.showNextTab();
+	}
+	,closeTab: function(path,switchToTab) {
+		if(switchToTab == null) switchToTab = true;
+		var _g = this;
+		cm.Editor.saveFoldedRegions();
+		if(this.isChanged(path)) Alertify.confirm(watchers.LocaleWatcher.getStringSync("File ") + path + watchers.LocaleWatcher.getStringSync(" was changed. Save it?"),function(e) {
+			if(e) _g.saveDoc(path);
+			_g.removeTab(path,switchToTab);
+		}); else this.removeTab(path,switchToTab);
 		cm.Editor.resize();
 	}
-};
-tabmanager.TabManager.closeAll = function() {
-	var _g = 0;
-	var _g1 = tabmanager.TabManager.tabMap.keys();
-	while(_g < _g1.length) {
-		var key = _g1[_g];
-		++_g;
-		tabmanager.TabManager.closeTab(key,false);
-	}
-};
-tabmanager.TabManager.closeOthers = function(path) {
-	var _g = 0;
-	var _g1 = tabmanager.TabManager.tabMap.keys();
-	while(_g < _g1.length) {
-		var key = _g1[_g];
-		++_g;
-		if(key != path) tabmanager.TabManager.closeTab(key,false);
-	}
-	if(tabmanager.TabManager.tabMap.getTabs().length == 1) tabmanager.TabManager.showNextTab();
-};
-tabmanager.TabManager.closeTab = function(path,switchToTab) {
-	if(switchToTab == null) switchToTab = true;
-	cm.Editor.saveFoldedRegions();
-	if(tabmanager.TabManager.isChanged(path)) Alertify.confirm(watchers.LocaleWatcher.getStringSync("File ") + path + watchers.LocaleWatcher.getStringSync(" was changed. Save it?"),function(e) {
-		if(e) tabmanager.TabManager.saveDoc(path);
-		tabmanager.TabManager.removeTab(path,switchToTab);
-	}); else tabmanager.TabManager.removeTab(path,switchToTab);
-	cm.Editor.resize();
-};
-tabmanager.TabManager.removeTab = function(path,switchToTab) {
-	var tab = tabmanager.TabManager.tabMap.get(path);
-	tabmanager.TabManager.tabMap.remove(path);
-	tab.remove();
-	tabmanager.TabManager.selectedPath = null;
-	if(tabmanager.TabManager.tabMap.getTabs().length > 0) {
-		if(switchToTab) tabmanager.TabManager.showPreviousTab();
-	} else {
-		new $("#editor").hide(0);
-		if(projectaccess.ProjectAccess.path != null) core.WelcomeScreen.hide(); else core.WelcomeScreen.show();
-		core.OutlinePanel.clearFields();
-		core.OutlinePanel.update();
-	}
-	if(projectaccess.ProjectAccess.path != null) {
-		var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
-		HxOverrides.remove(projectaccess.ProjectAccess.currentProject.files,selectedFile);
-	}
-};
-tabmanager.TabManager.showPreviousTab = function() {
-	var index = tabmanager.TabManager.selectedIndex - 1;
-	var tabArray = tabmanager.TabManager.tabMap.getTabs();
-	if(index < 0) index = tabArray.length - 1;
-	tabmanager.TabManager.selectDoc(tabArray[index].path);
-};
-tabmanager.TabManager.showNextTab = function() {
-	var index = tabmanager.TabManager.selectedIndex + 1;
-	var tabArray = tabmanager.TabManager.tabMap.getTabs();
-	if(index > tabArray.length - 1) index = 0;
-	tabmanager.TabManager.selectDoc(tabArray[index].path);
-};
-tabmanager.TabManager.closeActiveTab = function() {
-	tabmanager.TabManager.closeTab(tabmanager.TabManager.selectedPath);
-};
-tabmanager.TabManager.isAlreadyOpened = function(path,show) {
-	if(show == null) show = true;
-	var opened = tabmanager.TabManager.tabMap.exists(path);
-	if(opened && show) tabmanager.TabManager.selectDoc(path);
-	return opened;
-};
-tabmanager.TabManager.getMode = function(path) {
-	var mode = null;
-	var _g = js.Node.require("path").extname(path);
-	switch(_g) {
-	case ".hx":
-		mode = "haxe";
-		break;
-	case ".hxml":
-		mode = "hxml";
-		break;
-	case ".js":
-		mode = "javascript";
-		break;
-	case ".css":
-		mode = "css";
-		break;
-	case ".json":
-		mode = "application/json";
-		break;
-	case ".xml":
-		mode = "xml";
-		break;
-	case ".html":
-		mode = "text/html";
-		break;
-	case ".md":
-		mode = "markdown";
-		break;
-	case ".sh":case ".bat":
-		mode = "shell";
-		break;
-	case ".ml":
-		mode = "ocaml";
-		break;
-	case ".yml":
-		mode = "yaml";
-		break;
-	default:
-	}
-	return mode;
-};
-tabmanager.TabManager.selectDoc = function(path) {
-	var found = false;
-	var keys = tabmanager.TabManager.tabMap.keys();
-	var _g1 = 0;
-	var _g = keys.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		if(keys[i] == path) {
-			tabmanager.TabManager.tabMap.get(keys[i]).getElement().className = "selected";
-			tabmanager.TabManager.selectedIndex = i;
-			found = true;
-		} else tabmanager.TabManager.tabMap.get(keys[i]).getElement().className = "";
-	}
-	var cm1 = cm.Editor.editor;
-	if(found) {
-		var project = projectaccess.ProjectAccess.currentProject;
-		if(tabmanager.TabManager.selectedPath != null && project != null) {
-			cm.Editor.saveFoldedRegions();
-			cm1.refresh();
+	,removeTab: function(path,switchToTab) {
+		var tab = this.tabMap.get(path);
+		this.tabMap.remove(path);
+		tab.remove();
+		this.selectedPath = null;
+		if(this.tabMap.getTabs().length > 0) {
+			if(switchToTab) this.showPreviousTab();
+		} else {
+			new $("#editor").hide(0);
+			if(projectaccess.ProjectAccess.path != null) core.WelcomeScreen.hide(); else core.WelcomeScreen.show();
+			var outlinePanel = core.OutlinePanel.get();
+			outlinePanel.clearFields();
+			outlinePanel.update();
 		}
-		tabmanager.TabManager.selectedPath = path;
-		if(projectaccess.ProjectAccess.path != null) project.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,tabmanager.TabManager.selectedPath);
-		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
-		var doc = tab.doc;
-		cm.Editor.editor.swapDoc(doc);
-		core.HaxeLint.updateLinting();
-		var completionActive = cm.Editor.editor.state.completionActive;
-		if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
-		if(projectaccess.ProjectAccess.currentProject != null) {
-			var selectedFile = projectaccess.ProjectAccess.getFileByPath(tabmanager.TabManager.selectedPath);
-			if(selectedFile != null) {
-				if(!tab.loaded) {
-					var foldedRegions = selectedFile.foldedRegions;
-					if(foldedRegions != null) {
-						var _g2 = 0;
-						while(_g2 < foldedRegions.length) {
-							var pos = foldedRegions[_g2];
-							++_g2;
-							cm1.foldCode(pos,null,"fold");
+		if(projectaccess.ProjectAccess.path != null) {
+			var selectedFile = projectaccess.ProjectAccess.getFileByPath(path);
+			HxOverrides.remove(projectaccess.ProjectAccess.currentProject.files,selectedFile);
+		}
+	}
+	,showPreviousTab: function() {
+		var index = this.selectedIndex - 1;
+		var tabArray = this.tabMap.getTabs();
+		if(index < 0) index = tabArray.length - 1;
+		this.selectDoc(tabArray[index].path);
+	}
+	,showNextTab: function() {
+		var index = this.selectedIndex + 1;
+		var tabArray = this.tabMap.getTabs();
+		if(index > tabArray.length - 1) index = 0;
+		this.selectDoc(tabArray[index].path);
+	}
+	,closeActiveTab: function() {
+		this.closeTab(this.selectedPath);
+	}
+	,isAlreadyOpened: function(path,show) {
+		if(show == null) show = true;
+		var opened = this.tabMap.exists(path);
+		if(opened && show) this.selectDoc(path);
+		return opened;
+	}
+	,getMode: function(path) {
+		var mode = null;
+		var _g = js.Node.require("path").extname(path);
+		switch(_g) {
+		case ".hx":
+			mode = "haxe";
+			break;
+		case ".hxml":
+			mode = "hxml";
+			break;
+		case ".js":
+			mode = "javascript";
+			break;
+		case ".css":
+			mode = "css";
+			break;
+		case ".json":
+			mode = "application/json";
+			break;
+		case ".xml":
+			mode = "xml";
+			break;
+		case ".html":
+			mode = "text/html";
+			break;
+		case ".md":
+			mode = "markdown";
+			break;
+		case ".sh":case ".bat":
+			mode = "shell";
+			break;
+		case ".ml":
+			mode = "ocaml";
+			break;
+		case ".yml":
+			mode = "yaml";
+			break;
+		default:
+		}
+		return mode;
+	}
+	,selectDoc: function(path) {
+		var found = false;
+		var keys = this.tabMap.keys();
+		var _g1 = 0;
+		var _g = keys.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(keys[i] == path) {
+				this.tabMap.get(keys[i]).getElement().className = "selected";
+				this.selectedIndex = i;
+				found = true;
+			} else this.tabMap.get(keys[i]).getElement().className = "";
+		}
+		var cm1 = cm.Editor.editor;
+		if(found) {
+			var project = projectaccess.ProjectAccess.currentProject;
+			if(this.selectedPath != null && project != null) {
+				cm.Editor.saveFoldedRegions();
+				cm1.refresh();
+			}
+			this.selectedPath = path;
+			if(projectaccess.ProjectAccess.path != null) project.activeFile = js.Node.require("path").relative(projectaccess.ProjectAccess.path,this.selectedPath);
+			var tab = this.tabMap.get(this.selectedPath);
+			var doc = tab.doc;
+			cm.Editor.editor.swapDoc(doc);
+			core.HaxeLint.updateLinting();
+			var completionActive = cm.Editor.editor.state.completionActive;
+			if(completionActive != null && completionActive.widget != null) completionActive.widget.close();
+			if(projectaccess.ProjectAccess.currentProject != null) {
+				var selectedFile = projectaccess.ProjectAccess.getFileByPath(this.selectedPath);
+				if(selectedFile != null) {
+					if(!tab.loaded) {
+						var foldedRegions = selectedFile.foldedRegions;
+						if(foldedRegions != null) {
+							var _g2 = 0;
+							while(_g2 < foldedRegions.length) {
+								var pos = foldedRegions[_g2];
+								++_g2;
+								cm1.foldCode(pos,null,"fold");
+							}
 						}
+						if(selectedFile.activeLine != null) {
+							var pos1 = { line : selectedFile.activeLine, ch : 0};
+							doc.setCursor(pos1);
+							cm1.centerOnLine(pos1.line);
+						}
+						tab.loaded = true;
 					}
-					if(selectedFile.activeLine != null) {
-						var pos1 = { line : selectedFile.activeLine, ch : 0};
-						doc.setCursor(pos1);
-						cm1.centerOnLine(pos1.line);
+					if(selectedFile.useTabs == null || selectedFile.indentSize == null) {
+						var indentWithTabs = watchers.SettingsWatcher.settings.indentWithTabs;
+						var indentSize = watchers.SettingsWatcher.settings.indentSize;
+						if(indentWithTabs == null) indentWithTabs = true;
+						if(indentSize == null) indentSize = 4;
+						selectedFile.useTabs = indentWithTabs;
+						this.setIndentationSize(indentSize);
 					}
-					tab.loaded = true;
-				}
-				if(selectedFile.useTabs == null || selectedFile.indentSize == null) {
-					var indentWithTabs = watchers.SettingsWatcher.settings.indentWithTabs;
-					var indentSize = watchers.SettingsWatcher.settings.indentSize;
-					if(indentWithTabs == null) indentWithTabs = true;
-					if(indentSize == null) indentSize = 4;
-					selectedFile.useTabs = indentWithTabs;
-					tabmanager.TabManager.setIndentationSize(indentSize);
-				}
-				tabmanager.TabManager.loadIndentationSettings(cm1,selectedFile);
-				tabmanager.TabManager.updateIndentationSettings(selectedFile);
-			} else console.log("can't load folded regions for active document");
+					this.loadIndentationSettings(cm1,selectedFile);
+					this.updateIndentationSettings(selectedFile);
+				} else console.log("can't load folded regions for active document");
+			}
+			cm1.focus();
+			window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
 		}
-		cm1.focus();
-		window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
 	}
-};
-tabmanager.TabManager.loadIndentationSettings = function(cm,selectedFile) {
-	cm.setOption("indentWithTabs",selectedFile.useTabs);
-	if(selectedFile.useTabs) cm.setOption("tabSize",selectedFile.indentSize); else cm.setOption("indentUnit",selectedFile.indentSize);
-};
-tabmanager.TabManager.updateIndentationSettings = function(selectedFile) {
-	var indentType = window.document.getElementById("indent-type");
-	if(selectedFile.useTabs) indentType.textContent = "Tab Size:"; else indentType.textContent = "Spaces:";
-	var indentWidthInput;
-	indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
-	if(selectedFile.indentSize == null) indentWidthInput.value = "null"; else indentWidthInput.value = "" + selectedFile.indentSize;
-	var indentWidthLabel;
-	indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
-	if(selectedFile.indentSize == null) indentWidthLabel.textContent = "null"; else indentWidthLabel.textContent = "" + selectedFile.indentSize;
-};
-tabmanager.TabManager.getCurrentDocumentPath = function() {
-	return tabmanager.TabManager.selectedPath;
-};
-tabmanager.TabManager.getCurrentDocument = function() {
-	var doc = null;
-	if(tabmanager.TabManager.selectedPath != null) {
-		var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
-		if(tab != null) doc = tab.doc;
+	,loadIndentationSettings: function(cm,selectedFile) {
+		cm.setOption("indentWithTabs",selectedFile.useTabs);
+		if(selectedFile.useTabs) cm.setOption("tabSize",selectedFile.indentSize); else cm.setOption("indentUnit",selectedFile.indentSize);
 	}
-	return doc;
-};
-tabmanager.TabManager.saveDoc = function(path,onComplete) {
-	if(tabmanager.TabManager.isChanged(path)) {
-		var tab = tabmanager.TabManager.tabMap.get(path);
-		tab.save();
+	,updateIndentationSettings: function(selectedFile) {
+		var indentType = window.document.getElementById("indent-type");
+		if(selectedFile.useTabs) indentType.textContent = "Tab Size:"; else indentType.textContent = "Spaces:";
+		var indentWidthInput;
+		indentWidthInput = js.Boot.__cast(window.document.getElementById("indent-width-input") , HTMLInputElement);
+		if(selectedFile.indentSize == null) indentWidthInput.value = "null"; else indentWidthInput.value = "" + selectedFile.indentSize;
+		var indentWidthLabel;
+		indentWidthLabel = js.Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
+		if(selectedFile.indentSize == null) indentWidthLabel.textContent = "null"; else indentWidthLabel.textContent = "" + selectedFile.indentSize;
 	}
-	if(onComplete != null) onComplete();
-};
-tabmanager.TabManager.isChanged = function(path) {
-	var tab = tabmanager.TabManager.tabMap.get(path);
-	return !tab.doc.isClean();
-};
-tabmanager.TabManager.saveActiveFile = function(onComplete) {
-	if(tabmanager.TabManager.selectedPath != null) tabmanager.TabManager.saveDoc(tabmanager.TabManager.selectedPath,onComplete); else console.log(tabmanager.TabManager.selectedPath);
-};
-tabmanager.TabManager.saveActiveFileAs = function() {
-	var tab = tabmanager.TabManager.tabMap.get(tabmanager.TabManager.selectedPath);
-	core.FileDialog.saveFile(function(path) {
-		tabmanager.TabManager.tabMap.remove(tabmanager.TabManager.selectedPath);
-		tab.path = path;
-		tabmanager.TabManager.selectedPath = path;
-		tabmanager.TabManager.tabMap.add(tab);
-		tabmanager.TabManager.saveDoc(tabmanager.TabManager.selectedPath);
-	},tab.name);
-};
-tabmanager.TabManager.saveAll = function(onComplete) {
-	var _g = 0;
-	var _g1 = tabmanager.TabManager.tabMap.keys();
-	while(_g < _g1.length) {
-		var key = _g1[_g];
-		++_g;
-		tabmanager.TabManager.saveDoc(key);
+	,getCurrentDocumentPath: function() {
+		return this.selectedPath;
 	}
-	if(onComplete != null) onComplete();
+	,getCurrentDocument: function() {
+		var doc = null;
+		if(this.selectedPath != null) {
+			var tab = this.tabMap.get(this.selectedPath);
+			if(tab != null) doc = tab.doc;
+		}
+		return doc;
+	}
+	,saveDoc: function(path,onComplete) {
+		if(this.isChanged(path)) {
+			var tab = this.tabMap.get(path);
+			tab.save();
+		}
+		if(onComplete != null) onComplete();
+	}
+	,isChanged: function(path) {
+		var tab = this.tabMap.get(path);
+		return !tab.doc.isClean();
+	}
+	,saveActiveFile: function(onComplete) {
+		if(this.selectedPath != null) this.saveDoc(this.selectedPath,onComplete); else console.log(this.selectedPath);
+	}
+	,saveActiveFileAs: function() {
+		var _g = this;
+		var tab = this.tabMap.get(this.selectedPath);
+		core.FileDialog.saveFile(function(path) {
+			_g.tabMap.remove(_g.selectedPath);
+			tab.path = path;
+			_g.selectedPath = path;
+			_g.tabMap.add(tab);
+			_g.saveDoc(_g.selectedPath);
+		},tab.name);
+	}
+	,saveAll: function(onComplete) {
+		var _g = 0;
+		var _g1 = this.tabMap.keys();
+		while(_g < _g1.length) {
+			var key = _g1[_g];
+			++_g;
+			this.saveDoc(key);
+		}
+		if(onComplete != null) onComplete();
+	}
+	,__class__: tabmanager.TabManager
 };
 tabmanager.TabMap = function() {
 	this.tabArray = [];
@@ -17405,7 +17771,10 @@ watchers.SettingsWatcher.parse = function() {
 	watchers.SettingsWatcher.settings = tjson.TJSON.parse(data);
 	watchers.ThemeWatcher.load();
 	watchers.LocaleWatcher.load();
-	if(projectaccess.ProjectAccess.path != null) filetree.FileTree.load();
+	if(projectaccess.ProjectAccess.path != null) {
+		var fileTree = filetree.FileTree.get();
+		fileTree.load();
+	}
 };
 watchers.SettingsWatcher.isItemInIgnoreList = function(path) {
 	var ignored = false;
@@ -17565,10 +17934,6 @@ cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
 cm.ERegPreview.markers = [];
 core.AnnotationRuler.positions = [];
-core.Completion.WORD = new EReg("[A-Z_0-9]+$","i");
-core.Completion.RANGE = 500;
-core.Completion.completions = [];
-core.Completion.completionType = core.CompletionType.REGULAR;
 core.FunctionParametersHelper.widgets = [];
 core.HaxeLint.fileData = new haxe.ds.StringMap();
 core.HaxeLint.parserData = new haxe.ds.StringMap();
@@ -17576,11 +17941,8 @@ core.Helper.timers = new haxe.ds.StringMap();
 core.Hotkeys.hotkeys = new Array();
 core.Hotkeys.commandMap = new haxe.ds.StringMap();
 core.Hotkeys.spanMap = new haxe.ds.StringMap();
-core.OutlinePanel.source = [];
 core.PreserveWindowState.isMaximizationEvent = false;
 core.PreserveWindowState.window = nodejs.webkit.Window.get();
-core.RecentProjectsList.projectList = [];
-core.RecentProjectsList.fileList = [];
 haxe.Serializer.USE_CACHE = false;
 haxe.Serializer.USE_ENUM_INDEX = false;
 haxe.Serializer.BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789%:";

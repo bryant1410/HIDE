@@ -34,11 +34,13 @@ class Tab
 		li.title = path;
 		li.setAttribute("path", path);
 		
+		var tabManagerInstance = TabManager.get();
+		
 		span3 = Browser.document.createSpanElement();
 		span3.textContent = name + "\t";
 		span3.addEventListener("click", function (e):Void 
 		{
-			TabManager.selectDoc(path);
+			tabManagerInstance.selectDoc(path);
 		}
 		);
 		
@@ -56,7 +58,7 @@ class Tab
 
 		span.addEventListener("click", function (e):Void 
 		{
-			TabManager.closeTab(path);
+			tabManagerInstance.closeTab(path);
 		}
 		);
 
@@ -92,7 +94,9 @@ class Tab
 	
     function reloadFile()
     {
-        TabManager.openFile(path, 
+		var tabManagerInstance = TabManager.get();
+		
+        tabManagerInstance.openFile(path, 
 		function (code:String):Void 
         {
             doc.setValue(code);

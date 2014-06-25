@@ -16,7 +16,19 @@ import tabmanager.TabManager;
  */
 class OpenFLProject
 {
-	public static function load():Void
+	static var instance:OpenFLProject;
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new OpenFLProject();
+		}
+			
+		return instance;
+	}
+	
+	public function new():Void
 	{
 		NewProjectDialog.getCategory("OpenFL", 2).addItem("OpenFL Project", createOpenFLProject, false);
 		NewProjectDialog.getCategory("OpenFL").addItem("OpenFL Extension", createOpenFLExtension, false);
@@ -46,7 +58,7 @@ class OpenFLProject
 		}
 	}
 	
-	public static function createOpenFLProject(data:ProjectData, sample:Bool = false):Void
+	public function createOpenFLProject(data:ProjectData, sample:Bool = false):Void
 	{	
 		var params:Array<String>;
 		
@@ -77,12 +89,13 @@ class OpenFLProject
 			
 			createProject(data);
 			
-			TabManager.openFileInNewTab(js.Node.path.join(pathToProject, "Source", "Main.hx"));
+			var tabManagerInstance = TabManager.get();
+			tabManagerInstance.openFileInNewTab(js.Node.path.join(pathToProject, "Source", "Main.hx"));
 		}
 		);
 	}
 	
-	public static function createOpenFLExtension(data:ProjectData):Void
+	public function createOpenFLExtension(data:ProjectData):Void
 	{
 		CreateOpenFLProject.createOpenFLProject(["extension", data.projectName], data.projectLocation, function ()
 		{
@@ -91,7 +104,7 @@ class OpenFLProject
 		);
 	}
 	
-	private static function createProject(data:ProjectData):Void
+	function createProject(data:ProjectData):Void
 	{
 		var pathToProject:String = js.Node.path.join(data.projectLocation, data.projectName);
 			

@@ -28,7 +28,9 @@ class GoToDeclaration
 	{
 		var cm = Editor.editor;
 		
-		Completion.getCompletion(function ()
+		var completionInstance = Completion.get();
+		
+		completionInstance.getCompletion(function ()
 								 {
 									 //
 								 }

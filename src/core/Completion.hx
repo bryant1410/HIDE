@@ -52,22 +52,39 @@ typedef TopLevelImport =
 
 class Completion
 {
-	static var list:Array<CompletionData>;
-	static var editor:CodeMirror;
-	static var word:EReg;
-	static var range:Int;
-	static var cur:Pos;
-	static var end:Int;
-	static var start:Int;
-	static var WORD:EReg = ~/[A-Z_0-9]+$/i;
-	static var RANGE = 500;
-	public static var curWord:String;
-	public static var completions:Array<CompletionItem> = [];
-	public static var declarationPositions:Array<Int> = [];
-	static var completionType:CompletionType = REGULAR;
-	static var completionActive:Bool;
+	var list:Array<CompletionData>;
+	var editor:CodeMirror;
+	var word:EReg;
+	var range:Int;
+	var cur:Pos;
+	var end:Int;
+	var start:Int;
+	var WORD:EReg = ~/[A-Z_0-9]+$/i;
+	var RANGE = 500;
+	public var curWord:String;
+	public var completions:Array<CompletionItem> = [];
+	public var declarationPositions:Array<Int> = [];
+	var completionType:CompletionType = REGULAR;
+	var completionActive:Bool;
     
-	public static function registerHelper() 
+	static var instance:Completion;
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new Completion();
+		}
+			
+		return instance;
+	}
+	
+	public function new() 
+	{
+		
+	}
+	
+	public function load()
 	{
 		Hxml.load();
 		MetaTags.load();
@@ -80,8 +97,9 @@ class Completion
                             completionActive = false;
                         });
 	}
+
 	
-	static function getHints(cm:CodeMirror, ?options:Dynamic): { list: Array<CompletionData>, from: CodeMirror.Pos, to: CodeMirror.Pos }
+	function getHints(cm:CodeMirror, ?options:Dynamic): { list: Array<CompletionData>, from: CodeMirror.Pos, to: CodeMirror.Pos }
 	{		
 		word = null;
 		
@@ -114,7 +132,9 @@ class Completion
 				if (curWord == null || curWord.indexOf(".") == -1)
                     
 				{
-					var doc = TabManager.getCurrentDocument();
+					var tabManagerInstance = TabManager.get();
+					
+					var doc = tabManagerInstance.getCurrentDocument();
 					
 					if (doc != null)
 					{
@@ -248,7 +268,7 @@ class Completion
 		return data;
 	}
 	
-    static function searchForImport(completion:CompletionData)
+    function searchForImport(completion:CompletionData)
     {
         var cm = Editor.editor;
         
@@ -274,7 +294,7 @@ class Completion
 		}
     }
 	
-    public static function processDisplayText(displayText:String):String
+    public function processDisplayText(displayText:String):String
     {
         if (displayText.length > 70)
         {
@@ -284,7 +304,7 @@ class Completion
         return displayText;
     }
     
-	public static function getCurrentWord(cm:CodeMirror, ?options:Dynamic, ?pos:Pos):{word:String, from:CodeMirror.Pos, to:CodeMirror.Pos}
+	public function getCurrentWord(cm:CodeMirror, ?options:Dynamic, ?pos:Pos):{word:String, from:CodeMirror.Pos, to:CodeMirror.Pos}
 	{
 		if (options != null && options.word != null)
 		{
@@ -318,7 +338,7 @@ class Completion
 		return {word:curWord, from: {line:cur.line, ch: start}, to: {line:cur.line, ch: end}};
 	}
 	
-	public static function getCompletion(onComplete:Dynamic, ?_pos:Pos, ?mode:String, ?moveCursorToStart:Bool = true):Void
+	public function getCompletion(onComplete:Dynamic, ?_pos:Pos, ?mode:String, ?moveCursorToStart:Bool = true):Void
 	{        
 		if (ProjectAccess.path != null) 
 		{
@@ -349,7 +369,7 @@ class Completion
 		}
 	}
 	
-	static function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos, mode:String, moveCursorToStart:Bool):Void 
+	function processArguments(projectArguments:Array<String>, onComplete:Dynamic, ?_pos:Pos, mode:String, moveCursorToStart:Bool):Void 
 	{
         trace("processArguments");
         
@@ -373,11 +393,20 @@ class Completion
 			
 		if (moveCursorToStart == false)
 		{
+// 			cur.ch = cm.getCursor().ch;
 			cur.ch = end;
+			
+			if (mode == "position")
+			{
+				cur.ch += 1;
+			}
+
 // 			trace(cm.getRange({line:cur.line, ch: 0}, {line:cur.line, ch:end}));
 		}
 		
-		var displayArgs = TabManager.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur));
+		var tabManagerInstance = TabManager.get();
+			
+		var displayArgs = tabManagerInstance.getCurrentDocumentPath() + "@" + Std.string(cm.indexFromPos(cur));
 		
 		if (mode != null)
 		{
@@ -389,9 +418,16 @@ class Completion
 		completions = [];
 		
 		var params = ["--connect", "5000", "--cwd", HIDE.surroundWithQuotes(ProjectAccess.path)].concat(projectArguments);
+		trace(params);
+		var pathToHaxe = HaxeHelper.getPathToHaxe();
 		
-		ProcessHelper.runProcess("haxe", params, null, function (stdout:String, stderr:String)
+		var processHelper = ProcessHelper.get();
+		
+		processHelper.runProcess(pathToHaxe, params, null, function (stdout:String, stderr:String)
 		{
+			trace(stdout);
+			trace(stderr);
+			
 			var xml:Xml = Xml.parse(stderr);
 			
 			var fast = new Fast(xml);
@@ -399,7 +435,6 @@ class Completion
 			if (fast.hasNode.list)
 			{
 				var list = fast.node.list;
-				trace(list);
 				var completion:CompletionItem;
 				
 				if (list.hasNode.i)
@@ -431,13 +466,12 @@ class Completion
 						}
 					}
 				}
-				else if (fast.hasNode.pos)
+			}
+			else if (fast.hasNode.pos)
+			{
+				for (item in fast.nodes.pos)
 				{
-					for (item in fast.nodes.pos)
-					{
-						 trace(item.innerData);
-					}
-
+					 trace(item.innerData);
 				}
 
 			}
@@ -454,15 +488,15 @@ class Completion
 		);
 	}
 	
-    static function getHintAsync(cm:CodeMirror, c:Dynamic->Void)
-	{   
+    function getHintAsync(cm:CodeMirror, c:Dynamic->Void)
+	{
         if (completionActive)
         {
             c(getHints(cm));
         }
         else
         {
-            Completion.getCompletion(function ()
+            getCompletion(function ()
                                      {
                                          c(getHints(cm));
                                      });
@@ -472,13 +506,13 @@ class Completion
         }
     }
         
-	public static function isEditorVisible():Bool
+	public function isEditorVisible():Bool
 	{
 		var editor = cast(Browser.document.getElementById("editor"), DivElement);
 		return editor.style.display != "none";
 	}
 	
-	public static function showRegularCompletion(?getCompletionFromHaxeCompiler:Bool = true):Void
+	public function showRegularCompletion(?getCompletionFromHaxeCompiler:Bool = true):Void
 	{
 		if (isEditorVisible()) 
 		{
@@ -499,7 +533,7 @@ class Completion
 		}
 	}
 	
-	public static function showMetaTagsCompletion():Void
+	public function showMetaTagsCompletion():Void
 	{
 		if (isEditorVisible()) 
 		{
@@ -511,7 +545,7 @@ class Completion
 		}
 	}
         
-	public static function showHxmlCompletion():Void
+	public function showHxmlCompletion():Void
 	{
 		if (isEditorVisible()) 
 		{
@@ -524,12 +558,15 @@ class Completion
 	}
 	
 //     Quick Open/Show File List for Hxml completion
-	public static function showFileList(?openFile:Bool = true, ?insertDirectory:Bool = false):Void
+	public function showFileList(?openFile:Bool = true, ?insertDirectory:Bool = false):Void
 	{		
         if (openFile)
         {
-            completionType = OPENFILE;            
-            QuickOpen.show(ClassParser.filesList.copy().concat(ClassParser.haxeStdFileList));
+            completionType = OPENFILE;
+			
+			var quickOpen = QuickOpen.get();
+			
+            quickOpen.show(ClassParser.filesList.copy().concat(ClassParser.haxeStdFileList));
         }
         else if (isEditorVisible()) 
 		{
@@ -551,7 +588,7 @@ class Completion
 	}
 	
 //     Shows list of all classes available for project, used to provide imports completion("import |"), triggered on ":" symbol
-	public static function showClassList(?ignoreWhitespace:Bool = false):Void
+	public function showClassList(?ignoreWhitespace:Bool = false):Void
 	{
 		if (isEditorVisible()) 
 		{
@@ -579,7 +616,7 @@ class Completion
         
 //     }
 
-	static function searchImage(name:String, ?type:String, ?description:String)
+	function searchImage(name:String, ?type:String, ?description:String)
 	{
 		var functionData = FunctionParametersHelper.parseFunctionParams(name, type, description);
 		
@@ -624,7 +661,7 @@ class Completion
 		return {className: className, info: info};
 	}
 
-	static function generateFunctionCompletionItem(name:String, params:Array<String>)
+	function generateFunctionCompletionItem(name:String, params:Array<String>)
 	{
 		var info:String = null;
 
@@ -644,13 +681,13 @@ class Completion
 		return {className: className, info: info};
 	}
 
-	static function generateCompletionItem(name:String, ?type:String, ?description:String)
+	function generateCompletionItem(name:String, ?type:String, ?description:String)
 	{
 		var completionData = searchImage(name, type, description);
 		return createCompletionItem(name, description, completionData);
 	}
 
-	static function createCompletionItem(name:String, description:String, completionData:Dynamic)
+	function createCompletionItem(name:String, description:String, completionData:Dynamic)
 	{
 		var completionItem:CompletionData = { text: name };
 
@@ -688,7 +725,7 @@ class Completion
 	}
 
 
-	public static function showImportDefinition(importsSuggestions:Array<String>, ?from:CodeMirror.Pos, ?to:CodeMirror.Pos)
+	public function showImportDefinition(importsSuggestions:Array<String>, ?from:CodeMirror.Pos, ?to:CodeMirror.Pos)
 	{
         var cm = Editor.editor;
         
@@ -715,7 +752,7 @@ class Completion
         , {completeSingle: false});
     }
 		
-	public static function showActions(completions:Array<CompletionData>)
+	public function showActions(completions:Array<CompletionData>)
 	{
 		var cm = Editor.editor;
         
@@ -730,7 +767,7 @@ class Completion
 	}
 
 		
-	public static function showCodeSuggestions(suggestions:Array<String>)
+	public function showCodeSuggestions(suggestions:Array<String>)
 	{
 		var cm = Editor.editor;
         
@@ -754,18 +791,18 @@ class Completion
 					 } 
 				}
                                   
-        		var data:Dynamic = { list: completions, from: pos, to: pos };
+				var data:Dynamic = { list: completions, from: {line: pos.line, ch: start}, to: {line: pos.line, ch: end} };
         		return data;
             }
         , {completeSingle: false});
 	}
-
 	
-	
-    public static function getClassList()
+    public function getClassList()
     {
-        var value = TabManager.getCurrentDocument().getValue();
-		var mainClass = Node.path.basename(TabManager.getCurrentDocumentPath(), ".hx");
+		var tabManagerInstance = TabManager.get();
+		
+        var value = tabManagerInstance.getCurrentDocument().getValue();
+		var mainClass = Node.path.basename(tabManagerInstance.getCurrentDocumentPath(), ".hx");
 
         var filePackage = RegexParser.getFilePackage(value);
         var fileImports = RegexParser.getFileImportsList(value);
@@ -878,7 +915,7 @@ class Completion
     }
 
         
-	public static function getCompletionType()
+	public function getCompletionType()
     {
         return completionType;
     }

@@ -10,11 +10,30 @@ import haxe.Timer;
  */
 class Xml
 {
-    static var tags:Dynamic;
+	static var instance:Xml;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new Xml();
+		}
+			
+		return instance;
+	}
+	
+    var tags:Dynamic;
     
-    public static function generateXmlCompletion()
+    public function generateXmlCompletion()
     {
-        var data = TabManager.getCurrentDocument().getValue();
+		var tabManagerInstance = TabManager.get();
+		
+        var data = tabManagerInstance.getCurrentDocument().getValue();
         
         var xml = null;
         
@@ -77,7 +96,7 @@ class Xml
 //       };
 	}
     
-    static function walkThroughElements(tags:Dynamic, fast:Fast)
+    function walkThroughElements(tags:Dynamic, fast:Fast)
     {
         for (element in fast.elements)
         {
@@ -123,7 +142,7 @@ class Xml
         }
     }
 
-	public static function completeAfter(cm:CodeMirror, ?pred:Dynamic) 
+	public function completeAfter(cm:CodeMirror, ?pred:Dynamic) 
     {
         var cur = cm.getCursor();
         if (pred == null || pred() != null)
@@ -140,7 +159,7 @@ class Xml
         return CodeMirrorStatic.Pass;
     }
     
-    public static function completeIfAfterLt(cm:CodeMirror) 
+    public function completeIfAfterLt(cm:CodeMirror) 
     {
         return completeAfter(cm, function() {
           var cur = cm.getCursor();
@@ -148,7 +167,7 @@ class Xml
         });
     }
     
-	public static function completeIfInTag(cm:CodeMirror) 
+	public function completeIfInTag(cm:CodeMirror) 
     {
         return completeAfter(cm, function() {
           var tok = cm.getTokenAt(cm.getCursor());

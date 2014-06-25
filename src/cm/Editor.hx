@@ -65,15 +65,19 @@ class Editor
 		
 		walk(options);
 		
+		var tabManagerInstance = TabManager.get();
+		var completionInstance = Completion.get();
+		var xmlInstance = cm.Xml.get();
+		
 		options.extraKeys = 
 		{
 			"." : 
 				function passAndHint(cm) 
 				{
-					if (TabManager.getCurrentDocument().getMode().name == "haxe") 
+					if (tabManagerInstance.getCurrentDocument().getMode().name == "haxe") 
 					{
 						var completionActive = editor.state.completionActive;
-						var completionType = Completion.getCompletionType();
+						var completionType = completionInstance.getCompletionType();
                         
 						if ((completionType == CompletionType.REGULAR || completionType == CompletionType.CLASSLIST) && completionActive != null && completionActive.widget != null) 
 						{
@@ -101,9 +105,9 @@ class Editor
            	"=":
 				function passAndHint(cm2:CodeMirror) 
 				{
-                    var mode = TabManager.getCurrentDocument().getMode().name;
+                    var mode = tabManagerInstance.getCurrentDocument().getMode().name;
                     
-					if (Completion.getCompletionType() == CompletionType.REGULAR && mode == "haxe" || mode == "xml")
+					if (completionInstance.getCompletionType() == CompletionType.REGULAR && mode == "haxe" || mode == "xml")
 					{
 						var completionActive = cm2.state.completionActive;
 						
@@ -117,7 +121,7 @@ class Editor
                             var cur = cm2.getCursor();
                             cm2.replaceRange("=\"\"", cur, cur);
                             cm2.execCommand("goCharLeft");
-                            cm.Xml.completeIfInTag(cm2);
+                            xmlInstance.completeIfInTag(cm2);
                         }
                         else
                         {
@@ -142,20 +146,20 @@ class Editor
             "\\\'<\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{
-                    cm.Xml.completeAfter(cm2);
+                    xmlInstance.completeAfter(cm2);
                     untyped __js__("return CodeMirror.Pass");
                 },
             	
             "\\\'/\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{
-                    cm.Xml.completeIfAfterLt(cm2);
+                    xmlInstance.completeIfAfterLt(cm2);
                     untyped __js__("return CodeMirror.Pass");
                 },
             "\\\' \\\'":
                 function passAndHint(cm2:CodeMirror)
             	{
-                    cm.Xml.completeIfInTag(cm2);
+                    xmlInstance.completeIfInTag(cm2);
                     untyped __js__("return CodeMirror.Pass");
                 },
             "Ctrl-J": "toMatchingTag"
@@ -169,7 +173,7 @@ class Editor
 			{
                 if (e.keyCode == 40 || e.keyCode == 62)
                 {
-                    if (Completion.getCompletionType() == CompletionType.REGULAR && TabManager.getCurrentDocument().getMode().name == "haxe") 
+                    if (completionInstance.getCompletionType() == CompletionType.REGULAR && tabManagerInstance.getCurrentDocument().getMode().name == "haxe")
                     {
                         var completionActive = editor.state.completionActive;
 
@@ -242,7 +246,7 @@ class Editor
 				ERegPreview.update(cm);
 			}, 100);
 			
-			var doc = TabManager.getCurrentDocument();
+			var doc = tabManagerInstance.getCurrentDocument();
 			if (doc != null)
 			{
 				var pos = doc.getCursor();
@@ -273,7 +277,7 @@ class Editor
                 }
             }
             
-			var doc = TabManager.getCurrentDocument();
+			var doc = tabManagerInstance.getCurrentDocument();
 			var modeName:String = doc.getMode().name;
 			
 			if (modeName == "haxe") 
@@ -402,10 +406,12 @@ class Editor
 							}
 				
 							suggestions.push("new " + type);
-							Completion.showCodeSuggestions(suggestions);
+							completionInstance.showCodeSuggestions(suggestions);
 						}
 						else
 						{
+							trace(name);
+							
 							var ereg = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$", "gm");
 							
 							ereg.map(value, function (ereg3)
@@ -421,7 +427,7 @@ class Editor
 							
 							if (suggestions.length > 0)
 							{
-								Completion.showCodeSuggestions(suggestions);
+								completionInstance.showCodeSuggestions(suggestions);
 							}
 						}
 					}
@@ -430,12 +436,12 @@ class Editor
 				{
 					if (data.charAt(cursor.ch - 2) == "@")
 					{
-						Completion.showMetaTagsCompletion();
+						completionInstance.showMetaTagsCompletion();
 					}
 					else
 					{
 						var pos = {line: cursor.line, ch: cursor.ch - 1};
-						var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9\.]+$/i}, pos);
+						var word = completionInstance.getCurrentWord(editor, {word: ~/[A-Z_0-9\.]+$/i}, pos);
 						
 						if (word.word == null || word.word != "default")
 						{
@@ -451,7 +457,7 @@ class Editor
 						
 							if (!StringTools.endsWith(dataBeforeWord, "case"))
 							{
-								Completion.showClassList();
+								completionInstance.showClassList();
 							}
 						}
 					}
@@ -462,14 +468,14 @@ class Editor
 					{
 						if (StringTools.endsWith(data.substr(0, cursor.ch - 1), type)) 
 						{
-							Completion.showClassList();
+							completionInstance.showClassList();
 							break;
 						}
 					}
 				}
 				else if (StringTools.endsWith(data, "import ")) 
 				{                    
-					Completion.showClassList(true);
+					completionInstance.showClassList(true);
 				}
 				else if (StringTools.endsWith(data, "in )"))
 				{	
@@ -488,25 +494,25 @@ class Editor
 				
 				if (data == "-")
 				{
-					Completion.showHxmlCompletion();
+					completionInstance.showHxmlCompletion();
 				}
                 else if (data == "-cp ")
                 {
-                    Completion.showFileList(false, true);
+                    completionInstance.showFileList(false, true);
                 }
                 else if (data == "-dce ")
                 {
-                    Completion.showHxmlCompletion();
+                    completionInstance.showHxmlCompletion();
 				}
                 else if (data == "--macro ")
                	{
-                    Completion.showClassList(true);
+                    completionInstance.showClassList(true);
                 }
 			}
 			
 			//Helper.debounce("filechange", function ():Void 
 			//{
-				var tab = TabManager.tabMap.get(TabManager.selectedPath);
+				var tab = tabManagerInstance.tabMap.get(tabManagerInstance.selectedPath);
 				tab.setChanged(!tab.doc.isClean());
 			//}
 			//, 150);
@@ -519,10 +525,10 @@ class Editor
 // 						   {
 							   if (isValidWordForCompletionOnType())
 							   {
-								   var doc = TabManager.getCurrentDocument();
+								   var doc = tabManagerInstance.getCurrentDocument();
 								   var pos = doc.getCursor();
 								   
-								   Completion.getCompletion(function ()
+								   completionInstance.getCompletion(function ()
 															{
 																if (isValidWordForCompletionOnType())
 																{
@@ -530,7 +536,7 @@ class Editor
 																	
 // 																	if (pos.line == pos2.line && pos.ch == pos2.ch)
 // 																	{
-																		Completion.showRegularCompletion(false);
+																		completionInstance.showRegularCompletion(false);
 // 																	}
 																}
 															}, pos);
@@ -562,7 +568,10 @@ class Editor
 			
 			var cm = editor;
 			
-			var doc = TabManager.getCurrentDocument();
+			var tabManagerInstance = TabManager.get();
+			var completionInstance = Completion.get();
+			
+			var doc = tabManagerInstance.getCurrentDocument();
 
 		    if (doc != null && doc.getMode().name == "haxe")
 		    {
@@ -572,7 +581,7 @@ class Editor
 				{
 					var pos = doc.getCursor();
 
-					var word = Completion.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
+					var word = completionInstance.getCurrentWord(editor, {word: ~/[A-Z_0-9]+$/i}, pos);
 
 					var type = cm.getTokenTypeAt(pos);
 
@@ -600,7 +609,9 @@ class Editor
 		
 	public static function saveFoldedRegions()
 	{
-		var doc = TabManager.getCurrentDocument();
+		var tabManagerInstance = TabManager.get();
+		
+		var doc = tabManagerInstance.getCurrentDocument();
 		
 		if (doc != null && ProjectAccess.currentProject != null)
 		{
@@ -618,7 +629,7 @@ class Editor
 				}
 			}
 
-			var selectedFile = ProjectAccess.getFileByPath(TabManager.getCurrentDocumentPath());
+			var selectedFile = ProjectAccess.getFileByPath(tabManagerInstance.getCurrentDocumentPath());
 
 			if (selectedFile != null)
 			{
@@ -643,7 +654,10 @@ class Editor
 	{
         trace("triggerCompletion");
         
-		var modeName:String = TabManager.getCurrentDocument().getMode().name;
+		var tabManagerInstance = TabManager.get();
+		var completionInstance = Completion.get();
+		
+		var modeName:String = tabManagerInstance.getCurrentDocument().getMode().name;
 		
 		switch (modeName)
 		{
@@ -652,13 +666,13 @@ class Editor
 				
 				if (!dot || regenerateCompletionOnDot || (dot && !cm.state.completionActive)) 
 				{
-					TabManager.saveActiveFile(function ():Void 
+					tabManagerInstance.saveActiveFile(function ():Void 
 					{
-						Completion.showRegularCompletion();
+						completionInstance.showRegularCompletion();
 					});
 				}
 			case "hxml":
-				Completion.showHxmlCompletion();
+				completionInstance.showHxmlCompletion();
         	case "xml":
         		cm.showHint({completeSingle: false});
 			default:

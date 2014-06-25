@@ -11,7 +11,9 @@ class CreateOpenFLProject
 	{	
 		var processParams = ["run", "lime", "create"].concat(params);
 		
-		ProcessHelper.runProcess("haxelib", processParams, path, onComplete, function (code, stdout, stderr):Void 
+		var processHelper = ProcessHelper.get();
+		
+		processHelper.runProcess("haxelib", processParams, path, onComplete, function (code, stdout, stderr):Void 
 		{
 			Alertify.error(["haxelib"].concat(processParams).join(" ") + " " + Std.string(code));
 			

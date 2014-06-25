@@ -107,7 +107,8 @@ class SettingsWatcher
 		
 		if (ProjectAccess.path != null) 
 		{
-			FileTree.load();
+			var fileTree = FileTree.get();
+			fileTree.load();
 		}
 	}
 	

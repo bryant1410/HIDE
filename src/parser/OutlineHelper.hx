@@ -30,12 +30,31 @@ typedef	ClassField =
  */
 class OutlineHelper
 {
-    static var pathToLastFile:String;
+	static var instance:OutlineHelper;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new OutlineHelper();
+		}
+			
+		return instance;
+	}
+	
+    var pathToLastFile:String;
     
-	public static function getList(data:String, path:String)
+	public function getList(data:String, path:String)
 	{
 		var ast = ClassParser.parse(data, path);
         
+		var outlinePanel = OutlinePanel.get();
+		
 		if (ast != null) 
 		{
 			var parsedData = parseDeclarations(ast);
@@ -48,18 +67,18 @@ class OutlineHelper
 			
             pathToLastFile = path;
             
-			OutlinePanel.clearFields();
-			OutlinePanel.addField(rootItem);
-			OutlinePanel.update();
+			outlinePanel.clearFields();
+			outlinePanel.addField(rootItem);
+			outlinePanel.update();
 		}
         else if(pathToLastFile != path)
         {
-            OutlinePanel.clearFields();
-            OutlinePanel.update();
+            outlinePanel.clearFields();
+            outlinePanel.update();
         }
 	}
 	
-	public static function parseDeclarations(ast:{decls:Array<TypeDecl>, pack:Array<String>}) 
+	public function parseDeclarations(ast:{decls:Array<TypeDecl>, pack:Array<String>}) 
 	{		
 		var fileImports = [];
 		
@@ -114,7 +133,7 @@ class OutlineHelper
 		return { fileImports: fileImports, treeItems: treeItems};
 	}
 	
-	public static function parseImports(sl : Array<{ pos : Position, pack : String }> ,  mode : ImportMode ) 
+	public function parseImports(sl : Array<{ pos : Position, pack : String }> ,  mode : ImportMode ) 
 	{
 		var fileImports = [];
 		
@@ -153,7 +172,7 @@ class OutlineHelper
 		return fileImports;
 	}
 	
-	static function getClassFields(type:Definition<ClassFlag, Array<Field>>):Array<ClassField>
+	function getClassFields(type:Definition<ClassFlag, Array<Field>>):Array<ClassField>
 	{
 		var fields:Array<ClassField> = [];
 		
@@ -214,7 +233,7 @@ class OutlineHelper
 		return fields;
 	}    
     
-    static function getTypeDefFields(type:Definition<EnumFlag, ComplexType>):Array<ClassField>
+    function getTypeDefFields(type:Definition<EnumFlag, ComplexType>):Array<ClassField>
 	{
 		var typeDefFields:Array<ClassField> = [];
 		
@@ -330,7 +349,7 @@ class OutlineHelper
 		return typeDefFields;
 	}
 	
-	static function getFieldType(t:Null<ComplexType>):String 
+	function getFieldType(t:Null<ComplexType>):String 
 	{
 		var name:String = null;
 		
@@ -351,7 +370,7 @@ class OutlineHelper
 		return name;
 	}
 	
-	static function getFieldNameAndType(name:String, type:Null<ComplexType>):String
+	function getFieldNameAndType(name:String, type:Null<ComplexType>):String
 	{
 		var nameAndType:String = name;
 		

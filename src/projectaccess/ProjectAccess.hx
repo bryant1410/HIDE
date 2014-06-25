@@ -24,9 +24,11 @@ class ProjectAccess
 	{
 		var window = Window.get();
 		
+		var tabManagerInstance = TabManager.get();
+		
 		window.on("close", function ():Void 
 		{
-			if (currentProject != null && TabManager.getCurrentDocumentPath() != null)
+			if (currentProject != null && tabManagerInstance.getCurrentDocumentPath() != null)
 			{
 				Editor.saveFoldedRegions();
 			}

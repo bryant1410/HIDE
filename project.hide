@@ -12,22 +12,13 @@
     ]
     ,"files" : [
          {
-             "path" : "src/core/MenuCommands.hx"
+             "path" : "src/Main.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 183
-        }
-        ,{
-             "path" : "src/completion/GoToDeclaration.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 30
+            ,"activeLine" : 86
         }
         ,{
              "path" : "src/core/Completion.hx"
@@ -36,7 +27,16 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 376
+            ,"activeLine" : 476
+        }
+        ,{
+             "path" : "src/completion/GoToDeclaration.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 34
         }
     ]
     ,"activeFile" : "src/core/Completion.hx"

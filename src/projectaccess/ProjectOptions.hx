@@ -22,36 +22,53 @@ import watchers.LocaleWatcher;
  */
 class ProjectOptions
 {	
-	public static var page:DivElement;
+	public var page:DivElement;
 	
 	//Select element(ComboBox-like) for project target selection
-	static var projectTargetList:SelectElement;
-	static var projectTargetText:ParagraphElement;
+	var projectTargetList:SelectElement;
+	var projectTargetText:ParagraphElement;
 	
 	//OpenFL specific targets
-	static var openFLTargetList:SelectElement;
-	static var openFLTargetText:ParagraphElement;
-	static var openFLTargets:Array<String>;
-	static var openFLBuildModeList:SelectElement;
-	static var openFLBuildModeText:ParagraphElement;
-	static var buildModes:Array<String>;
+	var openFLTargetList:SelectElement;
+	var openFLTargetText:ParagraphElement;
+	var openFLTargets:Array<String>;
+	var openFLBuildModeList:SelectElement;
+	var openFLBuildModeText:ParagraphElement;
+	var buildModes:Array<String>;
 	
 	//Build action(currently only shown for OpenFL projects)
-	static var buildActionDescription:ParagraphElement;
-	static var buildActionTextArea:TextAreaElement;
+	var buildActionDescription:ParagraphElement;
+	var buildActionTextArea:TextAreaElement;
 	
 	//Run action type and command/file/url
-	static var actionTextArea:TextAreaElement;
-	static var runActionList:SelectElement;
-	static var runActionTextAreaDescription:ParagraphElement;
-	static var runActionDescription:ParagraphElement;
+	var actionTextArea:TextAreaElement;
+	var runActionList:SelectElement;
+	var runActionTextAreaDescription:ParagraphElement;
+	var runActionDescription:ParagraphElement;
 	
 	//Multiple Hxml-based projects(Project.HAXE)
-	static var pathToHxmlDescription:ParagraphElement;
-	static var inputGroupButton:bootstrap.InputGroupButton;
-	static var pathToHxmlInput:InputElement;
+	var pathToHxmlDescription:ParagraphElement;
+	var inputGroupButton:bootstrap.InputGroupButton;
+	var pathToHxmlInput:InputElement;
 	
-	public static function create():Void
+	static var instance:ProjectOptions;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new ProjectOptions();
+		}
+			
+		return instance;
+	}
+	
+	public function create():Void
 	{
 		page = Browser.document.createDivElement();
 		
@@ -120,7 +137,9 @@ class ProjectOptions
 					throw "Unknown target";
 			}
 			
-			ClasspathWalker.parseProjectArguments();
+			var classpathWalker = ClasspathWalker.get();
+			
+			classpathWalker.parseProjectArguments();
 			
 			updateProjectOptions();
 		};
@@ -141,7 +160,9 @@ class ProjectOptions
 			project.runActionType = Project.COMMAND;
 			project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
 			
-			ClasspathWalker.parseProjectArguments();
+			var classpathWalker = ClasspathWalker.get();
+			
+			classpathWalker.parseProjectArguments();
 			
 			updateProjectOptions();
 		};
@@ -235,7 +256,7 @@ class ProjectOptions
 		page.appendChild(actionTextArea);
 	}
 	
-	public static function updateOpenFLBuildCommand()
+	public function updateOpenFLBuildCommand()
 	{
 		var project = ProjectAccess.currentProject;
 
@@ -265,7 +286,7 @@ class ProjectOptions
 	}
 
 		
-	static function createOptionsForMultipleHxmlProjects() 
+	function createOptionsForMultipleHxmlProjects() 
 	{
 		pathToHxmlDescription = Browser.document.createParagraphElement();
 		pathToHxmlDescription.textContent = LocaleWatcher.getStringSync("Path to Hxml:");
@@ -308,13 +329,14 @@ class ProjectOptions
 		var editButton = ButtonManager.createButton("Edit", false, true);
 		editButton.onclick = function (e):Void 
 		{
-			TabManager.openFileInNewTab(Node.path.resolve(ProjectAccess.path, pathToHxmlInput.value));
+			var tabManagerInstance = TabManager.get();
+			tabManagerInstance.openFileInNewTab(Node.path.resolve(ProjectAccess.path, pathToHxmlInput.value));
 		};
 		
 		inputGroupButton.getSpan().appendChild(editButton);
 	}
 	
-	static function update(_):Void
+	function update(_):Void
 	{
 		var project = ProjectAccess.currentProject;
 		
@@ -406,7 +428,7 @@ class ProjectOptions
 		ProjectAccess.save();
 	}
 	
-	public static function updateProjectOptions():Void
+	public function updateProjectOptions():Void
 	{		
 		var project = ProjectAccess.currentProject;
 		
@@ -493,7 +515,7 @@ class ProjectOptions
 		update(null);
 	}
 	
-	private static function createListItem(text:String):OptionElement
+	function createListItem(text:String):OptionElement
 	{		
 		var option:OptionElement = Browser.document.createOptionElement();
 		option.textContent = LocaleWatcher.getStringSync(text);

@@ -18,10 +18,27 @@ import tabmanager.TabManager;
  */
 class ProcessHelper
 {
-	static var processStdout:String;
-	static var processStderr:String;
+	var processStdout:String;
+	var processStderr:String;
 	
-	public static function runProcess(process:String, params:Array<String>, path:String, onComplete:String->String->Void, ?onFailed:Int->String->String->Void):NodeChildProcess
+	static var instance:ProcessHelper;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new ProcessHelper();
+		}
+			
+		return instance;
+	}
+	
+	public function runProcess(process:String, params:Array<String>, path:String, onComplete:String->String->Void, ?onFailed:Int->String->String->Void):NodeChildProcess
 	{		
 		var command:String = processParamsToCommand(process, params);
 		
@@ -58,7 +75,7 @@ class ProcessHelper
 		return process;
 	}
 	
-	public static function runProcessAndPrintOutputToConsole(process:String, params:Array<String>, cwd:String, ?onComplete:Void->Void):NodeChildProcess
+	public function runProcessAndPrintOutputToConsole(process:String, params:Array<String>, cwd:String, ?onComplete:Void->Void):NodeChildProcess
 	{
 		var command:String = processParamsToCommand(process, params);
 		
@@ -79,7 +96,7 @@ class ProcessHelper
 		return process;
 	}
 	
-	static function processOutput(code:Int, stdout:String, stderr:String, ?onComplete:Dynamic):Void
+	function processOutput(code:Int, stdout:String, stderr:String, ?onComplete:Dynamic):Void
 	{
 		var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
 		
@@ -159,13 +176,15 @@ class ProcessHelper
 								}
 							}
 							
+							var tabManagerInstance = TabManager.get();
+							
 							var a:AnchorElement = Browser.document.createAnchorElement();
 							a.href = "#";
 							a.className = "list-group-item";
 							a.innerText = line;
 							a.onclick = function (e)
 							{
-								TabManager.openFileInNewTab(fullPath, true, function ():Void 
+								tabManagerInstance.openFileInNewTab(fullPath, true, function ():Void 
 								{
 									var cm:Dynamic = Editor.editor;
 									cm.centerOnLine(lineNumber);
@@ -182,7 +201,7 @@ class ProcessHelper
 							
 							//Check if it's open
 							//Show hints when swithing document
-							TabManager.openFileInNewTab(fullPath, false);
+							tabManagerInstance.openFileInNewTab(fullPath, false);
 						}
 					}
 				}
@@ -247,7 +266,7 @@ class ProcessHelper
 		HaxeLint.updateLinting();
 	}
 	
-	public static function runPersistentProcess(process:String, params:Array<String>, cwd:String, ?onClose:Int->String->String->Void, ?redirectToOutput:Bool = false):NodeChildProcess
+	public function runPersistentProcess(process:String, params:Array<String>, cwd:String, ?onClose:Int->String->String->Void, ?redirectToOutput:Bool = false):NodeChildProcess
 	{
 		var textarea = cast(Browser.document.getElementById("outputTextArea"), TextAreaElement);
 		
@@ -310,7 +329,7 @@ class ProcessHelper
 		return process;
 	}
 	
-	public static function checkProcessInstalled(process:String, params:Array<String>, onComplete:Bool->Void):Void
+	public function checkProcessInstalled(process:String, params:Array<String>, onComplete:Bool->Void):Void
 	{
 		var installed:Bool;
 		
@@ -338,7 +357,7 @@ class ProcessHelper
 		);
 	}
 	
-	static function processParamsToCommand(process:String, params:Array<String>):String
+	function processParamsToCommand(process:String, params:Array<String>):String
 	{
 		return [process].concat(params).join(" ");
 	}

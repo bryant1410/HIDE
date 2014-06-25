@@ -52,7 +52,9 @@ class FunctionParametersHelper
 	
 	public static function update(cm:CodeMirror):Void
 	{		
-		var doc = TabManager.getCurrentDocument();
+		var tabManagerInstance = TabManager.get();
+		
+		var doc = tabManagerInstance.getCurrentDocument();
 		
 		if (doc != null)
 		{
@@ -122,15 +124,17 @@ class FunctionParametersHelper
 	{
 		var posBeforeBracket:Pos = {line:pos.line, ch:pos.ch - 1};
 		
-		var word = Completion.getCurrentWord(cm, {}, posBeforeBracket).word;
+		var completionInstance = Completion.get();
+		
+		var word = completionInstance.getCurrentWord(cm, {}, posBeforeBracket).word;
         
-		Completion.getCompletion(function ()
+		completionInstance.getCompletion(function ()
 		{
 			var found:Bool = false;
 			
 			FunctionParametersHelper.clear();
 			
-			for (completion in Completion.completions) 
+			for (completion in completionInstance.completions) 
 			{							
 				if (word == completion.n) 
 				{

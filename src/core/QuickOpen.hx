@@ -1,4 +1,5 @@
 package core;
+import parser.ClassParser.FileData;
 
 import js.html.DivElement;
 import jQuery.JQuery;
@@ -15,20 +16,32 @@ import tabmanager.TabManager;
  */
 class QuickOpen
 {
-    static var div:DivElement;
-    static var panel:DivElement;
-    static var panelBody:DivElement;
-    static var inputGroup:InputGroup;
-    static var listGroup:ListGroup;
-    static var input:InputElement;
+    var div:DivElement;
+    var panel:DivElement;
+    var panelBody:DivElement;
+    var inputGroup:InputGroup;
+    var listGroup:ListGroup;
+    var input:InputElement;
     
-    static var activeItemIndex:Int;
+    var activeItemIndex:Int;
     
-    static var fileList:Array<parser.ClassParser.FileData>;
+    var fileList:Array<FileData>;
     
-    static var currentList:Array<parser.ClassParser.FileData>;
+    var currentList:Array<FileData>;
+	
+	static var instance:QuickOpen;
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new QuickOpen();
+		}
+			
+		return instance;
+	}
     
-    public static function load()
+    public function new()
     {        
         panel = js.Browser.document.createDivElement();
         panel.className = "panel panel-default";
@@ -56,7 +69,7 @@ class QuickOpen
         new JQuery(js.Browser.document.body).append(panel);
     }
     
-    public static function show(list:Array<parser.ClassParser.FileData>)
+    public function show(list:Array<parser.ClassParser.FileData>)
     {        
         activeItemIndex = 0;
         
@@ -74,7 +87,7 @@ class QuickOpen
     	registerListeners();
     }
 
-	static function onKeyUp(e:js.html.KeyboardEvent)
+	function onKeyUp(e:js.html.KeyboardEvent)
 	{
         switch (e.keyCode)
         {
@@ -85,18 +98,28 @@ class QuickOpen
         }
     }
 
-	static function onInput(e)
+	function onInput(e)
 	{
         activeItemIndex = 0;
         
         core.Helper.debounce("openfilecompletion", function ()
                           	{
-                            	currentList = completion.Filter.filterFiles(fileList, input.value);
+								var value = StringTools.trim(input.value);
+								
+								var values = value.split(" ");
+								
+								currentList = fileList;
+								
+								for (item in values)
+								{
+									currentList = completion.Filter.filterFiles(currentList, item);
+								}
+								
         						update();    
                             }, 100);
     }
     
-    static function onKeyDown(e:js.html.KeyboardEvent)
+    function onKeyDown(e:js.html.KeyboardEvent)
     {
         switch (e.keyCode)
         {
@@ -175,12 +198,12 @@ class QuickOpen
         }
     }
     
-    static function onClick(e)
+    function onClick(e)
     {
         hide();
     }
 
-    static function registerListeners()
+    function registerListeners()
     {
         js.Browser.document.addEventListener("keyup", onKeyUp);
         js.Browser.document.addEventListener("click", onClick);
@@ -188,7 +211,7 @@ class QuickOpen
         input.addEventListener("keydown", onKeyDown);
 	}
     
-	static function unregisterListeners()
+	function unregisterListeners()
 	{
         js.Browser.document.removeEventListener("keyup", onKeyUp);
         js.Browser.document.removeEventListener("click", onClick);
@@ -196,18 +219,20 @@ class QuickOpen
         input.removeEventListener("keydown", onKeyDown);
     }
 
-    static function hide()
+    function hide()
     {
         panel.style.display = "none";
         unregisterListeners();
+				
+		var tabManagerInstance = TabManager.get();
                 
-        if (tabmanager.TabManager.selectedPath != null)
+        if (tabManagerInstance.selectedPath != null)
         {
         	cm.Editor.editor.focus();
         }
     }
     
-    static function update()
+    function update()
     {
         listGroup.clear();
         
@@ -219,7 +244,7 @@ class QuickOpen
     	makeSureActiveItemVisible();
     }
 	
-	static function makeSureActiveItemVisible()
+	function makeSureActiveItemVisible()
 	{        
         var items = listGroup.getItems();
         
@@ -262,14 +287,16 @@ class QuickOpen
         }
     }
 
-	static function openFile(path:String)
+	function openFile(path:String)
 	{
+		var tabManagerInstance = TabManager.get();
+		
 		if (ProjectAccess.path != null) 
 		{
 			path = Node.path.resolve(ProjectAccess.path, path);
 		}
 		
-		TabManager.openFileInNewTab(path);
+		tabManagerInstance.openFileInNewTab(path);
 	}
 
 }

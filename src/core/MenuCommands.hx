@@ -1,4 +1,5 @@
 package core;
+import haxe.Timer;
 import cm.Editor;
 import dialogs.DialogManager;
 import dialogs.ProjectOptionsDialog;
@@ -51,7 +52,11 @@ class MenuCommands
 		}
 		, "F11");
 		
-		BootstrapMenu.getMenu("Help").addMenuItem("changelog", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "changes.md")));
+		var tabManagerInstance = TabManager.get();
+		var completionInstance = Completion.get();
+		var fileTreeInstance = FileTree.get();
+		
+		BootstrapMenu.getMenu("Help").addMenuItem("changelog", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join("core", "changes.md")));
 		
 		BootstrapMenu.getMenu("Developer Tools", 100).addMenuItem("Reload IDE", 1, window.reloadIgnoringCache, "Ctrl-Shift-R");
 
@@ -74,7 +79,7 @@ class MenuCommands
 		
 		BootstrapMenu.getMenu("Developer Tools").addMenuItem("Console", 3, window.showDevTools);
 		
-		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "bindings.txt")));
+		BootstrapMenu.getMenu("Help").addMenuItem("Show code editor key bindings", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join("core", "bindings.txt")));
 		BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub", 2, Shell.openExternal.bind("https://github.com/as3boyan/HIDE"));
 		BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker", 3, Shell.openExternal.bind("https://github.com/as3boyan/HIDE/issues/new"));
 		BootstrapMenu.getMenu("Help").addMenuItem("Open Haxe nightly build download URL", 4, function ():Void 
@@ -101,18 +106,18 @@ class MenuCommands
 		BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...", 5, HIDE.openPageInNewWindow.bind(null, "about.html", {toolbar:false}));
 		
 		//Ctrl-Tab
-		Hotkeys.add("Tab Manager->Show Next Tab", "Ctrl-Tab", null, TabManager.showNextTab);
+		Hotkeys.add("Tab Manager->Show Next Tab", "Ctrl-Tab", null, tabManagerInstance.showNextTab);
 		
 		//Ctrl-Shift-Tab
-		Hotkeys.add("Tab Manager->Show Previous Tab", "Ctrl-Shift-Tab", null, TabManager.showPreviousTab);
+		Hotkeys.add("Tab Manager->Show Previous Tab", "Ctrl-Shift-Tab", null, tabManagerInstance.showPreviousTab);
 		
 		//Ctrl-W
-		Hotkeys.add("Tab Manager->Close File", "Ctrl-W", null, TabManager.closeActiveTab);
+		Hotkeys.add("Tab Manager->Close File", "Ctrl-W", null, tabManagerInstance.closeActiveTab);
 		
 		BootstrapMenu.getMenu("File", 1).addMenuItem("New Project...", 1, NewProjectDialog.show, "Ctrl-Shift-N");
 		
 		//Ctrl-N
-		BootstrapMenu.getMenu("File").addMenuItem("New File...", 2, TabManager.createFileInNewTab, "Ctrl-N");
+		BootstrapMenu.getMenu("File").addMenuItem("New File...", 2, tabManagerInstance.createFileInNewTab, "Ctrl-N");
 		BootstrapMenu.getMenu("File").addSeparator();
 		BootstrapMenu.getMenu("File").addMenuItem("Open Project...", 3, OpenProject.openProject.bind(null, true));
 		BootstrapMenu.getMenu("File").addSubmenu("Open Recent Project");
@@ -122,29 +127,32 @@ class MenuCommands
 		BootstrapMenu.getMenu("File").addSeparator();
 		
 		//Ctrl-S
-		BootstrapMenu.getMenu("File").addMenuItem("Save", 6, TabManager.saveActiveFile, "Ctrl-S");
+		BootstrapMenu.getMenu("File").addMenuItem("Save", 6, tabManagerInstance.saveActiveFile, "Ctrl-S");
 		//Ctrl-Shift-S
-		BootstrapMenu.getMenu("File").addMenuItem("Save As...", 7, TabManager.saveActiveFileAs, "Ctrl-Shift-S");
-		BootstrapMenu.getMenu("File").addMenuItem("Save All", 8, TabManager.saveAll);
+		BootstrapMenu.getMenu("File").addMenuItem("Save As...", 7, tabManagerInstance.saveActiveFileAs, "Ctrl-Shift-S");
+		BootstrapMenu.getMenu("File").addMenuItem("Save All", 8, tabManagerInstance.saveAll);
 		BootstrapMenu.getMenu("File").addSeparator();
 		
 		BootstrapMenu.getMenu("File").addMenuItem("Exit", 9, App.closeAllWindows);
 		
-		Window.get().on('close', TabManager.saveAll);
+		Window.get().on('close', tabManagerInstance.saveAll);
 		
 // 		BootstrapMenu.getMenu("Options").addMenuItem("Open haxelib manager", 1, DialogManager.showHaxelibManagerDialog);
-		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"settings.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open settings", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"settings.json")));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open stylesheet", 1, function ()
 													 {
-														 TabManager.openFileInNewTab(Node.path.join("core", SettingsWatcher.settings.theme));
+														 tabManagerInstance.openFileInNewTab(Node.path.join("core", SettingsWatcher.settings.theme));
 													 }
 													);
-		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"editor.json")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, FileTree.load.bind("templates", Node.path.join("core","templates")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, TabManager.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
-		BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "hotkeys.json")));
-		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open snippets configuration file", 1, TabManager.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "snippets.json")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK", 100, ClasspathWalker.showHaxeDirectoryDialog);
+		
+		var classpathWalker = ClasspathWalker.get();
+		
+		BootstrapMenu.getMenu("Options").addMenuItem("Open editor configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder,"editor.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open templates folder", 1, fileTreeInstance.load.bind("templates", Node.path.join("core","templates")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
+		BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "hotkeys.json")));
+		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open snippets configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "snippets.json")));
+		BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK", 100, classpathWalker.showHaxeDirectoryDialog);
 		
 		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, Editor.editor.execCommand.bind("undo"));
 		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, Editor.editor.execCommand.bind("redo"));
@@ -169,12 +177,14 @@ class MenuCommands
 		BootstrapMenu.getMenu("Edit").addMenuItem("Find...", 1, Editor.editor.execCommand.bind("find"));
 		BootstrapMenu.getMenu("Edit").addMenuItem("Replace...", 1, Editor.editor.execCommand.bind("replace"));
 		
-		BootstrapMenu.getMenu("Navigate", 4).addMenuItem("Go to Line", 2, GoToLine.show, "Ctrl-G");
+		var goToLine = GoToLine.get();
+		
+		BootstrapMenu.getMenu("Navigate", 4).addMenuItem("Go to Line", 2, goToLine.show, "Ctrl-G");
 		BootstrapMenu.getMenu("Navigate").addMenuItem("Open File", 3, function ()
                                                       {
-                                                          haxe.Timer.delay(function ()
+                                                          Timer.delay(function ()
                                                                           {
-                                                                              Completion.showFileList();
+                                                                              completionInstance.showFileList();
                                                                           }, 10);
                                                       }, "Ctrl-Shift-O");
 		
@@ -185,16 +195,16 @@ class MenuCommands
 													  }
 													  , "Ctrl-B");
 		
-		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, Completion.showClassList, "Ctrl-Shift-P");
+		BootstrapMenu.getMenu("Source").addMenuItem("Show Class List", 4, completionInstance.showClassList, "Ctrl-Shift-P");
 		BootstrapMenu.getMenu("Source").addMenuItem("Show Code Completion", 5, Editor.triggerCompletion.bind(Editor.editor), "Ctrl-Space");
 		BootstrapMenu.getMenu("Source").addMenuItem("Toggle Comment", 5, Editor.editor.execCommand.bind("toggleComment"), "Ctrl-Q");
 		BootstrapMenu.getMenu("Source").addMenuItem("Import Class Definition", 6, function ():Void
 		{
-            var selectedPath = TabManager.getCurrentDocumentPath();
+            var selectedPath = tabManagerInstance.getCurrentDocumentPath();
             
             if (selectedPath != null)
             {
-            	ImportDefinition.searchImport(TabManager.getCurrentDocument().getValue(), selectedPath);   
+            	ImportDefinition.searchImport(tabManagerInstance.getCurrentDocument().getValue(), selectedPath);   
             }
 		}, "Ctrl-Shift-1");
 				

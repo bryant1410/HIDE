@@ -66,7 +66,9 @@ class ImportDefinition
 //                 fileImports = RegexParser.getFileImportsList(value);
 //             }
             
-            topLevelClassList = core.Completion.getClassList().topLevelClassList;
+			var completionInstance = Completion.get();
+			
+            topLevelClassList = completionInstance.getClassList().topLevelClassList;
             
             switch (mode)
             {
@@ -117,7 +119,8 @@ class ImportDefinition
             }
             else if (suggestImport)
             {
-                Completion.showImportDefinition([text], from, to);
+				var completionInstance = Completion.get();
+                completionInstance.showImportDefinition([text], from, to);
             }
         }
         else
@@ -185,7 +188,8 @@ class ImportDefinition
         }
         else if (foundImports.length > 0)
         {
-            Completion.showImportDefinition(foundImports);
+			var completionInstance = Completion.get();
+            completionInstance.showImportDefinition(foundImports);
         }
         else
         {
@@ -227,7 +231,9 @@ class ImportDefinition
 				}
 			}
 				
-			var classDeclarations = RegexParser.getClassDeclarations(TabManager.getCurrentDocument().getValue());
+			var tabManagerInstance = TabManager.get();
+				
+			var classDeclarations = RegexParser.getClassDeclarations(tabManagerInstance.getCurrentDocument().getValue());
 			
 			var currentClassDeclaration = null;
 			
@@ -263,7 +269,8 @@ class ImportDefinition
 						cm.replaceRange(variableName, from, to);
 					};
 				
-				Completion.showActions([completionItem]);
+				var completionInstance = Completion.get();
+				completionInstance.showActions([completionItem]);
 			}
 			else
 			{
@@ -286,7 +293,9 @@ class ImportDefinition
         
     static function importClass(cm:CodeMirror, text:String, from:CodeMirror.Pos, to:CodeMirror.Pos)
 	{
-        var value = tabmanager.TabManager.getCurrentDocument().getValue();
+		var tabManagerInstance = TabManager.get();
+		
+        var value = tabManagerInstance.getCurrentDocument().getValue();
         
         var filePackage = RegexParser.getFilePackage(value);
         

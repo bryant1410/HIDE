@@ -57,9 +57,11 @@ class RunProject
 		
 		var path:String = pathToHxml;
 		
+		var tabManagerInstance = TabManager.get();
+		
 		if (path == null)
 		{
-			path = TabManager.getCurrentDocumentPath();
+			path = tabManagerInstance.getCurrentDocumentPath();
 		}
 
 		var extname:String = js.Node.path.extname(path);
@@ -182,7 +184,8 @@ class RunProject
 	static function killRunningProcessAndRunNew(process:String, params:Array<String>, cwd:String):NodeChildProcess 
 	{
 		killRunProcess();
-		return ProcessHelper.runPersistentProcess(process, params, cwd, null, true);
+		var processHelper = ProcessHelper.get();
+		return processHelper.runPersistentProcess(process, params, cwd, null, true);
 	}
 	
 	static function killRunProcess():Void
@@ -233,15 +236,19 @@ class RunProject
 	
 	static function buildSpecifiedProject(project:Project, pathToProject:String,  onComplete:Dynamic)
 	{
+		var tabManagerInstance = TabManager.get();
+		var projectOptions = ProjectOptions.get();
+		var processHelper = ProcessHelper.get();
+		
 		if (pathToProject == null)
 		{
 			Alertify.error(LocaleWatcher.getStringSync("Please open or create project first!"));
 		}
 		else 
 		{
-			TabManager.saveAll(function ()
+			tabManagerInstance.saveAll(function ()
 			{
-				var path:String = TabManager.getCurrentDocumentPath();
+				var path:String = tabManagerInstance.getCurrentDocumentPath();
 				var extname:String = Node.path.extname(path);
 				var buildHxml:Bool = (extname == ".hxml");
 				
@@ -291,7 +298,7 @@ class RunProject
 				}
 				else
 				{
-					ProjectOptions.updateOpenFLBuildCommand();
+					projectOptions.updateOpenFLBuildCommand();
 					
 					var command:String = project.buildActionCommand;
 					command = CommandPreprocessor.preprocess(command, pathToProject);
@@ -306,7 +313,7 @@ class RunProject
 					
 					var cwd = ProjectAccess.path;
 					
-					ProcessHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);			
+					processHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);			
 				}
 			}
 			);
