@@ -50,7 +50,7 @@
 
 .dropdown-menu
 {
-    background-color: #e6e6e6;
+    background-color: #ffffff;
 /*     border: none; */
     border-bottom: 0;
 }
@@ -150,8 +150,6 @@
 	line-height:14px;
 }
 
-
-
 /* Scroll bars */
 
 #panelfiletreeverticalScrollBar, #paneloutlineverticalScrollBar{
@@ -160,7 +158,7 @@
 }
 
 #jqxScrollBtnUppanelfiletreeverticalScrollBar , #jqxScrollBtnDownpanelfiletreeverticalScrollBar, #jqxScrollBtnUppaneloutlineverticalScrollBar , #jqxScrollBtnDownpaneloutlineverticalScrollBar{
-	display:none;
+	/*display:none;*/
 }
 
 #jqxScrollAreaDownpanelfiletreeverticalScrollBar, #jqxScrollWrappanelfiletreeverticalScrollBar,  #jqxScrollAreaUppanelfiletreeverticalScrollBar, #jqxScrollThumbpanelfiletreeverticalScrollBar, 
@@ -174,6 +172,28 @@
 	margin: 2px;
 	background-color: #b4b4a2;
 }
+
+.jqx-icon-arrow-up{
+	width:9px;
+	margin-left:-2px;
+	background-image:url( images/compact/icon-up.png);
+}
+
+.jqx-icon-arrow-down{
+	width:9px;
+	margin-left:-2px;
+	background-image:url( images/compact/icon-down.png);
+}
+
+.jqx-scrollbar-button-state-hover{
+	border:none;
+}
+
+
+.jqx-scrollbar-button-state-pressed, .jqx-scrollbar-button-state-pressed{
+	background-color:#ffffff;
+}
+
 
 /* Vertical split bar */
 
