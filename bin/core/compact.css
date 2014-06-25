@@ -261,8 +261,37 @@ ul.tabs > li:hover {
 
 .CodeMirror-wrap{
 	border-color: #46473f;
+	
+	
 }
 
+.CodeMirror-linewidget{
+	left:0px !important;
+	padding-left:0px !important;
+	background-color:rgb(256,256,256) !important;
+	border-radius:10px;
+	margin-top:5px;
+	margin-bottom:10px;
+}
+
+.CodeMirror-linewidget .lint-error{
+	background-color:#cccccc !important;
+	padding: 5px;
+	padding-left: 15px;
+	border-radius:10px;
+	
+}
+
+.selectedParameter{
+	background-color:#006cff;
+	padding:2px;
+	margin-top:1px;
+	padding-left:10px;
+	padding-right:10px;
+	border-radius:10px;
+	color:#ffffff;
+	font-weight:normal;
+}
 
 /* Results & Output */
 #tabs1 > div.jqx-tabs-headerWrapper{
