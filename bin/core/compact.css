@@ -150,15 +150,11 @@
 	line-height:14px;
 }
 
-/* Scroll bars */
+/* Vertical Scroll bars */
 
 #panelfiletreeverticalScrollBar, #paneloutlineverticalScrollBar{
 	width: 11px !important;
 	margin-left: 8px;
-}
-
-#jqxScrollBtnUppanelfiletreeverticalScrollBar , #jqxScrollBtnDownpanelfiletreeverticalScrollBar, #jqxScrollBtnUppaneloutlineverticalScrollBar , #jqxScrollBtnDownpaneloutlineverticalScrollBar{
-	/*display:none;*/
 }
 
 #jqxScrollAreaDownpanelfiletreeverticalScrollBar, #jqxScrollWrappanelfiletreeverticalScrollBar,  #jqxScrollAreaUppanelfiletreeverticalScrollBar, #jqxScrollThumbpanelfiletreeverticalScrollBar, 
@@ -194,6 +190,36 @@
 	background-color:#ffffff;
 }
 
+/* Horizontal Scroll bars */
+
+#panelfiletreehorizontalScrollBar, #paneloutlinehorizontalScrollBar{
+	height: 11px !important;
+	margin-top: 6px;
+}
+
+#jqxScrollAreaDownpanelfiletreehorizontalScrollBar, #jqxScrollWrappanelfiletreehorizontalScrollBar,  #jqxScrollAreaUppanelfiletreehorizontalScrollBar, #jqxScrollThumbpanelfiletreehorizontalScrollBar, 
+#jqxScrollAreaDownpaneloutlinehorizontalScrollBar, #jqxScrollWrappaneloutlinehorizontalScrollBar,  #jqxScrollAreaUppaneloutlinehorizontalScrollBar, #jqxScrollThumbpaneloutlinehorizontalScrollBar
+{
+	height: 100% !important;
+}
+
+#jqxScrollThumbpanelfiletreehorizontalScrollBar ,#jqxScrollThumbpaneloutlinehorizontalScrollBar{
+	height: 4px !important;
+	margin-top: 3px;
+	background-color: #b4b4a2;
+}
+
+.jqx-icon-arrow-left{
+	height:9px;
+	margin-top:-2px;
+	background-image:url( images/compact/icon-left.png);
+}
+
+.jqx-icon-arrow-right{
+	height:9px;
+	margin-top:-2px;
+	background-image:url( images/compact/icon-right.png);
+}
 
 /* Vertical split bar */
 
