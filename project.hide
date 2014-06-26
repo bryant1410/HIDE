@@ -18,14 +18,23 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 75
+            ,"activeLine" : 65
+        }
+        ,{
+             "path" : "src/haxeproject/HaxeProject.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 215
         }
     ]
-    ,"activeFile" : "src/completion/GoToDeclaration.hx"
+    ,"activeFile" : "src/haxeproject/HaxeProject.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
-    ,"runActionText" : null
+    ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
     ,"buildActionCommand" : null
     ,"hiddenItems" : [
 

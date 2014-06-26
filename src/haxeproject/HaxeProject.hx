@@ -211,7 +211,7 @@ class HaxeProject
 						pathToFile = "bin";
 						
 						targetData.runActionType = Project.COMMAND;
-						targetData.runActionText = "bin/" + project.name + "-debug";
+						targetData.runActionText = "bin/" + "Main" + "-debug";
                         
                         if (Utils.os == Utils.WINDOWS)
                         {

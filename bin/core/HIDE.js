@@ -13942,7 +13942,7 @@ haxeproject.HaxeProject.prototype = {
 				case 4:
 					pathToFile = "bin";
 					targetData.runActionType = 2;
-					targetData.runActionText = "bin/" + project.name + "-debug";
+					targetData.runActionText = "bin/" + "Main" + "-debug";
 					if(core.Utils.os == 0) targetData.runActionText += ".exe";
 					break;
 				case 5:
