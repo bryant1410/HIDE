@@ -62,6 +62,7 @@ class Main
 	{
 		window = Window.get();
 		window.showDevTools();
+		window.title = "HIDE";
 
 		js.Node.process.on('uncaughtException', function (err)
 		{

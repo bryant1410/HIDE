@@ -292,6 +292,7 @@ Main.__name__ = ["Main"];
 Main.main = function() {
 	Main.window = nodejs.webkit.Window.get();
 	Main.window.showDevTools();
+	Main.window.title = "HIDE";
 	js.Node.process.on("uncaughtException",function(err) {
 		console.log(err);
 		Main.window.show();
@@ -4106,14 +4107,16 @@ core.OutlinePanel.prototype = {
 		new $("#outline").dblclick(function(event) {
 			var item = new $("#outline").jqxTree("getSelectedItem");
 			var value = item.value;
-			var cm1 = cm.Editor.editor;
+			var cm2 = cm.Editor.editor;
 			if(value != null) {
-				var pos = cm1.posFromIndex(value.min);
-				var pos2 = cm1.posFromIndex(value.max);
+				var pos = cm2.posFromIndex(value.min);
+				var pos2 = cm2.posFromIndex(value.max);
 				var line = pos.line;
-				cm1.centerOnLine(line);
-				cm1.focus();
-				cm1.setCursor(pos2);
+				cm2.centerOnLine(line);
+				cm2.focus();
+				cm2.setCursor(pos2);
+				var highlightRange = cm.HighlightRange.get();
+				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
 	}

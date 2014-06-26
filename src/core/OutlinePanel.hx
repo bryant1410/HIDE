@@ -1,4 +1,5 @@
 package core;
+import cm.HighlightRange;
 import haxe.Timer;
 import parser.OutlineHelper;
 import cm.Editor;
@@ -48,19 +49,20 @@ class OutlinePanel
 			
 			var value:DeclarationPos = item.value;
 			
-			var cm = Editor.editor;
+			var cm2 = Editor.editor;
 			
 			if (value != null) 
 			{
-				var pos = cm.posFromIndex(value.min);
-				var pos2 = cm.posFromIndex(value.max);
+				var pos = cm2.posFromIndex(value.min);
+				var pos2 = cm2.posFromIndex(value.max);
 				var line = pos.line;
 				
-				cm.centerOnLine(line);
-				cm.focus();
-				cm.setCursor(pos2);
+				cm2.centerOnLine(line);
+				cm2.focus();
+				cm2.setCursor(pos2);
 				
-				
+				var highlightRange = HighlightRange.get();
+				highlightRange.highlight(cm2, pos, pos2);
 			}
 		}
 		);
