@@ -19,7 +19,9 @@ class InputGroupButton extends InputGroup
 		span = Browser.document.createSpanElement();
 		span.className = "input-group-btn";
 		
-		button = ButtonManager.createButton(text);
+		var buttonManager = ButtonManager.get();
+		
+		button = buttonManager.createButton(text);
 		span.appendChild(button);
 		
 		inputGroup.appendChild(span);

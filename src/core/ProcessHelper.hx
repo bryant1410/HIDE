@@ -186,7 +186,7 @@ class ProcessHelper
 							{
 								tabManagerInstance.openFileInNewTab(fullPath, true, function ():Void 
 								{
-									var cm:Dynamic = Editor.editor;
+									var cm = Editor.editor;
 									cm.centerOnLine(lineNumber);
 								});
 								

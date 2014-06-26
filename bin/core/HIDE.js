@@ -308,7 +308,8 @@ Main.main = function() {
 		core.Hotkeys.prepare();
 		menu.BootstrapMenu.createMenuBar();
 		newprojectdialog.NewProjectDialog.load();
-		cm.Zoom.load();
+		var zoom = cm.Zoom.get();
+		zoom.load();
 		var fileTreeInstance = filetree.FileTree.get();
 		fileTreeInstance.init();
 		var projectOptions = projectaccess.ProjectOptions.get();
@@ -326,13 +327,15 @@ Main.main = function() {
 		projectaccess.ProjectAccess.registerSaveOnCloseListener();
 		var haxeProject = haxeproject.HaxeProject.get();
 		var openFLProject = openflproject.OpenFLProject.get();
-		kha.KhaProject.load();
+		var khaProject = kha.KhaProject.get();
+		khaProject.load();
 		core.CompilationOutput.load();
 		var recentProjectsList = core.RecentProjectsList.get();
 		openproject.OpenProject.searchForLastProject();
 		core.DragAndDrop.prepare();
 		var classWalker = parser.ClasspathWalker.get();
-		core.WelcomeScreen.load();
+		var welcomeScreen = core.WelcomeScreen.get();
+		welcomeScreen.load();
 		var quickOpen = core.QuickOpen.get();
 		Main.sync = false;
 		Main.currentTime = new Date().getTime();
@@ -865,23 +868,31 @@ autoformat.HaxePrinterLoader.load = function() {
 	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join("core","config","autoformat.json")));
 };
 var bootstrap = {};
-bootstrap.ButtonManager = function() { };
+bootstrap.ButtonManager = function() {
+};
 $hxClasses["bootstrap.ButtonManager"] = bootstrap.ButtonManager;
 bootstrap.ButtonManager.__name__ = ["bootstrap","ButtonManager"];
-bootstrap.ButtonManager.createButton = function(text,disabled,hide,primary) {
-	if(primary == null) primary = false;
-	if(hide == null) hide = false;
-	if(disabled == null) disabled = false;
-	var button;
-	var _this = window.document;
-	button = _this.createElement("button");
-	button.type = "button";
-	if(primary) button.className = "btn btn-primary"; else button.className = "btn btn-default";
-	button.setAttribute("localeString",text);
-	button.textContent = watchers.LocaleWatcher.getStringSync(text);
-	if(disabled) button.classList.add("disabled");
-	if(hide) button.setAttribute("data-dismiss","modal");
-	return button;
+bootstrap.ButtonManager.get = function() {
+	if(bootstrap.ButtonManager.instance == null) bootstrap.ButtonManager.instance = new bootstrap.ButtonManager();
+	return bootstrap.ButtonManager.instance;
+};
+bootstrap.ButtonManager.prototype = {
+	createButton: function(text,disabled,hide,primary) {
+		if(primary == null) primary = false;
+		if(hide == null) hide = false;
+		if(disabled == null) disabled = false;
+		var button;
+		var _this = window.document;
+		button = _this.createElement("button");
+		button.type = "button";
+		if(primary) button.className = "btn btn-primary"; else button.className = "btn btn-default";
+		button.setAttribute("localeString",text);
+		button.textContent = watchers.LocaleWatcher.getStringSync(text);
+		if(disabled) button.classList.add("disabled");
+		if(hide) button.setAttribute("data-dismiss","modal");
+		return button;
+	}
+	,__class__: bootstrap.ButtonManager
 };
 bootstrap.InputGroup = function() {
 	var _this = window.document;
@@ -911,7 +922,8 @@ bootstrap.InputGroupButton = function(text) {
 	var _this = window.document;
 	this.span = _this.createElement("span");
 	this.span.className = "input-group-btn";
-	this.button = bootstrap.ButtonManager.createButton(text);
+	var buttonManager = bootstrap.ButtonManager.get();
+	this.button = buttonManager.createButton(text);
 	this.span.appendChild(this.button);
 	this.inputGroup.appendChild(this.span);
 };
@@ -1333,7 +1345,8 @@ cm.Editor.load = function() {
 	cm.ColorPreview.create(cm.Editor.editor);
 	cm.Editor.editor.on("cursorActivity",function(cm4) {
 		core.Helper.debounce("cursorActivity",function() {
-			core.FunctionParametersHelper.update(cm4);
+			var functionParametersHelper = core.FunctionParametersHelper.get();
+			functionParametersHelper.update(cm4);
 			cm.ColorPreview.update(cm4);
 			cm.ERegPreview.update(cm4);
 		},100);
@@ -1710,43 +1723,52 @@ cm.Xml.prototype = {
 	}
 	,__class__: cm.Xml
 };
-cm.Zoom = function() { };
+cm.Zoom = function() {
+};
 $hxClasses["cm.Zoom"] = cm.Zoom;
 cm.Zoom.__name__ = ["cm","Zoom"];
-cm.Zoom.load = function() {
-	window.document.addEventListener("mousewheel",function(e) {
-		if(e.altKey || e.ctrlKey || e.metaKey) {
-			if(e.wheelDeltaY < 0) {
-				var fontSize = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				fontSize--;
-				cm.Zoom.setFontSize(fontSize);
-				e.preventDefault();
-				e.stopPropagation();
-			} else if(e.wheelDeltaY > 0) {
-				var fontSize1 = Std.parseInt(new $(".CodeMirror").css("font-size"));
-				fontSize1++;
-				cm.Zoom.setFontSize(fontSize1);
-				e.preventDefault();
-				e.stopPropagation();
-			}
-		}
-	});
-	menu.BootstrapMenu.getMenu("View").addMenuItem("Increase Font Size",10001,function() {
-		var fontSize2 = Std.parseInt(new $(".CodeMirror").css("font-size"));
-		fontSize2++;
-		cm.Zoom.setFontSize(fontSize2);
-	},"Ctrl-+");
-	menu.BootstrapMenu.getMenu("View").addMenuItem("Decrease Font Size",10002,function() {
-		var fontSize3 = Std.parseInt(new $(".CodeMirror").css("font-size"));
-		fontSize3--;
-		cm.Zoom.setFontSize(fontSize3);
-	},"Ctrl--");
+cm.Zoom.get = function() {
+	if(cm.Zoom.instance == null) cm.Zoom.instance = new cm.Zoom();
+	return cm.Zoom.instance;
 };
-cm.Zoom.setFontSize = function(fontSize) {
-	new $(".CodeMirror").css("font-size",(fontSize == null?"null":"" + fontSize) + "px");
-	new $(".CodeMirror-hint").css("font-size",Std.string(fontSize - 2) + "px");
-	new $(".CodeMirror-hints").css("font-size",Std.string(fontSize - 2) + "px");
-	cm.Editor.editor.refresh();
+cm.Zoom.prototype = {
+	load: function() {
+		var _g = this;
+		window.document.addEventListener("mousewheel",function(e) {
+			if(e.altKey || e.ctrlKey || e.metaKey) {
+				if(e.wheelDeltaY < 0) {
+					var fontSize = Std.parseInt(new $(".CodeMirror").css("font-size"));
+					fontSize--;
+					_g.setFontSize(fontSize);
+					e.preventDefault();
+					e.stopPropagation();
+				} else if(e.wheelDeltaY > 0) {
+					var fontSize1 = Std.parseInt(new $(".CodeMirror").css("font-size"));
+					fontSize1++;
+					_g.setFontSize(fontSize1);
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			}
+		});
+		menu.BootstrapMenu.getMenu("View").addMenuItem("Increase Font Size",10001,function() {
+			var fontSize2 = Std.parseInt(new $(".CodeMirror").css("font-size"));
+			fontSize2++;
+			_g.setFontSize(fontSize2);
+		},"Ctrl-+");
+		menu.BootstrapMenu.getMenu("View").addMenuItem("Decrease Font Size",10002,function() {
+			var fontSize3 = Std.parseInt(new $(".CodeMirror").css("font-size"));
+			fontSize3--;
+			_g.setFontSize(fontSize3);
+		},"Ctrl--");
+	}
+	,setFontSize: function(fontSize) {
+		new $(".CodeMirror").css("font-size",(fontSize == null?"null":"" + fontSize) + "px");
+		new $(".CodeMirror-hint").css("font-size",Std.string(fontSize - 2) + "px");
+		new $(".CodeMirror-hints").css("font-size",Std.string(fontSize - 2) + "px");
+		cm.Editor.editor.refresh();
+	}
+	,__class__: cm.Zoom
 };
 var completion = {};
 completion.Filter = function() { };
@@ -1920,9 +1942,38 @@ completion.GoToDeclaration.get = function() {
 };
 completion.GoToDeclaration.prototype = {
 	start: function() {
+		var ereg = new EReg("([^:\n\r]+):([0-9]+): (lines|characters) ([0-9]+)-([0-9]+)","g");
 		var cm1 = cm.Editor.editor;
 		var completionInstance = core.Completion.get();
 		completionInstance.getCompletion(function() {
+			if(completionInstance.declarationPositions.length > 0) {
+				var posData = completionInstance.declarationPositions[0];
+				if(ereg.match(posData)) {
+					var path = ereg.matched(1);
+					var line = Std.parseInt(ereg.matched(2));
+					var posType = ereg.matched(3);
+					var from = Std.parseInt(ereg.matched(4));
+					var to = Std.parseInt(ereg.matched(5));
+					var from2 = null;
+					var to2 = null;
+					if(posType == "lines") {
+						from2 = { line : from, ch : 0};
+						to2 = { line : to, ch : 0};
+					} else if(posType == "characters") {
+						from2 = { line : line, ch : from};
+						to2 = { line : line, ch : to};
+					}
+					if(from2 != null && to2 != null) {
+						var tabManagerInstance = tabmanager.TabManager.get();
+						tabManagerInstance.openFileInNewTab(path,true,function() {
+							var cm1 = cm.Editor.editor;
+							cm1.centerOnLine(from2.line);
+							var highlightRange = cm.HighlightRange.get();
+							highlightRange.highlight(cm1,from2,to2);
+						});
+					} else Alertify.error("Go To Declaration data parsing failed.");
+				}
+			}
 		},cm1.getCursor(),"position",false);
 	}
 	,__class__: completion.GoToDeclaration
@@ -2036,40 +2087,50 @@ completion.SnippetsCompletion.getCompletion = function() {
 	return completions;
 };
 var core = {};
-core.AnnotationRuler = function() { };
+core.AnnotationRuler = function() {
+	this.positions = [];
+};
 $hxClasses["core.AnnotationRuler"] = core.AnnotationRuler;
 core.AnnotationRuler.__name__ = ["core","AnnotationRuler"];
-core.AnnotationRuler.addErrorMarker = function(pathToFile,line,ch,message) {
-	var tabManagerInstance = tabmanager.TabManager.get();
-	var a;
-	var _this = window.document;
-	a = _this.createElement("a");
-	a.href = "#";
-	a.onclick = function(e) {
-		tabManagerInstance.openFileInNewTab(pathToFile,true,function() {
-			var cm1 = cm.Editor.editor;
-			cm1.centerOnLine(line);
-		});
-	};
-	var div;
-	var _this1 = window.document;
-	div = _this1.createElement("div");
-	div.className = "errorMarker";
-	var lineCount = tabManagerInstance.getCurrentDocument().lineCount();
-	var targetLine = line / lineCount * 100;
-	while(HxOverrides.indexOf(core.AnnotationRuler.positions,targetLine,0) != -1) targetLine++;
-	div.style.top = (targetLine == null?"null":"" + targetLine) + "%";
-	core.AnnotationRuler.positions.push(targetLine);
-	div.setAttribute("data-toggle","tooltip");
-	div.setAttribute("data-placement","left");
-	div.title = "Line: " + (line == null?"null":"" + line) + ":" + message;
-	new $(div).tooltip({ });
-	a.appendChild(div);
-	new $("#annotationRuler").append(a);
+core.AnnotationRuler.get = function() {
+	if(core.AnnotationRuler.instance == null) core.AnnotationRuler.instance = new core.AnnotationRuler();
+	return core.AnnotationRuler.instance;
 };
-core.AnnotationRuler.clearErrorMarkers = function() {
-	new $("#annotationRuler").children().remove();
-	core.AnnotationRuler.positions = [];
+core.AnnotationRuler.prototype = {
+	positions: null
+	,addErrorMarker: function(pathToFile,line,ch,message) {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var a;
+		var _this = window.document;
+		a = _this.createElement("a");
+		a.href = "#";
+		a.onclick = function(e) {
+			tabManagerInstance.openFileInNewTab(pathToFile,true,function() {
+				var cm1 = cm.Editor.editor;
+				cm1.centerOnLine(line);
+			});
+		};
+		var div;
+		var _this1 = window.document;
+		div = _this1.createElement("div");
+		div.className = "errorMarker";
+		var lineCount = tabManagerInstance.getCurrentDocument().lineCount();
+		var targetLine = line / lineCount * 100;
+		while(HxOverrides.indexOf(this.positions,targetLine,0) != -1) targetLine++;
+		div.style.top = (targetLine == null?"null":"" + targetLine) + "%";
+		this.positions.push(targetLine);
+		div.setAttribute("data-toggle","tooltip");
+		div.setAttribute("data-placement","left");
+		div.title = "Line: " + (line == null?"null":"" + line) + ":" + message;
+		new $(div).tooltip({ });
+		a.appendChild(div);
+		new $("#annotationRuler").append(a);
+	}
+	,clearErrorMarkers: function() {
+		new $("#annotationRuler").children().remove();
+		this.positions = [];
+	}
+	,__class__: core.AnnotationRuler
 };
 core.CompilationOutput = function() { };
 $hxClasses["core.CompilationOutput"] = core.CompilationOutput;
@@ -2106,6 +2167,7 @@ core.CompletionType.METATAGS.toString = $estr;
 core.CompletionType.METATAGS.__enum__ = core.CompletionType;
 core.Completion = function() {
 	this.completionType = core.CompletionType.REGULAR;
+	this.declarationPositions = [];
 	this.completions = [];
 	this.RANGE = 500;
 	this.WORD = new EReg("[A-Z_0-9]+$","i");
@@ -2127,6 +2189,7 @@ core.Completion.prototype = {
 	,RANGE: null
 	,curWord: null
 	,completions: null
+	,declarationPositions: null
 	,completionType: null
 	,completionActive: null
 	,load: function() {
@@ -2382,13 +2445,12 @@ core.Completion.prototype = {
 		if(mode != null) displayArgs += "@" + mode;
 		projectArguments.push(displayArgs);
 		this.completions = [];
+		this.declarationPositions = [];
 		var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
 		console.log(params);
 		var pathToHaxe = core.HaxeHelper.getPathToHaxe();
 		var processHelper = core.ProcessHelper.get();
 		processHelper.runProcess(pathToHaxe,params,null,function(stdout,stderr) {
-			console.log(stdout);
-			console.log(stderr);
 			var xml = Xml.parse(stderr);
 			var fast = new haxe.xml.Fast(xml);
 			if(fast.hasNode.resolve("list")) {
@@ -2419,7 +2481,7 @@ core.Completion.prototype = {
 				var $it1 = fast.nodes.resolve("pos").iterator();
 				while( $it1.hasNext() ) {
 					var item1 = $it1.next();
-					console.log(item1.get_innerData());
+					_g.declarationPositions.push(item1.get_innerData());
 				}
 			}
 			onComplete();
@@ -2502,7 +2564,8 @@ core.Completion.prototype = {
 		}
 	}
 	,searchImage: function(name,type,description) {
-		var functionData = core.FunctionParametersHelper.parseFunctionParams(name,type,description);
+		var functionParametersHelper = core.FunctionParametersHelper.get();
+		var functionData = functionParametersHelper.parseFunctionParams(name,type,description);
 		var info = null;
 		var className = "CodeMirror-Tern-completion";
 		if(functionData.parameters != null) {
@@ -2784,142 +2847,154 @@ core.FileDialog.openFolder = function(_onClick) {
 	core.FileDialog.input.setAttribute("nwdirectory","");
 	core.FileDialog.input.click();
 };
-core.FunctionParametersHelper = function() { };
+core.FunctionParametersHelper = function() {
+	this.widgets = [];
+};
 $hxClasses["core.FunctionParametersHelper"] = core.FunctionParametersHelper;
 core.FunctionParametersHelper.__name__ = ["core","FunctionParametersHelper"];
-core.FunctionParametersHelper.addWidget = function(type,name,parameters,retType,description,currentParameter,pos) {
-	var lineWidget = new core.LineWidget(type,name,parameters,retType,description,currentParameter,pos);
-	core.FunctionParametersHelper.widgets.push(lineWidget);
+core.FunctionParametersHelper.get = function() {
+	if(core.FunctionParametersHelper.instance == null) core.FunctionParametersHelper.instance = new core.FunctionParametersHelper();
+	return core.FunctionParametersHelper.instance;
 };
-core.FunctionParametersHelper.alreadyShown = function() {
-	return core.FunctionParametersHelper.widgets.length > 0;
-};
-core.FunctionParametersHelper.updateScroll = function() {
-	var info = cm.Editor.editor.getScrollInfo();
-	var after = cm.Editor.editor.charCoords({ line : cm.Editor.editor.getCursor().line + 1, ch : 0},"local").top;
-	if(info.top + info.clientHeight < after) cm.Editor.editor.scrollTo(null,after - info.clientHeight + 3);
-};
-core.FunctionParametersHelper.clear = function() {
-	var _g = 0;
-	var _g1 = core.FunctionParametersHelper.widgets;
-	while(_g < _g1.length) {
-		var widget = _g1[_g];
-		++_g;
-		cm.Editor.editor.removeLineWidget(widget.getWidget());
+core.FunctionParametersHelper.prototype = {
+	widgets: null
+	,lastPos: null
+	,addWidget: function(type,name,parameters,retType,description,currentParameter,pos) {
+		var lineWidget = new core.LineWidget(type,name,parameters,retType,description,currentParameter,pos);
+		this.widgets.push(lineWidget);
 	}
-	core.FunctionParametersHelper.widgets = [];
-};
-core.FunctionParametersHelper.update = function(cm) {
-	var tabManagerInstance = tabmanager.TabManager.get();
-	var doc = tabManagerInstance.getCurrentDocument();
-	if(doc != null) {
-		var modeName = doc.getMode().name;
-		if(modeName == "haxe" && !cm.state.completionActive) {
-			var cursor = cm.getCursor();
-			var data = cm.getLine(cursor.line);
-			if(cursor != null && data.charAt(cursor.ch - 1) != ".") core.FunctionParametersHelper.scanForBracket(cm,cursor);
-		}
+	,alreadyShown: function() {
+		return this.widgets.length > 0;
 	}
-};
-core.FunctionParametersHelper.scanForBracket = function(cm,cursor) {
-	var bracketsData = cm.scanForBracket(cursor,-1,null,{ bracketRegex : /[([\]]/});
-	var pos = null;
-	if(bracketsData != null && bracketsData.ch == "(") {
-		pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
-		var matchedBracket = cm.findMatchingBracket(pos,false,null).to;
-		if(matchedBracket == null || cursor.line <= matchedBracket.line && cursor.ch <= matchedBracket.ch) {
-			var range = cm.getRange(bracketsData.pos,cursor);
-			var currentParameter = range.split(",").length - 1;
-			if(core.FunctionParametersHelper.lastPos == null || core.FunctionParametersHelper.lastPos.ch != pos.ch || core.FunctionParametersHelper.lastPos.line != pos.line) core.FunctionParametersHelper.getFunctionParams(cm,pos,currentParameter); else if(core.FunctionParametersHelper.alreadyShown()) {
-				var _g = 0;
-				var _g1 = core.FunctionParametersHelper.widgets;
-				while(_g < _g1.length) {
-					var widget = _g1[_g];
-					++_g;
-					widget.updateParameters(currentParameter);
-				}
-			}
-			core.FunctionParametersHelper.lastPos = pos;
-		} else {
-			core.FunctionParametersHelper.lastPos = null;
-			core.FunctionParametersHelper.clear();
-		}
-	} else {
-		core.FunctionParametersHelper.lastPos = null;
-		core.FunctionParametersHelper.clear();
+	,updateScroll: function() {
+		var info = cm.Editor.editor.getScrollInfo();
+		var after = cm.Editor.editor.charCoords({ line : cm.Editor.editor.getCursor().line + 1, ch : 0},"local").top;
+		if(info.top + info.clientHeight < after) cm.Editor.editor.scrollTo(null,after - info.clientHeight + 3);
 	}
-};
-core.FunctionParametersHelper.getFunctionParams = function(cm,pos,currentParameter) {
-	var posBeforeBracket = { line : pos.line, ch : pos.ch - 1};
-	var completionInstance = core.Completion.get();
-	var word = completionInstance.getCurrentWord(cm,{ },posBeforeBracket).word;
-	completionInstance.getCompletion(function() {
-		var found = false;
-		core.FunctionParametersHelper.clear();
+	,clear: function() {
 		var _g = 0;
-		var _g1 = completionInstance.completions;
+		var _g1 = this.widgets;
 		while(_g < _g1.length) {
-			var completion = _g1[_g];
+			var widget = _g1[_g];
 			++_g;
-			if(word == completion.n) {
-				var functionData = core.FunctionParametersHelper.parseFunctionParams(completion.n,completion.t,completion.d);
-				if(functionData.parameters != null) {
-					var description = core.FunctionParametersHelper.parseDescription(completion.d);
-					core.FunctionParametersHelper.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor());
-					found = true;
-				}
+			cm.Editor.editor.removeLineWidget(widget.getWidget());
+		}
+		this.widgets = [];
+	}
+	,update: function(cm) {
+		var tabManagerInstance = tabmanager.TabManager.get();
+		var doc = tabManagerInstance.getCurrentDocument();
+		if(doc != null) {
+			var modeName = doc.getMode().name;
+			if(modeName == "haxe" && !cm.state.completionActive) {
+				var cursor = cm.getCursor();
+				var data = cm.getLine(cursor.line);
+				if(cursor != null && data.charAt(cursor.ch - 1) != ".") this.scanForBracket(cm,cursor);
 			}
 		}
-		core.FunctionParametersHelper.updateScroll();
-	},posBeforeBracket);
-};
-core.FunctionParametersHelper.parseDescription = function(description) {
-	if(description != null) {
-		if(description.indexOf(".") != -1) description = description.split(".")[0];
 	}
-	return description;
-};
-core.FunctionParametersHelper.parseFunctionParams = function(name,type,description) {
-	var parameters = null;
-	var retType = null;
-	if(type != null && type.indexOf("->") != -1) {
-		var openBracketsCount = 0;
-		var positions = [];
-		var i = 0;
-		var lastPos = 0;
-		while(i < type.length) {
-			var _g = type.charAt(i);
-			switch(_g) {
-			case "-":
-				if(openBracketsCount == 0 && type.charAt(i + 1) == ">") {
-					positions.push({ start : lastPos, end : i - 1});
-					i++;
-					i++;
-					lastPos = i;
+	,scanForBracket: function(cm,cursor) {
+		var bracketsData = cm.scanForBracket(cursor,-1,null,{ bracketRegex : /[([\]]/});
+		var pos = null;
+		if(bracketsData != null && bracketsData.ch == "(") {
+			pos = { line : bracketsData.pos.line, ch : bracketsData.pos.ch};
+			var matchedBracket = cm.findMatchingBracket(pos,false,null).to;
+			if(matchedBracket == null || cursor.line <= matchedBracket.line && cursor.ch <= matchedBracket.ch) {
+				var range = cm.getRange(bracketsData.pos,cursor);
+				var currentParameter = range.split(",").length - 1;
+				if(this.lastPos == null || this.lastPos.ch != pos.ch || this.lastPos.line != pos.line) this.getFunctionParams(cm,pos,currentParameter); else if(this.alreadyShown()) {
+					var _g = 0;
+					var _g1 = this.widgets;
+					while(_g < _g1.length) {
+						var widget = _g1[_g];
+						++_g;
+						widget.updateParameters(currentParameter);
+					}
 				}
-				break;
-			case "(":
-				openBracketsCount++;
-				break;
-			case ")":
-				openBracketsCount--;
-				break;
-			default:
+				this.lastPos = pos;
+			} else {
+				this.lastPos = null;
+				this.clear();
 			}
-			i++;
+		} else {
+			this.lastPos = null;
+			this.clear();
 		}
-		positions.push({ start : lastPos, end : type.length});
-		parameters = [];
-		var _g1 = 0;
-		var _g2 = positions.length;
-		while(_g1 < _g2) {
-			var j = _g1++;
-			var param = StringTools.trim(type.substring(positions[j].start,positions[j].end));
-			if(j < positions.length - 1) parameters.push(param); else retType = param;
-		}
-		if(parameters.length == 1 && parameters[0] == "Void") parameters = [];
 	}
-	return { parameters : parameters, retType : retType};
+	,getFunctionParams: function(cm,pos,currentParameter) {
+		var _g = this;
+		var posBeforeBracket = { line : pos.line, ch : pos.ch - 1};
+		var completionInstance = core.Completion.get();
+		var word = completionInstance.getCurrentWord(cm,{ },posBeforeBracket).word;
+		completionInstance.getCompletion(function() {
+			var found = false;
+			_g.clear();
+			var _g1 = 0;
+			var _g2 = completionInstance.completions;
+			while(_g1 < _g2.length) {
+				var completion = _g2[_g1];
+				++_g1;
+				if(word == completion.n) {
+					var functionData = _g.parseFunctionParams(completion.n,completion.t,completion.d);
+					if(functionData.parameters != null) {
+						var description = _g.parseDescription(completion.d);
+						_g.addWidget("function",completion.n,functionData.parameters,functionData.retType,description,currentParameter,cm.getCursor());
+						found = true;
+					}
+				}
+			}
+			_g.updateScroll();
+		},posBeforeBracket);
+	}
+	,parseDescription: function(description) {
+		if(description != null) {
+			if(description.indexOf(".") != -1) description = description.split(".")[0];
+		}
+		return description;
+	}
+	,parseFunctionParams: function(name,type,description) {
+		var parameters = null;
+		var retType = null;
+		if(type != null && type.indexOf("->") != -1) {
+			var openBracketsCount = 0;
+			var positions = [];
+			var i = 0;
+			var lastPos = 0;
+			while(i < type.length) {
+				var _g = type.charAt(i);
+				switch(_g) {
+				case "-":
+					if(openBracketsCount == 0 && type.charAt(i + 1) == ">") {
+						positions.push({ start : lastPos, end : i - 1});
+						i++;
+						i++;
+						lastPos = i;
+					}
+					break;
+				case "(":
+					openBracketsCount++;
+					break;
+				case ")":
+					openBracketsCount--;
+					break;
+				default:
+				}
+				i++;
+			}
+			positions.push({ start : lastPos, end : type.length});
+			parameters = [];
+			var _g1 = 0;
+			var _g2 = positions.length;
+			while(_g1 < _g2) {
+				var j = _g1++;
+				var param = StringTools.trim(type.substring(positions[j].start,positions[j].end));
+				if(j < positions.length - 1) parameters.push(param); else retType = param;
+			}
+			if(parameters.length == 1 && parameters[0] == "Void") parameters = [];
+		}
+		return { parameters : parameters, retType : retType};
+	}
+	,__class__: core.FunctionParametersHelper
 };
 core.GoToLine = function() {
 };
@@ -3082,7 +3157,8 @@ core.HaxeLint.load = function() {
 	});
 };
 core.HaxeLint.updateLinting = function() {
-	core.AnnotationRuler.clearErrorMarkers();
+	var annotationRuler = core.AnnotationRuler.get();
+	annotationRuler.clearErrorMarkers();
 	var tabManagerInstance = tabmanager.TabManager.get();
 	var outlinePanel = core.OutlinePanel.get();
 	var outlineHelper = parser.OutlineHelper.get();
@@ -3103,7 +3179,7 @@ core.HaxeLint.updateLinting = function() {
 				while(_g < data.length) {
 					var item = data[_g];
 					++_g;
-					core.AnnotationRuler.addErrorMarker(path,item.from.line,item.from.ch,item.message);
+					annotationRuler.addErrorMarker(path,item.from.line,item.from.ch,item.message);
 				}
 			}
 			cm.Editor.editor.setOption("lint",false);
@@ -4858,7 +4934,8 @@ core.Splitter.prototype = {
 			new $("#thirdNested").jqxSplitter("expand");
 			new $("#thirdNested").jqxSplitter({ showSplitBar : true});
 			new $("#annotationRuler").fadeIn(250);
-			core.WelcomeScreen.hide();
+			var welcomeScreen = core.WelcomeScreen.get();
+			welcomeScreen.hide();
 		}
 	}
 	,hide: function() {
@@ -4879,7 +4956,10 @@ core.Splitter.prototype = {
 		new $("#thirdNested").jqxSplitter({ showSplitBar : false});
 		new $("#annotationRuler").fadeOut(250);
 		var tabManagerInstance = tabmanager.TabManager.get();
-		if(tabManagerInstance.tabMap != null && tabManagerInstance.tabMap.getTabs().length == 0) core.WelcomeScreen.show();
+		if(tabManagerInstance.tabMap != null && tabManagerInstance.tabMap.getTabs().length == 0) {
+			var welcomeScreen = core.WelcomeScreen.get();
+			welcomeScreen.show();
+		}
 	}
 	,__class__: core.Splitter
 };
@@ -4892,52 +4972,61 @@ core.Utils.prepare = function() {
 	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
 	console.log("platform is " + (platform == null?"null":"" + platform));
 };
-core.WelcomeScreen = function() { };
+core.WelcomeScreen = function() {
+};
 $hxClasses["core.WelcomeScreen"] = core.WelcomeScreen;
 core.WelcomeScreen.__name__ = ["core","WelcomeScreen"];
-core.WelcomeScreen.load = function() {
-	core.WelcomeScreen.div = js.Boot.__cast(window.document.getElementById("welcomeScreen") , HTMLDivElement);
-	new $("#createNewProject").on("click",null,newprojectdialog.NewProjectDialog.show);
-	new $("#openProject").on("click",null,function() {
-		return openproject.OpenProject.openProject(null,true);
-	});
-	var links = window.document.getElementsByClassName("welcome-screen-link");
-	var _g1 = 0;
-	var _g = links.length;
-	while(_g1 < _g) {
-		var i = _g1++;
-		var link = [js.Boot.__cast(links.item(i) , HTMLLIElement)];
-		link[0].onclick = (function(link) {
-			return function(e) {
-				var _g3 = 0;
-				var _g2 = links.length;
-				while(_g3 < _g2) {
-					var j = _g3++;
-					var link2;
-					link2 = js.Boot.__cast(links.item(j) , HTMLLIElement);
-					if(link2 != link[0]) {
-						link2.classList.remove("active");
-						new $("#welcomeScreenPage" + Std.string(j + 1)).hide(0);
-					} else {
-						link2.classList.add("active");
-						new $("#welcomeScreenPage" + Std.string(j + 1)).fadeIn(250);
+core.WelcomeScreen.get = function() {
+	if(core.WelcomeScreen.instance == null) core.WelcomeScreen.instance = new core.WelcomeScreen();
+	return core.WelcomeScreen.instance;
+};
+core.WelcomeScreen.prototype = {
+	div: null
+	,load: function() {
+		this.div = js.Boot.__cast(window.document.getElementById("welcomeScreen") , HTMLDivElement);
+		new $("#createNewProject").on("click",null,newprojectdialog.NewProjectDialog.show);
+		new $("#openProject").on("click",null,function() {
+			return openproject.OpenProject.openProject(null,true);
+		});
+		var links = window.document.getElementsByClassName("welcome-screen-link");
+		var _g1 = 0;
+		var _g = links.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			var link = [js.Boot.__cast(links.item(i) , HTMLLIElement)];
+			link[0].onclick = (function(link) {
+				return function(e) {
+					var _g3 = 0;
+					var _g2 = links.length;
+					while(_g3 < _g2) {
+						var j = _g3++;
+						var link2;
+						link2 = js.Boot.__cast(links.item(j) , HTMLLIElement);
+						if(link2 != link[0]) {
+							link2.classList.remove("active");
+							new $("#welcomeScreenPage" + Std.string(j + 1)).hide(0);
+						} else {
+							link2.classList.add("active");
+							new $("#welcomeScreenPage" + Std.string(j + 1)).fadeIn(250);
+						}
 					}
-				}
-			};
-		})(link);
+				};
+			})(link);
+		}
+		new $("#github").on("click",null,function() {
+			return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
+		});
+		new $("#as3boyan").on("click",null,function() {
+			return nodejs.webkit.Shell.openExternal("http://twitter.com/As3Boyan");
+		});
 	}
-	new $("#github").on("click",null,function() {
-		return nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
-	});
-	new $("#as3boyan").on("click",null,function() {
-		return nodejs.webkit.Shell.openExternal("http://twitter.com/As3Boyan");
-	});
-};
-core.WelcomeScreen.show = function() {
-	new $(core.WelcomeScreen.div).fadeIn(250);
-};
-core.WelcomeScreen.hide = function() {
-	new $(core.WelcomeScreen.div).fadeOut(250);
+	,show: function() {
+		new $(this.div).fadeIn(250);
+	}
+	,hide: function() {
+		new $(this.div).fadeOut(250);
+	}
+	,__class__: core.WelcomeScreen
 };
 var dialogs = {};
 dialogs.ModalDialog = function(title) {
@@ -5020,12 +5109,13 @@ dialogs.BrowseDirectoryDialog = function(title) {
 		});
 	};
 	this.getBody().appendChild(this.inputGroupButton.getElement());
-	var okButton = bootstrap.ButtonManager.createButton("OK",false,false,true);
+	var buttonManager = bootstrap.ButtonManager.get();
+	var okButton = buttonManager.createButton("OK",false,false,true);
 	okButton.onclick = function(e1) {
 		if(_g.onComplete != null) _g.onComplete(_g.input.value);
 	};
 	this.getFooter().appendChild(okButton);
-	this.getFooter().appendChild(bootstrap.ButtonManager.createButton("Cancel",false,true));
+	this.getFooter().appendChild(buttonManager.createButton("Cancel",false,true));
 };
 $hxClasses["dialogs.BrowseDirectoryDialog"] = dialogs.BrowseDirectoryDialog;
 dialogs.BrowseDirectoryDialog.__name__ = ["dialogs","BrowseDirectoryDialog"];
@@ -5044,7 +5134,8 @@ dialogs.BrowseDirectoryDialog.prototype = $extend(dialogs.ModalDialog.prototype,
 });
 dialogs.BrowseDirectoryWithDownloadButtonDialog = function(title) {
 	dialogs.BrowseDirectoryDialog.call(this,title);
-	this.downloadButton = bootstrap.ButtonManager.createButton("Download");
+	var buttonManager = bootstrap.ButtonManager.get();
+	this.downloadButton = buttonManager.createButton("Download");
 	this.inputGroupButton.getSpan().appendChild(this.downloadButton);
 };
 $hxClasses["dialogs.BrowseDirectoryWithDownloadButtonDialog"] = dialogs.BrowseDirectoryWithDownloadButtonDialog;
@@ -5124,7 +5215,8 @@ dialogs.HaxelibManagerDialog = function() {
 	window.addEventListener("resize",function(e) {
 		_g1.updateSize();
 	});
-	this.getFooter().appendChild(bootstrap.ButtonManager.createButton("OK",false,true,true));
+	var buttonManager = bootstrap.ButtonManager.get();
+	this.getFooter().appendChild(buttonManager.createButton("OK",false,true,true));
 	this.updateSize();
 };
 $hxClasses["dialogs.HaxelibManagerDialog"] = dialogs.HaxelibManagerDialog;
@@ -5192,9 +5284,10 @@ dialogs.InstallHaxelibDialog = function() {
 		_g.commandPreviewP.textContent = "Run command: " + _g.input.value;
 	};
 	this.getBody().appendChild(this.commandPreviewP);
-	var cancelButton = bootstrap.ButtonManager.createButton("Cancel",false,true);
+	var buttonManager = bootstrap.ButtonManager.get();
+	var cancelButton = buttonManager.createButton("Cancel",false,true);
 	this.getFooter().appendChild(cancelButton);
-	var okButton = bootstrap.ButtonManager.createButton("OK",false,false,true);
+	var okButton = buttonManager.createButton("OK",false,false,true);
 	okButton.onclick = function(e1) {
 		Alertify.log("Running command: " + _g.input.value);
 		var params = StringTools.trim(_g.input.value).split(" ");
@@ -5250,8 +5343,9 @@ dialogs.InstallHaxelibDialog.prototype = $extend(dialogs.ModalDialog.prototype,{
 dialogs.ProjectOptionsDialog = function() {
 	dialogs.ModalDialog.call(this,"Project Options");
 	var projectOptions = projectaccess.ProjectOptions.get();
+	var buttonManager = bootstrap.ButtonManager.get();
 	this.getBody().appendChild(projectOptions.page);
-	this.getFooter().appendChild(bootstrap.ButtonManager.createButton("OK",false,true,true));
+	this.getFooter().appendChild(buttonManager.createButton("OK",false,true,true));
 };
 $hxClasses["dialogs.ProjectOptionsDialog"] = dialogs.ProjectOptionsDialog;
 dialogs.ProjectOptionsDialog.__name__ = ["dialogs","ProjectOptionsDialog"];
@@ -14018,10 +14112,18 @@ Walkdir.walkSync = function(path,options,onItem) {
 	return result;
 };
 var kha = {};
-kha.KhaProject = function() { };
+kha.KhaProject = function() {
+};
 $hxClasses["kha.KhaProject"] = kha.KhaProject;
 kha.KhaProject.__name__ = ["kha","KhaProject"];
-kha.KhaProject.load = function() {
+kha.KhaProject.get = function() {
+	if(kha.KhaProject.instance == null) kha.KhaProject.instance = new kha.KhaProject();
+	return kha.KhaProject.instance;
+};
+kha.KhaProject.prototype = {
+	load: function() {
+	}
+	,__class__: kha.KhaProject
 };
 var menu = {};
 menu.BootstrapMenu = function() { };
@@ -14516,9 +14618,10 @@ newprojectdialog.NewProjectDialog.load = function() {
 	newprojectdialog.NewProjectDialog.createPage2();
 	newprojectdialog.NewProjectDialog.page2.style.display = "none";
 	newprojectdialog.NewProjectDialog.modalDialog.getBody().appendChild(newprojectdialog.NewProjectDialog.page2);
-	newprojectdialog.NewProjectDialog.backButton = bootstrap.ButtonManager.createButton("Back",true);
+	var buttonManager = bootstrap.ButtonManager.get();
+	newprojectdialog.NewProjectDialog.backButton = buttonManager.createButton("Back",true);
 	newprojectdialog.NewProjectDialog.modalDialog.getFooter().appendChild(newprojectdialog.NewProjectDialog.backButton);
-	newprojectdialog.NewProjectDialog.nextButton = bootstrap.ButtonManager.createButton("Next");
+	newprojectdialog.NewProjectDialog.nextButton = buttonManager.createButton("Next");
 	newprojectdialog.NewProjectDialog.backButton.onclick = function(e) {
 		if(newprojectdialog.NewProjectDialog.backButton.className.indexOf("disabled") == -1) newprojectdialog.NewProjectDialog.showPage1();
 	};
@@ -14526,7 +14629,7 @@ newprojectdialog.NewProjectDialog.load = function() {
 		if(newprojectdialog.NewProjectDialog.nextButton.className.indexOf("disabled") == -1) newprojectdialog.NewProjectDialog.showPage2();
 	};
 	newprojectdialog.NewProjectDialog.modalDialog.getFooter().appendChild(newprojectdialog.NewProjectDialog.nextButton);
-	var finishButton = bootstrap.ButtonManager.createButton("Finish",false,false,true);
+	var finishButton = buttonManager.createButton("Finish",false,false,true);
 	finishButton.onclick = function(e2) {
 		if(newprojectdialog.NewProjectDialog.projectLocation.value == "") {
 			newprojectdialog.NewProjectDialog.showPage2();
@@ -14535,7 +14638,7 @@ newprojectdialog.NewProjectDialog.load = function() {
 		} else if(newprojectdialog.NewProjectDialog.page1.style.display != "none" || newprojectdialog.NewProjectDialog.projectName.value == "") newprojectdialog.NewProjectDialog.generateProjectName(newprojectdialog.NewProjectDialog.createProject); else newprojectdialog.NewProjectDialog.createProject();
 	};
 	newprojectdialog.NewProjectDialog.modalDialog.getFooter().appendChild(finishButton);
-	var cancelButton = bootstrap.ButtonManager.createButton("Cancel",false,true);
+	var cancelButton = buttonManager.createButton("Cancel",false,true);
 	newprojectdialog.NewProjectDialog.modalDialog.getFooter().appendChild(cancelButton);
 	var location = js.Browser.getLocalStorage().getItem("Location");
 	if(location != null) newprojectdialog.NewProjectDialog.projectLocation.value = location;
@@ -16589,7 +16692,8 @@ projectaccess.ProjectOptions.prototype = {
 				projectaccess.ProjectAccess.save();
 			},".hxml");
 		};
-		var editButton = bootstrap.ButtonManager.createButton("Edit",false,true);
+		var buttonManager = bootstrap.ButtonManager.get();
+		var editButton = buttonManager.createButton("Edit",false,true);
 		editButton.onclick = function(e2) {
 			var tabManagerInstance = tabmanager.TabManager.get();
 			tabManagerInstance.openFileInNewTab(js.Node.require("path").resolve(projectaccess.ProjectAccess.path,_g.pathToHxmlInput.value));
@@ -17046,7 +17150,8 @@ tabmanager.TabManager.prototype = {
 	,checkTabsCount: function() {
 		if(window.document.getElementById("editor").style.display == "none" && this.tabMap.getTabs().length > 0) {
 			new $("#editor").show(0);
-			core.WelcomeScreen.hide();
+			var welcomeScreen = core.WelcomeScreen.get();
+			welcomeScreen.hide();
 			cm.Editor.editor.refresh();
 			cm.Editor.resize();
 		}
@@ -17089,7 +17194,8 @@ tabmanager.TabManager.prototype = {
 			if(switchToTab) this.showPreviousTab();
 		} else {
 			new $("#editor").hide(0);
-			if(projectaccess.ProjectAccess.path != null) core.WelcomeScreen.hide(); else core.WelcomeScreen.show();
+			var welcomeScreen = core.WelcomeScreen.get();
+			if(projectaccess.ProjectAccess.path != null) welcomeScreen.hide(); else welcomeScreen.show();
 			var outlinePanel = core.OutlinePanel.get();
 			outlinePanel.clearFields();
 			outlinePanel.update();
@@ -17936,8 +18042,6 @@ HIDE.windows = [];
 cm.ColorPreview.top = 0;
 cm.ColorPreview.left = 0;
 cm.ERegPreview.markers = [];
-core.AnnotationRuler.positions = [];
-core.FunctionParametersHelper.widgets = [];
 core.HaxeLint.fileData = new haxe.ds.StringMap();
 core.HaxeLint.parserData = new haxe.ds.StringMap();
 core.Helper.timers = new haxe.ds.StringMap();

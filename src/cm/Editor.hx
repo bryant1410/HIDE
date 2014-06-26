@@ -241,7 +241,8 @@ class Editor
 		{
 			Helper.debounce("cursorActivity", function ():Void 
 			{
-				FunctionParametersHelper.update(cm);
+				var functionParametersHelper = FunctionParametersHelper.get();
+				functionParametersHelper.update(cm);
 				ColorPreview.update(cm);
 				ERegPreview.update(cm);
 			}, 100);

@@ -43,7 +43,9 @@ class HaxelibManagerDialog extends ModalDialog
 		}
 		);
 		
-		getFooter().appendChild(ButtonManager.createButton("OK", false, true, true));
+		var buttonManager = ButtonManager.get();
+		
+		getFooter().appendChild(buttonManager.createButton("OK", false, true, true));
 		
 		updateSize();
 	}

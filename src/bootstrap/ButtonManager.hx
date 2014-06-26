@@ -9,7 +9,24 @@ import watchers.LocaleWatcher;
  */
 class ButtonManager
 {
-	public static function createButton(text:String, ?disabled:Bool = false, ?hide:Bool = false, ?primary:Bool = false):ButtonElement
+	static var instance:ButtonManager = null;
+	
+	public function new()
+	{
+			
+	}
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new ButtonManager();
+		}
+		
+		return instance;
+	}
+	
+	public function createButton(text:String, ?disabled:Bool = false, ?hide:Bool = false, ?primary:Bool = false):ButtonElement
 	{
 		var button = Browser.document.createButtonElement();
 		button.type = "button";

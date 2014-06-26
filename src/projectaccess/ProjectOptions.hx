@@ -326,7 +326,9 @@ class ProjectOptions
 			, ".hxml");
 		};
 		
-		var editButton = ButtonManager.createButton("Edit", false, true);
+		var buttonManager = ButtonManager.get();
+		
+		var editButton = buttonManager.createButton("Edit", false, true);
 		editButton.onclick = function (e):Void 
 		{
 			var tabManagerInstance = TabManager.get();

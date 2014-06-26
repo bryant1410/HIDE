@@ -11,7 +11,24 @@ import menu.BootstrapMenu;
  */
 class Zoom
 {	
-	public static function load():Void
+	static var instance:Zoom;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new Zoom();
+		}
+			
+		return instance;
+	}
+	
+	public function load():Void
 	{
 		Browser.document.addEventListener("mousewheel", function(e:WheelEvent)
 		{
@@ -54,7 +71,7 @@ class Zoom
 		, "Ctrl--");
 	}
 	
-	public static function setFontSize(fontSize:Int):Void
+	public function setFontSize(fontSize:Int):Void
 	{
 		new JQuery(".CodeMirror").css("font-size", Std.string(fontSize) + "px");
 		new JQuery(".CodeMirror-hint").css("font-size", Std.string(fontSize - 2) + "px");

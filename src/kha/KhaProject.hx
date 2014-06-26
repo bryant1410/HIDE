@@ -6,12 +6,29 @@ import newprojectdialog.NewProjectDialog;
  */
 class KhaProject
 {
-    public static function load()
+	static var instance:KhaProject = null;
+	
+	public function new()
+	{
+			
+	}
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new KhaProject();
+		}
+		
+		return instance;
+	}
+	
+    public function load()
     {
 //         NewProjectDialog.getCategory("Kha", 3).addItem("Empty project", null, false, false);
     }
     
-    static function cloneKhaEmptyProject(data:ProjectData)
+    function cloneKhaEmptyProject(data:ProjectData)
     {
 		
     }

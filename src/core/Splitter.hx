@@ -55,7 +55,8 @@ class Splitter
 			untyped new JQuery('#thirdNested').jqxSplitter( { showSplitBar: true } );
 			new JQuery("#annotationRuler").fadeIn(250);
 			
-			WelcomeScreen.hide();
+			var welcomeScreen = WelcomeScreen.get();
+			welcomeScreen.hide();
 		}
 	}
 	
@@ -86,7 +87,8 @@ class Splitter
 		
 		if (tabManagerInstance.tabMap != null && tabManagerInstance.tabMap.getTabs().length == 0) 
 		{
-			WelcomeScreen.show();
+			var welcomeScreen = WelcomeScreen.get();
+			welcomeScreen.show();
 		}
 	}
 	

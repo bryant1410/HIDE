@@ -15,7 +15,9 @@ class BrowseDirectoryWithDownloadButtonDialog extends BrowseDirectoryDialog
 	{
 		super(title);
 		
-		downloadButton = ButtonManager.createButton("Download");
+		var buttonManager = ButtonManager.get();
+		
+		downloadButton = buttonManager.createButton("Download");
 		
 		inputGroupButton.getSpan().appendChild(downloadButton);
 	}

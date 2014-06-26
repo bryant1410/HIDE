@@ -18,9 +18,26 @@ import openproject.OpenProject;
  */
 class WelcomeScreen
 {
-	static var div:DivElement;
+	static var instance:WelcomeScreen;
 	
-	public static function load():Void
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new WelcomeScreen();
+		}
+			
+		return instance;
+	}
+	
+	var div:DivElement;
+	
+	public function load():Void
 	{		
 		div = cast(Browser.document.getElementById("welcomeScreen"), DivElement);
 		
@@ -59,7 +76,7 @@ class WelcomeScreen
 		new JQuery("#as3boyan").on("click", Shell.openExternal.bind("http://twitter.com/As3Boyan"));
 	}
 	
-	static function createListElement(text:String, onClick:Dynamic)
+	function createListElement(text:String, onClick:Dynamic)
 	{
 		var li:LIElement = Browser.document.createLIElement();
 		
@@ -76,12 +93,12 @@ class WelcomeScreen
 		return li;
 	}
 	
-	public static function show():Void
+	public function show():Void
 	{
 		new JQuery(div).fadeIn(250);
 	}
 	
-	public static function hide():Void
+	public function hide():Void
 	{
 		new JQuery(div).fadeOut(250);
 	}

@@ -100,10 +100,12 @@ class InstallHaxelibDialog extends ModalDialog
 		
 		getBody().appendChild(commandPreviewP);
 		
-		var cancelButton = ButtonManager.createButton("Cancel", false, true);
+		var buttonManager = ButtonManager.get();
+		
+		var cancelButton = buttonManager.createButton("Cancel", false, true);
 		getFooter().appendChild(cancelButton);
 		
-		var okButton = ButtonManager.createButton("OK", false, false, true);
+		var okButton = buttonManager.createButton("OK", false, false, true);
 		okButton.onclick = function (e):Void 
 		{	
 			Alertify.log("Running command: " + input.value);

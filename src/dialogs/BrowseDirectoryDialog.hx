@@ -37,7 +37,9 @@ class BrowseDirectoryDialog extends ModalDialog
 		
 		getBody().appendChild(inputGroupButton.getElement());
 		
-		var okButton = ButtonManager.createButton("OK", false, false, true);
+		var buttonManager = ButtonManager.get();
+		
+		var okButton = buttonManager.createButton("OK", false, false, true);
 		
 		okButton.onclick = function (e):Void 
 		{
@@ -48,7 +50,7 @@ class BrowseDirectoryDialog extends ModalDialog
 		};
 		
 		getFooter().appendChild(okButton);
-		getFooter().appendChild(ButtonManager.createButton("Cancel", false, true));
+		getFooter().appendChild(buttonManager.createButton("Cancel", false, true));
 	}
 	
 	public function setDefaultValue(_value:String)

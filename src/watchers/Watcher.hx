@@ -8,6 +8,8 @@ import js.node.Watchr;
 class Watcher
 {
 
+	
+	
 	public static function watchFileForUpdates(_path:String, onUpdate:Dynamic, ?_interval:Int):Dynamic
 	{
 		var config:Config = {

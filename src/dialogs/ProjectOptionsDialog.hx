@@ -15,8 +15,10 @@ class ProjectOptionsDialog extends ModalDialog
 		
 		var projectOptions = ProjectOptions.get();
 		
+		var buttonManager = ButtonManager.get();
+		
 		getBody().appendChild(projectOptions.page);
-		getFooter().appendChild(ButtonManager.createButton("OK", false, true, true));
+		getFooter().appendChild(buttonManager.createButton("OK", false, true, true));
 	}
 	
 }

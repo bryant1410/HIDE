@@ -82,11 +82,13 @@ class NewProjectDialog
 		page2.style.display = "none";
 		modalDialog.getBody().appendChild(page2);
 		
-		backButton = ButtonManager.createButton("Back", true);
+		var buttonManager = ButtonManager.get();
+		
+		backButton = buttonManager.createButton("Back", true);
 		
 		modalDialog.getFooter().appendChild(backButton);
 		
-		nextButton = ButtonManager.createButton("Next");
+		nextButton = buttonManager.createButton("Next");
 		
 		backButton.onclick = function (e:MouseEvent)
 		{
@@ -108,7 +110,7 @@ class NewProjectDialog
 		
 		modalDialog.getFooter().appendChild(nextButton);
 		
-		var finishButton:ButtonElement = ButtonManager.createButton("Finish", false, false, true);
+		var finishButton:ButtonElement = buttonManager.createButton("Finish", false, false, true);
 		
 		finishButton.onclick = function (e:MouseEvent)
 		{
@@ -131,7 +133,7 @@ class NewProjectDialog
 		
 		modalDialog.getFooter().appendChild(finishButton);
 		
-		var cancelButton:ButtonElement = ButtonManager.createButton("Cancel", false, true);
+		var cancelButton:ButtonElement = buttonManager.createButton("Cancel", false, true);
 		
 		modalDialog.getFooter().appendChild(cancelButton);
 		

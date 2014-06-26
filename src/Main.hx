@@ -93,7 +93,9 @@ class Main
 
 			BootstrapMenu.createMenuBar();
 			NewProjectDialog.load();
-			Zoom.load();
+			
+			var zoom = Zoom.get();
+			zoom.load();
 			
 			var fileTreeInstance = FileTree.get();
 			fileTreeInstance.init();
@@ -120,7 +122,8 @@ class Main
 
 			var haxeProject = HaxeProject.get();
 			var openFLProject = OpenFLProject.get();
-            KhaProject.load();
+			var khaProject = KhaProject.get();
+            khaProject.load();
 
 			CompilationOutput.load();
 
@@ -128,7 +131,8 @@ class Main
 			OpenProject.searchForLastProject();
 			DragAndDrop.prepare();
 			var classWalker = ClasspathWalker.get();
-			WelcomeScreen.load();
+			var welcomeScreen = WelcomeScreen.get();
+			welcomeScreen.load();
 			
 			var quickOpen = QuickOpen.get();
 

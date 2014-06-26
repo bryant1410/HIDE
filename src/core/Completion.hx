@@ -63,7 +63,7 @@ class Completion
 	var RANGE = 500;
 	public var curWord:String;
 	public var completions:Array<CompletionItem> = [];
-	public var declarationPositions:Array<Int> = [];
+	public var declarationPositions:Array<String> = [];
 	var completionType:CompletionType = REGULAR;
 	var completionActive:Bool;
     
@@ -416,6 +416,7 @@ class Completion
 		projectArguments.push(displayArgs);
 		
 		completions = [];
+		declarationPositions = [];
 		
 		var params = ["--connect", "5000", "--cwd", HIDE.surroundWithQuotes(ProjectAccess.path)].concat(projectArguments);
 		trace(params);
@@ -425,9 +426,6 @@ class Completion
 		
 		processHelper.runProcess(pathToHaxe, params, null, function (stdout:String, stderr:String)
 		{
-			trace(stdout);
-			trace(stderr);
-			
 			var xml:Xml = Xml.parse(stderr);
 			
 			var fast = new Fast(xml);
@@ -471,7 +469,7 @@ class Completion
 			{
 				for (item in fast.nodes.pos)
 				{
-					 trace(item.innerData);
+					 declarationPositions.push(item.innerData);
 				}
 
 			}
@@ -618,7 +616,9 @@ class Completion
 
 	function searchImage(name:String, ?type:String, ?description:String)
 	{
-		var functionData = FunctionParametersHelper.parseFunctionParams(name, type, description);
+		var functionParametersHelper = FunctionParametersHelper.get();
+		
+		var functionData = functionParametersHelper.parseFunctionParams(name, type, description);
 		
 		var info:String = null;
 

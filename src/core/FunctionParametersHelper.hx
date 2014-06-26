@@ -15,21 +15,38 @@ import tabmanager.TabManager;
  */
 class FunctionParametersHelper
 {
-	public static var widgets:Array<LineWidget> = [];
-	static var lastPos:CodeMirror.Pos;
+	public var widgets:Array<LineWidget> = [];
+	var lastPos:CodeMirror.Pos;
 	
-	public static function addWidget(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, pos:CodeMirror.Pos):Void
+	static var instance:FunctionParametersHelper = null;
+	
+	public function new()
+	{
+			
+	}
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new FunctionParametersHelper();
+		}
+		
+		return instance;
+	}
+	
+	public function addWidget(type:String, name:String, parameters:Array<String>, retType:String, description:String, currentParameter:Int, pos:CodeMirror.Pos):Void
 	{		
 		var lineWidget:LineWidget = new LineWidget(type, name, parameters, retType, description, currentParameter, pos);
 		widgets.push(lineWidget);
 	}
 	
-	public static function alreadyShown():Bool
+	public function alreadyShown():Bool
 	{
 		return widgets.length > 0;
 	}
 	
-	public static function updateScroll():Void
+	public function updateScroll():Void
 	{
 		var info = Editor.editor.getScrollInfo();
 		var after = Editor.editor.charCoords( { line: Editor.editor.getCursor().line + 1, ch: 0 }, "local").top;
@@ -40,7 +57,7 @@ class FunctionParametersHelper
 		}
 	}
 	
-	public static function clear():Void
+	public function clear():Void
 	{
 		for (widget in widgets) 
 		{
@@ -50,7 +67,7 @@ class FunctionParametersHelper
 		widgets = [];
 	}
 	
-	public static function update(cm:CodeMirror):Void
+	public function update(cm:CodeMirror):Void
 	{		
 		var tabManagerInstance = TabManager.get();
 		
@@ -73,7 +90,7 @@ class FunctionParametersHelper
 		}
 	}
 	
-	static function scanForBracket(cm:CodeMirror, cursor:CodeMirror.Pos):Void
+	function scanForBracket(cm:CodeMirror, cursor:CodeMirror.Pos):Void
 	{
 		//{bracketRegex: untyped __js__("/[([\\]]/")}
         //{bracketRegex: untyped __js__("/[({}]/")}
@@ -97,7 +114,7 @@ class FunctionParametersHelper
                 {
                     getFunctionParams(cm, pos, currentParameter);  
                 }
-                else if (FunctionParametersHelper.alreadyShown())
+                else if (alreadyShown())
                 {
                     for (widget in widgets)
 					{
@@ -110,17 +127,17 @@ class FunctionParametersHelper
             else
             {
                 lastPos = null;
-                FunctionParametersHelper.clear();
+                clear();
             }
 		}
 		else
 		{
             lastPos = null;
-			FunctionParametersHelper.clear();
+			clear();
 		}
 	}
 	
-	static function getFunctionParams(cm:CodeMirror, pos:Pos, currentParameter:Int):Void
+	function getFunctionParams(cm:CodeMirror, pos:Pos, currentParameter:Int):Void
 	{
 		var posBeforeBracket:Pos = {line:pos.line, ch:pos.ch - 1};
 		
@@ -132,7 +149,7 @@ class FunctionParametersHelper
 		{
 			var found:Bool = false;
 			
-			FunctionParametersHelper.clear();
+			clear();
 			
 			for (completion in completionInstance.completions) 
 			{							
@@ -143,14 +160,14 @@ class FunctionParametersHelper
 					if (functionData.parameters != null)
 					{
 						var description = parseDescription(completion.d);
-						FunctionParametersHelper.addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor());
+						addWidget("function", completion.n, functionData.parameters, functionData.retType, description, currentParameter, cm.getCursor());
 						found = true;
 // 						break;
 					}
 				}
 			}
 				
-			FunctionParametersHelper.updateScroll();
+			updateScroll();
 			
 // 			if (!found) 
 // 			{
@@ -160,7 +177,7 @@ class FunctionParametersHelper
 		, posBeforeBracket);
 	}
 	
-	static function parseDescription(description:String)
+	function parseDescription(description:String)
 	{						
 		if (description != null) 
 		{
@@ -173,7 +190,7 @@ class FunctionParametersHelper
 		return description;
 	}
 	
-	public static function parseFunctionParams(name:String, type:String, description:String)
+	public function parseFunctionParams(name:String, type:String, description:String)
 	{
 		var parameters:Array<String> = null;
 		

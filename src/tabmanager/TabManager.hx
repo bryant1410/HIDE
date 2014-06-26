@@ -340,7 +340,8 @@ class TabManager
 		{
 			new JQuery("#editor").show(0);
 			
-			WelcomeScreen.hide();
+			var welcomeScreen = WelcomeScreen.get();
+			welcomeScreen.hide();
 			
 			Editor.editor.refresh();
 			
@@ -418,13 +419,15 @@ class TabManager
 		{
 			new JQuery("#editor").hide(0);
 			
+			var welcomeScreen = WelcomeScreen.get();
+			
 			if (ProjectAccess.path != null) 
 			{
-				WelcomeScreen.hide();
+				welcomeScreen.hide();
 			}
 			else 
 			{
-				WelcomeScreen.show();
+				welcomeScreen.show();
 			}
 			
 			var outlinePanel = OutlinePanel.get();

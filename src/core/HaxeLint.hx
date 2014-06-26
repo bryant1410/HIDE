@@ -51,7 +51,8 @@ class HaxeLint
 	
 	public static function updateLinting():Void
 	{
-		AnnotationRuler.clearErrorMarkers();
+		var annotationRuler = AnnotationRuler.get();
+		annotationRuler.clearErrorMarkers();
 		
 		var tabManagerInstance = TabManager.get();
 		var outlinePanel = OutlinePanel.get();
@@ -82,7 +83,7 @@ class HaxeLint
 
                     for (item in data) 
                     {
-                        AnnotationRuler.addErrorMarker(path, item.from.line, item.from.ch, item.message);
+                        annotationRuler.addErrorMarker(path, item.from.line, item.from.ch, item.message);
                     }
                 }
 

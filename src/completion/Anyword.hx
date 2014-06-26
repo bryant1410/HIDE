@@ -8,10 +8,10 @@ import haxe.ds.StringMap;
  */
 class Anyword
 {
-	static var seen:StringMap<Bool>;
-	static var list:Array<CompletionData>;
+	var seen:StringMap<Bool>;
+	var list:Array<CompletionData>;
 	
-	public static function getCompletion(cm:CodeMirror):Array<CompletionData>
+	public function getCompletion(cm:CodeMirror):Array<CompletionData>
 	{
 		list = [];
 		seen = new StringMap();
@@ -19,7 +19,7 @@ class Anyword
 		scan(cm, 1);
 	}
 	
-	static function scan(cm:CodeMirror, dir:Int):Void
+	function scan(cm:CodeMirror, dir:Int):Void
 	{			
 		var line:Int = cur.line;
 		var end2 = Math.min(Math.max(line + dir * range, cm.firstLine()), cm.lastLine()) + dir;
