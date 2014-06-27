@@ -212,27 +212,39 @@
 .jqx-icon-arrow-left{
 	height:9px;
 	margin-top:-2px;
-	background-image:url( images/compact/icon-left.png);
+	background-image:url( "images/compact/icon-left.png");
 }
 
 .jqx-icon-arrow-right{
 	height:9px;
 	margin-top:-2px;
-	background-image:url( images/compact/icon-right.png);
+	background-image:url( "images/compact/icon-right.png);
 }
 
-/* Vertical split bar */
+/* Split Bars */
 
 .jqx-splitter-splitbar-vertical{
 	border: none !important;
 	width: 6px !important;
-	
+	background: #f3f3f3;
+	padding:1px;
 }
 
 .jqx-splitter-collapse-button-vertical{
-	display:none;
+	background-image:url( "images/compact/vertical-splitter-close.gif");
 }
 
+
+.jqx-splitter-splitbar-horizontal{
+	border: none !important;
+	height: 5px !important;
+	padding:1px;
+	background: #f3f3f3;
+}
+
+.jqx-splitter-collapse-button-horizontal{
+	background-image:url( "images/compact/horizontal-splitter-close.gif");
+}
 
 /* Code Editor */
 .jqx-widget
@@ -268,10 +280,15 @@ ul.tabs > li:hover {
 .CodeMirror-linewidget{
 	left:0px !important;
 	padding-left:0px !important;
-	background-color:rgb(256,256,256) !important;
+	background-color:none !important;
 	border-radius:10px;
-	margin-top:5px;
+	margin-top:2px;
+	padding:5px;
 	margin-bottom:10px;
+	display:inline-block!important;
+	width: auto !important;
+	background: no-repeat url("images/compact/hint-bg.png");
+	background-position: top center;
 }
 
 .CodeMirror-linewidget .lint-error{
@@ -279,7 +296,7 @@ ul.tabs > li:hover {
 	padding: 5px;
 	padding-left: 15px;
 	border-radius:10px;
-	
+	opacity: 1;
 }
 
 .selectedParameter{
