@@ -13,7 +13,7 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "src/newprojectdialog/NewProjectDialog.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
