@@ -11,9 +11,26 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/core/Completion.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 166
+        }
+        ,{
+             "path" : "src/parser/RegexParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 80
+        }
     ]
-    ,"activeFile" : "src/core/Hotkeys.hx"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
