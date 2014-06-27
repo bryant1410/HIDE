@@ -11,9 +11,26 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src/watchers/ThemeWatcher.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 100
+        }
+        ,{
+             "path" : "../.config/HIDE/.HIDE/settings.json"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 2
+        }
     ]
-    ,"activeFile" : "src/core/Hotkeys.hx"
+    ,"activeFile" : "../.config/HIDE/.HIDE/settings.json"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

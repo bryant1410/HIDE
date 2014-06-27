@@ -1,4 +1,8 @@
 package watchers;
+import cm.Editor;
+import js.Node.NodeFsFileOptions;
+import js.html.LinkElement;
+import js.Browser;
 import js.Node;
 import haxe.Timer;
 import jQuery.JQuery;
@@ -14,6 +18,7 @@ class ThemeWatcher
 	static var watcher:Dynamic;
 	static var listenerAdded:Bool = false;
     static var pathToTheme:String;
+	static var currentTheme:String;
 	
 	public static function load() 
 	{		
@@ -76,8 +81,27 @@ class ThemeWatcher
         return files;
     }
     
-	static function updateTheme() 
+	static function updateTheme(?type:String) 
 	{
-		new JQuery("#theme").attr("href", SettingsWatcher.settings.theme);
+		var theme = SettingsWatcher.settings.theme;
+		new JQuery("#theme").attr("href", theme);
+		
+		if (currentTheme != null && currentTheme != theme)
+		{
+			var ereg = ~/\/\* *codeEditorTheme *= *([^ \*]*) *\*\//g;
+		
+			var options:NodeFsFileOptions = {};
+			options.encoding = NodeC.UTF8;
+
+			var data = Node.fs.readFileSync(Node.path.join("core", theme), options);
+
+			if (ereg.match(data))
+			{
+				var codeEditorTheme = ereg.matched(1);
+				Editor.setTheme(codeEditorTheme);
+			}
+		}
+			
+		currentTheme = theme;
 	}
 }

@@ -66,7 +66,6 @@ class Hotkeys
 					hotkey.onKeyDown();
 				}
 			}
-										trace(e);
 		}
 		);
 	}

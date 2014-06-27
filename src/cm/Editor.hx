@@ -319,6 +319,17 @@ class Editor
 					
 					var type = null;
 					
+					var ereg = ~/[a-z_0-9]+$/i;
+					
+					var start = name.length;
+					
+					while (start - 1 > 0 && ereg.match(name.charAt(start - 1))) 
+					{
+						start--;
+					}
+
+					name = name.substr(start);
+					
 					if (name != "" && name.indexOf(".") == -1)
 					{						
 						var variableDeclarations = RegexParser.getVariableDeclarations(doc.getValue());
@@ -733,7 +744,7 @@ class Editor
 		new JQuery("#annotationRuler").css("height", Std.string(Std.int(height - 1)) + "px");
 	}
 	
-	private static function loadTheme() 
+	static function loadTheme() 
 	{
 		var localStorage2 = Browser.getLocalStorage();
 		
@@ -753,7 +764,7 @@ class Editor
 		
 	}
 	
-	private static function loadThemes(themes:Array<String>, onComplete:Dynamic):Void
+	static function loadThemes(themes:Array<String>, onComplete:Dynamic):Void
 	{
 		var themesSubmenu = BootstrapMenu.getMenu("View").getSubmenu("Themes");
 		var theme:String;
@@ -771,7 +782,7 @@ class Editor
 		onComplete();
 	}
 	
-	private static function setTheme(theme:String):Void
+	public static function setTheme(theme:String):Void
 	{
 		editor.setOption("theme", theme);
 		Browser.getLocalStorage().setItem("theme", theme);
