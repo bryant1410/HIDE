@@ -107,7 +107,7 @@
 
 /* General */
 .jqx-widget-content{
-	background-color: #ffffff;
+	background-color: #e6e6e6;
 }
 
 
@@ -322,6 +322,10 @@ ul.tabs > li:hover {
 
 #output > textarea{
 	border:none
+}
+
+#results{
+	background-color: #ffffff;
 }
 
 #status-cursor{
