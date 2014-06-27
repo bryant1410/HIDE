@@ -160,14 +160,17 @@ class Completion
 
 						for (item in functionDeclarations)
 						{
-							var completionData = generateFunctionCompletionItem(item.name, item.params);
-							var completionItem = createCompletionItem(item.name, null, completionData);
-							list.push(completionItem);
+							if (item.name != "")
+							{
+								var completionData = generateFunctionCompletionItem(item.name, item.params);
+								var completionItem = createCompletionItem(item.name, null, completionData);
+								list.push(completionItem);
+							}
 						}
 					}
 					
 				    list = list.concat(SnippetsCompletion.getCompletion());
-                    
+
                     var classList = getClassList();
                     
 					var packages:Array<String> = [];				
@@ -198,6 +201,13 @@ class Completion
                         completion.className = className + " CodeMirror-Tern-completion-package";
                     	list.push(completion);
 					}
+						
+					for (item in list)
+					{
+						 trace(item.text);
+						 trace(item);
+					}
+
 				}
 			case METATAGS:
 				list = MetaTags.getCompletion();

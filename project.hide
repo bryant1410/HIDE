@@ -12,25 +12,25 @@
     ]
     ,"files" : [
          {
-             "path" : "src/watchers/ThemeWatcher.hx"
+             "path" : "src/core/Completion.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 100
+            ,"activeLine" : 166
         }
         ,{
-             "path" : "../.config/HIDE/.HIDE/settings.json"
+             "path" : "src/parser/RegexParser.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 2
+            ,"activeLine" : 80
         }
     ]
-    ,"activeFile" : "../.config/HIDE/.HIDE/settings.json"
+    ,"activeFile" : "src/core/Completion.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

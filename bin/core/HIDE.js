@@ -2250,9 +2250,11 @@ core.Completion.prototype = {
 					while(_g13 < functionDeclarations.length) {
 						var item2 = functionDeclarations[_g13];
 						++_g13;
-						var completionData = this.generateFunctionCompletionItem(item2.name,item2.params);
-						var completionItem3 = this.createCompletionItem(item2.name,null,completionData);
-						this.list.push(completionItem3);
+						if(item2.name != "") {
+							var completionData = this.generateFunctionCompletionItem(item2.name,item2.params);
+							var completionItem3 = this.createCompletionItem(item2.name,null,completionData);
+							this.list.push(completionItem3);
+						}
 					}
 				}
 				this.list = this.list.concat(completion.SnippetsCompletion.getCompletion());
@@ -2288,6 +2290,14 @@ core.Completion.prototype = {
 					completion2.className = className + " CodeMirror-Tern-completion-package";
 					this.list.push(completion2);
 				}
+				var _g17 = 0;
+				var _g23 = this.list;
+				while(_g17 < _g23.length) {
+					var item6 = _g23[_g17];
+					++_g17;
+					console.log(item6.text);
+					console.log(item6);
+				}
 			}
 			break;
 		case 6:
@@ -2296,62 +2306,62 @@ core.Completion.prototype = {
 		case 5:
 			var _this = completion.Hxml.getCompletion();
 			this.list = _this.slice();
-			var _g17 = 0;
-			var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-			while(_g17 < _g23.length) {
-				var list2 = _g23[_g17];
-				++_g17;
+			var _g18 = 0;
+			var _g24 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+			while(_g18 < _g24.length) {
+				var list2 = _g24[_g18];
+				++_g18;
 				var _g31 = 0;
 				while(_g31 < list2.length) {
-					var item6 = list2[_g31];
+					var item7 = list2[_g31];
 					++_g31;
-					this.list.push({ text : item6});
+					this.list.push({ text : item7});
 				}
 			}
 			break;
 		case 1:
 			var displayText;
-			var _g18 = 0;
-			var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-			while(_g18 < _g24.length) {
-				var list21 = _g24[_g18];
-				++_g18;
+			var _g19 = 0;
+			var _g25 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+			while(_g19 < _g25.length) {
+				var list21 = _g25[_g19];
+				++_g19;
 				var _g32 = 0;
 				while(_g32 < list21.length) {
-					var item7 = list21[_g32];
+					var item8 = list21[_g32];
 					++_g32;
-					this.list.push({ text : item7.path, displayText : this.processDisplayText(item7.path)});
+					this.list.push({ text : item8.path, displayText : this.processDisplayText(item8.path)});
 				}
 			}
 			break;
 		case 2:
 			var displayText1;
-			var _g19 = 0;
-			var _g25 = parser.ClassParser.filesList;
-			while(_g19 < _g25.length) {
-				var item8 = _g25[_g19];
-				++_g19;
-				this.list.push({ text : item8.directory, displayText : this.processDisplayText(item8.path)});
+			var _g110 = 0;
+			var _g26 = parser.ClassParser.filesList;
+			while(_g110 < _g26.length) {
+				var item9 = _g26[_g110];
+				++_g110;
+				this.list.push({ text : item9.directory, displayText : this.processDisplayText(item9.path)});
 			}
 			break;
 		case 4:
 			var classList1 = this.getClassList();
 			var className1 = "CodeMirror-Tern-completion";
-			var _g110 = 0;
-			var _g26 = classList1.topLevelClassList;
-			while(_g110 < _g26.length) {
-				var item9 = _g26[_g110];
-				++_g110;
-				var completion3 = { text : item9.name};
-				completion3.className = className1 + " CodeMirror-Tern-completion-class";
-				this.list.push(completion3);
-			}
 			var _g111 = 0;
-			var _g27 = classList1.importsList;
+			var _g27 = classList1.topLevelClassList;
 			while(_g111 < _g27.length) {
 				var item10 = _g27[_g111];
 				++_g111;
-				var completion4 = { text : item10};
+				var completion3 = { text : item10.name};
+				completion3.className = className1 + " CodeMirror-Tern-completion-class";
+				this.list.push(completion3);
+			}
+			var _g112 = 0;
+			var _g28 = classList1.importsList;
+			while(_g112 < _g28.length) {
+				var item11 = _g28[_g112];
+				++_g112;
+				var completion4 = { text : item11};
 				completion4.className = className1 + " CodeMirror-Tern-completion-class";
 				this.list.push(completion4);
 			}
