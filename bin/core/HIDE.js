@@ -14106,6 +14106,9 @@ js.node.Mkdirp.__name__ = ["js","node","Mkdirp"];
 js.node.Mkdirp.mkdirp = function(dir,mode,cb) {
 	if(cb == null) js.node.Mkdirp._mkdirp(dir,mode); else js.node.Mkdirp._mkdirp(dir,mode,cb);
 };
+js.node.Mkdirp.mkdirpSync = function(dir,mode) {
+	return js.node.Mkdirp._mkdirp.sync(dir,mode);
+};
 js.node.Mv = function() { };
 $hxClasses["js.node.Mv"] = js.node.Mv;
 js.node.Mv.__name__ = ["js","node","Mv"];
@@ -14692,29 +14695,29 @@ newprojectdialog.NewProjectDialog.getCheckboxData = function(key) {
 	return data;
 };
 newprojectdialog.NewProjectDialog.createProject = function() {
-	if(newprojectdialog.NewProjectDialog.projectLocation.value != "" && newprojectdialog.NewProjectDialog.projectName.value != "") js.Node.require("fs").exists(newprojectdialog.NewProjectDialog.projectLocation.value,function(exists) {
-		if(exists) {
-			var item = newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value);
-			newprojectdialog.NewProjectDialog.saveProjectCategory();
-			if(item.createProjectFunction != null) {
-				var projectPackage = newprojectdialog.NewProjectDialog.getCheckboxData("Package");
-				var projectCompany = newprojectdialog.NewProjectDialog.getCheckboxData("Company");
-				var projectLicense = newprojectdialog.NewProjectDialog.getCheckboxData("License");
-				var projectURL = newprojectdialog.NewProjectDialog.getCheckboxData("URL");
-				item.createProjectFunction({ projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : newprojectdialog.NewProjectDialog.projectLocation.value, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked});
-				js.Browser.getLocalStorage().setItem("Location",newprojectdialog.NewProjectDialog.projectLocation.value);
-			}
-			newprojectdialog.NewProjectDialog.saveData("Package");
-			newprojectdialog.NewProjectDialog.saveData("Company");
-			newprojectdialog.NewProjectDialog.saveData("License");
-			newprojectdialog.NewProjectDialog.saveData("URL");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("Package");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("Company");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("License");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("URL");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("CreateDirectory");
-			newprojectdialog.NewProjectDialog.hide();
+	var location = newprojectdialog.NewProjectDialog.projectLocation.value;
+	if(location != "" && newprojectdialog.NewProjectDialog.projectName.value != "") js.Node.require("fs").exists(location,function(exists) {
+		if(!exists) js.node.Mkdirp.mkdirpSync(location);
+		var item = newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value);
+		newprojectdialog.NewProjectDialog.saveProjectCategory();
+		if(item.createProjectFunction != null) {
+			var projectPackage = newprojectdialog.NewProjectDialog.getCheckboxData("Package");
+			var projectCompany = newprojectdialog.NewProjectDialog.getCheckboxData("Company");
+			var projectLicense = newprojectdialog.NewProjectDialog.getCheckboxData("License");
+			var projectURL = newprojectdialog.NewProjectDialog.getCheckboxData("URL");
+			item.createProjectFunction({ projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : location, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked});
+			js.Browser.getLocalStorage().setItem("Location",location);
 		}
+		newprojectdialog.NewProjectDialog.saveData("Package");
+		newprojectdialog.NewProjectDialog.saveData("Company");
+		newprojectdialog.NewProjectDialog.saveData("License");
+		newprojectdialog.NewProjectDialog.saveData("URL");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("Package");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("Company");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("License");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("URL");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("CreateDirectory");
+		newprojectdialog.NewProjectDialog.hide();
 	});
 };
 newprojectdialog.NewProjectDialog.saveProjectCategory = function() {
