@@ -66,6 +66,7 @@ class Hotkeys
 					hotkey.onKeyDown();
 				}
 			}
+										trace(e);
 		}
 		);
 	}
@@ -220,6 +221,10 @@ class Hotkeys
 					keyCode = 32;
 				case "+":
 					keyCode = 187;
+				case "pageup":
+					keyCode = 33;
+				case "pagedown":
+					keyCode = 34;
 				case "": 
 					keyCode = 189;
 				default:

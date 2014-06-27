@@ -152,7 +152,7 @@ class MenuCommands
 		BootstrapMenu.getMenu("Options").addMenuItem("Open localization file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join("core", "locale",SettingsWatcher.settings.locale)));
 		BootstrapMenu.getMenu("Options").addMenuItem("Open hotkey configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "hotkeys.json")));
 		BootstrapMenu.getMenu("Options", 90).addMenuItem("Open snippets configuration file", 1, tabManagerInstance.openFileInNewTab.bind(Node.path.join(SettingsWatcher.pathToFolder, "snippets.json")));
-		BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK", 100, classpathWalker.showHaxeDirectoryDialog);
+		BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe toolkit", 100, classpathWalker.showHaxeDirectoryDialog);
 		
 		BootstrapMenu.getMenu("Edit", 2).addMenuItem("Undo", 1, Editor.editor.execCommand.bind("undo"));
 		BootstrapMenu.getMenu("Edit").addMenuItem("Redo", 1, Editor.editor.execCommand.bind("redo"));

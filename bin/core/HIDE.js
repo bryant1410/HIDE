@@ -3602,6 +3602,7 @@ core.Hotkeys.prepare = function() {
 			++_g;
 			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) hotkey.onKeyDown();
 		}
+		console.log(e);
 	});
 };
 core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
@@ -3724,6 +3725,12 @@ core.Hotkeys.parseHotkey = function(hotkey) {
 			break;
 		case "+":
 			keyCode = 187;
+			break;
+		case "pageup":
+			keyCode = 33;
+			break;
+		case "pagedown":
+			keyCode = 34;
 			break;
 		case "":
 			keyCode = 189;
@@ -4113,7 +4120,7 @@ core.MenuCommands.add = function() {
 			return f7(a17);
 		};
 	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json")));
-	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe SDK",100,$bind(classpathWalker,classpathWalker.showHaxeDirectoryDialog));
+	menu.BootstrapMenu.getMenu("Options").addMenuItem("Configure Haxe toolkit",100,$bind(classpathWalker,classpathWalker.showHaxeDirectoryDialog));
 	menu.BootstrapMenu.getMenu("Edit",2).addMenuItem("Undo",1,function() {
 		return cm.Editor.editor.execCommand("undo");
 	});
