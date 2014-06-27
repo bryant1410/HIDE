@@ -15613,7 +15613,7 @@ parser.ClasspathWalker.prototype = {
 			if(js.Node.require("fs").existsSync(path)) {
 				if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,"Std.hx"))) pathToStd = path; else {
 					path = js.Node.require("path").join(path,"std");
-					if(js.Node.require("fs").existsSync(path)) pathToStd = this.getHaxeStdFolder(path);
+					if(js.Node.require("fs").existsSync(path)) pathToStd = path;
 				}
 			}
 		}

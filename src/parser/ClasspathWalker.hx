@@ -145,7 +145,7 @@ class ClasspathWalker
 
 					if (Node.fs.existsSync(path))
 					{
-						pathToStd = getHaxeStdFolder(path);
+						pathToStd = path;
 					}
 				}
 			}
