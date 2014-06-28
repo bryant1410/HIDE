@@ -1,4 +1,5 @@
 package newprojectdialog;
+import js.node.Mkdirp;
 import bootstrap.ButtonManager;
 import core.FileDialog;
 import dialogs.ModalDialog;
@@ -158,7 +159,7 @@ class NewProjectDialog
 		lastProjectCategoryPath = Browser.getLocalStorage().getItem("lastProject");
 	}
 	
-	private static function showPage1() 
+	static function showPage1() 
 	{
 		new JQuery(page1).show(300);
 		new JQuery(page2).hide(300);
@@ -166,7 +167,7 @@ class NewProjectDialog
 		nextButton.className = "btn btn-default";
 	}
 	
-	private static function showPage2() 
+	static function showPage2() 
 	{
 		generateProjectName();
 				
@@ -176,7 +177,7 @@ class NewProjectDialog
 		nextButton.className = "btn btn-default disabled";
 	}
 	
-	inline private static function getCheckboxData(key:String):String
+	inline static function getCheckboxData(key:String):String
 	{
 		var data:String = "";
 		
@@ -188,109 +189,113 @@ class NewProjectDialog
 		return data;
 	}
 	
-	private static function createProject():Void
+	static function createProject():Void
 	{		
-		if (projectLocation.value != "" && projectName.value != "")
+		var location = projectLocation.value;
+		
+		if (location != "" && projectName.value != "")
 		{
-			js.Node.fs.exists(projectLocation.value, function (exists:Bool):Void
+			js.Node.fs.exists(location, function (exists:Bool):Void
 			{
-				if (exists)
+				if (!exists)
 				{
-					var item:Item = selectedCategory.getItem(list.value);
-					
-					saveProjectCategory();
-					
-					if (item.createProjectFunction != null)
-					{
-						var projectPackage:String = getCheckboxData("Package");
-						var projectCompany:String = getCheckboxData("Company");
-						var projectLicense:String = getCheckboxData("License");
-						var projectURL:String = getCheckboxData("URL");
-						
-						item.createProjectFunction( { 
-							projectName: projectName.value,
-							projectLocation: projectLocation.value,
-							projectPackage: projectPackage,
-							projectCompany: projectCompany,
-							projectLicense: projectLicense,
-							projectURL: projectURL,
-							createDirectory: !selectedCategory.getItem(list.value).showCreateDirectoryOption || createDirectoryForProject.checked
-							});
-							
-						Browser.getLocalStorage().setItem("Location", projectLocation.value);
-					}
-					
-					//switch (selectedCategory) 
-					//{
-						//case "Haxe":
-							
-							//
-							//project.type = Project.HAXE;
-							//
-							//switch (list.value) 
-							//{
-								//case "Flash Project":
-									//project.target = "flash";
-								//case "JavaScript Project":
-									//project.target = "html5";
-								//case "Neko Project":
-									//project.target = "neko";
-								//case "PHP Project":
-									//project.target = "php";
-								//case "C++ Project":
-									//project.target = "cpp";
-								//case "Java Project":
-									//project.target = "java";
-								//case "C# Project":
-									//project.target = "csharp";
-								//default:
-									//
-							//}
-							//
-							//var pathToMain:String  = js.Node.path.join(projectName.value, "src");
-							//pathToMain = js.Node.path.join(pathToMain, "Main.hx");
-							//
-							//project.main = pathToMain;
-						//case "OpenFL":
-							//switch (list.value) 
-							//{
-								//case "OpenFL Project":		
-									
-								//case "OpenFL Extension":
-									//createOpenFLProject(["extension", projectName.value]);
-								//default:
-									//
-							//}
-							//
-							//project.type = Project.OPENFL;
-							//project.target = "html5";
-							//project.main = "project.xml";
-						//case "OpenFL/Samples":
-							//
-							//createOpenFLProject([list.value]);
-							//
-							//project.type = Project.OPENFL;
-							//project.target = "html5";
-							//project.main = "project.xml";
-						//default:
-							//
-					//}
-					
-					//Main.updateMenu();
-					
-					saveData("Package");
-					saveData("Company");
-					saveData("License");
-					saveData("URL");
-					
-					saveCheckboxState("Package");
-					saveCheckboxState("Company");
-					saveCheckboxState("License");
-					saveCheckboxState("URL");
-					saveCheckboxState("CreateDirectory");
-					
-					hide();
+					Mkdirp.mkdirpSync(location);
 				}
+					
+				var item:Item = selectedCategory.getItem(list.value);
+					
+				saveProjectCategory();
+
+				if (item.createProjectFunction != null)
+				{
+					var projectPackage:String = getCheckboxData("Package");
+					var projectCompany:String = getCheckboxData("Company");
+					var projectLicense:String = getCheckboxData("License");
+					var projectURL:String = getCheckboxData("URL");
+
+					item.createProjectFunction( { 
+						projectName: projectName.value,
+						projectLocation: location,
+						projectPackage: projectPackage,
+						projectCompany: projectCompany,
+						projectLicense: projectLicense,
+						projectURL: projectURL,
+						createDirectory: !selectedCategory.getItem(list.value).showCreateDirectoryOption || createDirectoryForProject.checked
+						});
+
+					Browser.getLocalStorage().setItem("Location", location);
+				}
+
+				//switch (selectedCategory) 
+				//{
+					//case "Haxe":
+
+						//
+						//project.type = Project.HAXE;
+						//
+						//switch (list.value) 
+						//{
+							//case "Flash Project":
+								//project.target = "flash";
+							//case "JavaScript Project":
+								//project.target = "html5";
+							//case "Neko Project":
+								//project.target = "neko";
+							//case "PHP Project":
+								//project.target = "php";
+							//case "C++ Project":
+								//project.target = "cpp";
+							//case "Java Project":
+								//project.target = "java";
+							//case "C# Project":
+								//project.target = "csharp";
+							//default:
+								//
+						//}
+						//
+						//var pathToMain:String  = js.Node.path.join(projectName.value, "src");
+						//pathToMain = js.Node.path.join(pathToMain, "Main.hx");
+						//
+						//project.main = pathToMain;
+					//case "OpenFL":
+						//switch (list.value) 
+						//{
+							//case "OpenFL Project":		
+
+							//case "OpenFL Extension":
+								//createOpenFLProject(["extension", projectName.value]);
+							//default:
+								//
+						//}
+						//
+						//project.type = Project.OPENFL;
+						//project.target = "html5";
+						//project.main = "project.xml";
+					//case "OpenFL/Samples":
+						//
+						//createOpenFLProject([list.value]);
+						//
+						//project.type = Project.OPENFL;
+						//project.target = "html5";
+						//project.main = "project.xml";
+					//default:
+						//
+				//}
+
+				//Main.updateMenu();
+
+				saveData("Package");
+				saveData("Company");
+				saveData("License");
+				saveData("URL");
+
+				saveCheckboxState("Package");
+				saveCheckboxState("Company");
+				saveCheckboxState("License");
+				saveCheckboxState("URL");
+				saveCheckboxState("CreateDirectory");
+
+				hide();
 			}
 			);
 		}

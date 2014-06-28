@@ -85,7 +85,7 @@ class Editor
 						}
 					}
 					
-					untyped __js__("return CodeMirror.Pass");
+					return CodeMirrorStatic.Pass;
 				},
 			";":
 				function passAndHint(cm:CodeMirror) 
@@ -96,10 +96,11 @@ class Editor
 					if (ch == ";") 
 					{
 						cm.execCommand("goCharRight");
+						return null;
 					}
 					else 
 					{
-						untyped __js__("return CodeMirror.Pass");
+						return CodeMirrorStatic.Pass;
 					}
 				},
            	"=":
@@ -122,16 +123,17 @@ class Editor
                             cm2.replaceRange("=\"\"", cur, cur);
                             cm2.execCommand("goCharLeft");
                             xmlInstance.completeIfInTag(cm2);
+							return null;
                         }
                         else
                         {
-                            untyped __js__("return CodeMirror.Pass");
+                            return CodeMirrorStatic.Pass;
                         }
                         
 					}
 					else
                     {
-                        untyped __js__("return CodeMirror.Pass");
+                        return CodeMirrorStatic.Pass;
                     }
 					
 				},
@@ -147,20 +149,20 @@ class Editor
             	function passAndHint(cm2:CodeMirror)
             	{
                     xmlInstance.completeAfter(cm2);
-                    untyped __js__("return CodeMirror.Pass");
+                    return CodeMirrorStatic.Pass;
                 },
             	
             "\\\'/\\\'":
             	function passAndHint(cm2:CodeMirror)
             	{
                     xmlInstance.completeIfAfterLt(cm2);
-                    untyped __js__("return CodeMirror.Pass");
+                    return CodeMirrorStatic.Pass;
                 },
             "\\\' \\\'":
                 function passAndHint(cm2:CodeMirror)
             	{
                     xmlInstance.completeIfInTag(cm2);
-                    untyped __js__("return CodeMirror.Pass");
+                    return CodeMirrorStatic.Pass;
                 },
             "Ctrl-J": "toMatchingTag"
 		}
@@ -498,6 +500,7 @@ class Editor
 						triggerCompletion(editor, false);
 					}
 				}
+// 				else if	
 			}
 			else if (modeName == "hxml") 
 			{
@@ -535,7 +538,10 @@ class Editor
 			{
 // 				Helper.debounce("type", function ():Void
 // 						   {
-							   if (isValidWordForCompletionOnType())
+							 var text = e.text[0];
+							 var removed = e.removed[0];
+				
+							   if (text != "\t" && text != " " && removed != "\t" && removed != " " && isValidWordForCompletionOnType())
 							   {
 								   var doc = tabManagerInstance.getCurrentDocument();
 								   var pos = doc.getCursor();

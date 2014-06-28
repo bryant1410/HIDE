@@ -32,6 +32,7 @@ origin : String,
 from : Pos,
 to : Pos,
 text : Array<String>,
+removed : Array<String>,
 ?next : ChangeEvent
 }
 

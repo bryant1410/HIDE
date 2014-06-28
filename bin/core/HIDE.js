@@ -1249,9 +1249,10 @@ cm.Editor.load = function() {
 		var passAndHint1 = function(cm1) {
 			var cursor = cm.Editor.editor.getCursor();
 			var ch = cm.Editor.editor.getRange(cursor,{ line : cursor.line, ch : cursor.ch + 1});
-			if(ch == ";") cm1.execCommand("goCharRight"); else {
-				return CodeMirror.Pass;
-			}
+			if(ch == ";") {
+				cm1.execCommand("goCharRight");
+				return null;
+			} else return CodeMirror.Pass;
 		};
 		$r = passAndHint1;
 		return $r;
@@ -1267,12 +1268,9 @@ cm.Editor.load = function() {
 					cm2.replaceRange("=\"\"",cur,cur);
 					cm2.execCommand("goCharLeft");
 					xmlInstance.completeIfInTag(cm2);
-				} else {
-					return CodeMirror.Pass;
-				}
-			} else {
-				return CodeMirror.Pass;
-			}
+					return null;
+				} else return CodeMirror.Pass;
+			} else return CodeMirror.Pass;
 		};
 		$r = passAndHint2;
 		return $r;
@@ -1480,7 +1478,9 @@ cm.Editor.load = function() {
 		tab.setChanged(!tab.doc.isClean());
 		console.log(e2);
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
-			if(cm.Editor.isValidWordForCompletionOnType()) {
+			var text3 = e2.text[0];
+			var removed = e2.removed[0];
+			if(text3 != "\t" && text3 != " " && removed != "\t" && removed != " " && cm.Editor.isValidWordForCompletionOnType()) {
 				var doc2 = tabManagerInstance.getCurrentDocument();
 				var pos2 = doc2.getCursor();
 				completionInstance.getCompletion(function() {
@@ -2290,14 +2290,6 @@ core.Completion.prototype = {
 					completion2.className = className + " CodeMirror-Tern-completion-package";
 					this.list.push(completion2);
 				}
-				var _g17 = 0;
-				var _g23 = this.list;
-				while(_g17 < _g23.length) {
-					var item6 = _g23[_g17];
-					++_g17;
-					console.log(item6.text);
-					console.log(item6);
-				}
 			}
 			break;
 		case 6:
@@ -2306,62 +2298,62 @@ core.Completion.prototype = {
 		case 5:
 			var _this = completion.Hxml.getCompletion();
 			this.list = _this.slice();
-			var _g18 = 0;
-			var _g24 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
-			while(_g18 < _g24.length) {
-				var list2 = _g24[_g18];
-				++_g18;
+			var _g17 = 0;
+			var _g23 = [parser.ClassParser.topLevelClassList,parser.ClassParser.importsList,parser.ClassParser.haxeStdTopLevelClassList,parser.ClassParser.haxeStdImports];
+			while(_g17 < _g23.length) {
+				var list2 = _g23[_g17];
+				++_g17;
 				var _g31 = 0;
 				while(_g31 < list2.length) {
-					var item7 = list2[_g31];
+					var item6 = list2[_g31];
 					++_g31;
-					this.list.push({ text : item7});
+					this.list.push({ text : item6});
 				}
 			}
 			break;
 		case 1:
 			var displayText;
-			var _g19 = 0;
-			var _g25 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
-			while(_g19 < _g25.length) {
-				var list21 = _g25[_g19];
-				++_g19;
+			var _g18 = 0;
+			var _g24 = [parser.ClassParser.filesList,parser.ClassParser.haxeStdFileList];
+			while(_g18 < _g24.length) {
+				var list21 = _g24[_g18];
+				++_g18;
 				var _g32 = 0;
 				while(_g32 < list21.length) {
-					var item8 = list21[_g32];
+					var item7 = list21[_g32];
 					++_g32;
-					this.list.push({ text : item8.path, displayText : this.processDisplayText(item8.path)});
+					this.list.push({ text : item7.path, displayText : this.processDisplayText(item7.path)});
 				}
 			}
 			break;
 		case 2:
 			var displayText1;
-			var _g110 = 0;
-			var _g26 = parser.ClassParser.filesList;
-			while(_g110 < _g26.length) {
-				var item9 = _g26[_g110];
-				++_g110;
-				this.list.push({ text : item9.directory, displayText : this.processDisplayText(item9.path)});
+			var _g19 = 0;
+			var _g25 = parser.ClassParser.filesList;
+			while(_g19 < _g25.length) {
+				var item8 = _g25[_g19];
+				++_g19;
+				this.list.push({ text : item8.directory, displayText : this.processDisplayText(item8.path)});
 			}
 			break;
 		case 4:
 			var classList1 = this.getClassList();
 			var className1 = "CodeMirror-Tern-completion";
-			var _g111 = 0;
-			var _g27 = classList1.topLevelClassList;
-			while(_g111 < _g27.length) {
-				var item10 = _g27[_g111];
-				++_g111;
-				var completion3 = { text : item10.name};
+			var _g110 = 0;
+			var _g26 = classList1.topLevelClassList;
+			while(_g110 < _g26.length) {
+				var item9 = _g26[_g110];
+				++_g110;
+				var completion3 = { text : item9.name};
 				completion3.className = className1 + " CodeMirror-Tern-completion-class";
 				this.list.push(completion3);
 			}
-			var _g112 = 0;
-			var _g28 = classList1.importsList;
-			while(_g112 < _g28.length) {
-				var item11 = _g28[_g112];
-				++_g112;
-				var completion4 = { text : item11};
+			var _g111 = 0;
+			var _g27 = classList1.importsList;
+			while(_g111 < _g27.length) {
+				var item10 = _g27[_g111];
+				++_g111;
+				var completion4 = { text : item10};
 				completion4.className = className1 + " CodeMirror-Tern-completion-class";
 				this.list.push(completion4);
 			}
@@ -3595,19 +3587,15 @@ core.Hotkeys.prepare = function() {
 	console.log("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey));
 	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
-	var options = { };
-	options.interval = 1500;
-	js.Node.require("fs").watchFile(core.Hotkeys.pathToData,options,function(curr,prev) {
-		if(curr.mtime != prev.mtime) {
-			core.Hotkeys.parseData();
-			core.Hotkeys.hotkeys = new Array();
-			var $it0 = core.Hotkeys.commandMap.keys();
-			while( $it0.hasNext() ) {
-				var key = $it0.next();
-				core.Hotkeys.addHotkey(key);
-			}
+	watchers.Watcher.watchFileForUpdates(core.Hotkeys.pathToData,function() {
+		core.Hotkeys.parseData();
+		core.Hotkeys.hotkeys = new Array();
+		var $it0 = core.Hotkeys.commandMap.keys();
+		while( $it0.hasNext() ) {
+			var key = $it0.next();
+			core.Hotkeys.addHotkey(key);
 		}
-	});
+	},1500);
 	window.addEventListener("keydown",function(e) {
 		var _g = 0;
 		var _g1 = core.Hotkeys.hotkeys;
@@ -14106,6 +14094,9 @@ js.node.Mkdirp.__name__ = ["js","node","Mkdirp"];
 js.node.Mkdirp.mkdirp = function(dir,mode,cb) {
 	if(cb == null) js.node.Mkdirp._mkdirp(dir,mode); else js.node.Mkdirp._mkdirp(dir,mode,cb);
 };
+js.node.Mkdirp.mkdirpSync = function(dir,mode) {
+	return js.node.Mkdirp._mkdirp.sync(dir,mode);
+};
 js.node.Mv = function() { };
 $hxClasses["js.node.Mv"] = js.node.Mv;
 js.node.Mv.__name__ = ["js","node","Mv"];
@@ -14692,29 +14683,29 @@ newprojectdialog.NewProjectDialog.getCheckboxData = function(key) {
 	return data;
 };
 newprojectdialog.NewProjectDialog.createProject = function() {
-	if(newprojectdialog.NewProjectDialog.projectLocation.value != "" && newprojectdialog.NewProjectDialog.projectName.value != "") js.Node.require("fs").exists(newprojectdialog.NewProjectDialog.projectLocation.value,function(exists) {
-		if(exists) {
-			var item = newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value);
-			newprojectdialog.NewProjectDialog.saveProjectCategory();
-			if(item.createProjectFunction != null) {
-				var projectPackage = newprojectdialog.NewProjectDialog.getCheckboxData("Package");
-				var projectCompany = newprojectdialog.NewProjectDialog.getCheckboxData("Company");
-				var projectLicense = newprojectdialog.NewProjectDialog.getCheckboxData("License");
-				var projectURL = newprojectdialog.NewProjectDialog.getCheckboxData("URL");
-				item.createProjectFunction({ projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : newprojectdialog.NewProjectDialog.projectLocation.value, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked});
-				js.Browser.getLocalStorage().setItem("Location",newprojectdialog.NewProjectDialog.projectLocation.value);
-			}
-			newprojectdialog.NewProjectDialog.saveData("Package");
-			newprojectdialog.NewProjectDialog.saveData("Company");
-			newprojectdialog.NewProjectDialog.saveData("License");
-			newprojectdialog.NewProjectDialog.saveData("URL");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("Package");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("Company");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("License");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("URL");
-			newprojectdialog.NewProjectDialog.saveCheckboxState("CreateDirectory");
-			newprojectdialog.NewProjectDialog.hide();
+	var location = newprojectdialog.NewProjectDialog.projectLocation.value;
+	if(location != "" && newprojectdialog.NewProjectDialog.projectName.value != "") js.Node.require("fs").exists(location,function(exists) {
+		if(!exists) js.node.Mkdirp.mkdirpSync(location);
+		var item = newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value);
+		newprojectdialog.NewProjectDialog.saveProjectCategory();
+		if(item.createProjectFunction != null) {
+			var projectPackage = newprojectdialog.NewProjectDialog.getCheckboxData("Package");
+			var projectCompany = newprojectdialog.NewProjectDialog.getCheckboxData("Company");
+			var projectLicense = newprojectdialog.NewProjectDialog.getCheckboxData("License");
+			var projectURL = newprojectdialog.NewProjectDialog.getCheckboxData("URL");
+			item.createProjectFunction({ projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : location, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked});
+			js.Browser.getLocalStorage().setItem("Location",location);
 		}
+		newprojectdialog.NewProjectDialog.saveData("Package");
+		newprojectdialog.NewProjectDialog.saveData("Company");
+		newprojectdialog.NewProjectDialog.saveData("License");
+		newprojectdialog.NewProjectDialog.saveData("URL");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("Package");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("Company");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("License");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("URL");
+		newprojectdialog.NewProjectDialog.saveCheckboxState("CreateDirectory");
+		newprojectdialog.NewProjectDialog.hide();
 	});
 };
 newprojectdialog.NewProjectDialog.saveProjectCategory = function() {
@@ -18399,7 +18390,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this","break","continue","extends","implements","in","override","package","inline","throw","untyped","using","import"];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this","break","continue","extends","implements","in","override","package","inline","throw","untyped","using","import","return"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

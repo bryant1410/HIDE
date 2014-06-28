@@ -1375,3 +1375,12 @@ border-color: #35353A;
 {
 background-color: #00548d;
 }
+
+.alertify-log-error {
+background: #FE1A00;
+background: rgba(254,26,0,.9);
+}
+.alertify-log-success {
+background: #5CB811;
+background: rgba(92,184,17,.9);
+}
