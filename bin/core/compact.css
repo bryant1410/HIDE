@@ -109,11 +109,17 @@
 
 /* General */
 .jqx-widget-content{
-	background-color: #ffffff;
+	background-color: #e6e6e6;
 }
 
 
+
 /* Project Panel */
+
+#filetreemenu{
+	background-color: #ffffff;
+}
+
 .jqx-tree-dropdown-root{ 
 	margin-top:10px;
 }
@@ -138,6 +144,8 @@
 	line-height:14px;
 }
 
+
+
 /* Outline Panel */
 
 #outline .jqx-widget-content{
@@ -151,6 +159,8 @@
 #panelContentpaneloutline .jqx-tree-item-li{
 	line-height:14px;
 }
+
+
 
 /* Vertical Scroll bars */
 
@@ -192,6 +202,8 @@
 	background-color:#ffffff;
 }
 
+
+
 /* Horizontal Scroll bars */
 
 #panelfiletreehorizontalScrollBar, #paneloutlinehorizontalScrollBar{
@@ -223,6 +235,8 @@
 	background-image:url( "images/compact/icon-right.png);
 }
 
+
+
 /* Split Bars */
 
 .jqx-splitter-splitbar-vertical{
@@ -236,7 +250,6 @@
 	background-image:url( "images/compact/vertical-splitter-close.gif");
 }
 
-
 .jqx-splitter-splitbar-horizontal{
 	border: none !important;
 	height: 5px !important;
@@ -248,7 +261,13 @@
 	background-image:url( "images/compact/horizontal-splitter-close.gif");
 }
 
+
+.jqx-splitter-splitbar-hover{
+	background-color: #ffffff;
+}
+
 /* Code Editor */
+
 .jqx-widget
 
 
@@ -324,6 +343,10 @@ ul.tabs > li:hover {
 
 #output > textarea{
 	border:none
+}
+
+#results{
+	background-color: #ffffff;
 }
 
 #status-cursor{
