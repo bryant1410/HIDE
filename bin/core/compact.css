@@ -113,7 +113,13 @@
 }
 
 
+
 /* Project Panel */
+
+#filetreemenu{
+	background-color: #ffffff;
+}
+
 .jqx-tree-dropdown-root{ 
 	margin-top:10px;
 }
@@ -138,6 +144,8 @@
 	line-height:14px;
 }
 
+
+
 /* Outline Panel */
 
 #outline .jqx-widget-content{
@@ -151,6 +159,8 @@
 #panelContentpaneloutline .jqx-tree-item-li{
 	line-height:14px;
 }
+
+
 
 /* Vertical Scroll bars */
 
@@ -192,6 +202,8 @@
 	background-color:#ffffff;
 }
 
+
+
 /* Horizontal Scroll bars */
 
 #panelfiletreehorizontalScrollBar, #paneloutlinehorizontalScrollBar{
@@ -223,6 +235,8 @@
 	background-image:url( "images/compact/icon-right.png);
 }
 
+
+
 /* Split Bars */
 
 .jqx-splitter-splitbar-vertical{
@@ -248,7 +262,10 @@
 	background-image:url( "images/compact/horizontal-splitter-close.gif");
 }
 
+
+
 /* Code Editor */
+
 .jqx-widget
 
 
