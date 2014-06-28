@@ -5371,17 +5371,29 @@ filetree.FileTree.get = function() {
 	return filetree.FileTree.instance;
 };
 filetree.FileTree.updateProjectMainHxml = function() {
-	var noproject = projectaccess.ProjectAccess.path == null || projectaccess.ProjectAccess.currentProject.main == null;
+	var project = projectaccess.ProjectAccess.currentProject;
+	var noproject = projectaccess.ProjectAccess.path == null;
 	var main = null;
-	if(!noproject) main = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,projectaccess.ProjectAccess.currentProject.main);
+	var _g = project.type;
+	switch(_g) {
+	case 0:
+		if(!noproject) main = project.targetData[project.target].pathToHxml;
+		break;
+	case 2:
+		if(!noproject && project.main != null) main = js.Node.require("path").resolve(projectaccess.ProjectAccess.path,project.main);
+		break;
+	case 1:
+		break;
+	default:
+	}
 	var items = new $("#filetree").jqxTree("getItems");
-	var _g = 0;
-	while(_g < items.length) {
-		var item = items[_g];
-		++_g;
+	var _g1 = 0;
+	while(_g1 < items.length) {
+		var item = items[_g1];
+		++_g1;
 		var li;
 		li = js.Boot.__cast(item.element , HTMLLIElement);
-		if(!noproject && item.value.path == main) li.classList.add("mainHxml"); else li.classList.remove("mainHxml");
+		if(!noproject && main != null && item.value.path == main) li.classList.add("mainHxml"); else li.classList.remove("mainHxml");
 	}
 };
 filetree.FileTree.readDirItems = function(path,onComplete,root) {
@@ -5471,7 +5483,7 @@ filetree.FileTree.prototype = {
 						var pathToFolder = js.Node.require("path").join(path1,dirname);
 						js.Node.require("fs").mkdir(pathToFolder,null,function(error) {
 							if(error == null) {
-								new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}, icon : "includes/images/folder.png"},selectedItem1.element);
+								new $("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}},selectedItem1.element);
 								_g.attachContextMenu();
 							} else Alertify.error(error);
 						});
@@ -13896,8 +13908,13 @@ haxeproject.HaxeProject.prototype = {
 		js.node.Mkdirp.mkdirp(pathToSrc,function(err,made) {
 			var pathToProject = data.projectLocation;
 			if(data.createDirectory) pathToProject = js.Node.require("path").join(pathToProject,data.projectName);
+			var pathToSrc1 = js.Node.require("path").join(pathToProject,"src");
+			if(data.projectPackage != "") {
+				var fullPackagePath = StringTools.replace(data.projectPackage,".",js.Node.require("path").sep);
+				js.node.Mkdirp.mkdirpSync(js.Node.require("path").join(pathToSrc1,fullPackagePath));
+			}
 			var pathToMain;
-			pathToMain = js.Node.require("path").join(pathToProject,"src","Main.hx");
+			pathToMain = js.Node.require("path").join(pathToSrc1,"Main.hx");
 			js.Node.require("fs").writeFile(pathToMain,_g.code,null,function(error) {
 				if(error != null) Alertify.error("Write file error" + error);
 				js.Node.require("fs").exists(pathToMain,function(exists) {
@@ -14693,7 +14710,8 @@ newprojectdialog.NewProjectDialog.createProject = function() {
 			var projectCompany = newprojectdialog.NewProjectDialog.getCheckboxData("Company");
 			var projectLicense = newprojectdialog.NewProjectDialog.getCheckboxData("License");
 			var projectURL = newprojectdialog.NewProjectDialog.getCheckboxData("URL");
-			item.createProjectFunction({ projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : location, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked});
+			var data = { projectName : newprojectdialog.NewProjectDialog.projectName.value, projectLocation : location, projectPackage : projectPackage, projectCompany : projectCompany, projectLicense : projectLicense, projectURL : projectURL, createDirectory : !newprojectdialog.NewProjectDialog.selectedCategory.getItem(newprojectdialog.NewProjectDialog.list.value).showCreateDirectoryOption || newprojectdialog.NewProjectDialog.createDirectoryForProject.checked};
+			item.createProjectFunction(data);
 			js.Browser.getLocalStorage().setItem("Location",location);
 		}
 		newprojectdialog.NewProjectDialog.saveData("Package");
@@ -18390,7 +18408,7 @@ menu.BootstrapMenu.menus = new haxe.ds.StringMap();
 menu.BootstrapMenu.menuArray = new Array();
 newprojectdialog.NewProjectDialog.categories = new haxe.ds.StringMap();
 newprojectdialog.NewProjectDialog.categoriesArray = new Array();
-parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this","break","continue","extends","implements","in","override","package","inline","throw","untyped","using","import","return"];
+parser.ClassParser.haxeStdTopLevelClassList = ["Int","Float","String","Void","Std","Bool","Dynamic","Array","null","this","break","continue","extends","implements","in","override","package","inline","throw","untyped","using","import","return","extern"];
 parser.ClassParser.topLevelClassList = [];
 parser.ClassParser.haxeStdImports = [];
 parser.ClassParser.importsList = [];

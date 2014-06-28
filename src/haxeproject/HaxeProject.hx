@@ -1,4 +1,5 @@
 package haxeproject;
+import newprojectdialog.NewProjectDialog.ProjectData;
 import core.Utils;
 import core.Splitter;
 import filetree.FileTree;
@@ -123,7 +124,7 @@ class HaxeProject
 		createHaxeProject(data, Project.JAVASCRIPT);
 	}
 	
-	function createHaxeProject(data:Dynamic, target:Int):Void
+	function createHaxeProject(data:ProjectData, target:Int):Void
 	{
 		var pathToSrc:String = Node.path.join(data.projectLocation, data.projectName, "src");
 		
@@ -136,9 +137,17 @@ class HaxeProject
 				pathToProject = Node.path.join(pathToProject, data.projectName);
 			}
 			
+			var pathToSrc = Node.path.join(pathToProject, "src");
+			
+			if (data.projectPackage != "")
+			{
+				var fullPackagePath = StringTools.replace(data.projectPackage, ".", Node.path.sep);
+				Mkdirp.mkdirpSync(Node.path.join(pathToSrc, fullPackagePath));
+			}
+			
 			var pathToMain:String;
 			
-			pathToMain = Node.path.join(pathToProject, "src", "Main.hx");
+			pathToMain = Node.path.join(pathToSrc, "Main.hx");
 			
 			js.Node.fs.writeFile(pathToMain, code, function (error:js.Node.NodeErr):Void
 			{

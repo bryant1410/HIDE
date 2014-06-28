@@ -1,4 +1,5 @@
 package filetree;
+import projectaccess.Project;
 import core.RunProject;
 import haxe.ds.StringMap.StringMap;
 import jQuery.JQuery;
@@ -112,7 +113,8 @@ class FileTree
 						{
 							if (error == null) 
 							{
-								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFolder}, icon: "includes/images/folder.png" }, selectedItem.element);
+								untyped new JQuery('#filetree').jqxTree('addTo', { label: str, value: {type: "folder", path: pathToFolder}}, selectedItem.element);
+								//icon: "includes/images/folder.png"
 								attachContextMenu();
 							}
 							else 
@@ -364,12 +366,28 @@ class FileTree
 	
 	static function updateProjectMainHxml()
 	{
-		var noproject = (ProjectAccess.path == null || ProjectAccess.currentProject.main == null);
+		var project = ProjectAccess.currentProject;
+		
+		var noproject = (ProjectAccess.path == null);
+		
 		var main = null;
 		
-		if (!noproject)
+		switch (project.type)
 		{
-			main = Node.path.resolve(ProjectAccess.path, ProjectAccess.currentProject.main);
+			case Project.HAXE:
+				if (!noproject)
+				{
+					main = project.targetData[project.target].pathToHxml;
+				}
+
+			case Project.HXML:
+				if (!noproject && project.main != null)
+				{
+					main = Node.path.resolve(ProjectAccess.path, project.main);
+				}
+			case Project.OPENFL:
+			default:
+
 		}
 		
 		var items:Array<Dynamic> = untyped new JQuery('#filetree').jqxTree('getItems');
@@ -378,7 +396,7 @@ class FileTree
 		{
 			var li = cast(item.element, LIElement);
 
-			if (!noproject && item.value.path == main)
+			if (!noproject && main != null && item.value.path == main)
 			{
 				li.classList.add("mainHxml");
 			}

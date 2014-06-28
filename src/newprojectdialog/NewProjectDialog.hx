@@ -213,7 +213,7 @@ class NewProjectDialog
 					var projectLicense:String = getCheckboxData("License");
 					var projectURL:String = getCheckboxData("URL");
 
-					item.createProjectFunction( { 
+					var data:ProjectData = { 
 						projectName: projectName.value,
 						projectLocation: location,
 						projectPackage: projectPackage,
@@ -221,7 +221,9 @@ class NewProjectDialog
 						projectLicense: projectLicense,
 						projectURL: projectURL,
 						createDirectory: !selectedCategory.getItem(list.value).showCreateDirectoryOption || createDirectoryForProject.checked
-						});
+						};
+					
+					item.createProjectFunction(data);
 
 					Browser.getLocalStorage().setItem("Location", location);
 				}
