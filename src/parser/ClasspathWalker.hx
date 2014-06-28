@@ -22,6 +22,18 @@ import parser.ClassParser.FileData;
  * ...
  * @author 
  */
+typedef ClasspathAndLibs = 
+{
+	classpaths: Array<String>,
+	libs: Array<LibClassPath>
+}
+	
+typedef LibClassPath = 
+{
+	path: String,
+	std: Bool
+}
+
 class ClasspathWalker
 {
 	public var pathToHaxeStd:String;
@@ -29,7 +41,7 @@ class ClasspathWalker
     
 	static var instance:ClasspathWalker;
 	
-	public static function get()
+	public static function get():ClasspathWalker
 	{
 		if (instance == null)
 		{
@@ -43,7 +55,14 @@ class ClasspathWalker
 	{		
 		var localStorage2 = Browser.getLocalStorage();
 		
-		var paths:Array<String> = [Node.process.env.HAXEPATH, Node.process.env.HAXE_STD_PATH, Node.process.env.HAXE_HOME];
+		var pathToHaxe2 = Node.process.env.HAXE_STD_PATH;
+		
+		if (pathToHaxe2 != null)
+		{
+			pathToHaxe2 = Node.path.dirname(pathToHaxe2);
+		}
+		
+		var paths:Array<String> = [Node.process.env.HAXEPATH, pathToHaxe2, Node.process.env.HAXE_HOME];
 		
 		if (localStorage2 != null) 
 		{
@@ -108,6 +127,7 @@ class ClasspathWalker
 				parseClasspath(pathToHaxeStd, true);
 				pathToHaxe = path;
 				localStorage2.setItem("pathToHaxe", pathToHaxe);
+				HaxeHelper.updatePathToHaxe();
 				DialogManager.hide();
 			}
 			else 
@@ -154,6 +174,53 @@ class ClasspathWalker
 		return pathToStd;
 	}
 
+	public function getProjectClasspaths(project:Project, onComplete:ClasspathAndLibs->Void)
+	{
+		var classpathsAndLibs = null;
+		
+		switch (project.type) 
+		{
+			case Project.HAXE, Project.HXML:
+				var path:String;
+
+				if (project.type == Project.HAXE) 
+				{
+					path = Node.path.join(ProjectAccess.path, project.targetData[project.target].pathToHxml);
+				}
+				else 
+				{
+					path = Node.path.join(ProjectAccess.path, project.main);
+				}
+				
+				var options:js.Node.NodeFsFileOptions = { };
+				options.encoding = NodeC.UTF8;
+
+				var data:String = Node.fs.readFileSync(path, options);
+				classpathsAndLibs = getClasspaths(data.split("\n"));
+				
+				processHaxelibs(classpathsAndLibs.libs, function (libs)
+								{
+									var classpathsAndLibs2 = {classpaths: classpathsAndLibs.classpaths, libs: libs};
+									onComplete(classpathsAndLibs2);
+								}
+							   );
+			case Project.OPENFL:
+				OpenFLTools.getParams(ProjectAccess.path, project.openFLTarget, function (stdout:String):Void 
+				{
+					classpathsAndLibs = getClasspaths(stdout.split("\n"));
+					
+					processHaxelibs(classpathsAndLibs.libs, function (libs)
+								{
+									var classpathsAndLibs2 = {classpaths: classpathsAndLibs.classpaths, libs: libs};
+									onComplete(classpathsAndLibs2);
+								}
+							   );
+				});
+			default:
+
+		}
+	}
+
 	public function parseProjectArguments():Void 
 	{
 		ClassParser.classCompletions = new StringMap();
@@ -166,33 +233,19 @@ class ClasspathWalker
 		{
 			var project = ProjectAccess.currentProject;
 			
-			switch (project.type) 
-			{
-				case Project.HAXE, Project.HXML:
-					var path:String;
-					
-					if (project.type == Project.HAXE) 
-					{
-						path = Node.path.join(ProjectAccess.path, project.targetData[project.target].pathToHxml);
-					}
-					else 
-					{
-						path = Node.path.join(ProjectAccess.path, project.main);
-					}
-					
-					var options:js.Node.NodeFsFileOptions = { };
-					options.encoding = NodeC.UTF8;
-					
-					var data:String = Node.fs.readFileSync(path, options);
-					getClasspaths(data.split("\n"));
-				case Project.OPENFL:
-					OpenFLTools.getParams(ProjectAccess.path, project.openFLTarget, function (stdout:String):Void 
-					{
-						getClasspaths(stdout.split("\n"));
-					});
-				default:
-					
-			}
+			getProjectClasspaths(project, function (classpathsAndLibs)
+								 {
+									for (path in classpathsAndLibs.classpaths) 
+									{
+										parseClasspath(path);
+									}
+
+								 	for (lib in classpathsAndLibs.libs)
+									{
+										parseClasspath(lib.path, lib.std);
+									}
+								 }
+								);
 		}
 		
 		walkProjectDirectory(ProjectAccess.path);
@@ -223,48 +276,63 @@ class ClasspathWalker
 			var classpath:String = Node.path.resolve(ProjectAccess.path, arg);
 			classpaths.push(classpath);
 		}
-		
-		for (path in classpaths) 
-		{
-			parseClasspath(path);
-		}
-		
+
 		var libs:Array<String> = parseArg(data, "-lib");
-		
-		processHaxelibs(libs, parseClasspath);
+
+		trace(classpaths);
+
+		return {classpaths: classpaths, libs: libs};
 	}
 	
-	function processHaxelibs(libs:Array<String>, onPath:String->Bool->Void):Void 
+	function processHaxelibs(libs:Array<String>, onComplete:Array<LibClassPath>->Void):Void 
 	{		
-		for (arg in libs) 
+		var n = libs.length;
+		
+		var classpaths = [];
+		
+		if (n > 0)
 		{
-			var processHelper = ProcessHelper.get();
-			 
-			processHelper.runProcess("haxelib", ["path", arg], null, function (stdout:String, stderr:String):Void 
+			for (arg in libs) 
 			{
-				for (path in stdout.split("\n")) 
+				var processHelper = ProcessHelper.get();
+
+				processHelper.runProcess(HaxeHelper.getPathToHaxelib(), ["path", arg], null, function (stdout:String, stderr:String):Void 
 				{
-					if (path.indexOf(Node.path.sep) != -1) 
+					n--;
+
+					for (path in stdout.split("\n")) 
 					{
-						path = StringTools.trim(path);
-						path = Node.path.normalize(path);
-						
-						Node.fs.exists(path, function (exists:Bool)
+						if (path.indexOf(Node.path.sep) != -1) 
 						{
-							if (exists) 
+							path = StringTools.trim(path);
+							path = Node.path.normalize(path);
+
+							Node.fs.exists(path, function (exists:Bool)
 							{
-								onPath(path, false);
+								if (exists) 
+								{
+									classpaths.push({path: path, std: false});
+								}
 							}
+							);
 						}
-						);
+					}
+
+					if (n == 0)
+					{
+						onComplete(classpaths);
 					}
 				}
+				);
 			}
-			);
+		}
+		else
+		{
+			onComplete(classpaths);
 		}
 	}
 	
-	private function parseArg(args:Array<String>, type:String):Array<String>
+	function parseArg(args:Array<String>, type:String):Array<String>
 	{
 		var result:Array<String> = [];
 		

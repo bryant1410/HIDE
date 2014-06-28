@@ -8,7 +8,6 @@
         haxelib install jQueryExtern
         haxelib install hxparse
         haxelib install tjson
-        haxelib install mustache
         haxelib install jQueryExtern
         haxelib install node-webkit
 

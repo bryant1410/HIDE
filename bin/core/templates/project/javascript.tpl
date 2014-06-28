@@ -2,10 +2,10 @@
 -cp src
 
 #this class wil be used as entry point for your app.
--main Main
+-main ::if (pack != null)::::pack::.::end::Main
 
 #JavaScript target
--js {{file}}
+-js ::file::
 
 #You can use -D source-map-content (requires Haxe 3.1+) to have the .hx 
 #files directly embedded into the map file, this way you only have to 

@@ -133,6 +133,8 @@ class ProjectOptions
 					project.target = Project.JAVA;
 				case "C#":
 					project.target = Project.CSHARP;
+				case "Python":
+					project.target = Project.PYTHON;
 				default:
 					throw "Unknown target";
 			}

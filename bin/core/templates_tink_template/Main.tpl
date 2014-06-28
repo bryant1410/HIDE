@@ -1,4 +1,5 @@
-package ;
+::static function generateNewFile()::
+package ::pack::;
 
 class Main
 {
@@ -7,3 +8,4 @@ class Main
         trace("Hello World");
 	}
 }
+::end::

@@ -2,10 +2,10 @@
 -cp src
 
 #this class wil be used as entry point for your app.
--main Main
+-main ::if (pack != null)::::pack::.::end::Main
 
-#PHP target
--php {{file}}
+#Python target
+-python ::file::
 
 #Add debug information
 -debug

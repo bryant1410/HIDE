@@ -70,7 +70,7 @@
                 {
 					"name": "if",
 					"description": "if",
-					"template": "if (${value})\n{\n${cursor}\n\n}\n"
+					"template": "if (${value})\n{\n${cursor}\n}\n"
 				},
 				{
 					"name": "else",
@@ -90,22 +90,22 @@
 {
 					"name": "class",
 					"description": "class",
-					"template": "class ${value}\n{\n${cursor}\n\n}\n"
+					"template": "class ${value}\n{\n${cursor}\n}\n"
 				},
 				{
 					"name": "typedef",
 					"description": "typedef",
-					"template": "typedef ${value} = \n{\n${cursor}\n\n}\n"
+					"template": "typedef ${value} = \n{\n${cursor}\n}\n"
 				},
 				{
 					"name": "enum",
 					"description": "enum",
-					"template": "enum ${value}\n{\n${cursor}\n\n}\n"
+					"template": "enum ${value}\n{\n${cursor}\n}\n"
 				},
 				{
 					"name": "interface",
 					"description": "interface",
-					"template": "interface ${value}\n{\n${cursor}\n\n}\n"
+					"template": "interface ${value}\n{\n${cursor}\n}\n"
 				},
 			]
 		}

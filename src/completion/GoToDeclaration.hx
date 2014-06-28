@@ -44,7 +44,7 @@ class GoToDeclaration
 										 if (ereg.match(posData))
 										 {
 											 var path = ereg.matched(1);
-											 var line = Std.parseInt(ereg.matched(2));
+											 var line = Std.parseInt(ereg.matched(2)) - 1;
 											 var posType = ereg.matched(3);
 											 var from = Std.parseInt(ereg.matched(4));
 											 var to = Std.parseInt(ereg.matched(5));
@@ -54,7 +54,7 @@ class GoToDeclaration
 											 
 											 if (posType == "lines")
 											 {
-												 from2 = {line: from, ch: 0};
+												 from2 = {line: from - 1, ch: 0};
 												 to2 = {line: to, ch: 0};
 											 }
 											 else if (posType == "characters")

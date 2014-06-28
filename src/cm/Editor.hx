@@ -500,7 +500,10 @@ class Editor
 						triggerCompletion(editor, false);
 					}
 				}
-// 				else if	
+				else if	(StringTools.endsWith(data, "new "))
+				{
+					completionInstance.showClassList(false);
+				}
 			}
 			else if (modeName == "hxml") 
 			{
@@ -515,7 +518,7 @@ class Editor
                 {
                     completionInstance.showFileList(false, true);
                 }
-                else if (data == "-dce ")
+                else if (data == "-dce " || data == "-lib ")
                 {
                     completionInstance.showHxmlCompletion();
 				}

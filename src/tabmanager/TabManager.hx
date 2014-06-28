@@ -1,5 +1,7 @@
 
 package tabmanager;
+import parser.ClasspathWalker;
+import haxe.Template;
 import watchers.SettingsWatcher;
 import projectaccess.Project.FileData;
 import js.html.KeyboardEvent;
@@ -26,7 +28,6 @@ import js.html.MouseEvent;
 import js.html.SpanElement;
 import js.html.UListElement;
 import js.Node;
-import mustache.Mustache;
 import nodejs.webkit.Window;
 import projectaccess.ProjectAccess;
 import watchers.LocaleWatcher;
@@ -35,6 +36,15 @@ import watchers.LocaleWatcher;
  * ...
  * @author AS3Boyan
  */
+typedef FileTemplate = 
+{
+	?name:String,
+	?pack:String,
+ 	?author:String,
+ 	?license:String,
+ 	?url:String	
+}
+
 class TabManager
 {
 	public var tabs:UListElement;
@@ -290,6 +300,50 @@ class TabManager
 		}
 	}
 	
+	function resolvePackage(pathToFile:String, onComplete:Dynamic)
+	{
+		var pathToProject = ProjectAccess.path;
+
+		var filePackage:String = "";
+		
+		if (pathToProject != null)
+		{
+			var classpathWalker = ClasspathWalker.get();
+			classpathWalker.getProjectClasspaths(ProjectAccess.currentProject, function (classpathAndLibs)
+				{								
+					var classpaths = [];
+
+					for (item in classpathAndLibs.classpaths)
+					{
+						 classpaths.push(item);
+					}
+
+					for (item in classpathAndLibs.libs)
+					{
+						 classpaths.push(item.path);
+					}
+
+					for (classpath in classpaths)
+					{
+						if (StringTools.startsWith(pathToFile, classpath))
+						{
+							var dirname = Node.path.dirname(pathToFile);
+							var relativePath = Node.path.relative(classpath, dirname);
+							var fullPackagePath = StringTools.replace(relativePath, Node.path.sep, ".");
+							filePackage = fullPackagePath;
+						}
+					}
+	
+					onComplete(filePackage);
+				}
+			);
+		}
+		else
+		{
+			onComplete(filePackage);
+		}
+	}
+
 	function createNewFile(path:String):Void
 	{
 		var name:String = js.Node.path.basename(path);
@@ -307,29 +361,62 @@ class TabManager
 				var options:NodeFsFileOptions = { };
 				options.encoding = NodeC.UTF8;
 				
-				var pathToTemplate:String = Node.path.join("core", "templates", "New.hx");
+				var pathToTemplate:String = Node.path.join("core", "templates", "New.tpl");
 				var templateCode:String = Node.fs.readFileSync(pathToTemplate, options);
 				
-				code = Mustache.render(templateCode, { name: js.Node.path.basename(name, extname), pack:"", author:"" } );
+				resolvePackage(path, function (filePackage)
+							   {
+								    // code = Mustache.render(templateCode, { name: js.Node.path.basename(name, extname), pack:"", author:"" } );
+								   	//author:""
+								   	
+								   	var data:FileTemplate = {};
+								   	data.name = js.Node.path.basename(name, extname);
+								   
+								   	generateTemplate(data, filePackage);
+								   
+									code = new Template(templateCode).execute(data);
+								   	createNewDoc(path, name, code, mode);
+							   }
+							  );
 			case ".hxml":
 				var options:NodeFsFileOptions = { };
 				options.encoding = NodeC.UTF8;
 				
-				var pathToTemplate:String = Node.path.join("core", "templates", "build.hxml");
+				var pathToTemplate:String = Node.path.join("core", "templates", "build.tpl");
 				var templateCode:String = Node.fs.readFileSync(pathToTemplate, options);
 				
 				code = templateCode;
+				createNewDoc(path, name, code, mode);
 			default:
-				
+				createNewDoc(path, name, code, mode);
 		}
-		
+	}
+
+	public function generateTemplate(data:FileTemplate, filePackage:String)
+	{
+		data.pack = filePackage;
+
+		var project = ProjectAccess.currentProject;
+
+		if (project != null)
+		{
+			data.author = project.company;
+			data.license = project.license;
+			data.url = project.url;
+		}
+			
+		return data;
+	}
+
+	function createNewDoc(path:String, name:String, code:String, mode:String)
+	{
 		var doc = new CodeMirror.Doc(code, mode);
-		
+
 		createNewTab(name, path, doc, true);
 		selectDoc(path);
-		
+
 		checkTabsCount();
-		
+
 		var fileTreeInstance = FileTree.get();
 		fileTreeInstance.load();
 	}

@@ -45,7 +45,7 @@ class OpenProject
 		}
 	}
 	
-	private static function checkIfFileExists(path:String):Void
+	static function checkIfFileExists(path:String):Void
 	{
 		Node.fs.exists(path, function (exists:Bool)
 		{
@@ -61,11 +61,9 @@ class OpenProject
 		);
 	}
 	
-	private static function parseProject(path:String):Void
+	static function parseProject(path:String):Void
 	{	
 		trace("open: " + path);
-		
-        closeProject(true);
         
 		var filename:String = Node.path.basename(path);
 			
@@ -78,7 +76,9 @@ class OpenProject
 		
 		switch (filename) 
 		{
-			case "project.hide":				
+			case "project.hide":	
+				closeProject(true);
+				
                 outlinePanel.clearFields();
                 outlinePanel.update();
                 
@@ -141,7 +141,7 @@ class OpenProject
                                                                             {
                                                                                 if (exists) 
                                                                                 {
-										    trace(fullPathToActiveFile);
+										    										trace(fullPathToActiveFile);
                                                                                     tabManagerInstance.selectDoc(fullPathToActiveFile);
                                                                                     cm.Editor.editor.focus();
                                                                                 }
@@ -191,6 +191,8 @@ class OpenProject
 				switch (extension) 
 				{
 					case ".hxml":
+						closeProject(true);
+						
                         outlinePanel.clearFields();
                         outlinePanel.update();
                         
@@ -218,6 +220,8 @@ class OpenProject
 						Browser.getLocalStorage().setItem("pathToLastProject", pathToProjectHide);
 						recentProjectsList.add(pathToProjectHide);
 					case ".lime", ".xml":
+						closeProject(true);
+						
                         outlinePanel.clearFields();
                 		outlinePanel.update();
                         

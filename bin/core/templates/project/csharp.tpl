@@ -2,10 +2,10 @@
 -cp src
 
 #this class wil be used as entry point for your app.
--main Main
+-main ::if (pack != null)::::pack::.::end::Main
 
 #CSHARP target
--cs {{file}}
+-cs ::file::
 
 #Add debug information
 -debug

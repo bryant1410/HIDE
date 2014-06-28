@@ -13,6 +13,8 @@ class HaxeHelper
 	static var haxeDefines:Array<String>;
 	static var haxelibHaxelibs:Array<String>;
 	static var installedHaxelibs:Array<String>;
+	static var pathToHaxe:String;
+	static var pathToHaxelib:String;
 	
 	public static function getArguments(onComplete:Array<String>->Void):Void
 	{
@@ -26,7 +28,7 @@ class HaxeHelper
 		
 			var processHelper = ProcessHelper.get();
 			
-			processHelper.runProcess("haxe", ["--help"], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess(getPathToHaxe(), ["--help"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/-+[A-Z-]+ /gim;
 				regex.map(stderr, function (ereg:EReg):String
@@ -55,7 +57,7 @@ class HaxeHelper
 			
 			var data:Array<String> = [];
 		
-			processHelper.runProcess("haxe", ["--help-defines"], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess(getPathToHaxe(), ["--help-defines"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/[A-Z-]+ +:/gim;
 				regex.map(stdout, function (ereg:EReg):String
@@ -84,7 +86,7 @@ class HaxeHelper
 			
 			var data:Array<String> = [];
 		
-			processHelper.runProcess("haxelib", ["list"], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess(getPathToHaxelib(), ["list"], null, function (stdout:String, stderr:String):Void 
 			{
 				var regex:EReg = ~/^[A-Z-]+:/gim;
 				regex.map(stdout, function (ereg:EReg):String
@@ -113,7 +115,7 @@ class HaxeHelper
 			
 			var data:Array<String> = [];
 		
-			processHelper.runProcess("haxelib", ["search", '""'], null, function (stdout:String, stderr:String):Void 
+			processHelper.runProcess(getPathToHaxelib(), ["search", '""'], null, function (stdout:String, stderr:String):Void 
 			{				
 				var lines:Array<String> = stdout.split("\n");
 				
@@ -138,7 +140,7 @@ class HaxeHelper
 	{
 		var processHelper = ProcessHelper.get();
 		
-		processHelper.runProcess("haxe", ["-version"], null, function (stdout:String, stderr:String):Void 
+		processHelper.runProcess(getPathToHaxe(), ["-version"], null, function (stdout:String, stderr:String):Void 
 		{
 			onComplete(stdout);
 		}
@@ -147,7 +149,18 @@ class HaxeHelper
 
 	public static function getPathToHaxe()
 	{
-		var pathToHaxe = "haxe";
+		return pathToHaxe;
+	}
+
+	public static function getPathToHaxelib()
+	{
+		return pathToHaxelib;
+	}
+
+	public static function updatePathToHaxe()
+	{
+		pathToHaxe = "haxe";
+		pathToHaxelib = "haxelib";
 		
 		var classpathWalker = ClasspathWalker.get();
 		
@@ -156,9 +169,7 @@ class HaxeHelper
 		if (pathToHaxeDirectory != null)
 		{
 			pathToHaxe = Node.path.join(pathToHaxeDirectory, pathToHaxe);
+			pathToHaxelib = Node.path.join(pathToHaxeDirectory, pathToHaxelib);
 		}
-			
-		return pathToHaxe;
 	}
-
 }

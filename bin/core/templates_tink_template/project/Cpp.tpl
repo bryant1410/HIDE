@@ -1,11 +1,15 @@
+::static function generateHxml(file: String)::
 #integrate files to classpath
 -cp src
 
 #this class wil be used as entry point for your app.
 -main Main
 
-#Java target
--java {{file}}
+#CPP target
+-cpp ::file::
+
+#To produce 64 bit binaries the file should define the HXCPP_M64 compile variable:
+-D HXCPP_M64
 
 #Add debug information
 -debug
@@ -15,3 +19,4 @@
 #"-dce std" : remove unused code in the std lib (default)
 #"-dce full" : remove all unused code
 -dce full
+::end::

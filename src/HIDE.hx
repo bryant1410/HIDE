@@ -5,7 +5,6 @@ import js.Browser;
 import js.html.LinkElement;
 import js.html.ScriptElement;
 import js.Node;
-import mustache.Mustache;
 import nodejs.webkit.Window;
 import pluginloader.PluginManager;
 
@@ -32,7 +31,7 @@ class HIDE
 				urls[i] = Node.path.join(getPluginPath(name), urls[i]);
 			}
 		}
-
+		
 		loadJSAsync(name, urls, onLoad);
 	}
 	
@@ -91,7 +90,9 @@ class HIDE
 	
 	public static function getPluginPath(name:String):String
 	{
-		var pathToPlugin:String = PluginManager.pathToPlugins.get(name);
+		var pluginManager = PluginManager.get();
+		
+		var pathToPlugin:String = pluginManager.pathToPlugins.get(name);
 				
 		if (pathToPlugin == null)
 		{
@@ -103,12 +104,16 @@ class HIDE
 	
 	public static function waitForDependentPluginsToBeLoaded(name:String, plugins:Array<String>, onLoaded:Void->Void, ?callOnLoadWhenAtLeastOnePluginLoaded:Bool = false):Void
 	{	
-		PluginManager.waitForDependentPluginsToBeLoaded(name, plugins, onLoaded, callOnLoadWhenAtLeastOnePluginLoaded);
+		var pluginManager = PluginManager.get();
+		
+		pluginManager.waitForDependentPluginsToBeLoaded(name, plugins, onLoaded, callOnLoadWhenAtLeastOnePluginLoaded);
 	}
 	
 	public static function notifyLoadingComplete(name:String):Void
 	{
-		PluginManager.notifyLoadingComplete(name);
+		var pluginManager = PluginManager.get();
+		
+		pluginManager.notifyLoadingComplete(name);
 	}
 	
 	public static function openPageInNewWindow(name:String, url:String, ?params:Dynamic):Dynamic
@@ -135,7 +140,9 @@ class HIDE
 
 	public static function compilePlugins(?onComplete:Dynamic, ?onFailed:Dynamic):Void
 	{
-		PluginManager.compilePlugins(onComplete, onFailed);
+		var pluginManager = PluginManager.get();
+		
+		pluginManager.compilePlugins(onComplete, onFailed);
 	}
 	
 	public static function readFile(name:String, path:String, onComplete:Dynamic):Void
@@ -143,11 +150,13 @@ class HIDE
 		var options:js.Node.NodeFsFileOptions = { };
 		options.encoding = js.Node.NodeC.UTF8;
 		
+		var pluginManager = PluginManager.get();
+		
 		var fullPath:String = path;
 		
 		if (name != null) 
 		{
-			fullPath = Node.path.join(PluginManager.pathToPlugins.get(name), path);
+			fullPath = Node.path.join(pluginManager.pathToPlugins.get(name), path);
 		}
 		
 		js.Node.fs.readFile(fullPath, options, function (error:js.Node.NodeErr, data:String):Void
@@ -166,7 +175,9 @@ class HIDE
 	
 	public static function writeFile(name:String, path:String, contents:String, ?onComplete:Dynamic):Void
 	{
-		Node.fs.writeFile(Node.path.join(PluginManager.pathToPlugins.get(name), path), contents, NodeC.UTF8, function (error:NodeErr)
+		var pluginManager = PluginManager.get();
+		
+		Node.fs.writeFile(Node.path.join(pluginManager.pathToPlugins.get(name), path), contents, NodeC.UTF8, function (error:NodeErr)
 		{
 			if (onComplete != null && error == null)
 			{

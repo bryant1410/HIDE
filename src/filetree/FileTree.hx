@@ -72,12 +72,13 @@ class FileTree
 			{
 				path = Node.path.dirname(selectedItem.value.path);
 			}
-			
+				
 			Alertify.prompt(LocaleWatcher.getStringSync("Filename:"), function (e:Bool, str:String)
 			{
 				if (e) 
 				{
 					var pathToFile:String = js.Node.path.join(path, str);
+					
 					var tabManager = TabManager.get();
 					tabManager.createFileInNewTab(pathToFile);
 					untyped new JQuery('#filetree').jqxTree('addTo', createFileItem(pathToFile) , selectedItem.element);
@@ -308,10 +309,15 @@ class FileTree
 		{
 			var item = untyped new JQuery('#filetree').jqxTree('getSelectedItem');
 			
-			if (item.value.type == 'file') 
+			if (item != null)
 			{
-				var tabManager = TabManager.get();
-				tabManager.openFileInNewTab(item.value.path);
+				var value = item.value;
+			
+				if (value != null && value.type == 'file') 
+				{
+					var tabManager = TabManager.get();
+					tabManager.openFileInNewTab(item.value.path);
+				}
 			}
 		}
 		);
@@ -377,7 +383,7 @@ class FileTree
 			case Project.HAXE:
 				if (!noproject)
 				{
-					main = project.targetData[project.target].pathToHxml;
+					main = Node.path.resolve(ProjectAccess.path, project.targetData[project.target].pathToHxml);
 				}
 
 			case Project.HXML:

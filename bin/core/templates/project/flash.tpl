@@ -2,13 +2,10 @@
 -cp src
 
 #this class wil be used as entry point for your app.
--main Main
+-main ::if (pack != null)::::pack::.::end::Main
 
-#CPP target
--cpp {{file}}
-
-#To produce 64 bit binaries the file should define the HXCPP_M64 compile variable:
--D HXCPP_M64
+#Flash target
+-swf ::file::
 
 #Add debug information
 -debug

@@ -8,8 +8,8 @@
 	//Regex for ignored files(uses new EReg(item, ""))
 	"ignore": [
     	"project.hide",
-        ".git",
-        ".svn",
+        "\\.git",
+        "\\.svn",
 	],
 		
 	"indentWithTabs": true,

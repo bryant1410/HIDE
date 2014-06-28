@@ -1,4 +1,5 @@
 package pluginloader;
+import haxe.Template;
 import haxe.ds.StringMap;
 import haxe.Serializer;
 import haxe.Timer;
@@ -7,7 +8,6 @@ import js.Browser;
 import js.html.Element;
 import js.html.TextAreaElement;
 import js.Node;
-import mustache.Mustache;
 
 /**
  * ...
@@ -24,19 +24,36 @@ typedef PluginDependenciesData =
  
 class PluginManager
 {
-	public static var plugins:Array<String> = new Array();
-	public static var pathToPlugins:StringMap<String> = new StringMap();
-	public static var inactivePlugins:Array<String> = [];
+	public var plugins:Array<String> = new Array();
+	public var pathToPlugins:StringMap<String> = new StringMap();
+	public var inactivePlugins:Array<String> = [];
 	
-	public static var requestedPluginsData:Array<PluginDependenciesData> = new Array();
+	public var requestedPluginsData:Array<PluginDependenciesData> = new Array();
 	
-	public static var pluginsMTime:StringMap<Int> = new StringMap();
+	public var pluginsMTime:StringMap<Int> = new StringMap();
 	
-	public static var firstRun:Bool = false;
+	public var firstRun:Bool = false;
 	
-	public static var pluginsTestingData:String = "  - cd plugins";
+	public var pluginsTestingData:String = "  - cd plugins";
 	
-	public static function loadPlugins(?compile:Bool = true):Void
+	static var instance:PluginManager = null;
+	
+	public function new()
+	{
+			
+	}
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new PluginManager();
+		}
+		
+		return instance;
+	}
+	
+	public function loadPlugins(?compile:Bool = true):Void
 	{
 		var pathToPluginsFolder:String = "plugins";
 		
@@ -110,7 +127,7 @@ class PluginManager
 		, 10000);
 	}
 	
-	private static function walk(pathToPlugin:String):Int
+	function walk(pathToPlugin:String):Int
 	{
 		var pathToItem:String;
 		var time:Int = -1;
@@ -148,7 +165,7 @@ class PluginManager
 		return time;
 	}
 	
-	private static function readDir(path:String, pathToPlugin:String, onLoad:Dynamic):Void
+	function readDir(path:String, pathToPlugin:String, onLoad:Dynamic):Void
 	{
 		var pathToFolder:String;
 		
@@ -203,7 +220,7 @@ class PluginManager
 		);
 	}
 	
-	private static function loadPlugin(pathToPlugin:String):Void
+	function loadPlugin(pathToPlugin:String):Void
 	{		
 		var pathToMain:String = js.Node.path.join(pathToPlugin, "bin", "Main.js");
 		
@@ -221,7 +238,7 @@ class PluginManager
 		);
 	}
 	
-	public static function compilePlugin(name:String, pathToPlugin:String, onSuccess:Dynamic, ?onFailed:String->Void):Void
+	public function compilePlugin(name:String, pathToPlugin:String, onSuccess:Dynamic, ?onFailed:String->Void):Void
 	{
 		var pathToBin:String =  Node.path.join(pathToPlugin, "bin");
 		
@@ -243,7 +260,7 @@ class PluginManager
 		);
 	}
 	
-	private static function startPluginCompilation(name:String, pathToPlugin:String, onSuccess:Dynamic, ?onFailed:String->Void):Void
+	function startPluginCompilation(name:String, pathToPlugin:String, onSuccess:Dynamic, ?onFailed:String->Void):Void
 	{
 		var startTime:Float = Date.now().getTime();
 		var delta:Float;
@@ -303,7 +320,7 @@ class PluginManager
 		);
 	}
 	
-	static function checkRequiredPluginsData():Void
+	function checkRequiredPluginsData():Void
 	{		
 		if (requestedPluginsData.length > 0)
 		{
@@ -360,7 +377,8 @@ class PluginManager
 			{
 				if (data != null)
 				{
-					var updatedData:String = Mustache.render(data, {plugins: pluginsTestingData});
+					// var updatedData:String = Mustache.render(data, {plugins: pluginsTestingData});
+					var updatedData:String = new Template(data).execute({plugins: pluginsTestingData});
 
 					js.Node.fs.writeFile("../.travis.yml", updatedData,js.Node.NodeC.UTF8, function(error):Void
 					{
@@ -380,7 +398,7 @@ class PluginManager
 		}
 	}
 	
-	public static function savePluginsMTime() 
+	public function savePluginsMTime() 
 	{
 		var pathToPluginsMTime:String = js.Node.path.join("..", "pluginsMTime.dat");
 			
@@ -393,20 +411,20 @@ class PluginManager
 		);
 	}
 	
-	public static function waitForDependentPluginsToBeLoaded(name:String, plugins:Array<String>, onLoaded:Void->Void, ?callOnLoadWhenAtLeastOnePluginLoaded:Bool = false):Void
+	public function waitForDependentPluginsToBeLoaded(name:String, plugins:Array<String>, onLoaded:Void->Void, ?callOnLoadWhenAtLeastOnePluginLoaded:Bool = false):Void
 	{	
 		var data:PluginDependenciesData = { name:name, plugins:plugins, onLoaded:onLoaded, callOnLoadWhenAtLeastOnePluginLoaded:callOnLoadWhenAtLeastOnePluginLoaded };
 		requestedPluginsData.push(data);
 		checkRequiredPluginsData();
 	}
 	
-	public static function notifyLoadingComplete(name:String):Void
+	public function notifyLoadingComplete(name:String):Void
 	{
 		plugins.push(name);
 		checkRequiredPluginsData();
 	}
 	
-	public static function compilePlugins(?onComplete:Dynamic, ?onFailed:Dynamic):Void
+	public function compilePlugins(?onComplete:Dynamic, ?onFailed:Dynamic):Void
 	{
 		var pluginCount:Int = Lambda.count(pathToPlugins);
 		var compiledPluginCount:Int = 0;
@@ -421,7 +439,7 @@ class PluginManager
 				relativePathToPlugin = pathToPlugins.get(name);
 				absolutePathToPlugin = Node.require("path").resolve(relativePathToPlugin);
 
-				PluginManager.compilePlugin(name, absolutePathToPlugin, function ():Void
+				compilePlugin(name, absolutePathToPlugin, function ():Void
 				{
 					compiledPluginCount++;
 

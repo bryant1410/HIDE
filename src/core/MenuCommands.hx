@@ -114,6 +114,9 @@ class MenuCommands
 		//Ctrl-W
 		Hotkeys.add("Tab Manager->Close File", "Ctrl-W", null, tabManagerInstance.closeActiveTab);
 		
+		//Ctrl-Shift-W
+		Hotkeys.add("Tab Manager->Close All", "Ctrl-Shift-W", null, tabManagerInstance.closeAll);
+		
 		BootstrapMenu.getMenu("File", 1).addMenuItem("New Project...", 1, NewProjectDialog.show, "Ctrl-Shift-N");
 		
 		//Ctrl-N

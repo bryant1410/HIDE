@@ -12,16 +12,25 @@
     ]
     ,"files" : [
          {
-             "path" : "src/filetree/FileTree.hx"
+             "path" : "bin/core/templates/Main.tpl"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 386
+            ,"activeLine" : 7
+        }
+        ,{
+             "path" : "bin/core/templates/New.tpl"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 11
         }
     ]
-    ,"activeFile" : "src/filetree/FileTree.hx"
+    ,"activeFile" : "bin/core/templates/New.tpl"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
