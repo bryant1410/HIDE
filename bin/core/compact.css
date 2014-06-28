@@ -250,7 +250,6 @@
 	background-image:url( "images/compact/vertical-splitter-close.gif");
 }
 
-
 .jqx-splitter-splitbar-horizontal{
 	border: none !important;
 	height: 5px !important;
@@ -263,6 +262,9 @@
 }
 
 
+.jqx-splitter-splitbar-hover{
+	background-color: #ffffff;
+}
 
 /* Code Editor */
 
