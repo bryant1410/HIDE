@@ -158,8 +158,27 @@
 
 #panelContentpaneloutline .jqx-tree-item-li{
 	line-height:14px;
+	margin:0px !important;
+	padding-left:16px;
 }
 
+.outlineFunction{
+	background-image:url( "images/compact/outline-method-icon.png") ;
+	background-position: top left;
+	background-repeat: no-repeat;
+	
+}
+
+.outlineVar{
+	background-image:url( "images/compact/outline-var-icon.png") ;
+	background-position: top left;
+	background-repeat: no-repeat;
+	
+}
+
+.outlineFunction > .jqx-item{
+	color:#000000 !important;
+}
 
 
 /* Vertical Scroll bars */
@@ -184,13 +203,13 @@
 .jqx-icon-arrow-up{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-up.png);
+	background-image:url( "images/compact/icon-up.png");
 }
 
 .jqx-icon-arrow-down{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-down.png);
+	background-image:url( "images/compact/icon-down.png");
 }
 
 .jqx-scrollbar-button-state-hover{
