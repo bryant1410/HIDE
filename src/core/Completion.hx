@@ -278,22 +278,25 @@ class Completion
         var cursor = cm.getCursor();
         var curLine:String = cm.getLine(cursor.line);
         
-        var word = ~/[A-Z_0-9\.]+$/i;
-        
-        var importStart = cursor.ch;
-        var importEnd = importStart;
-        
-        while (importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
-        
-        if (importStart != importEnd) 
+		if (!StringTools.startsWith(curLine, "import "))
 		{
-            var fullImport = curLine.substring(importStart, importEnd);
-            
-            if (fullImport.indexOf(".") != -1)
-            {
-                var topLevelClassList = getClassList().topLevelClassList;
-                ImportDefinition.searchImportByText(topLevelClassList, fullImport, {line: cursor.line, ch:importStart}, {line: cursor.line, ch:importEnd}, false);
-            }
+			var word = ~/[A-Z_0-9\.]+$/i;
+        
+			var importStart = cursor.ch;
+			var importEnd = importStart;
+
+			while (importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
+
+			if (importStart != importEnd) 
+			{
+				var fullImport = curLine.substring(importStart, importEnd);
+
+				if (fullImport.indexOf(".") != -1)
+				{
+					var topLevelClassList = getClassList().topLevelClassList;
+					ImportDefinition.searchImportByText(topLevelClassList, fullImport, {line: cursor.line, ch:importStart}, {line: cursor.line, ch:importEnd}, false);
+				}
+			}
 		}
     }
 	

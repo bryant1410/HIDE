@@ -2392,15 +2392,17 @@ core.Completion.prototype = {
 		var cm1 = cm.Editor.editor;
 		var cursor = cm1.getCursor();
 		var curLine = cm1.getLine(cursor.line);
-		var word = new EReg("[A-Z_0-9\\.]+$","i");
-		var importStart = cursor.ch;
-		var importEnd = importStart;
-		while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
-		if(importStart != importEnd) {
-			var fullImport = curLine.substring(importStart,importEnd);
-			if(fullImport.indexOf(".") != -1) {
-				var topLevelClassList = this.getClassList().topLevelClassList;
-				core.ImportDefinition.searchImportByText(topLevelClassList,fullImport,{ line : cursor.line, ch : importStart},{ line : cursor.line, ch : importEnd},false);
+		if(!StringTools.startsWith(curLine,"import ")) {
+			var word = new EReg("[A-Z_0-9\\.]+$","i");
+			var importStart = cursor.ch;
+			var importEnd = importStart;
+			while(importStart > 0 && word.match(curLine.charAt(importStart - 1))) --importStart;
+			if(importStart != importEnd) {
+				var fullImport = curLine.substring(importStart,importEnd);
+				if(fullImport.indexOf(".") != -1) {
+					var topLevelClassList = this.getClassList().topLevelClassList;
+					core.ImportDefinition.searchImportByText(topLevelClassList,fullImport,{ line : cursor.line, ch : importStart},{ line : cursor.line, ch : importEnd},false);
+				}
 			}
 		}
 	}
