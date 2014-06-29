@@ -500,7 +500,7 @@ class Editor
 						triggerCompletion(editor, false);
 					}
 				}
-				else if	(StringTools.endsWith(data, "new "))
+				else if	(StringTools.endsWith(data, "new ") || StringTools.endsWith(data, "extends "))
 				{
 					completionInstance.showClassList(false);
 				}

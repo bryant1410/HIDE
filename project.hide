@@ -11,17 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src/filetree/FileTree.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 42
-        }
     ]
-    ,"activeFile" : "src/filetree/FileTree.hx"
+    ,"activeFile" : "src/cm/Editor.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

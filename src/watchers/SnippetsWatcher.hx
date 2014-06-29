@@ -9,15 +9,33 @@ import nodejs.webkit.Window;
  */
 class SnippetsWatcher
 {
-	static var watcher:Dynamic;
+	var watcher:Dynamic;
 	
-	public static function load():Void 
+	static var instance:ThemeWatcher;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new ThemeWatcher();
+		}
+			
+		return instance;
+	}
+	
+	public function load():Void 
 	{
 		var pathToFile = Node.path.join(SettingsWatcher.pathToFolder, "snippets.json");
 		
 		watcher = Watcher.watchFileForUpdates(pathToFile, function ():Void 
 		{
-			SnippetsCompletion.load();
+			var snippetsCompletion = SnippetsCompletion.get();
+			snippetsCompletion.load();
 		}, 1000);
 		
 		Window.get().on("close", function (e) 

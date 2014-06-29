@@ -30,6 +30,8 @@ class SettingsWatcher
     static var pathToSettings:String;
 	public static var pathToFolder:String;
 	
+	
+	
 	public static function load():Void 
 	{		
 		var pathToConfigFolder:String = Node.path.join("core", "config");
@@ -102,7 +104,8 @@ class SettingsWatcher
 		var data:String = Node.fs.readFileSync(pathToSettings, options);
 		settings = TJSON.parse(data);
 		
-		ThemeWatcher.load();
+		var themeWatcher = ThemeWatcher.get();
+		themeWatcher.load();
 		LocaleWatcher.load();
 		
 		if (ProjectAccess.path != null) 

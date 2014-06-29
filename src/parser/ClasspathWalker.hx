@@ -285,9 +285,6 @@ class ClasspathWalker
 		}
 
 		var libs:Array<String> = parseArg(data, "-lib");
-
-		trace(classpaths);
-
 		return {classpaths: classpaths, libs: libs};
 	}
 	

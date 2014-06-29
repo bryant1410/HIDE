@@ -88,7 +88,10 @@ class Completion
 	{
 		Hxml.load();
 		MetaTags.load();
-		SnippetsCompletion.load();
+		
+		var snippetsCompletion = SnippetsCompletion.get();
+		
+		snippetsCompletion.load();
 		
         completionActive = false;
         
@@ -169,7 +172,9 @@ class Completion
 						}
 					}
 					
-				    list = list.concat(SnippetsCompletion.getCompletion());
+					var snippetsCompletion = SnippetsCompletion.get();
+
+				    list = list.concat(snippetsCompletion.getCompletion());
 
                     var classList = getClassList();
                     

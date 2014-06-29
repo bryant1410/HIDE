@@ -321,7 +321,8 @@ Main.main = function() {
 		var splitter = core.Splitter.get();
 		splitter.load();
 		watchers.SettingsWatcher.load();
-		watchers.SnippetsWatcher.load();
+		var snippetsCompletion = watchers.SnippetsWatcher.get();
+		snippetsCompletion.load();
 		core.Utils.prepare();
 		core.Hotkeys.prepare();
 		menu.BootstrapMenu.createMenuBar();
@@ -1483,7 +1484,7 @@ cm.Editor.load = function() {
 			} else if(StringTools.endsWith(data,"import ")) completionInstance.showClassList(true); else if(StringTools.endsWith(data,"in )")) {
 				var ereg5 = new EReg("for[\t ]*\\([a-z_0-9]+[\t ]+in[\t ]+\\)","gi");
 				if(ereg5.match(data)) cm.Editor.triggerCompletion(cm.Editor.editor,false);
-			} else if(StringTools.endsWith(data,"new ")) completionInstance.showClassList(false);
+			} else if(StringTools.endsWith(data,"new ") || StringTools.endsWith(data,"extends ")) completionInstance.showClassList(false);
 		} else if(modeName == "hxml") {
 			var cursor2 = cm6.getCursor();
 			var data1 = cm6.getLine(cursor2.line);
@@ -2082,28 +2083,36 @@ completion.MetaTags.load = function() {
 completion.MetaTags.getCompletion = function() {
 	return completion.MetaTags.completions;
 };
-completion.SnippetsCompletion = function() { };
+completion.SnippetsCompletion = function() {
+};
 $hxClasses["completion.SnippetsCompletion"] = completion.SnippetsCompletion;
 completion.SnippetsCompletion.__name__ = ["completion","SnippetsCompletion"];
-completion.SnippetsCompletion.load = function() {
-	var options = { };
-	options.encoding = "utf8";
-	js.Node.require("fs").readFile(js.Node.require("path").join("core","config","snippets.json"),options,function(error,data) {
-		if(error == null) {
-			var templates = tjson.TJSON.parse(data);
-			var snippets = templates.snippets;
-			var _g = 0;
-			while(_g < snippets.length) {
-				var template = snippets[_g];
-				++_g;
-				CodeMirror.templatesHint.addTemplates(template,true);
-			}
-		} else Alertify.error("Can't open core/config/snippets.json");
-	});
+completion.SnippetsCompletion.get = function() {
+	if(completion.SnippetsCompletion.instance == null) completion.SnippetsCompletion.instance = new completion.SnippetsCompletion();
+	return completion.SnippetsCompletion.instance;
 };
-completion.SnippetsCompletion.getCompletion = function() {
-	var completions = CodeMirror.templatesHint.getCompletions(cm.Editor.editor);
-	return completions;
+completion.SnippetsCompletion.prototype = {
+	load: function() {
+		var options = { };
+		options.encoding = "utf8";
+		js.Node.require("fs").readFile(js.Node.require("path").join("core","config","snippets.json"),options,function(error,data) {
+			if(error == null) {
+				var templates = tjson.TJSON.parse(data);
+				var snippets = templates.snippets;
+				var _g = 0;
+				while(_g < snippets.length) {
+					var template = snippets[_g];
+					++_g;
+					CodeMirror.templatesHint.addTemplates(template,true);
+				}
+			} else Alertify.error("Can't open core/config/snippets.json");
+		});
+	}
+	,getCompletion: function() {
+		var completions = CodeMirror.templatesHint.getCompletions(cm.Editor.editor);
+		return completions;
+	}
+	,__class__: completion.SnippetsCompletion
 };
 var core = {};
 core.AnnotationRuler = function() {
@@ -2215,7 +2224,8 @@ core.Completion.prototype = {
 		var _g = this;
 		completion.Hxml.load();
 		completion.MetaTags.load();
-		completion.SnippetsCompletion.load();
+		var snippetsCompletion = completion.SnippetsCompletion.get();
+		snippetsCompletion.load();
 		this.completionActive = false;
 		cm.Editor.editor.on("endCompletion",function() {
 			_g.completionActive = false;
@@ -2272,7 +2282,8 @@ core.Completion.prototype = {
 						}
 					}
 				}
-				this.list = this.list.concat(completion.SnippetsCompletion.getCompletion());
+				var snippetsCompletion = completion.SnippetsCompletion.get();
+				this.list = this.list.concat(snippetsCompletion.getCompletion());
 				var classList = this.getClassList();
 				var packages = [];
 				var _g14 = 0;
@@ -16073,7 +16084,6 @@ parser.ClasspathWalker.prototype = {
 			classpaths.push(classpath);
 		}
 		var libs = this.parseArg(data,"-lib");
-		console.log(classpaths);
 		return { classpaths : classpaths, libs : libs};
 	}
 	,processHaxelibs: function(libs,onComplete) {
@@ -18386,7 +18396,8 @@ watchers.SettingsWatcher.parse = function() {
 	options.encoding = "utf8";
 	var data = js.Node.require("fs").readFileSync(watchers.SettingsWatcher.pathToSettings,options);
 	watchers.SettingsWatcher.settings = tjson.TJSON.parse(data);
-	watchers.ThemeWatcher.load();
+	var themeWatcher = watchers.ThemeWatcher.get();
+	themeWatcher.load();
 	watchers.LocaleWatcher.load();
 	if(projectaccess.ProjectAccess.path != null) {
 		var fileTree = filetree.FileTree.get();
@@ -18412,62 +18423,72 @@ watchers.SettingsWatcher.isItemInIgnoreList = function(path) {
 watchers.SnippetsWatcher = function() { };
 $hxClasses["watchers.SnippetsWatcher"] = watchers.SnippetsWatcher;
 watchers.SnippetsWatcher.__name__ = ["watchers","SnippetsWatcher"];
-watchers.SnippetsWatcher.load = function() {
-	var pathToFile = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"snippets.json");
-	watchers.SnippetsWatcher.watcher = watchers.Watcher.watchFileForUpdates(pathToFile,function() {
-		completion.SnippetsCompletion.load();
-	},1000);
-	nodejs.webkit.Window.get().on("close",function(e) {
-		if(watchers.SnippetsWatcher.watcher != null) watchers.SnippetsWatcher.watcher.close();
-	});
+watchers.SnippetsWatcher.get = function() {
+	if(watchers.SnippetsWatcher.instance == null) watchers.SnippetsWatcher.instance = new watchers.ThemeWatcher();
+	return watchers.SnippetsWatcher.instance;
 };
-watchers.ThemeWatcher = function() { };
+watchers.ThemeWatcher = function() {
+	this.listenerAdded = false;
+};
 $hxClasses["watchers.ThemeWatcher"] = watchers.ThemeWatcher;
 watchers.ThemeWatcher.__name__ = ["watchers","ThemeWatcher"];
-watchers.ThemeWatcher.load = function() {
-	watchers.ThemeWatcher.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
-	js.Node.require("fs").exists(watchers.ThemeWatcher.pathToTheme,function(exists) {
-		if(exists) watchers.ThemeWatcher.continueLoading(); else Alertify.log("File " + watchers.ThemeWatcher.pathToTheme + " for theme " + watchers.SettingsWatcher.settings.theme + " was not found. CSS files in core folder: [" + watchers.ThemeWatcher.getListOfCSSFiles().join(",") + "]","",10000);
-	});
+watchers.ThemeWatcher.get = function() {
+	if(watchers.ThemeWatcher.instance == null) watchers.ThemeWatcher.instance = new watchers.ThemeWatcher();
+	return watchers.ThemeWatcher.instance;
 };
-watchers.ThemeWatcher.continueLoading = function() {
-	watchers.ThemeWatcher.updateTheme();
-	if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
-	watchers.ThemeWatcher.watcher = watchers.Watcher.watchFileForUpdates(watchers.ThemeWatcher.pathToTheme,function() {
-		watchers.ThemeWatcher.updateTheme();
-	},1000);
-	if(!watchers.ThemeWatcher.listenerAdded) {
-		nodejs.webkit.Window.get().on("close",function(e) {
-			if(watchers.ThemeWatcher.watcher != null) watchers.ThemeWatcher.watcher.close();
+watchers.ThemeWatcher.prototype = {
+	watcher: null
+	,listenerAdded: null
+	,pathToTheme: null
+	,currentTheme: null
+	,load: function() {
+		var _g = this;
+		this.pathToTheme = js.Node.require("path").join("core",watchers.SettingsWatcher.settings.theme);
+		js.Node.require("fs").exists(this.pathToTheme,function(exists) {
+			if(exists) _g.continueLoading(); else Alertify.log("File " + _g.pathToTheme + " for theme " + watchers.SettingsWatcher.settings.theme + " was not found. CSS files in core folder: [" + _g.getListOfCSSFiles().join(",") + "]","",10000);
 		});
-		watchers.ThemeWatcher.listenerAdded = true;
 	}
-};
-watchers.ThemeWatcher.getListOfCSSFiles = function() {
-	var files = [];
-	var _g = 0;
-	var _g1 = js.Node.require("fs").readdirSync("core");
-	while(_g < _g1.length) {
-		var item = _g1[_g];
-		++_g;
-		if(js.Node.require("path").extname(item) == ".css") files.push(js.Node.require("path").basename(item));
-	}
-	return files;
-};
-watchers.ThemeWatcher.updateTheme = function(type) {
-	var theme = watchers.SettingsWatcher.settings.theme;
-	new $("#theme").attr("href",theme);
-	if(watchers.ThemeWatcher.currentTheme != null && watchers.ThemeWatcher.currentTheme != theme) {
-		var ereg = new EReg("/\\* *codeEditorTheme *= *([^ \\*]*) *\\*/","g");
-		var options = { };
-		options.encoding = "utf8";
-		var data = js.Node.require("fs").readFileSync(js.Node.require("path").join("core",theme),options);
-		if(ereg.match(data)) {
-			var codeEditorTheme = ereg.matched(1);
-			cm.Editor.setTheme(codeEditorTheme);
+	,continueLoading: function() {
+		var _g = this;
+		this.updateTheme();
+		if(this.watcher != null) this.watcher.close();
+		this.watcher = watchers.Watcher.watchFileForUpdates(this.pathToTheme,function() {
+			_g.updateTheme();
+		},1000);
+		if(!this.listenerAdded) {
+			nodejs.webkit.Window.get().on("close",function(e) {
+				if(_g.watcher != null) _g.watcher.close();
+			});
+			this.listenerAdded = true;
 		}
 	}
-	watchers.ThemeWatcher.currentTheme = theme;
+	,getListOfCSSFiles: function() {
+		var files = [];
+		var _g = 0;
+		var _g1 = js.Node.require("fs").readdirSync("core");
+		while(_g < _g1.length) {
+			var item = _g1[_g];
+			++_g;
+			if(js.Node.require("path").extname(item) == ".css") files.push(js.Node.require("path").basename(item));
+		}
+		return files;
+	}
+	,updateTheme: function(type) {
+		var theme = watchers.SettingsWatcher.settings.theme;
+		new $("#theme").attr("href",theme);
+		if(this.currentTheme != null && this.currentTheme != theme) {
+			var ereg = new EReg("/\\* *codeEditorTheme *= *([^ \\*]*) *\\*/","g");
+			var options = { };
+			options.encoding = "utf8";
+			var data = js.Node.require("fs").readFileSync(js.Node.require("path").join("core",theme),options);
+			if(ereg.match(data)) {
+				var codeEditorTheme = ereg.matched(1);
+				cm.Editor.setTheme(codeEditorTheme);
+			}
+		}
+		this.currentTheme = theme;
+	}
+	,__class__: watchers.ThemeWatcher
 };
 watchers.Watcher = function() { };
 $hxClasses["watchers.Watcher"] = watchers.Watcher;
@@ -18902,7 +18923,6 @@ parser.ClassParser.haxeStdFileList = [];
 parser.ClassParser.filesList = [];
 projectaccess.ProjectAccess.currentProject = new projectaccess.Project();
 watchers.LocaleWatcher.listenerAdded = false;
-watchers.ThemeWatcher.listenerAdded = false;
 Main.main();
 })();
 

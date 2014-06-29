@@ -88,7 +88,10 @@ class Main
 			splitter.load();
 
 			SettingsWatcher.load();
-			SnippetsWatcher.load();
+			
+			var snippetsCompletion = SnippetsWatcher.get();
+			
+			snippetsCompletion.load();
 			Utils.prepare();
 			Hotkeys.prepare();
 

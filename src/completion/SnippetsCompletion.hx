@@ -11,7 +11,24 @@ import tjson.TJSON;
  */
 class SnippetsCompletion
 {
-	public static function load():Void 
+	static var instance:SnippetsCompletion;
+	
+	public function new() 
+	{
+		
+	}	
+	
+	public static function get()
+	{
+		if (instance == null)
+		{
+			instance = new SnippetsCompletion();
+		}
+			
+		return instance;
+	}
+	
+	public function load():Void 
 	{
 		var options:NodeFsFileOptions = { };
 		options.encoding = NodeC.UTF8;
@@ -36,7 +53,7 @@ class SnippetsCompletion
 		});
 	}
 	
-	public static function getCompletion():Array<CompletionData>
+	public function getCompletion():Array<CompletionData>
 	{		
 		var completions:Array<CompletionData> = untyped CodeMirrorStatic.templatesHint.getCompletions(Editor.editor);
 		return completions;
