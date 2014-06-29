@@ -40,7 +40,7 @@ class HaxeServer
 		
 		var processHelper = ProcessHelper.get();
 		
-		haxeServer = processHelper.runPersistentProcess("haxe", ["--wait", "5000"], null, function (code:Int, stdout:String, stderr:String):Void 
+		haxeServer = processHelper.runPersistentProcess(HaxeHelper.getPathToHaxe(), ["--wait", "5000"], null, function (code:Int, stdout:String, stderr:String):Void 
 		{
 			trace(stdout);
 			trace(stderr);

@@ -109,8 +109,10 @@ class Main
 			
 			var tabManagerInstance = TabManager.get();
 			tabManagerInstance.load();
+						
+			var classpathWalker = ClasspathWalker.get();
+			classpathWalker.load();
 			
-			HaxeHelper.updatePathToHaxe();
 			HaxeLint.load();
 			Editor.load();
 			MenuCommands.add();

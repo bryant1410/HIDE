@@ -1,4 +1,5 @@
 package openproject;
+import core.ProcessHelper;
 import projectaccess.Project.FileData;
 import core.OutlinePanel;
 import core.FileDialog;
@@ -272,10 +273,13 @@ class OpenProject
 	{
 		var tabManagerInstance = TabManager.get();
 		
+		var processHelper = ProcessHelper.get();
+		
 		if (ProjectAccess.path != null) 
 		{
 			ProjectAccess.save(updateProjectData, sync);
             tabManagerInstance.closeAll();
+			processHelper.clearErrors();
 		}
 		else 
 		{

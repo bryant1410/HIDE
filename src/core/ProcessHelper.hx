@@ -1,4 +1,5 @@
 package core;
+import js.html.DivElement;
 import cm.Editor;
 import dialogs.DialogManager;
 import haxe.ds.StringMap;
@@ -85,7 +86,7 @@ class ProcessHelper
 		textarea.value = "Build started\n";
 		textarea.value += command + "\n";
 		
-		new JQuery("#errors").html("");
+		clearErrors();
 		
 		var process:NodeChildProcess = runPersistentProcess(process, params, cwd, function (code:Int, stdout:String, stderr:String):Void 
 		{
@@ -95,6 +96,19 @@ class ProcessHelper
 		
 		return process;
 	}
+	
+	public function clearErrors()
+	{
+		//http://jsperf.com/removechildren/9
+		
+		var div = cast (Browser.document.getElementById("errors"), DivElement);
+		
+		while (div.lastChild != null)
+		{
+			div.removeChild(div.lastChild);
+		}
+	}
+
 	
 	function processOutput(code:Int, stdout:String, stderr:String, ?onComplete:Dynamic):Void
 	{

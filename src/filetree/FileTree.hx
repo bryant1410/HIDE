@@ -128,7 +128,7 @@ class FileTree
 			}, "New Folder");
 		});
 		
-		appendToContextMenu("Open Item", function (selectedItem):Void 
+		appendToContextMenu("Edit", function (selectedItem):Void 
 		{
 			var tabManager = TabManager.get();
 			
@@ -142,7 +142,7 @@ class FileTree
 			}
 		});
 		
-		appendToContextMenu("Open using OS", function (selectedItem):Void 
+		appendToContextMenu("Execute", function (selectedItem):Void 
 		{
 			Shell.openItem(selectedItem.value.path);
 		});
@@ -233,7 +233,7 @@ class FileTree
 		}
 		);
 		
-		appendToContextMenu("Toggle Hidden Items Visibility", function (selectedItem):Void 
+		appendToContextMenu("Hide/Unhide All", function (selectedItem):Void 
 		{
 			if (ProjectAccess.path != null) 
 			{
@@ -250,7 +250,7 @@ class FileTree
 		}
 		);
 		
-		appendToContextMenu("Toggle Item Visibility", function (selectedItem):Void 
+		appendToContextMenu("Hide/Unhide", function (selectedItem):Void 
 		{
 			if (ProjectAccess.path != null) 
 			{

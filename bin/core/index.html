@@ -66,11 +66,8 @@
             $('#outline').jqxTree('selectItem', null);
 			
 			$(".colorPreview").spectrum({});
-
-	          
-
+		
             var fs = require('fs');
-            console.log("foundMatchingClose");
             fs.exists(require('path').join("core", "HIDE.js"), function (exists)
             {                
                if (!exists)

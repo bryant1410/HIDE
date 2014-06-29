@@ -1,4 +1,6 @@
 package tabmanager;
+import js.html.MouseEvent;
+import js.html.Event;
 import js.Browser;
 import js.html.LIElement;
 import js.html.SpanElement;
@@ -38,9 +40,16 @@ class Tab
 		
 		span3 = Browser.document.createSpanElement();
 		span3.textContent = name + "\t";
-		span3.addEventListener("click", function (e):Void 
+		li.addEventListener("click", function (e:MouseEvent):Void 
 		{
-			tabManagerInstance.selectDoc(path);
+			if (e.button != 1)
+			{
+				tabManagerInstance.selectDoc(path);
+			}
+			else
+			{
+				tabManagerInstance.closeTab(path);
+			}
 		}
 		);
 		
@@ -56,9 +65,10 @@ class Tab
 		span.style.position = "relative";
 		span.style.top = "2px";
 
-		span.addEventListener("click", function (e):Void 
+		span.addEventListener("click", function (e:Event):Void 
 		{
 			tabManagerInstance.closeTab(path);
+			e.stopPropagation();
 		}
 		);
 

@@ -1,4 +1,5 @@
 package openflproject;
+import core.HaxeHelper;
 import core.ProcessHelper;
 
 /**
@@ -13,9 +14,25 @@ class CreateOpenFLProject
 		
 		var processHelper = ProcessHelper.get();
 		
-		processHelper.runProcess("haxelib", processParams, path, onComplete, function (code, stdout, stderr):Void 
+		var pathToHaxelib = HaxeHelper.getPathToHaxelib();
+		
+		processHelper.runProcess(pathToHaxelib, processParams, path, function (stdout, stderr)
+								 {
+									 	if (stdout != "") 
+										{
+											Alertify.log("stdout:\n" + stdout);
+										}
+
+										if (stderr != "") 
+										{
+											Alertify.log("stderr:\n" + stderr);
+										}
+											
+										onComplete();
+											
+								 }, function (code, stdout, stderr):Void 
 		{
-			Alertify.error(["haxelib"].concat(processParams).join(" ") + " " + Std.string(code));
+			Alertify.error([pathToHaxelib].concat(processParams).join(" ") + " " + Std.string(code));
 			
 			if (stdout != "") 
 			{
@@ -28,5 +45,4 @@ class CreateOpenFLProject
 			}
 		});
 	}
-	
 }

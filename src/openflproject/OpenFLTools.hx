@@ -1,4 +1,5 @@
 package openflproject;
+import core.HaxeHelper;
 import core.ProcessHelper;
 import js.Browser;
 import js.html.TextAreaElement;
@@ -13,7 +14,7 @@ class OpenFLTools
 	{
 		var processHelper = ProcessHelper.get();
 		
-		processHelper.runProcess("haxelib", ["run", "lime", "display", target], path, function (stdout:String, stderr:String):Void 
+		processHelper.runProcess(HaxeHelper.getPathToHaxelib(), ["run", "lime", "display", target], path, function (stdout:String, stderr:String):Void 
 		{
 			//onComplete
 			
@@ -31,6 +32,7 @@ class OpenFLTools
 			Alertify.error("OpenFL tools error. OpenFL may be not installed. Please update OpenFL.(haxelib upgrade)");
 			Alertify.error("OpenFL tools process exit code " + code);
 			
+			printStderr(stdout);
 			printStderr(stderr);
 		}); 
 	}
@@ -39,7 +41,7 @@ class OpenFLTools
 	{
 		if (stderr != "")
 		{
-			Alertify.error("OpenFL tools stderr: " + stderr);
+			Alertify.error("OpenFL tools stderr: " + stderr, 15000);
 		}
 	}
 }

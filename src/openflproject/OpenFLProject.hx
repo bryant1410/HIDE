@@ -80,7 +80,7 @@ class OpenFLProject
 		}
 		else 
 		{
-			params = [data.projectName];
+			params = ["openfl:" + data.projectName];
 		}
 				
 		CreateOpenFLProject.createOpenFLProject(params, data.projectLocation, function ()

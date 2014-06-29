@@ -336,7 +336,8 @@ Main.main = function() {
 		core.FileDialog.create();
 		var tabManagerInstance = tabmanager.TabManager.get();
 		tabManagerInstance.load();
-		core.HaxeHelper.updatePathToHaxe();
+		var classpathWalker = parser.ClasspathWalker.get();
+		classpathWalker.load();
 		core.HaxeLint.load();
 		cm.Editor.load();
 		core.MenuCommands.add();
@@ -3576,7 +3577,7 @@ core.HaxeServer.check = function() {
 core.HaxeServer.start = function() {
 	console.log("Starting new Haxe server at localhost:5000");
 	var processHelper = core.ProcessHelper.get();
-	core.HaxeServer.haxeServer = processHelper.runPersistentProcess("haxe",["--wait","5000"],null,function(code,stdout,stderr) {
+	core.HaxeServer.haxeServer = processHelper.runPersistentProcess(core.HaxeHelper.getPathToHaxe(),["--wait","5000"],null,function(code,stdout,stderr) {
 		console.log(stdout);
 		console.log(stderr);
 	});
@@ -4331,11 +4332,16 @@ core.ProcessHelper.prototype = {
 		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
 		textarea.value = "Build started\n";
 		textarea.value += command + "\n";
-		new $("#errors").html("");
+		this.clearErrors();
 		var process1 = this.runPersistentProcess(process,params,cwd,function(code,stdout,stderr) {
 			_g.processOutput(code,_g.processStdout,_g.processStderr,onComplete);
 		});
 		return process1;
+	}
+	,clearErrors: function() {
+		var div;
+		div = js.Boot.__cast(window.document.getElementById("errors") , HTMLDivElement);
+		while(div.lastChild != null) div.removeChild(div.lastChild);
 	}
 	,processOutput: function(code,stdout,stderr,onComplete) {
 		var textarea;
@@ -5515,11 +5521,11 @@ filetree.FileTree.prototype = {
 				}
 			},"New Folder");
 		});
-		this.appendToContextMenu("Open Item",function(selectedItem2) {
+		this.appendToContextMenu("Edit",function(selectedItem2) {
 			var tabManager1 = tabmanager.TabManager.get();
 			if(selectedItem2.value.type == "file") tabManager1.openFileInNewTab(selectedItem2.value.path); else new $("#filetree").jqxTree("expandItem",selectedItem2.element);
 		});
-		this.appendToContextMenu("Open using OS",function(selectedItem3) {
+		this.appendToContextMenu("Execute",function(selectedItem3) {
 			nodejs.webkit.Shell.openItem(selectedItem3.value.path);
 		});
 		this.appendToContextMenu("Show Item In Folder",function(selectedItem4) {
@@ -5563,7 +5569,7 @@ filetree.FileTree.prototype = {
 			default:
 			}
 		});
-		this.appendToContextMenu("Toggle Hidden Items Visibility",function(selectedItem7) {
+		this.appendToContextMenu("Hide/Unhide All",function(selectedItem7) {
 			if(projectaccess.ProjectAccess.path != null) {
 				projectaccess.ProjectAccess.currentProject.showHiddenItems = !projectaccess.ProjectAccess.currentProject.showHiddenItems;
 				Alertify.success(watchers.LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess.ProjectAccess.currentProject.showHiddenItems));
@@ -5571,7 +5577,7 @@ filetree.FileTree.prototype = {
 			}
 			_g.load();
 		});
-		this.appendToContextMenu("Toggle Item Visibility",function(selectedItem8) {
+		this.appendToContextMenu("Hide/Unhide",function(selectedItem8) {
 			if(projectaccess.ProjectAccess.path != null) {
 				var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem8.value.path);
 				if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) == -1) {
@@ -15449,10 +15455,15 @@ openflproject.CreateOpenFLProject.__name__ = ["openflproject","CreateOpenFLProje
 openflproject.CreateOpenFLProject.createOpenFLProject = function(params,path,onComplete) {
 	var processParams = ["run","lime","create"].concat(params);
 	var processHelper = core.ProcessHelper.get();
-	processHelper.runProcess("haxelib",processParams,path,onComplete,function(code,stdout,stderr) {
-		Alertify.error(["haxelib"].concat(processParams).join(" ") + " " + (code == null?"null":"" + code));
-		if(stdout != "") Alertify.error("stdout:\n" + stdout);
-		if(stderr != "") Alertify.error("stderr:\n" + stderr);
+	var pathToHaxelib = core.HaxeHelper.getPathToHaxelib();
+	processHelper.runProcess(pathToHaxelib,processParams,path,function(stdout,stderr) {
+		if(stdout != "") Alertify.log("stdout:\n" + stdout);
+		if(stderr != "") Alertify.log("stderr:\n" + stderr);
+		onComplete();
+	},function(code,stdout1,stderr1) {
+		Alertify.error([pathToHaxelib].concat(processParams).join(" ") + " " + (code == null?"null":"" + code));
+		if(stdout1 != "") Alertify.error("stdout:\n" + stdout1);
+		if(stderr1 != "") Alertify.error("stderr:\n" + stderr1);
 	});
 };
 openflproject.OpenFLProject = function() {
@@ -15484,7 +15495,7 @@ openflproject.OpenFLProject.prototype = {
 			var str = "";
 			if(data.projectPackage != "") str = data.projectPackage + ".";
 			params = ["openfl:project","\"" + str + data.projectName + "\""];
-		} else params = [data.projectName];
+		} else params = ["openfl:" + data.projectName];
 		openflproject.CreateOpenFLProject.createOpenFLProject(params,data.projectLocation,function() {
 			var pathToProject = js.Node.require("path").join(data.projectLocation,data.projectName);
 			_g.createProject(data);
@@ -15525,17 +15536,18 @@ $hxClasses["openflproject.OpenFLTools"] = openflproject.OpenFLTools;
 openflproject.OpenFLTools.__name__ = ["openflproject","OpenFLTools"];
 openflproject.OpenFLTools.getParams = function(path,target,onLoaded) {
 	var processHelper = core.ProcessHelper.get();
-	processHelper.runProcess("haxelib",["run","lime","display",target],path,function(stdout,stderr) {
+	processHelper.runProcess(core.HaxeHelper.getPathToHaxelib(),["run","lime","display",target],path,function(stdout,stderr) {
 		if(onLoaded != null) onLoaded(stdout);
 		openflproject.OpenFLTools.printStderr(stderr);
 	},function(code,stdout1,stderr1) {
 		Alertify.error("OpenFL tools error. OpenFL may be not installed. Please update OpenFL.(haxelib upgrade)");
 		Alertify.error("OpenFL tools process exit code " + code);
+		openflproject.OpenFLTools.printStderr(stdout1);
 		openflproject.OpenFLTools.printStderr(stderr1);
 	});
 };
 openflproject.OpenFLTools.printStderr = function(stderr) {
-	if(stderr != "") Alertify.error("OpenFL tools stderr: " + stderr);
+	if(stderr != "") Alertify.error("OpenFL tools stderr: " + stderr,15000);
 };
 var openproject = {};
 openproject.OpenFL = function() { };
@@ -15727,9 +15739,11 @@ openproject.OpenProject.searchForLastProject = function() {
 openproject.OpenProject.closeProject = function(sync) {
 	if(sync == null) sync = false;
 	var tabManagerInstance = tabmanager.TabManager.get();
+	var processHelper = core.ProcessHelper.get();
 	if(projectaccess.ProjectAccess.path != null) {
 		projectaccess.ProjectAccess.save(openproject.OpenProject.updateProjectData,sync);
 		tabManagerInstance.closeAll();
+		processHelper.clearErrors();
 	} else openproject.OpenProject.updateProjectData();
 };
 openproject.OpenProject.updateProjectData = function() {
@@ -15886,38 +15900,6 @@ parser.ClassParser.addClassName = function(name,std) {
 	}
 };
 parser.ClasspathWalker = function() {
-	var localStorage2 = js.Browser.getLocalStorage();
-	var pathToHaxe2 = js.Node.process.env.HAXE_STD_PATH;
-	if(pathToHaxe2 != null) pathToHaxe2 = js.Node.require("path").dirname(pathToHaxe2);
-	var paths = [js.Node.process.env.HAXEPATH,pathToHaxe2,js.Node.process.env.HAXE_HOME];
-	if(localStorage2 != null) {
-		var path = localStorage2.getItem("pathToHaxe");
-		paths.splice(0,0,path);
-	}
-	var _g = core.Utils.os;
-	switch(_g) {
-	case 0:
-		paths.push("C:/HaxeToolkit/haxe");
-		break;
-	case 1:case 2:
-		paths.push("/usr/lib/haxe");
-		break;
-	default:
-	}
-	var _g1 = 0;
-	while(_g1 < paths.length) {
-		var envVar = paths[_g1];
-		++_g1;
-		if(envVar != null) {
-			this.pathToHaxeStd = this.getHaxeStdFolder(envVar);
-			if(this.pathToHaxeStd != null) {
-				this.pathToHaxe = envVar;
-				localStorage2.setItem("pathToHaxe",this.pathToHaxe);
-				break;
-			}
-		}
-	}
-	if(this.pathToHaxeStd == null) this.showHaxeDirectoryDialog(); else this.parseClasspath(this.pathToHaxeStd,true);
 };
 $hxClasses["parser.ClasspathWalker"] = parser.ClasspathWalker;
 parser.ClasspathWalker.__name__ = ["parser","ClasspathWalker"];
@@ -15928,6 +15910,41 @@ parser.ClasspathWalker.get = function() {
 parser.ClasspathWalker.prototype = {
 	pathToHaxeStd: null
 	,pathToHaxe: null
+	,load: function() {
+		var localStorage2 = js.Browser.getLocalStorage();
+		var pathToHaxe2 = js.Node.process.env.HAXE_STD_PATH;
+		if(pathToHaxe2 != null) pathToHaxe2 = js.Node.require("path").dirname(pathToHaxe2);
+		var paths = [js.Node.process.env.HAXEPATH,pathToHaxe2,js.Node.process.env.HAXE_HOME];
+		if(localStorage2 != null) {
+			var path = localStorage2.getItem("pathToHaxe");
+			paths.splice(0,0,path);
+		}
+		var _g = core.Utils.os;
+		switch(_g) {
+		case 0:
+			paths.push("C:/HaxeToolkit/haxe");
+			break;
+		case 1:case 2:
+			paths.push("/usr/lib/haxe");
+			break;
+		default:
+		}
+		var _g1 = 0;
+		while(_g1 < paths.length) {
+			var envVar = paths[_g1];
+			++_g1;
+			if(envVar != null) {
+				this.pathToHaxeStd = this.getHaxeStdFolder(envVar);
+				if(this.pathToHaxeStd != null) {
+					this.pathToHaxe = envVar;
+					localStorage2.setItem("pathToHaxe",this.pathToHaxe);
+					core.HaxeHelper.updatePathToHaxe();
+					break;
+				}
+			}
+		}
+		if(this.pathToHaxeStd == null) this.showHaxeDirectoryDialog(); else this.parseClasspath(this.pathToHaxeStd,true);
+	}
 	,showHaxeDirectoryDialog: function() {
 		var _g = this;
 		var localStorage2 = js.Browser.getLocalStorage();
@@ -17326,8 +17343,8 @@ tabmanager.Tab = function(_name,_path,_doc,_save) {
 	var _this1 = window.document;
 	this.span3 = _this1.createElement("span");
 	this.span3.textContent = this.name + "\t";
-	this.span3.addEventListener("click",function(e) {
-		tabManagerInstance.selectDoc(_g.path);
+	this.li.addEventListener("click",function(e) {
+		if(e.button != 1) tabManagerInstance.selectDoc(_g.path); else tabManagerInstance.closeTab(_g.path);
 	});
 	this.li.addEventListener("contextmenu",function(e1) {
 		tabmanager.ContextMenu.showMenu(_g.path,e1);
@@ -17340,6 +17357,7 @@ tabmanager.Tab = function(_name,_path,_doc,_save) {
 	span.style.top = "2px";
 	span.addEventListener("click",function(e2) {
 		tabManagerInstance.closeTab(_g.path);
+		e2.stopPropagation();
 	});
 	var span2;
 	var _this3 = window.document;

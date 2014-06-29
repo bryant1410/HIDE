@@ -12,25 +12,25 @@
     ]
     ,"files" : [
          {
-             "path" : "bin/core/templates/Main.tpl"
+             "path" : "src/filetree/FileTree.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 7
+            ,"activeLine" : 102
         }
         ,{
-             "path" : "bin/core/templates/New.tpl"
+             "path" : "src/tabmanager/Tab.hx"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 11
+            ,"activeLine" : 50
         }
     ]
-    ,"activeFile" : "bin/core/templates/New.tpl"
+    ,"activeFile" : "src/tabmanager/Tab.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

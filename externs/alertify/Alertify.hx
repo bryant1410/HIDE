@@ -38,11 +38,11 @@ extern class Alertify
 	
 	// success notification
 	// shorthand for alertify.log("Notification", "success");
-	static function success(notification:String):Void;
+	static function success(notification:String, ?wait:Int):Void;
 
 	// error notification
 	// shorthand for alertify.log("Notification", "error");
-	static function error(notification:String):Void;
+	static function error(notification:String, ?wait:Int):Void;
 	
 	static function set(options:Options):Void;
 }

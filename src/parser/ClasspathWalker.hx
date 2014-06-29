@@ -53,6 +53,11 @@ class ClasspathWalker
 	
 	public function new():Void 
 	{		
+		
+	}
+	
+	public function load()
+	{
 		var localStorage2 = Browser.getLocalStorage();
 		
 		var pathToHaxe2 = Node.process.env.HAXE_STD_PATH;
@@ -90,6 +95,7 @@ class ClasspathWalker
 				{
 					pathToHaxe = envVar;
 					localStorage2.setItem("pathToHaxe", pathToHaxe);
+					HaxeHelper.updatePathToHaxe();
 					break;
 				}
 			}
@@ -104,6 +110,7 @@ class ClasspathWalker
 			parseClasspath(pathToHaxeStd, true);
 		}
 	}
+
 	
 	public function showHaxeDirectoryDialog()
 	{
