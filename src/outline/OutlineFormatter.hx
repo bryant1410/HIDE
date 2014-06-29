@@ -16,10 +16,18 @@ class OutlineFormatter{
 		
 		var outlineItems =  untyped new JQuery('#outline').jqxTree('getItems');
 		
+		var item:Dynamic;
 		
-		for ( item in outlineItems)
+		for ( i in 0...outlineItems.length)
 		{
-			trace( item ); 
+			untyped item =  outlineItems[i] ;
+			
+			if( item.label.split("(").length > 1 )
+			{
+				trace( "found function: " + item.label );
+				trace( item );
+				item.label = "<strong>"+ item.label + "</strong>";
+			}
 		}
 
 	}
