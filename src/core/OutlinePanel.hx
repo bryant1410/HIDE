@@ -4,6 +4,7 @@ import haxe.Timer;
 import parser.OutlineHelper;
 import cm.Editor;
 import jQuery.JQuery;
+import outline.OutlineFormatter;
 
 /**
  * ...
@@ -66,6 +67,8 @@ class OutlinePanel
 			}
 		}
 		);
+		
+		new OutlineFormatter();	
 	}
 	
 	public function addField(item:TreeItem):Void
