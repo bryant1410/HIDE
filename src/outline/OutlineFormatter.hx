@@ -19,19 +19,18 @@ class OutlineFormatter{
 		
 		var li:LIElement;
 
+			
 		for ( item in outlineItems )
 		{
 			li = cast(item.element, LIElement);
 			
-		trace( item.label );
-		
 			if( item.label.split("(").length > 1 )
 			{
 				li.classList.add( "outlineFunction");	
 			}
 			else 
-			{
-				if ( li.parentElement.className != "jqx-tree-dropdown")
+			{ 
+				 if ( li.className != "jqx-tree-dropdown" && li.className != "jqx-tree-item-li jqx-disableselect" )
 				{
 					li.classList.add( "outlineVar");
 				}		
