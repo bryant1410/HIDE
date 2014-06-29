@@ -11,9 +11,35 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src\\HIDE.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 36
+        }
+        ,{
+             "path" : "bin\\core\\compact.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 178
+        }
+        ,{
+             "path" : "src\\outline\\OutlineFormatter.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 38
+        }
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src\\outline\\OutlineFormatter.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

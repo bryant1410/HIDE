@@ -142,6 +142,7 @@
 
 #panelContentpanelfiletree .jqx-tree-item-li{
 	line-height:14px;
+	margin:0px !important;
 }
 
 
@@ -156,10 +157,43 @@
 	padding:0px
 }
 
-#panelContentpaneloutline .jqx-tree-item-li{
-	line-height:14px;
+#panelContentpaneloutline .jqx-tree-item-li .outlineFunction{
+	line-height:17px;
+	margin-left:5px !important;
+	padding-left:12px;
 }
 
+#panelContentpaneloutline .jqx-tree-item-li .outlineVar{
+	line-height:17px;
+	margin-left:5px !important;
+	padding-left:12px;
+}
+
+#panelContentpaneloutline .jqx-tree-dropdown{
+	margin-top: 2px;
+	margin-bottom: 15px;
+}
+
+.outlineFunction{
+	background-image:url( "images/compact/outline-method-icon.png") ;
+	background-position: top left;
+	background-repeat: no-repeat;
+}
+
+.outlineVar{
+	background-image:url( "images/compact/outline-var-icon.png") ;
+	background-position: left;
+	background-repeat: no-repeat;
+}
+
+.outlineFunction > .jqx-item{
+	/* color:#777777 !important; */
+	
+}
+
+.outlineVar > .jqx-rc-all > .jqx-tree-item > .jqx-item-all{
+	background-image:none !important;
+}
 
 
 /* Vertical Scroll bars */
@@ -184,13 +218,13 @@
 .jqx-icon-arrow-up{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-up.png);
+	background-image:url( "images/compact/icon-up.png");
 }
 
 .jqx-icon-arrow-down{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-down.png);
+	background-image:url( "images/compact/icon-down.png");
 }
 
 .jqx-scrollbar-button-state-hover{
