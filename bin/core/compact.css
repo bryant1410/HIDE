@@ -157,7 +157,7 @@
 }
 
 #panelContentpaneloutline .jqx-tree-item-li{
-	line-height:14px;
+	line-height:17px;
 	margin:0px !important;
 	padding-left:16px;
 }
@@ -171,13 +171,14 @@
 
 .outlineVar{
 	background-image:url( "images/compact/outline-var-icon.png") ;
-	background-position: top left;
+	background-position: left;
 	background-repeat: no-repeat;
 	
 }
 
 .outlineFunction > .jqx-item{
-	color:#000000 !important;
+	color:#555555 !important;
+	font-weight:bold;
 }
 
 
