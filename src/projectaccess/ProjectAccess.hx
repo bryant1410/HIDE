@@ -96,6 +96,24 @@ class ProjectAccess
 		return ignore;
 	}
 	
+	public static function isItemHidden(path:String)
+	{
+		var relativePath:String = Node.path.relative(ProjectAccess.path, path);
+		return ProjectAccess.currentProject.hiddenItems.indexOf(relativePath) != -1;
+	}
+	
+	public static function hideItem(path:String)
+	{
+		var relativePath:String = Node.path.relative(ProjectAccess.path, path);
+		ProjectAccess.currentProject.hiddenItems.push(relativePath);
+	}
+	
+	public static function unhideItem(path:String)
+	{
+		var relativePath:String = Node.path.relative(ProjectAccess.path, path);
+		ProjectAccess.currentProject.hiddenItems.push(relativePath);
+	}
+	
 	public static function getPathToHxml():String
 	{
 		var pathToHxml:String = null;

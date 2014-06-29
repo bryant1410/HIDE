@@ -5581,20 +5581,20 @@ filetree.FileTree.prototype = {
 		});
 		this.appendToContextMenu("Hide/Unhide",function(selectedItem8) {
 			if(projectaccess.ProjectAccess.path != null) {
-				var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,selectedItem8.value.path);
-				if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) == -1) {
-					projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
+				var path4 = selectedItem8.value.path;
+				if(!projectaccess.ProjectAccess.isItemHidden(path4)) {
+					projectaccess.ProjectAccess.hideItem(path4);
 					new $("#filetree").jqxTree("removeItem",selectedItem8.element);
 					_g.attachContextMenu();
 				} else {
-					HxOverrides.remove(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath);
+					projectaccess.ProjectAccess.unhideItem(path4);
 					_g.load();
 				}
 			} else new $("#filetree").jqxTree("removeItem",selectedItem8.element);
 		});
 		this.appendToContextMenu("Set As Compile Main",function(selectedItem9) {
-			var path4 = selectedItem9.value.path;
-			if(core.RunProject.setHxmlAsProjectBuildFile(path4)) {
+			var path5 = selectedItem9.value.path;
+			if(core.RunProject.setHxmlAsProjectBuildFile(path5)) {
 			}
 		});
 		this.contextMenu = new $("#jqxMenu").jqxMenu({ autoOpenPopup : false, mode : "popup"});
@@ -5604,8 +5604,10 @@ filetree.FileTree.prototype = {
 			return true;
 		});
 		new $("#jqxMenu").on("itemclick",null,function(event) {
-			var item = $.trim(new $(event.args).text());
-			(_g.contextMenuCommandsMap.get(item))();
+			var item = Lambda.find(_g.contextMenuCommandsMap,function(contextMenuItem) {
+				return event.args == contextMenuItem.element;
+			});
+			item.cb();
 		});
 		new $("#filetree").dblclick(function(event1) {
 			var item1 = new $("#filetree").jqxTree("getSelectedItem");
@@ -5629,15 +5631,15 @@ filetree.FileTree.prototype = {
 			});
 			if(item2) {
 				var parents = new $(item2.element).parents("li");
-				var path5 = "";
+				var path6 = "";
 				$.each(parents,function(index1,value2) {
 					var item3 = new $("#filetree").jqxTree("getItem",value2);
-					if(item3.level > 0) path5 = item3.label + "/" + path5;
+					if(item3.level > 0) path6 = item3.label + "/" + path6;
 				});
 				var topDirectory = new $("#filetree").jqxTree("getItems")[0].value.path;
 				var selectedItem10 = new $("#filetree").jqxTree("getSelectedItem");
 				var previousPath = selectedItem10.value.path;
-				var newPath = js.Node.require("path").join(topDirectory,path5,selectedItem10.label);
+				var newPath = js.Node.require("path").join(topDirectory,path6,selectedItem10.label);
 				js.node.Mv.move(previousPath,newPath,function(error4) {
 					if(error4 == null) {
 						Alertify.success("File were successfully moved to " + newPath);
@@ -5657,10 +5659,13 @@ filetree.FileTree.prototype = {
 		li = _this.createElement("li");
 		li.textContent = name;
 		new $("#filetreemenu").append(li);
-		this.contextMenuCommandsMap.set(name,function() {
+		var contextMenuItem = { };
+		contextMenuItem.cb = function() {
 			var selectedItem = new $("#filetree").jqxTree("getSelectedItem");
 			if(selectedItem != null) onClick(selectedItem);
-		});
+		};
+		contextMenuItem.element = li;
+		this.contextMenuCommandsMap.set(name,contextMenuItem);
 	}
 	,attachContextMenu: function() {
 		var _g = this;
@@ -5671,6 +5676,18 @@ filetree.FileTree.prototype = {
 				new $("#filetree").jqxTree("selectItem",target);
 				var scrollTop = new $(window).scrollTop();
 				var scrollLeft = new $(window).scrollLeft();
+				var selectedItem = new $("#filetree").jqxTree("getSelectedItem");
+				var extname = js.Node.require("path").extname(selectedItem.value.path);
+				var editElement = _g.contextMenuCommandsMap.get("Edit").element;
+				if(selectedItem.value.type == "file") editElement.textContent = "Edit"; else if(selectedItem.value.type == "folder") editElement.textContent = "Open Folder";
+				var setAsCompileMainelement = _g.contextMenuCommandsMap.get("Set As Compile Main").element;
+				if(extname != ".hxml") new $(setAsCompileMainelement).hide(); else new $(setAsCompileMainelement).show();
+				if(projectaccess.ProjectAccess.path != null) {
+					var hideUnhideItemElement = _g.contextMenuCommandsMap.get("Hide/Unhide").element;
+					if(!projectaccess.ProjectAccess.isItemHidden(selectedItem.value.path)) hideUnhideItemElement.textContent = "Hide"; else hideUnhideItemElement.textContent = "Unhide";
+					var showHiddenItemsElement = _g.contextMenuCommandsMap.get("Hide/Unhide All").element;
+					if(projectaccess.ProjectAccess.currentProject.showHiddenItems) showHiddenItemsElement.textContent = "Hide All"; else showHiddenItemsElement.textContent = "Unhide All";
+				}
 				_g.contextMenu.jqxMenu("open",Std.parseInt(event.clientX) + 5 + scrollLeft,Std.parseInt(event.clientY) + 5 + scrollTop);
 				return false;
 			} else return true;
@@ -15538,7 +15555,7 @@ $hxClasses["openflproject.OpenFLTools"] = openflproject.OpenFLTools;
 openflproject.OpenFLTools.__name__ = ["openflproject","OpenFLTools"];
 openflproject.OpenFLTools.getParams = function(path,target,onLoaded) {
 	var processHelper = core.ProcessHelper.get();
-	processHelper.runProcess(core.HaxeHelper.getPathToHaxelib(),["run","lime","display",target],path,function(stdout,stderr) {
+	processHelper.runProcess(core.HaxeHelper.getPathToHaxelib(),["run","lime","display",target,"-nocolor"],path,function(stdout,stderr) {
 		if(onLoaded != null) onLoaded(stdout);
 		openflproject.OpenFLTools.printStderr(stderr);
 	},function(code,stdout1,stderr1) {
@@ -16844,6 +16861,18 @@ projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 		if(HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) != -1) ignore = true;
 	}
 	return ignore;
+};
+projectaccess.ProjectAccess.isItemHidden = function(path) {
+	var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+	return HxOverrides.indexOf(projectaccess.ProjectAccess.currentProject.hiddenItems,relativePath,0) != -1;
+};
+projectaccess.ProjectAccess.hideItem = function(path) {
+	var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+	projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
+};
+projectaccess.ProjectAccess.unhideItem = function(path) {
+	var relativePath = js.Node.require("path").relative(projectaccess.ProjectAccess.path,path);
+	projectaccess.ProjectAccess.currentProject.hiddenItems.push(relativePath);
 };
 projectaccess.ProjectAccess.getPathToHxml = function() {
 	var pathToHxml = null;

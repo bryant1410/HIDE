@@ -14,7 +14,7 @@ class OpenFLTools
 	{
 		var processHelper = ProcessHelper.get();
 		
-		processHelper.runProcess(HaxeHelper.getPathToHaxelib(), ["run", "lime", "display", target], path, function (stdout:String, stderr:String):Void 
+		processHelper.runProcess(HaxeHelper.getPathToHaxelib(), ["run", "lime", "display", target, "-nocolor"], path, function (stdout:String, stderr:String):Void 
 		{
 			//onComplete
 			

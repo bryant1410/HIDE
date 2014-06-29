@@ -18,19 +18,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 93
-        }
-        ,{
-             "path" : "src/core/Completion.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 299
+            ,"activeLine" : 42
         }
     ]
-    ,"activeFile" : "src/core/Completion.hx"
+    ,"activeFile" : "src/filetree/FileTree.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

@@ -30,13 +30,19 @@ import core.OutlinePanel.TreeItem;
  * @author AS3Boyan
  */
 
+typedef ContextMenuItem = 
+{
+	?element:LIElement,
+	?cb:Dynamic
+}
+
 class FileTree
 {
 	var lastProjectName:String;
 	var lastProjectPath:String;
 	
 	var contextMenu:Dynamic;
-	var contextMenuCommandsMap:StringMap<Dynamic>;
+	var contextMenuCommandsMap:StringMap<ContextMenuItem>;
 	var watcher:Dynamic;
 	
 	static var instance:FileTree;
@@ -254,17 +260,17 @@ class FileTree
 		{
 			if (ProjectAccess.path != null) 
 			{
-				var relativePath:String = Node.path.relative(ProjectAccess.path, selectedItem.value.path);
+				var path = selectedItem.value.path;
 				
-				if (ProjectAccess.currentProject.hiddenItems.indexOf(relativePath) == -1) 
+				if (!ProjectAccess.isItemHidden(path))
 				{
-					ProjectAccess.currentProject.hiddenItems.push(relativePath);
+					ProjectAccess.hideItem(path);
 					untyped new JQuery('#filetree').jqxTree('removeItem', selectedItem.element);
 					attachContextMenu();
 				}
 				else 
 				{
-					ProjectAccess.currentProject.hiddenItems.remove(relativePath);
+					ProjectAccess.unhideItem(path);
 					load();
 				}
 			}
@@ -300,8 +306,13 @@ class FileTree
 		
 		new JQuery("#jqxMenu").on('itemclick', function (event) 
 		{
-			var item = JQueryStatic.trim(new JQuery(event.args).text());
-			contextMenuCommandsMap.get(item)();
+			var item = Lambda.find(contextMenuCommandsMap, function (contextMenuItem)
+						{
+							return event.args == contextMenuItem.element;
+						}
+					   );
+			
+			item.cb();
 		}
 		);
 		
@@ -410,7 +421,6 @@ class FileTree
 			{
 				li.classList.remove("mainHxml");
 			}
-
 		}
 	}
 
@@ -420,14 +430,20 @@ class FileTree
 		li.textContent = name;
 		new JQuery("#filetreemenu").append(li);
 		
-		contextMenuCommandsMap.set(name, function ():Void 
+		var contextMenuItem:ContextMenuItem = {};
+		
+		contextMenuItem.cb = function ():Void 
 		{
 			var selectedItem = untyped new JQuery('#filetree').jqxTree('getSelectedItem');
 			if (selectedItem != null) 
 			{
 				onClick(selectedItem);
 			}
-		});
+		};
+		
+		contextMenuItem.element = li;
+		
+		contextMenuCommandsMap.set(name, contextMenuItem);
 	}
 	
 	function attachContextMenu() 
@@ -441,6 +457,57 @@ class FileTree
 				untyped new JQuery("#filetree").jqxTree('selectItem', target);
 				var scrollTop = new JQuery(Browser.window).scrollTop();
 				var scrollLeft = new JQuery(Browser.window).scrollLeft();
+				
+				var selectedItem = untyped new JQuery("#filetree").jqxTree('getSelectedItem');
+				var extname = Node.path.extname(selectedItem.value.path);
+				
+				var editElement = contextMenuCommandsMap.get("Edit").element;
+				
+				if (selectedItem.value.type == "file")
+				{
+					editElement.textContent = "Edit";
+				}
+				else if (selectedItem.value.type == "folder")
+				{
+					editElement.textContent = "Open Folder";
+				}
+				
+				var setAsCompileMainelement = contextMenuCommandsMap.get("Set As Compile Main").element;
+				
+				if (extname != ".hxml")
+				{
+					new JQuery(setAsCompileMainelement).hide();
+				}
+				else
+				{
+					new JQuery(setAsCompileMainelement).show();
+				}
+				
+				if (ProjectAccess.path != null)
+				{
+					var hideUnhideItemElement = contextMenuCommandsMap.get("Hide/Unhide").element;
+					
+					if (!ProjectAccess.isItemHidden(selectedItem.value.path))
+					{
+						hideUnhideItemElement.textContent = "Hide";
+					}
+					else
+					{
+						hideUnhideItemElement.textContent = "Unhide";
+					}
+						
+					var showHiddenItemsElement = contextMenuCommandsMap.get("Hide/Unhide All").element;
+						
+					if (ProjectAccess.currentProject.showHiddenItems)
+					{
+						showHiddenItemsElement.textContent = "Hide All";
+					}
+					else
+					{
+						showHiddenItemsElement.textContent = "Unhide All";
+					}
+				}
+				
 				contextMenu.jqxMenu('open', Std.parseInt(event.clientX) + 5 + scrollLeft, Std.parseInt(event.clientY) + 5 + scrollTop);
 				return false;
 			}
