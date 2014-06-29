@@ -23,13 +23,18 @@ class OutlineFormatter{
 		{
 			li = cast(item.element, LIElement);
 			
+		trace( item.label );
+		
 			if( item.label.split("(").length > 1 )
 			{
 				li.classList.add( "outlineFunction");	
 			}
 			else 
 			{
-				//li.classList.add( "outlineVar");		
+				if ( li.parentElement.className != "jqx-tree-dropdown")
+				{
+					li.classList.add( "outlineVar");
+				}		
 			}
 			
 		}
