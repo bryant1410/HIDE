@@ -25,8 +25,9 @@ class OutlineFormatter{
 			if( item.label.split("(").length > 1 )
 			{
 				trace( "found function: " + item.label );
-				trace( item );
-				item.label = "<strong>"+ item.label + "</strong>";
+				trace( item.parentElement.className );
+				item.parentElement.className = item.parentElement.className + " outlineFunction";
+				trace( item.parentElement.className );
 			}
 		}
 
