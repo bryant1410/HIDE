@@ -24,7 +24,6 @@ typedef	ClassField =
 	var pos:DeclarationPos;
 }
 
-	
 /**
  * ...
  * @author AS3Boyan
@@ -92,12 +91,12 @@ class OutlineHelper
 				fileImports = fileImports.concat(parseImports(sl, mode));
 			case EUsing(path): 
 			case EAbstract(data):
-				var treeItem: TreeItem = { label: data.name , haxeType:"abstract"};
+				var treeItem: TreeItem = { label: data.name };
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
 				treeItemFormats.push( "abstract" );
 			case EClass(data): 
-				var treeItem: TreeItem = { label: data.name , haxeType:"class"};
+				var treeItem: TreeItem = { label: data.name };
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -105,13 +104,13 @@ class OutlineHelper
 			
 				for (item in getClassFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
+					items.push( { label: item.name, value: item.pos } );
 					treeItemFormats.push( "field" );
 				}
 				
 				treeItems.push(treeItem);
 			case EEnum(data): 
-				var treeItem: TreeItem = { label: data.name , haxeType:"enumGroup"};
+				var treeItem: TreeItem = { label: data.name };
         		var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -120,12 +119,12 @@ class OutlineHelper
 		
         		for (item in data.data)
                 {
-                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} , haxeType:"enum" });
+                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} });
 					treeItemFormats.push( "enum" );
        	     	}
         		
 			case ETypedef(data): 
-				var treeItem: TreeItem = { label: data.name , haxeType:"typedef"};
+				var treeItem: TreeItem = { label: data.name };
         		var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -134,7 +133,7 @@ class OutlineHelper
 	
         		for (item in getTypeDefFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
+					items.push( { label: item.name, value: item.pos } );
 					treeItemFormats.push( "field" );
 				}
 		}
