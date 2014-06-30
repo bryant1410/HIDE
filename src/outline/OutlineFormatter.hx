@@ -2,7 +2,7 @@ package outline;
 
 import js.html.LIElement;
 import jQuery.JQuery;
-
+import core.OutlinePanel;
 /**
  * ...
  * @author NickHolder
@@ -12,13 +12,15 @@ import jQuery.JQuery;
  
 class OutlineFormatter{
 
-	public function new()
+	public function new( source:Array<TreeItem> )
 	{
 		
 		var outlineItems:Array<Dynamic> =  untyped new JQuery('#outline').jqxTree('getItems');
 		
 		var li:LIElement;
-
+		
+		trace( source[0].haxeType );
+		
 			
 		for ( item in outlineItems )
 		{
@@ -30,7 +32,7 @@ class OutlineFormatter{
 			}
 			else 
 			{ 
-				 if ( li.className != "jqx-tree-dropdown" && li.className != "jqx-tree-item-li jqx-disableselect" )
+				if ( li.className != "jqx-tree-dropdown" && li.className != "jqx-tree-item-li jqx-disableselect" )
 				{
 					li.classList.add( "outlineVar");
 				}		

@@ -90,7 +90,7 @@ class OutlineHelper
 				fileImports = fileImports.concat(parseImports(sl, mode));
 			case EUsing(path): 
 			case EAbstract(data):
-				var treeItem: TreeItem = { label: data.name };
+				var treeItem: TreeItem = { label: data.name , haxeType:"abstract"};
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
 			case EClass(data): 
@@ -101,7 +101,7 @@ class OutlineHelper
 				
 				for (item in getClassFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos } );
+					items.push( { label: item.name, value: item.pos , haxeType:"class"} );
 				}
 				
 				treeItems.push(treeItem);
@@ -114,7 +114,7 @@ class OutlineHelper
         		
         		for (item in data.data)
                 {
-                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max}});
+                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} , haxeType:"enum"});
        	     	}
         		
 			case ETypedef(data): 
@@ -126,7 +126,7 @@ class OutlineHelper
         
         		for (item in getTypeDefFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos } );
+					items.push( { label: item.name, value: item.pos , haxeType:"typedef"} );
 				}
 		}
 		

@@ -17,6 +17,7 @@ typedef TreeItem = {
 	@:optional var items:Array<TreeItem>;
 	@:optional var expanded:Bool;
 	@:optional var value:Dynamic;
+	@:optional var haxeType:Dynamic;
 }
  
 class OutlinePanel
@@ -68,7 +69,7 @@ class OutlinePanel
 		}
 		);
 		
-		new OutlineFormatter();	
+		new OutlineFormatter( source );	
 	}
 	
 	public function addField(item:TreeItem):Void
