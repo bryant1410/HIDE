@@ -70,12 +70,12 @@ class OutlineHelper
             
 			outlinePanel.clearFields();
 			outlinePanel.addField(rootItem);
-			outlinePanel.update();
+			outlinePanel.update( parsedData.treeItemFormats );
 		}
         else if(pathToLastFile != path)
         {
             outlinePanel.clearFields();
-            outlinePanel.update();
+            outlinePanel.update( );
         }
 	}
 	
@@ -84,6 +84,7 @@ class OutlineHelper
 		var fileImports = [];
 		
 		var treeItems:Array<TreeItem> = [];
+		var treeItemFormats:Array<String> = [];
 		
 		for (decl in ast.decls) switch (decl.decl) 
 		{
@@ -94,15 +95,18 @@ class OutlineHelper
 				var treeItem: TreeItem = { label: data.name , haxeType:"abstract"};
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
+				treeItemFormats.push( "abstract" );
 			case EClass(data): 
 				var treeItem: TreeItem = { label: data.name , haxeType:"class"};
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
-				
+				treeItemFormats.push( "class" );	
+			
 				for (item in getClassFields(data)) 
 				{
 					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
+					treeItemFormats.push( "field" );
 				}
 				
 				treeItems.push(treeItem);
@@ -112,10 +116,12 @@ class OutlineHelper
 				treeItem.items = items;
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
-        		
+        		treeItemFormats.push( "enumGroup" );
+		
         		for (item in data.data)
                 {
                 	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} , haxeType:"enum" });
+					treeItemFormats.push( "enum" );
        	     	}
         		
 			case ETypedef(data): 
@@ -124,14 +130,16 @@ class OutlineHelper
 				treeItem.items = items;
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
-        
+        		treeItemFormats.push( "typedef" );
+	
         		for (item in getTypeDefFields(data)) 
 				{
 					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
+					treeItemFormats.push( "field" );
 				}
 		}
 		
-		return { fileImports: fileImports, treeItems: treeItems};
+		return { fileImports: fileImports, treeItems: treeItems , treeItemFormats: treeItemFormats};
 	}
 	
 	public function parseImports(sl : Array<{ pos : Position, pack : String }> ,  mode : ImportMode ) 

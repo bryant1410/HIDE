@@ -1,4 +1,5 @@
 package outline;
+import core.OutlinePanel.TreeItem;
 
 import js.html.LIElement;
 import jQuery.JQuery;
@@ -12,52 +13,31 @@ import core.OutlinePanel;
  
 class OutlineFormatter{
 
-	public function new( source:Array<TreeItem> )
+	public function new( treeItemFormats:Array<String> )
 	{
 		
 		var outlineItems:Array<Dynamic> =  untyped new JQuery('#outline').jqxTree('getItems');
 		
 		var li:LIElement;
 		
-		for( sourceItem in source ) 
-		{
-			//trace( sourceItem.items[0].items[0].haxeType );
-		}
- 			
-		
+
 		var fieldIndex:Int = -1;
 		var classIndex:Int = 0;
 		var item:Dynamic;
 		var haxeType:String;
-			
- 		for ( itemIndex in 0...outlineItems.length )
+		var item:Dynamic;
+		
+ 		for ( i in 0...outlineItems.length )
  		{
 			
-			if( itemIndex == 0 ) continue;
+			item = outlineItems[i];
 			
-			item = outlineItems[itemIndex];
-			
-			
-			
-			li = cast(item.element, LIElement);
-			
-			
-			
-			if( fieldIndex == -1 ) 
-			{
-				fieldIndex = 0;
-				switch (source[0].items[classIndex].haxeType)
-				{
-					case "class": li.classList.add( "outlineClass");
-					case "enumGroup": li.classList.add( "outlineEnumGroup");
-					case "typedef": li.classList.add( "outlineTypeDef");
-				}
+			if ( i == 0 ) continue;
 
-				continue;
-			}
+			li = cast(item.element, LIElement);
+					
 				
-				
-			haxeType = source[0].items[classIndex].items[fieldIndex].haxeType;
+			haxeType = treeItemFormats.shift();
 			
 			if( haxeType == "field")
 			{
@@ -81,14 +61,7 @@ class OutlineFormatter{
 					case "abstract": li.classList.add( "outlineAbstract");
 				}
 			}
-				
-			
-			
-			if ( ++ fieldIndex == source[0].items[classIndex].items.length)
-			{
-				classIndex++;
-				fieldIndex= -1;
-			}
+
 
 			
 		}
