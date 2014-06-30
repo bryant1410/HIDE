@@ -24,6 +24,7 @@ typedef	ClassField =
 	var pos:DeclarationPos;
 }
 
+	
 /**
  * ...
  * @author AS3Boyan
@@ -106,7 +107,7 @@ class OutlineHelper
 				
 				treeItems.push(treeItem);
 			case EEnum(data): 
-				var treeItem: TreeItem = { label: data.name , haxeType:"enum"};
+				var treeItem: TreeItem = { label: data.name , haxeType:"enumGroup"};
         		var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -114,7 +115,7 @@ class OutlineHelper
         		
         		for (item in data.data)
                 {
-                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} , haxeType:"enum"});
+                	items.push( { label: item.name, value: {min: item.pos.min, max: item.pos.max} , haxeType:"enum" });
        	     	}
         		
 			case ETypedef(data): 

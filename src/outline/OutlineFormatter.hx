@@ -48,7 +48,8 @@ class OutlineFormatter{
 				fieldIndex = 0;
 				switch (source[0].items[classIndex].haxeType)
 				{
-					case "enum": li.classList.add( "outlineEnum");
+					case "class": li.classList.add( "outlineClass");
+					case "enumGroup": li.classList.add( "outlineEnumGroup");
 					case "typedef": li.classList.add( "outlineTypeDef");
 				}
 

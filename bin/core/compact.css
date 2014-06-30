@@ -158,8 +158,8 @@
 }
 
 #panelContentpaneloutline .jqx-tree-item-li .outlineFunction , 
-#panelContentpaneloutline .jqx-tree-item-li .outlineVar ,
-#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef 
+#panelContentpaneloutline .jqx-tree-item-li .outlineVar,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnum 
 {
 	line-height:17px;
 	margin-left:5px !important;
@@ -177,20 +177,35 @@
 	background-image:url( "images/compact/outline-method-icon.png") ;
 }
 
-.outlineEnum{
-	background-image:url( "images/compact/outline-enum-icon.png") ;
-	background-position: top left;
-}
-
-.outlineTypeDef{
-	background-image:url( "images/compact/outline-typeDef-icon.png") ;
-	background-position: top;
-}
-
 .outlineVar{
 	background-image:url( "images/compact/outline-var-icon.png") ;
 }
 
+.outlineEnum{
+	background-image:url( "images/compact/outline-enum-icon.png") ;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup,
+#panelContentpaneloutline .jqx-tree-item-li .outlineClass
+{
+	background-position: top left;
+	margin-left:-5px !important;
+	padding-left:12px;
+	background-repeat: no-repeat;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup{
+	background-image:url( "images/compact/outline-enum-icon.png") ;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef{
+	background-image:url( "images/compact/outline-typeDef-icon.png") ;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineClass{
+	background-image:url( "images/compact/outline-class-icon.png") ;
+}
 
 
 /* Vertical Scroll bars */
