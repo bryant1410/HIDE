@@ -1,8 +1,9 @@
 package outline;
+import core.OutlinePanel.TreeItem;
 
 import js.html.LIElement;
 import jQuery.JQuery;
-
+import core.OutlinePanel;
 /**
  * ...
  * @author NickHolder
@@ -12,29 +13,54 @@ import jQuery.JQuery;
  
 class OutlineFormatter{
 
-	public function new()
+	public function new( treeItemFormats:Array<String> )
 	{
 		
 		var outlineItems:Array<Dynamic> =  untyped new JQuery('#outline').jqxTree('getItems');
 		
 		var li:LIElement;
+		var item:Dynamic;
+		var itemType:String;
+		var item:Dynamic;
+		
+ 		for ( i in 0...outlineItems.length )
+ 		{
+			
+			item = outlineItems[i];
+			
+			if ( i == 0 ) continue;
 
-			
-		for ( item in outlineItems )
-		{
 			li = cast(item.element, LIElement);
+					
+				
+			itemType = treeItemFormats.shift();
 			
-			if( item.label.split("(").length > 1 )
+			if( itemType == "field")
 			{
-				li.classList.add( "outlineFunction");	
+				if( item.label.split("(").length > 1 )
+				{
+					li.classList.add( "outlineFunction");	
+				}
+				else 
+				{ 
+
+					li.classList.add( "outlineVar");
+							
+				} 
 			}
 			else 
-			{ 
-				 if ( li.className != "jqx-tree-dropdown" && li.className != "jqx-tree-item-li jqx-disableselect" )
+			{
+				switch( itemType)
 				{
-					li.classList.add( "outlineVar");
-				}		
+					case "enum": li.classList.add( "outlineEnum");
+					case "enumGroup": li.classList.add( "outlineEnumGroup");
+					case "class": li.classList.add( "outlineClass");
+					case "typedef": li.classList.add( "outlineTypeDef");
+					case "abstract": li.classList.add( "outlineAbstract");
+				}
 			}
+
+
 			
 		}
 

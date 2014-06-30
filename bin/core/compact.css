@@ -157,16 +157,15 @@
 	padding:0px
 }
 
-#panelContentpaneloutline .jqx-tree-item-li .outlineFunction{
+#panelContentpaneloutline .jqx-tree-item-li .outlineFunction , 
+#panelContentpaneloutline .jqx-tree-item-li .outlineVar,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnum 
+{
 	line-height:17px;
 	margin-left:5px !important;
 	padding-left:12px;
-}
-
-#panelContentpaneloutline .jqx-tree-item-li .outlineVar{
-	line-height:17px;
-	margin-left:5px !important;
-	padding-left:12px;
+	background-position: left;
+	background-repeat: no-repeat;
 }
 
 #panelContentpaneloutline .jqx-tree-dropdown{
@@ -176,23 +175,36 @@
 
 .outlineFunction{
 	background-image:url( "images/compact/outline-method-icon.png") ;
-	background-position: top left;
-	background-repeat: no-repeat;
 }
 
 .outlineVar{
 	background-image:url( "images/compact/outline-var-icon.png") ;
-	background-position: left;
+}
+
+.outlineEnum{
+	background-image:url( "images/compact/outline-enum-icon.png") ;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup,
+#panelContentpaneloutline .jqx-tree-item-li .outlineClass
+{
+	background-position: top left;
+	margin-left:-5px !important;
+	padding-left:12px;
 	background-repeat: no-repeat;
 }
 
-.outlineFunction > .jqx-item{
-	/* color:#777777 !important; */
-	
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup{
+	background-image:url( "images/compact/outline-enumGroup-icon.png") ;
 }
 
-.outlineVar > .jqx-rc-all > .jqx-tree-item > .jqx-item-all{
-	background-image:none !important;
+#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef{
+	background-image:url( "images/compact/outline-typeDef-icon.png") ;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineClass{
+	background-image:url( "images/compact/outline-class-icon.png") ;
 }
 
 
