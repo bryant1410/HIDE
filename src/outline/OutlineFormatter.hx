@@ -19,12 +19,8 @@ class OutlineFormatter{
 		var outlineItems:Array<Dynamic> =  untyped new JQuery('#outline').jqxTree('getItems');
 		
 		var li:LIElement;
-		
-
-		var fieldIndex:Int = -1;
-		var classIndex:Int = 0;
 		var item:Dynamic;
-		var haxeType:String;
+		var itemType:String;
 		var item:Dynamic;
 		
  		for ( i in 0...outlineItems.length )
@@ -37,9 +33,9 @@ class OutlineFormatter{
 			li = cast(item.element, LIElement);
 					
 				
-			haxeType = treeItemFormats.shift();
+			itemType = treeItemFormats.shift();
 			
-			if( haxeType == "field")
+			if( itemType == "field")
 			{
 				if( item.label.split("(").length > 1 )
 				{
@@ -54,7 +50,7 @@ class OutlineFormatter{
 			}
 			else 
 			{
-				switch( haxeType)
+				switch( itemType)
 				{
 					case "enum": li.classList.add( "outlineEnum");
 					case "enumGroup": li.classList.add( "outlineEnumGroup");
