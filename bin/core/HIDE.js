@@ -1327,7 +1327,7 @@ cm.Editor.load = function() {
 		}
 	});
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["base16-light","ambiance-mobile","solarized","night","base16-dark","midnight","vibrant-ink","xq-light","ambiance","elegant","tomorrow-night-eighties","twilight","paraiso-light","monokai","3024-night","3024-day","xq-dark","pastel-on-dark","erlang-dark","cobalt","lesser-dark","blackboard","mbo","neo","paraiso-dark","neat","eclipse","rubyblue","the-matrix","mdn-like"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes(["3024-day","3024-night","ambiance-mobile","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","mbo","mdn-like","midnight","monokai","neat","neo","night","paraiso-dark","paraiso-light","pastel-on-dark","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -4224,7 +4224,7 @@ core.OutlinePanel.get = function() {
 };
 core.OutlinePanel.prototype = {
 	source: null
-	,update: function() {
+	,update: function(treeItemFormats) {
 		new $("#outline").jqxTree({ source : this.source});
 		new $("#outline").dblclick(function(event) {
 			var item = new $("#outline").jqxTree("getSelectedItem");
@@ -4241,6 +4241,7 @@ core.OutlinePanel.prototype = {
 				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
+		new outline.OutlineFormatter(treeItemFormats);
 	}
 	,addField: function(item) {
 		this.source.push(item);
@@ -15794,6 +15795,47 @@ openproject.OpenProject.parseProjectData = function(data) {
 	}
 	return project;
 };
+var outline = {};
+outline.OutlineFormatter = function(treeItemFormats) {
+	var outlineItems = new $("#outline").jqxTree("getItems");
+	var li;
+	var item;
+	var itemType;
+	var item1;
+	var _g1 = 0;
+	var _g = outlineItems.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		item1 = outlineItems[i];
+		if(i == 0) continue;
+		li = js.Boot.__cast(item1.element , HTMLLIElement);
+		itemType = treeItemFormats.shift();
+		if(itemType == "field") {
+			if(item1.label.split("(").length > 1) li.classList.add("outlineFunction"); else li.classList.add("outlineVar");
+		} else switch(itemType) {
+		case "enum":
+			li.classList.add("outlineEnum");
+			break;
+		case "enumGroup":
+			li.classList.add("outlineEnumGroup");
+			break;
+		case "class":
+			li.classList.add("outlineClass");
+			break;
+		case "typedef":
+			li.classList.add("outlineTypeDef");
+			break;
+		case "abstract":
+			li.classList.add("outlineAbstract");
+			break;
+		}
+	}
+};
+$hxClasses["outline.OutlineFormatter"] = outline.OutlineFormatter;
+outline.OutlineFormatter.__name__ = ["outline","OutlineFormatter"];
+outline.OutlineFormatter.prototype = {
+	__class__: outline.OutlineFormatter
+};
 var parser = {};
 parser.ClassParser = function() { };
 $hxClasses["parser.ClassParser"] = parser.ClassParser;
@@ -16243,7 +16285,7 @@ parser.OutlineHelper.prototype = {
 			this.pathToLastFile = path;
 			outlinePanel.clearFields();
 			outlinePanel.addField(rootItem);
-			outlinePanel.update();
+			outlinePanel.update(parsedData.treeItemFormats);
 		} else if(this.pathToLastFile != path) {
 			outlinePanel.clearFields();
 			outlinePanel.update();
@@ -16252,6 +16294,7 @@ parser.OutlineHelper.prototype = {
 	,parseDeclarations: function(ast) {
 		var fileImports = [];
 		var treeItems = [];
+		var treeItemFormats = [];
 		var _g = 0;
 		var _g1 = ast.decls;
 		while(_g < _g1.length) {
@@ -16273,6 +16316,7 @@ parser.OutlineHelper.prototype = {
 					var treeItem = { label : data.name};
 					treeItem.expanded = true;
 					treeItems.push(treeItem);
+					treeItemFormats.push("abstract");
 					break;
 				case 0:
 					var data1 = _g2[2];
@@ -16280,12 +16324,14 @@ parser.OutlineHelper.prototype = {
 					var items = [];
 					treeItem1.items = items;
 					treeItem1.expanded = true;
+					treeItemFormats.push("class");
 					var _g3 = 0;
 					var _g4 = this.getClassFields(data1);
 					while(_g3 < _g4.length) {
 						var item = _g4[_g3];
 						++_g3;
 						items.push({ label : item.name, value : item.pos});
+						treeItemFormats.push("field");
 					}
 					treeItems.push(treeItem1);
 					break;
@@ -16296,12 +16342,14 @@ parser.OutlineHelper.prototype = {
 					treeItem2.items = items1;
 					treeItem2.expanded = true;
 					treeItems.push(treeItem2);
+					treeItemFormats.push("enumGroup");
 					var _g31 = 0;
 					var _g41 = data2.data;
 					while(_g31 < _g41.length) {
 						var item1 = _g41[_g31];
 						++_g31;
 						items1.push({ label : item1.name, value : { min : item1.pos.min, max : item1.pos.max}});
+						treeItemFormats.push("enum");
 					}
 					break;
 				case 4:
@@ -16311,18 +16359,20 @@ parser.OutlineHelper.prototype = {
 					treeItem3.items = items2;
 					treeItem3.expanded = true;
 					treeItems.push(treeItem3);
+					treeItemFormats.push("typedef");
 					var _g32 = 0;
 					var _g42 = this.getTypeDefFields(data3);
 					while(_g32 < _g42.length) {
 						var item2 = _g42[_g32];
 						++_g32;
 						items2.push({ label : item2.name, value : item2.pos});
+						treeItemFormats.push("field");
 					}
 					break;
 				}
 			}
 		}
-		return { fileImports : fileImports, treeItems : treeItems};
+		return { fileImports : fileImports, treeItems : treeItems, treeItemFormats : treeItemFormats};
 	}
 	,parseImports: function(sl,mode) {
 		var fileImports = [];
@@ -18551,7 +18601,7 @@ Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 nodejs.webkit.$ui = require('nw.gui');
 nodejs.webkit.Window = nodejs.webkit.$ui.Window;
-haxe.Resource.content = [{ name : "config", data : "ewoJIm1heGltdW1fbGluZV9sZW5ndGgiOjgwLAoJIm1vZGlmaWVyX29yZGVyIjpbIm92ZXJyaWRlIiwgInB1YmxpYyIsICJwcml2YXRlIiwgInN0YXRpYyIsICJleHRlcm4iLCAiZHluYW1pYyIsICJpbmxpbmUiLCAibWFjcm8iXSwKCSJpbmRlbnRfd2l0aF90YWJzIjpmYWxzZSwKCSJ0YWJfd2lkdGgiOjQsCgkicHJpbnRfcm9vdF9wYWNrYWdlIjpmYWxzZSwKCSJlbXB0eV9saW5lX2FmdGVyX3BhY2thZ2UiOnRydWUsCgkiZW1wdHlfbGluZV9hZnRlcl9pbXBvcnQiOmZhbHNlLAoJImVtcHR5X2xpbmVfYmVmb3JlX3R5cGUiOnRydWUsCgkiY3VkZGxlX3R5cGVfYnJhY2VzIjpmYWxzZSwKCSJjdWRkbGVfbWV0aG9kX2JyYWNlcyI6ZmFsc2UsCgkiZW1wdHlfbGluZV9iZXR3ZWVuX2ZpZWxkcyI6dHJ1ZSwKCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1zIjp0cnVlLAoJInNwYWNlX2JldHdlZW5fYW5vbl90eXBlX2ZpZWxkcyI6dHJ1ZSwKCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1fY29uc3RyYWludHMiOnRydWUsCgkiaW5saW5lX2VtcHR5X2JyYWNlcyI6dHJ1ZSwKCSJleHRlbmRzX29uX25ld2xpbmUiOmZhbHNlLAoJImltcGxlbWVudHNfb25fbmV3bGluZSI6ZmFsc2UsCgkiZnVuY3Rpb25fYXJnX29uX25ld2xpbmUiOmZhbHNlLAoJInNwYWNlX2JldHdlZW5fZnVuY3Rpb25fYXJncyI6dHJ1ZSwKCSJzcGFjZV9hcm91bmRfZnVuY3Rpb25fYXJnX2Fzc2lnbiI6dHJ1ZSwKCSJzcGFjZV9hcm91bmRfcHJvcGVydHlfYXNzaWduIjp0cnVlLAoJInNwYWNlX2JldHdlbl9wcm9wZXJ0eV9nZXRfc2V0Ijp0cnVlLAoJInJlbW92ZV9wcml2YXRlX2ZpZWxkX21vZGlmaWVyIjp0cnVlLAoJImVtcHR5X2xpbmVfYmV0d2Vlbl9lbnVtX2NvbnN0cnVjdG9ycyI6ZmFsc2UsCgkiZW1wdHlfbGluZV9iZXR3ZWVuX3R5cGVkZWZfZmllbGRzIjpmYWxzZSwKCSJzcGFjZV9iZXR3ZWVuX2VudW1fY29uc3RydWN0b3JfYXJncyI6dHJ1ZQp9"}];
+haxe.Resource.content = [{ name : "config", data : "ew0KCSJtYXhpbXVtX2xpbmVfbGVuZ3RoIjo4MCwNCgkibW9kaWZpZXJfb3JkZXIiOlsib3ZlcnJpZGUiLCAicHVibGljIiwgInByaXZhdGUiLCAic3RhdGljIiwgImV4dGVybiIsICJkeW5hbWljIiwgImlubGluZSIsICJtYWNybyJdLA0KCSJpbmRlbnRfd2l0aF90YWJzIjpmYWxzZSwNCgkidGFiX3dpZHRoIjo0LA0KCSJwcmludF9yb290X3BhY2thZ2UiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2FmdGVyX3BhY2thZ2UiOnRydWUsDQoJImVtcHR5X2xpbmVfYWZ0ZXJfaW1wb3J0IjpmYWxzZSwNCgkiZW1wdHlfbGluZV9iZWZvcmVfdHlwZSI6dHJ1ZSwNCgkiY3VkZGxlX3R5cGVfYnJhY2VzIjpmYWxzZSwNCgkiY3VkZGxlX21ldGhvZF9icmFjZXMiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2JldHdlZW5fZmllbGRzIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1zIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX2Fub25fdHlwZV9maWVsZHMiOnRydWUsDQoJInNwYWNlX2JldHdlZW5fdHlwZV9wYXJhbV9jb25zdHJhaW50cyI6dHJ1ZSwNCgkiaW5saW5lX2VtcHR5X2JyYWNlcyI6dHJ1ZSwNCgkiZXh0ZW5kc19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiaW1wbGVtZW50c19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiZnVuY3Rpb25fYXJnX29uX25ld2xpbmUiOmZhbHNlLA0KCSJzcGFjZV9iZXR3ZWVuX2Z1bmN0aW9uX2FyZ3MiOnRydWUsDQoJInNwYWNlX2Fyb3VuZF9mdW5jdGlvbl9hcmdfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9hcm91bmRfcHJvcGVydHlfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZW5fcHJvcGVydHlfZ2V0X3NldCI6dHJ1ZSwNCgkicmVtb3ZlX3ByaXZhdGVfZmllbGRfbW9kaWZpZXIiOnRydWUsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl9lbnVtX2NvbnN0cnVjdG9ycyI6ZmFsc2UsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl90eXBlZGVmX2ZpZWxkcyI6ZmFsc2UsDQoJInNwYWNlX2JldHdlZW5fZW51bV9jb25zdHJ1Y3Rvcl9hcmdzIjp0cnVlDQp9"}];
 var module, setImmediate, clearImmediate;
 js.Node.setTimeout = setTimeout;
 js.Node.clearTimeout = clearTimeout;
