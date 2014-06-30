@@ -94,19 +94,19 @@ class OutlineHelper
 				treeItem.expanded = true;
 				treeItems.push(treeItem);
 			case EClass(data): 
-				var treeItem: TreeItem = { label: data.name };
+				var treeItem: TreeItem = { label: data.name , haxeType:"class"};
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
 				
 				for (item in getClassFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos , haxeType:"class"} );
+					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
 				}
 				
 				treeItems.push(treeItem);
 			case EEnum(data): 
-				var treeItem: TreeItem = { label: data.name };
+				var treeItem: TreeItem = { label: data.name , haxeType:"enum"};
         		var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -118,7 +118,7 @@ class OutlineHelper
        	     	}
         		
 			case ETypedef(data): 
-				var treeItem: TreeItem = { label: data.name };
+				var treeItem: TreeItem = { label: data.name , haxeType:"typedef"};
         		var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
@@ -126,7 +126,7 @@ class OutlineHelper
         
         		for (item in getTypeDefFields(data)) 
 				{
-					items.push( { label: item.name, value: item.pos , haxeType:"typedef"} );
+					items.push( { label: item.name, value: item.pos , haxeType:"field"} );
 				}
 		}
 		

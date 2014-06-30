@@ -19,24 +19,76 @@ class OutlineFormatter{
 		
 		var li:LIElement;
 		
-		trace( source[0].haxeType );
-		
-			
-		for ( item in outlineItems )
+		for( sourceItem in source ) 
 		{
+			//trace( sourceItem.items[0].items[0].haxeType );
+		}
+ 			
+		
+		var fieldIndex:Int = -1;
+		var classIndex:Int = 0;
+		var item:Dynamic;
+		var haxeType:String;
+			
+ 		for ( itemIndex in 0...outlineItems.length )
+ 		{
+			
+			if( itemIndex == 0 ) continue;
+			
+			item = outlineItems[itemIndex];
+			
+			
+			
 			li = cast(item.element, LIElement);
 			
-			if( item.label.split("(").length > 1 )
+			
+			
+			if( fieldIndex == -1 ) 
 			{
-				li.classList.add( "outlineFunction");	
+				fieldIndex = 0;
+				switch (source[0].items[classIndex].haxeType)
+				{
+					case "enum": li.classList.add( "outlineEnum");
+					case "typedef": li.classList.add( "outlineTypeDef");
+				}
+
+				continue;
+			}
+				
+				
+			haxeType = source[0].items[classIndex].items[fieldIndex].haxeType;
+			
+			if( haxeType == "field")
+			{
+				if( item.label.split("(").length > 1 )
+				{
+					li.classList.add( "outlineFunction");	
+				}
+				else 
+				{ 
+
+					li.classList.add( "outlineVar");
+							
+				} 
 			}
 			else 
-			{ 
-				if ( li.className != "jqx-tree-dropdown" && li.className != "jqx-tree-item-li jqx-disableselect" )
+			{
+				switch( haxeType)
 				{
-					li.classList.add( "outlineVar");
-				}		
+					case "enum": li.classList.add( "outlineEnum");
+					case "typedef": li.classList.add( "outlineTypeDef");
+					case "abstract": li.classList.add( "outlineAbstract");
+				}
 			}
+				
+			
+			
+			if ( ++ fieldIndex == source[0].items[classIndex].items.length)
+			{
+				classIndex++;
+				fieldIndex= -1;
+			}
+
 			
 		}
 

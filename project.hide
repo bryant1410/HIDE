@@ -18,7 +18,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 36
+            ,"activeLine" : 57
         }
         ,{
              "path" : "bin\\core\\compact.css"
@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 178
+            ,"activeLine" : 189
         }
         ,{
              "path" : "src\\outline\\OutlineFormatter.hx"
@@ -36,7 +36,16 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 38
+            ,"activeLine" : 49
+        }
+        ,{
+             "path" : "src\\parser\\OutlineHelper.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 0
         }
     ]
     ,"activeFile" : "src\\outline\\OutlineFormatter.hx"
