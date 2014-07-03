@@ -1,5 +1,6 @@
 package parser;
 import haxeparser.Data.TypeDecl;
+import outline.OutlineParser;
 import core.OutlinePanel;
 import haxe.macro.Expr;
 import haxe.macro.Expr.Field;
@@ -32,9 +33,11 @@ class OutlineHelper
 {
 	static var instance:OutlineHelper;
 	
+	var outlineParser:OutlineParser;
+	
 	public function new() 
 	{
-		
+		outlineParser = new OutlineParser();
 	}	
 	
 	public static function get()
@@ -52,8 +55,10 @@ class OutlineHelper
 	public function getList(data:String, path:String)
 	{
 		var ast = ClassParser.parse(data, path);
-        
+
 		var outlinePanel = OutlinePanel.get();
+		
+		 outlineParser.parse(data , path );
 		
 		if (ast != null) 
 		{
