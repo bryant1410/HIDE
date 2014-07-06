@@ -6,6 +6,10 @@ import parser.RegexParser;
  * @author Nick Holder
  */
 
+enum TEST{
+	Buck;
+}
+
 class OutlineItem
 {
 	public var name:String;
@@ -53,34 +57,54 @@ class OutlineParser
 	{
 		var outlineItems = new Array<OutlineItem>();
 		
-		var classes = RegexParser.getClassDeclarations( data );
-		for ( classInfo in classes )
-		{
-			outlineItems.push( new OutlineItem( classInfo.name , "class" , classInfo.pos.pos , classInfo.pos.len ) ); 
-		}
+		var enumIndexs = new Array<Int>();
 		
+		var types = RegexParser.getTypeDeclarations( data );
+		var outlineItem;
+		
+		for ( typeInfo in types )
+		{
+			outlineItem = new OutlineItem( typeInfo.name , typeInfo.type , typeInfo.pos.pos , typeInfo.pos.len );
+			outlineItems.push( outlineItem );
+  
+		
+			if ( typeInfo.type == "enum" )
+			{
+				enumIndexs.push( outlineItems.length -1 );
+			}
+
+		}
+		var enumItem;
+		for ( enumIndex in enumIndexs )
+		{
+			enumItem = outlineItems[ enumIndex ]; 
+			data.subString( enumItem.pos.pos,100 );
+			
+		}
 	
 		var vars = RegexParser.getVariableDeclarations( data );
-		var topLevelItemIndex:Int = 0;
+		var outlineItemIndex:Int = 0;
 
 		for ( varInfo in vars )
 		{
-			while( topLevelItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ topLevelItemIndex +1 ].pos ) topLevelItemIndex ++;
+			while( outlineItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
 	
-			outlineItems[ topLevelItemIndex ].fields.push( new OutlineField( varInfo.name , "var" , varInfo.pos.pos , varInfo.pos.len ) );
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name , "var" , varInfo.pos.pos , varInfo.pos.len ) );
 		}
 		
 		
 		var methods = RegexParser.getFunctionDeclarations(data);
-		topLevelItemIndex = 0;		
+		outlineItemIndex = 0;		
 
 		for ( methodInfo in methods )
 		{
-			while( topLevelItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ topLevelItemIndex +1 ].pos ) topLevelItemIndex ++;
+			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
 	
-			outlineItems[ topLevelItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len ) );
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len ) );
 		}
-
+		
+		trace( outlineItems );
+			
 		return outlineItems;
 	}
 }

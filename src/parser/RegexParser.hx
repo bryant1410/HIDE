@@ -56,13 +56,14 @@ class RegexParser
 	
     public static function getTypeDeclarations(data:String)
     {
-        var typeDeclarations:Array<{type:String, name:String, ?opaqueType:String}> = [];
+        var typeDeclarations:Array<{type:String, name:String, ?opaqueType:String , ?pos:PosData}> = [];
         
         var ereg = ~/(class|typedef|enum|typedef|abstract) +([A-Z][a-zA-Z0-9_]*) *(<[a-zA-Z0-9_,]+>)?/gm;
         
         ereg.map(data, function (ereg2)
                 {
-                    var typeDeclaration = {type: ereg2.matched(1), name: ereg2.matched(2)};
+					var pos = ereg.matchedPos();
+                    var typeDeclaration = {type: ereg2.matched(1), name: ereg2.matched(2) , pos: pos};
                     typeDeclarations.push(typeDeclaration);
                     return "";
                 });

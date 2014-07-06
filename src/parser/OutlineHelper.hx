@@ -19,7 +19,7 @@ typedef DeclarationPos =
 }
 
 
-typedef	ClassField =
+typedef ClassField =
 {
 	var name:String;
 	var pos:DeclarationPos;
