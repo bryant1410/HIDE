@@ -67,9 +67,7 @@ class OutlineParser
 		{
 			outlineItem = new OutlineItem( typeInfo.name , typeInfo.type , typeInfo.pos.pos , typeInfo.pos.len );
 			outlineItems.push( outlineItem );
-  			
-		    trace( typeInfo.type == "enum" , typeInfo.type == " enum" , typeInfo.type == "enum " );
-		
+
 			if ( typeInfo.type == "enum" )
 			{
 				enumIndexs.push( outlineItems.length -1 );
@@ -80,7 +78,16 @@ class OutlineParser
 		for ( enumIndex in enumIndexs )
 		{
 			// TODO: Parse enums
-			trace( data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ) );
+			var enumBlock = data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ); 
+			var regEx1 = ~/([A-Za-z0-9_*]+)/gim;
+
+			regEx1.map(enumBlock, function (ereg2)
+            {
+				var pos = regEx1.matchedPos();
+               
+				outlineItems[ enumIndex ].fields.push( new OutlineField( regEx1.matched(0) , "enum" , pos.pos ,  pos.len ) );
+               return "";
+            });
 		}
 	
 		var vars = RegexParser.getVariableDeclarations( data );

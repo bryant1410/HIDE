@@ -45,7 +45,6 @@ class OutlineFormatter{
 				case "abstract": li.classList.add( "outlineAbstract");
 				case "var": li.classList.add( "outlineVar");
 				case "function": li.classList.add( "outlineFunction");
-
 			}
 		}
 	}
