@@ -74,12 +74,10 @@ class OutlineParser
 			}
 
 		}
-		var enumItem;
+	
 		for ( enumIndex in enumIndexs )
 		{
-			enumItem = outlineItems[ enumIndex ]; 
-			data.subString( enumItem.pos.pos,100 );
-			
+			trace( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos );
 		}
 	
 		var vars = RegexParser.getVariableDeclarations( data );
