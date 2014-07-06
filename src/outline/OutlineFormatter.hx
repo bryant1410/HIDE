@@ -35,36 +35,18 @@ class OutlineFormatter{
 				
 			itemType = treeItemFormats.shift();
 			
-			if( itemType == "field")
+
+			switch( itemType)
 			{
-				if( item.label.split("(").length > 1 )
-				{
-					li.classList.add( "outlineFunction");	
-				}
-				else 
-				{ 
+				case "enum": li.classList.add( "outlineEnum");
+				case "enumGroup": li.classList.add( "outlineEnumGroup");
+				case "class": li.classList.add( "outlineClass");
+				case "typedef": li.classList.add( "outlineTypeDef");
+				case "abstract": li.classList.add( "outlineAbstract");
+				case "var": li.classList.add( "outlineVar");
+				case "function": li.classList.add( "outlineFunction");
 
-					li.classList.add( "outlineVar");
-							
-				} 
 			}
-			else 
-			{
-				switch( itemType)
-				{
-					case "enum": li.classList.add( "outlineEnum");
-					case "enumGroup": li.classList.add( "outlineEnumGroup");
-					case "class": li.classList.add( "outlineClass");
-					case "typedef": li.classList.add( "outlineTypeDef");
-					case "abstract": li.classList.add( "outlineAbstract");
-				}
-			}
-
-
-			
 		}
-
-	
-	
 	}
 }

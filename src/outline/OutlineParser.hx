@@ -6,8 +6,9 @@ import parser.RegexParser;
  * @author Nick Holder
  */
 
-enum TEST{
-	Buck;
+enum TestEnum{
+	Enum1;
+	Enum2;
 }
 
 class OutlineItem
@@ -66,7 +67,8 @@ class OutlineParser
 		{
 			outlineItem = new OutlineItem( typeInfo.name , typeInfo.type , typeInfo.pos.pos , typeInfo.pos.len );
 			outlineItems.push( outlineItem );
-  
+  			
+		    trace( typeInfo.type == "enum" , typeInfo.type == " enum" , typeInfo.type == "enum " );
 		
 			if ( typeInfo.type == "enum" )
 			{
@@ -77,7 +79,8 @@ class OutlineParser
 	
 		for ( enumIndex in enumIndexs )
 		{
-			trace( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos );
+			// TODO: Parse enums
+			trace( data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ) );
 		}
 	
 		var vars = RegexParser.getVariableDeclarations( data );
@@ -101,8 +104,6 @@ class OutlineParser
 			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len ) );
 		}
 		
-		trace( outlineItems );
-			
 		return outlineItems;
 	}
 }

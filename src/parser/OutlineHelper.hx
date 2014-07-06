@@ -25,6 +25,8 @@ typedef ClassField =
 	var pos:DeclarationPos;
 }
 
+	
+	
 /**
  * ...
  * @author AS3Boyan
@@ -58,9 +60,23 @@ class OutlineHelper
 
 		var outlinePanel = OutlinePanel.get();
 		
-		 outlineParser.parse(data , path );
+		var outlineItems = outlineParser.parse(data , path );
 		
-		if (ast != null) 
+		if( outlineItems != null)
+		{
+			var parsedData = parseOutlineItems(outlineItems);
+			var mainClass = Node.path.basename(path);
+			var rootItem:TreeItem = { label: mainClass };
+			rootItem.items = parsedData.treeItems;
+			rootItem.expanded = true;
+			
+            pathToLastFile = path;
+            
+			outlinePanel.clearFields();
+			outlinePanel.addField(rootItem);
+			outlinePanel.update( parsedData.treeItemFormats );
+		}
+		else if (ast != null) 
 		{
 			var parsedData = parseDeclarations(ast);
 			
@@ -81,6 +97,62 @@ class OutlineHelper
             outlinePanel.clearFields();
             outlinePanel.update( );
         }
+	}
+	
+	public function parseOutlineItems( outlineItems:Array<OutlineItem> )
+	{
+		var fileImports = [];
+		
+		var treeItems:Array<TreeItem> = [];
+		var treeItemFormats:Array<String> = [];
+		
+		for (outlineItem in outlineItems) switch (outlineItem.type)
+		{
+			case "class": 
+				var treeItem: TreeItem = { label: outlineItem.name };
+				var items:Array<TreeItem> = [];
+				treeItem.items = items;
+				treeItem.expanded = true;
+				treeItemFormats.push( "class" );	
+			
+				for (item in outlineItem.fields ) 
+				{
+					items.push( { label: item.name, value: item.pos } );
+					treeItemFormats.push( item.type );
+				}
+				
+				treeItems.push(treeItem);
+			case "typedef": 
+				var treeItem: TreeItem = { label: outlineItem.name };
+				var items:Array<TreeItem> = [];
+				treeItem.items = items;
+				treeItem.expanded = true;
+				treeItemFormats.push( "typedef" );	
+			
+				for (item in outlineItem.fields ) 
+				{
+					items.push( { label: item.name, value: item.pos } );
+					treeItemFormats.push( item.type );
+				}
+				
+				treeItems.push(treeItem);
+			case "enum": 
+				var treeItem: TreeItem = { label: outlineItem.name };
+				var items:Array<TreeItem> = [];
+				treeItem.items = items;
+				treeItem.expanded = true;
+				treeItemFormats.push( "enumGroup" );	
+			
+				for (item in outlineItem.fields ) 
+				{
+					items.push( { label: item.name, value: item.pos } );
+					treeItemFormats.push( "enum" );
+				}
+				
+				treeItems.push(treeItem);
+		}
+		
+		return { fileImports: fileImports, treeItems: treeItems , treeItemFormats: treeItemFormats};
 	}
 	
 	public function parseDeclarations(ast:{decls:Array<TypeDecl>, pack:Array<String>}) 
