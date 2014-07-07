@@ -350,3 +350,14 @@ ul.tabs > li:hover {
 	
 }
 
+/* Outline Panel */
+
+.outlinePrivate
+{
+	color:#ff0000 !important;
+}
+
+.outlinStatic
+{
+	color:#111111 !important;
+}

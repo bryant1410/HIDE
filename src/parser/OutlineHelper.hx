@@ -2,6 +2,7 @@ package parser;
 import haxeparser.Data.TypeDecl;
 import outline.OutlineParser;
 import core.OutlinePanel;
+import outline.OutlineFormatter;
 import haxe.macro.Expr;
 import haxe.macro.Expr.Field;
 import haxe.macro.Expr.Position;
@@ -25,7 +26,6 @@ typedef ClassField =
 	var pos:DeclarationPos;
 }
 
-	
 	
 /**
  * ...
@@ -74,7 +74,9 @@ class OutlineHelper
             
 			outlinePanel.clearFields();
 			outlinePanel.addField(rootItem);
-			outlinePanel.update( parsedData.treeItemFormats );
+			outlinePanel.update();
+			new OutlineFormatter( parsedData.treeItemFormats );	
+			
 		}
 		else if (ast != null) 
 		{
@@ -90,7 +92,7 @@ class OutlineHelper
             
 			outlinePanel.clearFields();
 			outlinePanel.addField(rootItem);
-			outlinePanel.update( parsedData.treeItemFormats );
+			outlinePanel.update(  );
 		}
         else if(pathToLastFile != path)
         {
@@ -104,7 +106,7 @@ class OutlineHelper
 		var fileImports = [];
 		
 		var treeItems:Array<TreeItem> = [];
-		var treeItemFormats:Array<String> = [];
+		var treeItemFormats:Array<TreeItemFormat> = [];
 		
 		for (outlineItem in outlineItems) switch (outlineItem.type)
 		{
@@ -113,12 +115,12 @@ class OutlineHelper
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
-				treeItemFormats.push( "class" );	
+				treeItemFormats.push( { type: outlineItem.type , isPublic: true , isStatic: false } );	
 			
 				for (item in outlineItem.fields ) 
 				{
 					items.push( { label: item.name, value: item.pos } );
-					treeItemFormats.push( item.type );
+					treeItemFormats.push( { type: item.type , isPublic: item.isPublic , isStatic: item.isStatic } );
 				}
 				
 				treeItems.push(treeItem);
@@ -127,12 +129,12 @@ class OutlineHelper
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
-				treeItemFormats.push( "typedef" );	
+				treeItemFormats.push( { type: "typedef" , isPublic: true , isStatic: false } );	
 			
 				for (item in outlineItem.fields ) 
 				{
 					items.push( { label: item.name, value: item.pos } );
-					treeItemFormats.push( item.type );
+					treeItemFormats.push( { type: item.type , isPublic: item.isPublic , isStatic: item.isStatic });
 				}
 				
 				treeItems.push(treeItem);
@@ -141,12 +143,12 @@ class OutlineHelper
 				var items:Array<TreeItem> = [];
 				treeItem.items = items;
 				treeItem.expanded = true;
-				treeItemFormats.push( "enumGroup" );	
+				treeItemFormats.push( { type: "enumGroup" , isPublic: true , isStatic: false } );	
 			
 				for (item in outlineItem.fields ) 
 				{
 					items.push( { label: item.name, value: item.pos } );
-					treeItemFormats.push( "enum" );
+					treeItemFormats.push( { type: "enum" , isPublic: true , isStatic: false } );
 				}
 				
 				treeItems.push(treeItem);

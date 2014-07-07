@@ -91,7 +91,7 @@ HIDE.traceScriptLoadingInfo = function(name,url) {
 HIDE.getPluginPath = function(name) {
 	var pluginManager = pluginloader.PluginManager.get();
 	var pathToPlugin = pluginManager.pathToPlugins.get(name);
-	if(pathToPlugin == null) console.log("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'");
+	if(pathToPlugin == null) haxe.Log.trace("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'",{ fileName : "HIDE.hx", lineNumber : 99, className : "HIDE", methodName : "getPluginPath"});
 	return pathToPlugin;
 };
 HIDE.openPageInNewWindow = function(name,url,params) {
@@ -312,7 +312,7 @@ Main.main = function() {
 	Main.window.showDevTools();
 	Main.window.title = "HIDE";
 	js.Node.process.on("uncaughtException",function(err) {
-		console.log(err);
+		haxe.Log.trace(err,{ fileName : "Main.hx", lineNumber : 70, className : "Main", methodName : "main"});
 		Main.window.show();
 	});
 	Main.sync = true;
@@ -372,18 +372,18 @@ Main.main = function() {
 			}
 		});
 		processHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
-			console.log("npm installed " + (installed1 == null?"null":"" + installed1));
+			haxe.Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 171, className : "Main", methodName : "main"});
 			if(installed1) processHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
-				console.log("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
+				haxe.Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 177, className : "Main", methodName : "main"});
 			},function(code,stdout1,stderr1) {
-				console.log("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1));
+				haxe.Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 181, className : "Main", methodName : "main"});
 			});
 		});
 		processHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
-			console.log("lime installed " + (installed2 == null?"null":"" + installed2));
+			haxe.Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 190, className : "Main", methodName : "main"});
 		});
 		processHelper.checkProcessInstalled("git",["--version"],function(installed3) {
-			console.log("git installed " + (installed3 == null?"null":"" + installed3));
+			haxe.Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 196, className : "Main", methodName : "main"});
 		});
 		Main.window.show();
 	});
@@ -1226,7 +1226,7 @@ cm.ERegPreview.update = function(cm1) {
 			return "";
 		});
 	} catch( unknown ) {
-		console.log(unknown);
+		haxe.Log.trace(unknown,{ fileName : "ERegPreview.hx", lineNumber : 53, className : "cm.ERegPreview", methodName : "update"});
 	}
 };
 cm.Editor = function() { };
@@ -1241,7 +1241,7 @@ cm.Editor.load = function() {
 		options = tjson.TJSON.parse(js.Node.require("fs").readFileSync(js.Node.require("path").join("core","config","editor.json"),readFileOptions));
 	} catch( err ) {
 		if( js.Boot.__instanceof(err,Error) ) {
-			console.log(err);
+			haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 63, className : "cm.Editor", methodName : "load"});
 		} else throw(err);
 	}
 	cm.Editor.walk(options);
@@ -1449,7 +1449,7 @@ cm.Editor.load = function() {
 						suggestions.push("new " + type);
 						completionInstance.showCodeSuggestions(suggestions);
 					} else {
-						console.log(name);
+						haxe.Log.trace(name,{ fileName : "Editor.hx", lineNumber : 427, className : "cm.Editor", methodName : "load"});
 						var ereg4 = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$","gm");
 						ereg4.map(value1,function(ereg32) {
 							var text2 = StringTools.trim(ereg32.matched(1));
@@ -1492,7 +1492,7 @@ cm.Editor.load = function() {
 		}
 		var tab = tabManagerInstance.tabMap.get(tabManagerInstance.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
-		console.log(e2);
+		haxe.Log.trace(e2,{ fileName : "Editor.hx", lineNumber : 538, className : "cm.Editor", methodName : "load"});
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			var text3 = e2.text[0];
 			var removed = e2.removed[0];
@@ -1555,13 +1555,13 @@ cm.Editor.saveFoldedRegions = function() {
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
-			console.log("folding regions saved successfully for" + Std.string(selectedFile));
-		} else console.log("cannot save folded regions for this document");
-	} else console.log("unable to preserve code folding for" + Std.string(doc));
+			haxe.Log.trace("folding regions saved successfully for" + Std.string(selectedFile),{ fileName : "Editor.hx", lineNumber : 660, className : "cm.Editor", methodName : "saveFoldedRegions"});
+		} else haxe.Log.trace("cannot save folded regions for this document",{ fileName : "Editor.hx", lineNumber : 664, className : "cm.Editor", methodName : "saveFoldedRegions"});
+	} else haxe.Log.trace("unable to preserve code folding for" + Std.string(doc),{ fileName : "Editor.hx", lineNumber : 669, className : "cm.Editor", methodName : "saveFoldedRegions"});
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
-	console.log("triggerCompletion");
+	haxe.Log.trace("triggerCompletion",{ fileName : "Editor.hx", lineNumber : 676, className : "cm.Editor", methodName : "triggerCompletion"});
 	var tabManagerInstance = tabmanager.TabManager.get();
 	var completionInstance = core.Completion.get();
 	var modeName = tabManagerInstance.getCurrentDocument().getMode().name;
@@ -1593,13 +1593,13 @@ cm.Editor.walk = function(object) {
 				Reflect.setField(object,field,Type.createInstance(regexp,[value.substring(6)]));
 			} catch( err ) {
 				if( js.Boot.__instanceof(err,Error) ) {
-					console.log(err);
+					haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 722, className : "cm.Editor", methodName : "walk"});
 				} else throw(err);
 			} else if(StringTools.startsWith(value,"eval")) try {
 				Reflect.setField(object,field,js.Lib["eval"](value.substring(4)));
 			} catch( err1 ) {
 				if( js.Boot.__instanceof(err1,Error) ) {
-					console.log(err1);
+					haxe.Log.trace(err1,{ fileName : "Editor.hx", lineNumber : 733, className : "cm.Editor", methodName : "walk"});
 				} else throw(err1);
 			}
 		}
@@ -1681,7 +1681,7 @@ cm.Xml.prototype = {
 		try {
 			xml = haxe.xml.Parser.parse(data);
 		} catch( unknown ) {
-			console.log(unknown);
+			haxe.Log.trace(unknown,{ fileName : "Xml.hx", lineNumber : 46, className : "cm.Xml", methodName : "generateXmlCompletion"});
 		}
 		var tags = { '!attrs' : { }};
 		if(xml != null) {
@@ -2462,7 +2462,7 @@ core.Completion.prototype = {
 	}
 	,processArguments: function(projectArguments,onComplete,_pos,mode,moveCursorToStart) {
 		var _g = this;
-		console.log("processArguments");
+		haxe.Log.trace("processArguments",{ fileName : "Completion.hx", lineNumber : 385, className : "core.Completion", methodName : "processArguments"});
 		projectArguments.push("--no-output");
 		projectArguments.push("--display");
 		var cm1 = cm.Editor.editor;
@@ -2481,7 +2481,7 @@ core.Completion.prototype = {
 		this.completions = [];
 		this.declarationPositions = [];
 		var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
-		console.log(params);
+		haxe.Log.trace(params,{ fileName : "Completion.hx", lineNumber : 433, className : "core.Completion", methodName : "processArguments"});
 		var pathToHaxe = core.HaxeHelper.getPathToHaxe();
 		var processHelper = core.ProcessHelper.get();
 		processHelper.runProcess(pathToHaxe,params,null,function(stdout,stderr) {
@@ -2520,8 +2520,8 @@ core.Completion.prototype = {
 			}
 			onComplete();
 		},function(code,stdout1,stderr1) {
-			console.log(code);
-			console.log(stderr1);
+			haxe.Log.trace(code,{ fileName : "Completion.hx", lineNumber : 492, className : "core.Completion", methodName : "processArguments"});
+			haxe.Log.trace(stderr1,{ fileName : "Completion.hx", lineNumber : 493, className : "core.Completion", methodName : "processArguments"});
 			onComplete();
 		});
 	}
@@ -2766,10 +2766,10 @@ core.Completion.prototype = {
 						topLevelClassList.push({ name : relativeImport, fullName : item});
 					} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
 						relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-						console.log(relativeImport);
+						haxe.Log.trace(relativeImport,{ fileName : "Completion.hx", lineNumber : 872, className : "core.Completion", methodName : "getClassList"});
 						if(StringTools.startsWith(relativeImport,mainClass + ".")) {
 							relativeImport = HxOverrides.substr(relativeImport,mainClass.length + 1,null);
-							console.log(relativeImport);
+							haxe.Log.trace(relativeImport,{ fileName : "Completion.hx", lineNumber : 877, className : "core.Completion", methodName : "getClassList"});
 							topLevelClassList.push({ name : relativeImport, fullName : item});
 						} else importsList.push(relativeImport);
 					} else {
@@ -3212,7 +3212,7 @@ core.HaxeLint.updateLinting = function() {
 			try {
 				core.HaxeParserProvider.getClassName();
 			} catch( e ) {
-				console.log(e);
+				haxe.Log.trace(e,{ fileName : "HaxeLint.hx", lineNumber : 73, className : "core.HaxeLint", methodName : "updateLinting"});
 			}
 			var path = tabManagerInstance.getCurrentDocumentPath();
 			outlineHelper.getList(doc.getValue(),path);
@@ -3511,7 +3511,7 @@ core.HaxeParserProvider.getClassName = function() {
 				}
 			}
 		} catch( e ) { if( e != "__break__" ) throw e; }
-	} else console.log("ast is null");
+	} else haxe.Log.trace("ast is null",{ fileName : "HaxeParserProvider.hx", lineNumber : 238, className : "core.HaxeParserProvider", methodName : "getClassName"});
 };
 core.HaxeParserProvider.parse = function(data,path) {
 	var input = byte.js._ByteData.ByteData_Impl_.ofString(data);
@@ -3581,18 +3581,18 @@ core.HaxeServer.__name__ = ["core","HaxeServer"];
 core.HaxeServer.check = function() {
 	var socket = js.Node.require("net").connect(5000,"localhost");
 	socket.on("error",function(e) {
-		console.log("Haxe server is not found at localhost:5000");
+		haxe.Log.trace("Haxe server is not found at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 24, className : "core.HaxeServer", methodName : "check"});
 	});
 	socket.on("close",function(e1) {
 		if(e1) core.HaxeServer.start();
 	});
 };
 core.HaxeServer.start = function() {
-	console.log("Starting new Haxe server at localhost:5000");
+	haxe.Log.trace("Starting new Haxe server at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 39, className : "core.HaxeServer", methodName : "start"});
 	var processHelper = core.ProcessHelper.get();
 	core.HaxeServer.haxeServer = processHelper.runPersistentProcess(core.HaxeHelper.getPathToHaxe(),["--wait","5000"],null,function(code,stdout,stderr) {
-		console.log(stdout);
-		console.log(stderr);
+		haxe.Log.trace(stdout,{ fileName : "HaxeServer.hx", lineNumber : 45, className : "core.HaxeServer", methodName : "start"});
+		haxe.Log.trace(stderr,{ fileName : "HaxeServer.hx", lineNumber : 46, className : "core.HaxeServer", methodName : "start"});
 	});
 	var $window = nodejs.webkit.Window.get();
 	$window.on("close",function(e) {
@@ -3621,7 +3621,7 @@ $hxClasses["core.Hotkeys"] = core.Hotkeys;
 core.Hotkeys.__name__ = ["core","Hotkeys"];
 core.Hotkeys.prepare = function() {
 	core.Hotkeys.commandKey = core.Utils.os == 2;
-	console.log("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey));
+	haxe.Log.trace("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey),{ fileName : "Hotkeys.hx", lineNumber : 38, className : "core.Hotkeys", methodName : "prepare"});
 	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
 	watchers.Watcher.watchFileForUpdates(core.Hotkeys.pathToData,function() {
@@ -3873,7 +3873,7 @@ core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 				var item = list[_g2];
 				++_g2;
 				if(StringTools.endsWith(item,searchPattern)) {
-					console.log(item);
+					haxe.Log.trace(item,{ fileName : "ImportDefinition.hx", lineNumber : 161, className : "core.ImportDefinition", methodName : "checkImport"});
 					var _g3 = 0;
 					while(_g3 < topLevelClassList.length) {
 						var topLevelClass1 = topLevelClassList[_g3];
@@ -4224,7 +4224,7 @@ core.OutlinePanel.get = function() {
 };
 core.OutlinePanel.prototype = {
 	source: null
-	,update: function(treeItemFormats) {
+	,update: function() {
 		new $("#outline").jqxTree({ source : this.source});
 		new $("#outline").dblclick(function(event) {
 			var item = new $("#outline").jqxTree("getSelectedItem");
@@ -4241,7 +4241,6 @@ core.OutlinePanel.prototype = {
 				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
-		new outline.OutlineFormatter(treeItemFormats);
 	}
 	,addField: function(item) {
 		this.source.push(item);
@@ -4362,7 +4361,7 @@ core.ProcessHelper.prototype = {
 		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
 		if(StringTools.trim(stdout) != "") {
 			textarea.value += "stdout:\n" + stdout;
-			console.log("stdout:\n" + stdout);
+			haxe.Log.trace("stdout:\n" + stdout,{ fileName : "ProcessHelper.hx", lineNumber : 120, className : "core.ProcessHelper", methodName : "processOutput"});
 		}
 		core.HaxeLint.fileData = new haxe.ds.StringMap();
 		var switchToResultsTab = false;
@@ -4437,7 +4436,7 @@ core.ProcessHelper.prototype = {
 				}
 			}
 			textarea.value += "stderr:\n" + stderr;
-			console.log("stderr:\n" + stderr);
+			haxe.Log.trace("stderr:\n" + stderr,{ fileName : "ProcessHelper.hx", lineNumber : 245, className : "core.ProcessHelper", methodName : "processOutput"});
 		}
 		if(code == 0) {
 			Alertify.success("Build complete!");
@@ -4477,14 +4476,14 @@ core.ProcessHelper.prototype = {
 			}
 		});
 		process1.on("error",function(e) {
-			console.log(e);
+			haxe.Log.trace(e,{ fileName : "ProcessHelper.hx", lineNumber : 320, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 		});
 		process1.on("close",function(code) {
-			console.log(_g.processStdout);
-			console.log(_g.processStderr);
+			haxe.Log.trace(_g.processStdout,{ fileName : "ProcessHelper.hx", lineNumber : 326, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
+			haxe.Log.trace(_g.processStderr,{ fileName : "ProcessHelper.hx", lineNumber : 327, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 			if(onClose != null) onClose(code,_g.processStdout,_g.processStderr);
 			if(code != 0) process1 = null;
-			console.log("started process quit with exit code " + code);
+			haxe.Log.trace("started process quit with exit code " + code,{ fileName : "ProcessHelper.hx", lineNumber : 339, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 		});
 		return process1;
 	}
@@ -4492,9 +4491,9 @@ core.ProcessHelper.prototype = {
 		var installed;
 		js.Node.require("child_process").exec(this.processParamsToCommand(process,params),{ },function(error,stdout,stderr) {
 			if(error == null) installed = true; else {
-				console.log(error);
-				console.log(stdout);
-				console.log(stderr);
+				haxe.Log.trace(error,{ fileName : "ProcessHelper.hx", lineNumber : 363, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
+				haxe.Log.trace(stdout,{ fileName : "ProcessHelper.hx", lineNumber : 364, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
+				haxe.Log.trace(stderr,{ fileName : "ProcessHelper.hx", lineNumber : 365, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
 				installed = false;
 			}
 			onComplete(installed);
@@ -4696,12 +4695,12 @@ core.RecentProjectsList = function() {
 		if(recentProjectsData != null) try {
 			this.projectList = tjson.TJSON.parse(recentProjectsData);
 		} catch( unknown ) {
-			console.log(unknown);
+			haxe.Log.trace(unknown,{ fileName : "RecentProjectsList.hx", lineNumber : 52, className : "core.RecentProjectsList", methodName : "new"});
 		}
 		if(recentFilesData1 != null) try {
 			this.fileList = tjson.TJSON.parse(recentFilesData1);
 		} catch( unknown1 ) {
-			console.log(unknown1);
+			haxe.Log.trace(unknown1,{ fileName : "RecentProjectsList.hx", lineNumber : 64, className : "core.RecentProjectsList", methodName : "new"});
 		}
 	}
 	nodejs.webkit.Window.get().on("close",function() {
@@ -4887,9 +4886,9 @@ core.RunProject.killRunningProcessAndRunNew = function(process,params,cwd) {
 	return processHelper.runPersistentProcess(process,params,cwd,null,true);
 };
 core.RunProject.killRunProcess = function() {
-	console.log(core.RunProject.runProcess);
+	haxe.Log.trace(core.RunProject.runProcess,{ fileName : "RunProject.hx", lineNumber : 193, className : "core.RunProject", methodName : "killRunProcess"});
 	if(core.RunProject.runProcess != null) {
-		console.log("kill");
+		haxe.Log.trace("kill",{ fileName : "RunProject.hx", lineNumber : 197, className : "core.RunProject", methodName : "killRunProcess"});
 		core.RunProject.runProcess.kill();
 	}
 };
@@ -4942,7 +4941,7 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 					if(err == null) {
 						hxmlData = data;
 						build.Hxml.checkHxml(dirname,filename,hxmlData,onComplete);
-					} else console.log(err);
+					} else haxe.Log.trace(err,{ fileName : "RunProject.hx", lineNumber : 288, className : "core.RunProject", methodName : "buildSpecifiedProject"});
 				});
 			} else {
 				hxmlData = cm.Editor.editor.getValue();
@@ -5022,7 +5021,7 @@ core.Utils.prepare = function() {
 	var platform = js.Node.require("os").platform();
 	core.Utils.os = 3;
 	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
-	console.log("platform is " + (platform == null?"null":"" + platform));
+	haxe.Log.trace("platform is " + (platform == null?"null":"" + platform),{ fileName : "Utils.hx", lineNumber : 37, className : "core.Utils", methodName : "prepare"});
 };
 core.WelcomeScreen = function() {
 };
@@ -5750,23 +5749,23 @@ filetree.FileTree.prototype = {
 		}
 		var classpathWalker = parser.ClasspathWalker.get();
 		var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
-			console.log(changeType);
-			console.log(filePath);
-			console.log(fileCurrentStat);
-			console.log(filePreviousStat);
+			haxe.Log.trace(changeType,{ fileName : "FileTree.hx", lineNumber : 604, className : "filetree.FileTree", methodName : "load"});
+			haxe.Log.trace(filePath,{ fileName : "FileTree.hx", lineNumber : 605, className : "filetree.FileTree", methodName : "load"});
+			haxe.Log.trace(fileCurrentStat,{ fileName : "FileTree.hx", lineNumber : 606, className : "filetree.FileTree", methodName : "load"});
+			haxe.Log.trace(filePreviousStat,{ fileName : "FileTree.hx", lineNumber : 607, className : "filetree.FileTree", methodName : "load"});
 			switch(changeType) {
 			case "create":
-				console.log(changeType);
-				console.log(filePath);
+				haxe.Log.trace(changeType,{ fileName : "FileTree.hx", lineNumber : 612, className : "filetree.FileTree", methodName : "load"});
+				haxe.Log.trace(filePath,{ fileName : "FileTree.hx", lineNumber : 613, className : "filetree.FileTree", methodName : "load"});
 				js.Node.require("fs").stat(filePath,function(error,stat) {
 					if(error == null) {
 						if(stat.isFile()) {
 							if(changeType == "create") classpathWalker.addFile(filePath); else classpathWalker.removeFile(filePath);
 						} else if(stat.isDirectory()) {
-							console.log(changeType);
-							console.log(filePath);
+							haxe.Log.trace(changeType,{ fileName : "FileTree.hx", lineNumber : 633, className : "filetree.FileTree", methodName : "load"});
+							haxe.Log.trace(filePath,{ fileName : "FileTree.hx", lineNumber : 634, className : "filetree.FileTree", methodName : "load"});
 						}
-					} else console.log(error);
+					} else haxe.Log.trace(error,{ fileName : "FileTree.hx", lineNumber : 640, className : "filetree.FileTree", methodName : "load"});
 				});
 				break;
 			case "delete":
@@ -5788,6 +5787,12 @@ $hxClasses["haxe.Json"] = haxe.Json;
 haxe.Json.__name__ = ["haxe","Json"];
 haxe.Json.parse = function(jsonString) {
 	return JSON.parse(jsonString);
+};
+haxe.Log = function() { };
+$hxClasses["haxe.Log"] = haxe.Log;
+haxe.Log.__name__ = ["haxe","Log"];
+haxe.Log.trace = function(v,infos) {
+	js.Boot.__trace(v,infos);
 };
 haxe.Resource = function() { };
 $hxClasses["haxe.Resource"] = haxe.Resource;
@@ -8670,6 +8675,25 @@ var js = {};
 js.Boot = function() { };
 $hxClasses["js.Boot"] = js.Boot;
 js.Boot.__name__ = ["js","Boot"];
+js.Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js.Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js.Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js.Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
 js.Boot.getClass = function(o) {
 	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
 };
@@ -13803,7 +13827,7 @@ haxeprinter.Printer.prototype = {
 		if(this.config.empty_line_after_import) this.newline();
 	}
 	,printAbstract: function(data) {
-		console.log(data);
+		haxe.Log.trace(data,{ fileName : "Printer.hx", lineNumber : 155, className : "haxeprinter.Printer", methodName : "printAbstract"});
 	}
 	,printClass: function(type) {
 		if(this.buf.b.length > 0 && this.config.empty_line_before_type) this.newline();
@@ -14298,14 +14322,14 @@ haxeproject.HaxeProject = function() {
 	var path = js.Node.require("path").join("core","templates","Main.tpl");
 	js.Node.require("fs").readFile(path,options,function(error,data) {
 		if(error == null) _g.code = data; else {
-			console.log(error);
+			haxe.Log.trace(error,{ fileName : "HaxeProject.hx", lineNumber : 64, className : "haxeproject.HaxeProject", methodName : "new"});
 			Alertify.error("Can't load template " + path);
 		}
 	});
 	path = js.Node.require("path").join("core","templates","index.tpl");
 	js.Node.require("fs").readFile(path,options,function(error1,data1) {
 		if(error1 == null) _g.indexPageCode = data1; else {
-			console.log(error1);
+			haxe.Log.trace(error1,{ fileName : "HaxeProject.hx", lineNumber : 80, className : "haxeproject.HaxeProject", methodName : "new"});
 			Alertify.error("Can't load template " + path);
 		}
 	});
@@ -14377,7 +14401,7 @@ haxeproject.HaxeProject.prototype = {
 					if(exists) {
 						var tabManagerInstance1 = tabmanager.TabManager.get();
 						tabManagerInstance1.openFileInNewTab(pathToMain);
-					} else console.log(pathToMain + " file was not generated");
+					} else haxe.Log.trace(pathToMain + " file was not generated",{ fileName : "HaxeProject.hx", lineNumber : 189, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
 				});
 			});
 			var filenames = ["flash","javascript","neko","php","cpp","java","csharp","python"];
@@ -14441,7 +14465,7 @@ haxeproject.HaxeProject.prototype = {
 					var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
 					js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
 						if(error2 != null) {
-							console.log(error2);
+							haxe.Log.trace(error2,{ fileName : "HaxeProject.hx", lineNumber : 275, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
 							Alertify.error("Generate web page error: " + error2);
 						}
 					});
@@ -15638,11 +15662,11 @@ openproject.OpenProject.openProject = function(pathToProject,project) {
 };
 openproject.OpenProject.checkIfFileExists = function(path) {
 	js.Node.require("fs").exists(path,function(exists) {
-		if(exists) openproject.OpenProject.parseProject(path); else console.log("previously opened project: " + path + " was not found");
+		if(exists) openproject.OpenProject.parseProject(path); else haxe.Log.trace("previously opened project: " + path + " was not found",{ fileName : "OpenProject.hx", lineNumber : 59, className : "openproject.OpenProject", methodName : "checkIfFileExists"});
 	});
 };
 openproject.OpenProject.parseProject = function(path) {
-	console.log("open: " + path);
+	haxe.Log.trace("open: " + path,{ fileName : "OpenProject.hx", lineNumber : 67, className : "openproject.OpenProject", methodName : "parseProject"});
 	var filename = js.Node.require("path").basename(path);
 	var outlinePanel = core.OutlinePanel.get();
 	var tabManagerInstance = tabmanager.TabManager.get();
@@ -15691,7 +15715,7 @@ openproject.OpenProject.parseProject = function(path) {
 											js.Node.require("fs").exists(fullPathToActiveFile,(function() {
 												return function(exists1) {
 													if(exists1) {
-														console.log(fullPathToActiveFile);
+														haxe.Log.trace(fullPathToActiveFile,{ fileName : "OpenProject.hx", lineNumber : 145, className : "openproject.OpenProject", methodName : "parseProject"});
 														tabManagerInstance.selectDoc(fullPathToActiveFile);
 														cm.Editor.editor.focus();
 													}
@@ -15753,7 +15777,7 @@ openproject.OpenProject.parseProject = function(path) {
 					var fast = new haxe.xml.Fast(xml);
 					if(fast.hasNode.resolve("project")) openproject.OpenFL.open(path); else Alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
 				} else {
-					console.log(error1);
+					haxe.Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 250, className : "openproject.OpenProject", methodName : "parseProject"});
 					Alertify.error("Can't open file: " + path + "\n" + error1);
 				}
 			});
@@ -15789,8 +15813,8 @@ openproject.OpenProject.parseProjectData = function(data) {
 	try {
 		project = tjson.TJSON.parse(data);
 	} catch( unknown ) {
-		console.log(unknown);
-		console.log(data);
+		haxe.Log.trace(unknown,{ fileName : "OpenProject.hx", lineNumber : 310, className : "openproject.OpenProject", methodName : "parseProjectData"});
+		haxe.Log.trace(data,{ fileName : "OpenProject.hx", lineNumber : 311, className : "openproject.OpenProject", methodName : "parseProjectData"});
 		project = js.Node.parse(data);
 	}
 	return project;
@@ -15810,9 +15834,8 @@ outline.OutlineFormatter = function(treeItemFormats) {
 		if(i == 0) continue;
 		li = js.Boot.__cast(item1.element , HTMLLIElement);
 		itemType = treeItemFormats.shift();
-		if(itemType == "field") {
-			if(item1.label.split("(").length > 1) li.classList.add("outlineFunction"); else li.classList.add("outlineVar");
-		} else switch(itemType) {
+		var _g2 = itemType.type;
+		switch(_g2) {
 		case "enum":
 			li.classList.add("outlineEnum");
 			break;
@@ -15828,7 +15851,15 @@ outline.OutlineFormatter = function(treeItemFormats) {
 		case "abstract":
 			li.classList.add("outlineAbstract");
 			break;
+		case "var":
+			li.classList.add("outlineVar");
+			break;
+		case "function":
+			li.classList.add("outlineFunction");
+			break;
 		}
+		if(!itemType.isPublic) li.classList.add("outlinePrivate");
+		if(itemType.isStatic) li.classList.add("outlineStatic");
 	}
 };
 $hxClasses["outline.OutlineFormatter"] = outline.OutlineFormatter;
@@ -15836,7 +15867,251 @@ outline.OutlineFormatter.__name__ = ["outline","OutlineFormatter"];
 outline.OutlineFormatter.prototype = {
 	__class__: outline.OutlineFormatter
 };
+outline.OutlineItem = function(name,type,pos,len) {
+	this.name = name;
+	this.type = type;
+	this.pos = pos;
+	this.len = len;
+	this.fields = new Array();
+};
+$hxClasses["outline.OutlineItem"] = outline.OutlineItem;
+outline.OutlineItem.__name__ = ["outline","OutlineItem"];
+outline.OutlineItem.prototype = {
+	name: null
+	,type: null
+	,pos: null
+	,len: null
+	,fields: null
+	,__class__: outline.OutlineItem
+};
+outline.OutlineField = function(name,type,pos,len,isPublic,isStatic) {
+	this.name = name;
+	this.type = type;
+	this.pos = pos;
+	this.len = len;
+};
+$hxClasses["outline.OutlineField"] = outline.OutlineField;
+outline.OutlineField.__name__ = ["outline","OutlineField"];
+outline.OutlineField.prototype = {
+	name: null
+	,type: null
+	,pos: null
+	,len: null
+	,isPublic: null
+	,isStatic: null
+	,__class__: outline.OutlineField
+};
 var parser = {};
+parser.RegexParser = function() { };
+$hxClasses["parser.RegexParser"] = parser.RegexParser;
+parser.RegexParser.__name__ = ["parser","RegexParser"];
+parser.RegexParser.getFileImportsList = function(data) {
+	var fileImports = [];
+	var ereg = new EReg("^[ \t]*import ([a-z0-9._*]+);$","gim");
+	ereg.map(data,function(ereg1) {
+		fileImports.push(ereg1.matched(1));
+		return "";
+	});
+	return fileImports;
+};
+parser.RegexParser.getFilePackage = function(data) {
+	var filePackage = null;
+	var pos = null;
+	var ereg = new EReg("package *([^;]*);$","m");
+	if(ereg.match(data)) {
+		filePackage = StringTools.trim(ereg.matched(1));
+		pos = ereg.matchedPos().pos;
+	}
+	return { filePackage : filePackage, pos : pos};
+};
+parser.RegexParser.getTypeDeclarations = function(data) {
+	var typeDeclarations = [];
+	var ereg = new EReg("(class|typedef|enum|typedef|abstract) +([A-Z][a-zA-Z0-9_]*) *(<[a-zA-Z0-9_,]+>)?","gm");
+	ereg.map(data,function(ereg2) {
+		var pos = ereg.matchedPos();
+		var typeDeclaration = { type : ereg2.matched(1), name : ereg2.matched(2), pos : pos};
+		typeDeclarations.push(typeDeclaration);
+		return "";
+	});
+	return typeDeclarations;
+};
+parser.RegexParser.getFunctionDeclarations = function(data) {
+	var functionDeclarations = [];
+	var eregFunction = new EReg("function +([^;\\.\\(\\) ]*)","gi");
+	var eregFunctionWithParameters = new EReg("function *([a-zA-Z0-9_]*) *\\(([^\\)]*)","gm");
+	var eregParamDefault = new EReg("(= *\"*[^\"]*\")","gm");
+	eregFunctionWithParameters.map(data,function(ereg2) {
+		var pos = ereg2.matchedPos();
+		var name = ereg2.matched(1);
+		if(name != null) {
+			if(name != "new") {
+				var params = null;
+				var str = ereg2.matched(2);
+				if(str != null) params = str.split(",");
+				functionDeclarations.push({ name : name, params : params, pos : pos});
+			}
+		}
+		return "";
+	});
+	return functionDeclarations;
+};
+parser.RegexParser.getVariableDeclarations = function(data) {
+	var variableDeclarations = [];
+	var eregVariables = new EReg("var +([a-z_0-9]+):?([^=;]+)?","gi");
+	eregVariables.map(data,function(ereg2) {
+		var pos = ereg2.matchedPos();
+		var index = pos.pos + pos.len;
+		var name = ereg2.matched(1);
+		var type = ereg2.matched(2);
+		var varDecl = Lambda.find(variableDeclarations,function(varDecl1) {
+			return varDecl1.name == name;
+		});
+		if(varDecl == null) {
+			var varDecl11 = { name : name, pos : pos};
+			if(type != null) {
+				type = StringTools.trim(type);
+				if(type != "") varDecl11.type = type;
+			}
+			variableDeclarations.push(varDecl11);
+		}
+		return "";
+	});
+	return variableDeclarations;
+};
+parser.RegexParser.getClassDeclarations = function(data) {
+	var classDeclarations = [];
+	var eregClass = new EReg("class[\t ]+([a-z_0-9]+)[^;\n]+\n?\\{","gi");
+	eregClass.map(data,function(ereg) {
+		var pos = ereg.matchedPos();
+		classDeclarations.push({ name : ereg.matched(1), pos : pos});
+		return "";
+	});
+	return classDeclarations;
+};
+parser.RegexParser.getFunctionParameters = function(data,pos) {
+	var functionDeclarations = [];
+	var functionParams = [];
+	var eregFunction = new EReg("[public|private|static|inline|macro\t ]* function[\t ]+([^;\\.\\(\\) ]+)\\((.+)\\)[^;\\.{]+\\{","gi");
+	eregFunction.map(data,function(ereg) {
+		functionDeclarations.push({ name : ereg.matched(1), params : ereg.matched(2).split(","), pos : ereg.matchedPos()});
+		return "";
+	});
+	var currentFunctionDeclaration = null;
+	var _g = 0;
+	while(_g < functionDeclarations.length) {
+		var item = functionDeclarations[_g];
+		++_g;
+		if(cm.Editor.editor.indexFromPos(pos) < item.pos.pos + item.pos.len) break;
+		currentFunctionDeclaration = item;
+	}
+	if(currentFunctionDeclaration != null) {
+		var ereg1 = new EReg("([a-z_0-9]+):?([^=;]+)?","gi");
+		var _g1 = 0;
+		var _g11 = currentFunctionDeclaration.params;
+		while(_g1 < _g11.length) {
+			var param = _g11[_g1];
+			++_g1;
+			if(ereg1.match(param)) functionParams.push({ name : ereg1.matched(1), type : ereg1.matched(2)});
+		}
+	}
+	return functionParams;
+};
+outline.OutlineParser = function() {
+};
+$hxClasses["outline.OutlineParser"] = outline.OutlineParser;
+outline.OutlineParser.__name__ = ["outline","OutlineParser"];
+outline.OutlineParser.__super__ = parser.RegexParser;
+outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
+	parse: function(data,path) {
+		var outlineItems = new Array();
+		var enumIndexs = new Array();
+		var types = parser.RegexParser.getTypeDeclarations(data);
+		var outlineItem;
+		var _g = 0;
+		while(_g < types.length) {
+			var typeInfo = types[_g];
+			++_g;
+			outlineItem = new outline.OutlineItem(typeInfo.name,typeInfo.type,typeInfo.pos.pos,typeInfo.pos.len);
+			outlineItems.push(outlineItem);
+			if(typeInfo.type == "enum") enumIndexs.push(outlineItems.length - 1);
+		}
+		var _g1 = 0;
+		while(_g1 < enumIndexs.length) {
+			var enumIndex = [enumIndexs[_g1]];
+			++_g1;
+			var enumBlock = data.substring(outlineItems[enumIndex[0]].pos,outlineItems[enumIndex[0] + 1].pos);
+			var regEx1 = [new EReg("([A-Za-z0-9_]+);","gm")];
+			regEx1[0].map(enumBlock,(function(regEx1,enumIndex) {
+				return function(ereg2) {
+					var pos = regEx1[0].matchedPos();
+					outlineItems[enumIndex[0]].fields.push(new outline.OutlineField(regEx1[0].matched(1),"enum",pos.pos,pos.len));
+					return "";
+				};
+			})(regEx1,enumIndex));
+		}
+		var vars = this.getVariableDeclarations(data);
+		var outlineItemIndex = 0;
+		var _g2 = 0;
+		while(_g2 < vars.length) {
+			var varInfo = vars[_g2];
+			++_g2;
+			while(outlineItemIndex + 1 < outlineItems.length && varInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
+			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(varInfo.name,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
+		}
+		var methods = this.getFunctionDeclarations(data);
+		outlineItemIndex = 0;
+		var _g3 = 0;
+		while(_g3 < methods.length) {
+			var methodInfo = methods[_g3];
+			++_g3;
+			while(outlineItemIndex + 1 < outlineItems.length && methodInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
+			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(methodInfo.name,"function",methodInfo.pos.pos,methodInfo.pos.len));
+		}
+		return outlineItems;
+	}
+	,getVariableDeclarations: function(data) {
+		var variableDeclarations = [];
+		var eregVariables = new EReg("(static)?\\s?(public)?\\s?var +([a-z_0-9]+):?([^=;]+)?","gi");
+		eregVariables.map(data,function(ereg2) {
+			var pos = ereg2.matchedPos();
+			var index = pos.pos + pos.len;
+			var isStatic = ereg2.matched(1) == "static";
+			var isPublic = ereg2.matched(2) == "public";
+			var name = ereg2.matched(3);
+			var type = ereg2.matched(4);
+			var varDecl1 = { name : name, pos : pos, type : "", params : null, isPublic : isPublic, isStatic : isStatic};
+			if(type != null) {
+				type = StringTools.trim(type);
+				if(type != "") varDecl1.type = type;
+			}
+			variableDeclarations.push(varDecl1);
+			return "";
+		});
+		return variableDeclarations;
+	}
+	,getFunctionDeclarations: function(data) {
+		var functionDeclarations = [];
+		var eregFunctionWithParameters = new EReg("(static)?\\s?(public)?\\s?function *([a-zA-Z0-9_]*) *\\(([^\\)]*)","gm");
+		eregFunctionWithParameters.map(data,function(ereg2) {
+			var pos = ereg2.matchedPos();
+			var isStatic = ereg2.matched(1) == "static";
+			var isPublic = ereg2.matched(2) == "public";
+			var name = ereg2.matched(3);
+			if(name != "") {
+				if(name != "new") {
+					var params = null;
+					var str = ereg2.matched(4);
+					if(str != null) params = str.split(",");
+					functionDeclarations.push({ name : name, params : params, pos : pos, type : "", isPublic : isPublic, isStatic : isStatic});
+					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 196, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : [isPublic,isStatic]});
+				}
+			}
+			return "";
+		});
+		return functionDeclarations;
+	}
+	,__class__: outline.OutlineParser
+});
 parser.ClassParser = function() { };
 $hxClasses["parser.ClassParser"] = parser.ClassParser;
 parser.ClassParser.__name__ = ["parser","ClassParser"];
@@ -16190,7 +16465,7 @@ parser.ClasspathWalker.prototype = {
 				_g.processFile(pathToFile1,std);
 			});
 			emitter.on("error",function(pathToFile2,stat2) {
-				console.log(pathToFile2);
+				haxe.Log.trace(pathToFile2,{ fileName : "ClasspathWalker.hx", lineNumber : 382, className : "parser.ClasspathWalker", methodName : "parseClasspath"});
 			});
 		}
 	}
@@ -16257,13 +16532,14 @@ parser.ClasspathWalker.prototype = {
 				_g.addFile(path2);
 			});
 			emitter.on("error",function(path3,stat2) {
-				console.log(path3);
+				haxe.Log.trace(path3,{ fileName : "ClasspathWalker.hx", lineNumber : 515, className : "parser.ClasspathWalker", methodName : "walkProjectDirectory"});
 			});
 		}
 	}
 	,__class__: parser.ClasspathWalker
 };
 parser.OutlineHelper = function() {
+	this.outlineParser = new outline.OutlineParser();
 };
 $hxClasses["parser.OutlineHelper"] = parser.OutlineHelper;
 parser.OutlineHelper.__name__ = ["parser","OutlineHelper"];
@@ -16272,12 +16548,14 @@ parser.OutlineHelper.get = function() {
 	return parser.OutlineHelper.instance;
 };
 parser.OutlineHelper.prototype = {
-	pathToLastFile: null
+	outlineParser: null
+	,pathToLastFile: null
 	,getList: function(data,path) {
 		var ast = parser.ClassParser.parse(data,path);
 		var outlinePanel = core.OutlinePanel.get();
-		if(ast != null) {
-			var parsedData = this.parseDeclarations(ast);
+		var outlineItems = this.outlineParser.parse(data,path);
+		if(outlineItems != null) {
+			var parsedData = this.parseOutlineItems(outlineItems);
 			var mainClass = js.Node.require("path").basename(path);
 			var rootItem = { label : mainClass};
 			rootItem.items = parsedData.treeItems;
@@ -16285,11 +16563,84 @@ parser.OutlineHelper.prototype = {
 			this.pathToLastFile = path;
 			outlinePanel.clearFields();
 			outlinePanel.addField(rootItem);
-			outlinePanel.update(parsedData.treeItemFormats);
+			outlinePanel.update();
+			new outline.OutlineFormatter(parsedData.treeItemFormats);
+		} else if(ast != null) {
+			var parsedData1 = this.parseDeclarations(ast);
+			var mainClass1 = js.Node.require("path").basename(path);
+			var rootItem1 = { label : mainClass1};
+			rootItem1.items = parsedData1.treeItems;
+			rootItem1.expanded = true;
+			this.pathToLastFile = path;
+			outlinePanel.clearFields();
+			outlinePanel.addField(rootItem1);
+			outlinePanel.update();
 		} else if(this.pathToLastFile != path) {
 			outlinePanel.clearFields();
 			outlinePanel.update();
 		}
+	}
+	,parseOutlineItems: function(outlineItems) {
+		var fileImports = [];
+		var treeItems = [];
+		var treeItemFormats = [];
+		var _g = 0;
+		while(_g < outlineItems.length) {
+			var outlineItem = outlineItems[_g];
+			++_g;
+			var _g1 = outlineItem.type;
+			switch(_g1) {
+			case "class":
+				var treeItem = { label : outlineItem.name};
+				var items = [];
+				treeItem.items = items;
+				treeItem.expanded = true;
+				treeItemFormats.push({ type : outlineItem.type, isPublic : true, isStatic : false});
+				var _g2 = 0;
+				var _g3 = outlineItem.fields;
+				while(_g2 < _g3.length) {
+					var item = _g3[_g2];
+					++_g2;
+					items.push({ label : item.name, value : item.pos});
+					treeItemFormats.push({ type : item.type, isPublic : item.isPublic, isStatic : item.isStatic});
+				}
+				treeItems.push(treeItem);
+				break;
+			case "typedef":
+				var treeItem1 = { label : outlineItem.name};
+				var items1 = [];
+				treeItem1.items = items1;
+				treeItem1.expanded = true;
+				treeItemFormats.push({ type : "typedef", isPublic : true, isStatic : false});
+				var _g21 = 0;
+				var _g31 = outlineItem.fields;
+				while(_g21 < _g31.length) {
+					var item1 = _g31[_g21];
+					++_g21;
+					items1.push({ label : item1.name, value : item1.pos});
+					treeItemFormats.push({ type : item1.type, isPublic : item1.isPublic, isStatic : item1.isStatic});
+				}
+				treeItems.push(treeItem1);
+				break;
+			case "enum":
+				var treeItem2 = { label : outlineItem.name};
+				var items2 = [];
+				treeItem2.items = items2;
+				treeItem2.expanded = true;
+				treeItemFormats.push({ type : "enumGroup", isPublic : true, isStatic : false});
+				var _g22 = 0;
+				var _g32 = outlineItem.fields;
+				while(_g22 < _g32.length) {
+					var item2 = _g32[_g22];
+					++_g22;
+					items2.push({ label : item2.name, value : item2.pos});
+					treeItemFormats.push({ type : "enum", isPublic : true, isStatic : false});
+				}
+				treeItems.push(treeItem2);
+				break;
+			}
+		}
+		return { fileImports : fileImports, treeItems : treeItems, treeItemFormats : treeItemFormats};
 	}
 	,parseDeclarations: function(ast) {
 		var fileImports = [];
@@ -16554,118 +16905,6 @@ parser.OutlineHelper.prototype = {
 	}
 	,__class__: parser.OutlineHelper
 };
-parser.RegexParser = function() { };
-$hxClasses["parser.RegexParser"] = parser.RegexParser;
-parser.RegexParser.__name__ = ["parser","RegexParser"];
-parser.RegexParser.getFileImportsList = function(data) {
-	var fileImports = [];
-	var ereg = new EReg("^[ \t]*import ([a-z0-9._*]+);$","gim");
-	ereg.map(data,function(ereg1) {
-		fileImports.push(ereg1.matched(1));
-		return "";
-	});
-	return fileImports;
-};
-parser.RegexParser.getFilePackage = function(data) {
-	var filePackage = null;
-	var pos = null;
-	var ereg = new EReg("package *([^;]*);$","m");
-	if(ereg.match(data)) {
-		filePackage = StringTools.trim(ereg.matched(1));
-		pos = ereg.matchedPos().pos;
-	}
-	return { filePackage : filePackage, pos : pos};
-};
-parser.RegexParser.getTypeDeclarations = function(data) {
-	var typeDeclarations = [];
-	var ereg = new EReg("(class|typedef|enum|typedef|abstract) +([A-Z][a-zA-Z0-9_]*) *(<[a-zA-Z0-9_,]+>)?","gm");
-	ereg.map(data,function(ereg2) {
-		var typeDeclaration = { type : ereg2.matched(1), name : ereg2.matched(2)};
-		typeDeclarations.push(typeDeclaration);
-		return "";
-	});
-	return typeDeclarations;
-};
-parser.RegexParser.getFunctionDeclarations = function(data) {
-	var functionDeclarations = [];
-	var eregFunction = new EReg("function +([^;\\.\\(\\) ]*)","gi");
-	var eregFunctionWithParameters = new EReg("function *([a-zA-Z0-9_]*) *\\(([^\\)]*)","gm");
-	var eregParamDefault = new EReg("(= *\"*[^\"]*\")","gm");
-	eregFunctionWithParameters.map(data,function(ereg2) {
-		var name = ereg2.matched(1);
-		if(name != null) {
-			if(name != "new") {
-				var params = null;
-				var str = ereg2.matched(2);
-				if(str != null) params = str.split(",");
-				functionDeclarations.push({ name : name, params : params});
-			}
-		}
-		return "";
-	});
-	return functionDeclarations;
-};
-parser.RegexParser.getVariableDeclarations = function(data) {
-	var variableDeclarations = [];
-	var eregVariables = new EReg("var +([a-z_0-9]+):?([^=;]+)?","gi");
-	eregVariables.map(data,function(ereg2) {
-		var pos = ereg2.matchedPos();
-		var index = pos.pos + pos.len;
-		var name = ereg2.matched(1);
-		var type = ereg2.matched(2);
-		var varDecl = Lambda.find(variableDeclarations,function(varDecl1) {
-			return varDecl1.name == name;
-		});
-		if(varDecl == null) {
-			var varDecl11 = { name : name, pos : pos};
-			if(type != null) {
-				type = StringTools.trim(type);
-				if(type != "") varDecl11.type = type;
-			}
-			variableDeclarations.push(varDecl11);
-		}
-		return "";
-	});
-	return variableDeclarations;
-};
-parser.RegexParser.getClassDeclarations = function(data) {
-	var classDeclarations = [];
-	var eregClass = new EReg("class[\t ]+([a-z_0-9]+)[^;\n]+\n?\\{","gi");
-	eregClass.map(data,function(ereg) {
-		var pos = ereg.matchedPos();
-		classDeclarations.push({ name : ereg.matched(1), pos : pos});
-		return "";
-	});
-	return classDeclarations;
-};
-parser.RegexParser.getFunctionParameters = function(data,pos) {
-	var functionDeclarations = [];
-	var functionParams = [];
-	var eregFunction = new EReg("[public|private|static|inline|macro\t ]* function[\t ]+([^;\\.\\(\\) ]+)\\((.+)\\)[^;\\.{]+\\{","gi");
-	eregFunction.map(data,function(ereg) {
-		functionDeclarations.push({ name : ereg.matched(1), params : ereg.matched(2).split(","), pos : ereg.matchedPos()});
-		return "";
-	});
-	var currentFunctionDeclaration = null;
-	var _g = 0;
-	while(_g < functionDeclarations.length) {
-		var item = functionDeclarations[_g];
-		++_g;
-		if(cm.Editor.editor.indexFromPos(pos) < item.pos.pos + item.pos.len) break;
-		currentFunctionDeclaration = item;
-	}
-	if(currentFunctionDeclaration != null) {
-		var ereg1 = new EReg("([a-z_0-9]+):?([^=;]+)?","gi");
-		var _g1 = 0;
-		var _g11 = currentFunctionDeclaration.params;
-		while(_g1 < _g11.length) {
-			var param = _g11[_g1];
-			++_g1;
-			if(ereg1.match(param)) functionParams.push({ name : ereg1.matched(1), type : ereg1.matched(2)});
-		}
-	}
-	return functionParams;
-};
 var pluginloader = {};
 pluginloader.PluginManager = function() {
 	this.pluginsTestingData = "  - cd plugins";
@@ -16711,14 +16950,14 @@ pluginloader.PluginManager.prototype = {
 		});
 		haxe.Timer.delay(function() {
 			if(_g.requestedPluginsData.length > 0) {
-				console.log("still not loaded plugins: ");
+				haxe.Log.trace("still not loaded plugins: ",{ fileName : "PluginManager.hx", lineNumber : 116, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
 				var _g1 = 0;
 				var _g2 = _g.requestedPluginsData;
 				while(_g1 < _g2.length) {
 					var pluginData = _g2[_g1];
 					++_g1;
-					console.log(pluginData.name + ": can't load plugin, required plugins are not found");
-					console.log(pluginData.plugins);
+					haxe.Log.trace(pluginData.name + ": can't load plugin, required plugins are not found",{ fileName : "PluginManager.hx", lineNumber : 120, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
+					haxe.Log.trace(pluginData.plugins,{ fileName : "PluginManager.hx", lineNumber : 121, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
 				}
 				_g.savePluginsMTime();
 			}
@@ -16751,7 +16990,7 @@ pluginloader.PluginManager.prototype = {
 		var _g1 = this;
 		var pathToFolder;
 		js.Node.require("fs").readdir(js.Node.require("path").join(path,pathToPlugin),function(error,folders) {
-			if(error != null) console.log(error); else {
+			if(error != null) haxe.Log.trace(error,{ fileName : "PluginManager.hx", lineNumber : 176, className : "pluginloader.PluginManager", methodName : "readDir"}); else {
 				var _g = 0;
 				while(_g < folders.length) {
 					var item = [folders[_g]];
@@ -16786,7 +17025,7 @@ pluginloader.PluginManager.prototype = {
 	,loadPlugin: function(pathToPlugin) {
 		var pathToMain = js.Node.require("path").join(pathToPlugin,"bin","Main.js");
 		js.Node.require("fs").exists(pathToMain,function(exists) {
-			if(exists) HIDE.loadJS(null,[pathToMain]); else console.log(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin");
+			if(exists) HIDE.loadJS(null,[pathToMain]); else haxe.Log.trace(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin",{ fileName : "PluginManager.hx", lineNumber : 235, className : "pluginloader.PluginManager", methodName : "loadPlugin"});
 		});
 	}
 	,compilePlugin: function(name,pathToPlugin,onSuccess,onFailed) {
@@ -16803,11 +17042,11 @@ pluginloader.PluginManager.prototype = {
 		var startTime = new Date().getTime();
 		var delta;
 		var command = ["haxe","--cwd",HIDE.surroundWithQuotes(pathToPlugin),"plugin.hxml"].join(" ");
-		console.log(command);
+		haxe.Log.trace(command,{ fileName : "PluginManager.hx", lineNumber : 270, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 		var haxeCompilerProcess = js.Node.require("child_process").exec(command,{ },function(err,stdout,stderr) {
 			if(err == null) {
 				delta = new Date().getTime() - startTime;
-				Std.string(console.log(name + " compilation took " + (delta == null?"null":"" + delta))) + " ms";
+				Std.string(haxe.Log.trace(name + " compilation took " + (delta == null?"null":"" + delta),{ fileName : "PluginManager.hx", lineNumber : 278, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"})) + " ms";
 				onSuccess(pathToPlugin);
 				_g.pluginsMTime.set(name,Std.parseInt(Std.string(new Date().getTime())));
 			} else {
@@ -16820,12 +17059,12 @@ pluginloader.PluginManager.prototype = {
 					textarea.value = "Plugins compile-time errors:\n";
 					window.document.body.appendChild(textarea);
 				} else textarea = js.Boot.__cast(element , HTMLTextAreaElement);
-				console.log(pathToPlugin + " stderr: " + stderr);
+				haxe.Log.trace(pathToPlugin + " stderr: " + stderr,{ fileName : "PluginManager.hx", lineNumber : 301, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 				textarea.value += name + "\n" + stderr + "\n";
-				console.log("can't load " + name + " plugin, compilation failed");
+				haxe.Log.trace("can't load " + name + " plugin, compilation failed",{ fileName : "PluginManager.hx", lineNumber : 304, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 				var regex = new EReg("haxelib install (.+) ","gim");
 				regex.map(stderr,function(ereg) {
-					console.log(ereg);
+					haxe.Log.trace(ereg,{ fileName : "PluginManager.hx", lineNumber : 309, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 					return "";
 				});
 				if(onFailed != null) onFailed(stderr);
@@ -16912,7 +17151,7 @@ projectaccess.ProjectAccess.save = function(onComplete,sync) {
 				if(onComplete != null) onComplete();
 			});
 		},250);
-	} else console.log("project path is null");
+	} else haxe.Log.trace("project path is null",{ fileName : "ProjectAccess.hx", lineNumber : 73, className : "projectaccess.ProjectAccess", methodName : "save"});
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
@@ -17554,7 +17793,7 @@ tabmanager.TabManager.prototype = {
 			var selectedFile = projectaccess.ProjectAccess.getFileByPath(_g.getCurrentDocumentPath());
 			if(selectedFile != null) {
 				selectedFile.useTabs = !selectedFile.useTabs;
-				console.log(selectedFile.useTabs);
+				haxe.Log.trace(selectedFile.useTabs,{ fileName : "TabManager.hx", lineNumber : 135, className : "tabmanager.TabManager", methodName : "load"});
 				_g.updateIndentationSettings(selectedFile);
 				_g.loadIndentationSettings(cm.Editor.editor,selectedFile);
 			}
@@ -17590,7 +17829,7 @@ tabmanager.TabManager.prototype = {
 		var options = { };
 		options.encoding = "utf8";
 		js.Node.require("fs").readFile(path,options,function(error,code) {
-			if(error != null) console.log(error); else onComplete(code);
+			if(error != null) haxe.Log.trace(error,{ fileName : "TabManager.hx", lineNumber : 201, className : "tabmanager.TabManager", methodName : "openFile"}); else onComplete(code);
 		});
 	}
 	,openFileInNewTab: function(path,show,onComplete) {
@@ -17618,7 +17857,7 @@ tabmanager.TabManager.prototype = {
 				if(show) _g.selectDoc(path);
 				_g.checkTabsCount();
 				if(onComplete != null) onComplete();
-			} else console.log("tab-manager: can't load file " + path);
+			} else haxe.Log.trace("tab-manager: can't load file " + path,{ fileName : "TabManager.hx", lineNumber : 272, className : "tabmanager.TabManager", methodName : "openFileInNewTab"});
 		});
 	}
 	,createFileInNewTab: function(pathToFile) {
@@ -17893,7 +18132,7 @@ tabmanager.TabManager.prototype = {
 					}
 					this.loadIndentationSettings(cm1,selectedFile);
 					this.updateIndentationSettings(selectedFile);
-				} else console.log("can't load folded regions for active document");
+				} else haxe.Log.trace("can't load folded regions for active document",{ fileName : "TabManager.hx", lineNumber : 718, className : "tabmanager.TabManager", methodName : "selectDoc"});
 			}
 			cm1.focus();
 			window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
@@ -17936,7 +18175,7 @@ tabmanager.TabManager.prototype = {
 		return !tab.doc.isClean();
 	}
 	,saveActiveFile: function(onComplete) {
-		if(this.selectedPath != null) this.saveDoc(this.selectedPath,onComplete); else console.log(this.selectedPath);
+		if(this.selectedPath != null) this.saveDoc(this.selectedPath,onComplete); else haxe.Log.trace(this.selectedPath,{ fileName : "TabManager.hx", lineNumber : 813, className : "tabmanager.TabManager", methodName : "saveActiveFile"});
 	}
 	,saveActiveFileAs: function() {
 		var _g = this;

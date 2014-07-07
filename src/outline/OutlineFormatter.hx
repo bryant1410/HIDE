@@ -9,18 +9,23 @@ import core.OutlinePanel;
  * @author NickHolder
  */
 
-
+typedef TreeItemFormat = 
+{
+	var type:String;
+	var isPublic:Bool;
+	var isStatic:Bool;
+}
  
 class OutlineFormatter{
 
-	public function new( treeItemFormats:Array<String> )
+	public function new( treeItemFormats:Array<TreeItemFormat> )
 	{
 		
 		var outlineItems:Array<Dynamic> =  untyped new JQuery('#outline').jqxTree('getItems');
 		
 		var li:LIElement;
 		var item:Dynamic;
-		var itemType:String;
+		var itemType:TreeItemFormat;
 		var item:Dynamic;
 		
  		for ( i in 0...outlineItems.length )
@@ -36,7 +41,7 @@ class OutlineFormatter{
 			itemType = treeItemFormats.shift();
 			
 
-			switch( itemType)
+			switch( itemType.type)
 			{
 				case "enum": li.classList.add( "outlineEnum");
 				case "enumGroup": li.classList.add( "outlineEnumGroup");
@@ -46,6 +51,17 @@ class OutlineFormatter{
 				case "var": li.classList.add( "outlineVar");
 				case "function": li.classList.add( "outlineFunction");
 			}
+					
+			if (!itemType.isPublic)
+			{
+				li.classList.add( "outlinePrivate");
+			}
+					
+			if (itemType.isStatic)
+			{
+				li.classList.add( "outlineStatic");
+			}
+
 		}
 	}
 }

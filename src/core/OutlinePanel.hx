@@ -40,7 +40,7 @@ class OutlinePanel
 	
 	var source:Array<TreeItem> = [];
 	
-	public function update( ?treeItemFormats:Array<String> ):Void
+	public function update():Void
 	{
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		
@@ -68,7 +68,6 @@ class OutlinePanel
 		}
 		);
 		
-		new OutlineFormatter( treeItemFormats );	
 	}
 	
 	public function addField(item:TreeItem):Void
