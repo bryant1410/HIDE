@@ -45,6 +45,8 @@ class OutlineField
 		this.type = type;
 		this.pos = pos;	
 		this.len = len;
+		this.isPublic = isPublic;
+		this.isStatic = isStatic;
 	}
 
 }
@@ -107,7 +109,9 @@ class OutlineParser extends RegexParser
 		for ( varInfo in vars )
 		{
 			while( outlineItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
-	
+			
+
+
 			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
 		}
 		
@@ -119,7 +123,7 @@ class OutlineParser extends RegexParser
 		{
 			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
 	
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len ) );
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
 		}
 		
 		return outlineItems;
@@ -193,7 +197,7 @@ class OutlineParser extends RegexParser
 					}
 					
 					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic});
-					trace( name , isPublic , isStatic );
+					
 				}
             }
             
