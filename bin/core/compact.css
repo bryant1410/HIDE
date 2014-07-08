@@ -352,12 +352,27 @@ ul.tabs > li:hover {
 
 /* Outline Panel */
 
+.outlinePrivate, .outlineStatic
+{
+	position:relative;
+    left:0px;
+    top:-5px;
+    margin-right:4px;
+    font-size: 9px;
+    text-align: center;
+   
+	width:10px;
+	
+}
+
 .outlinePrivate
 {
 	color:#ff0000 !important;
+	font-weight:bold;	
 }
 
-.outlinStatic
+.outlineStatic
 {
-	color:#111111 !important;
+	color:#127412 !important;
+	font-weight:bold;
 }

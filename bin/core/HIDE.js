@@ -15833,8 +15833,16 @@ outline.OutlineFormatter = function(treeItemFormats) {
 			li.classList.add("outlineFunction");
 			break;
 		}
-		if(!itemType.isPublic) li.classList.add("outlinePrivate");
-		if(itemType.isStatic) li.classList.add("outlineStatic");
+		if(itemType.type == "var" || itemType.type == "function") {
+			var span = window.document.createElement("span");
+			span.classList.add("outlinePrivate");
+			li.insertBefore(span,li.firstChild);
+			if(!itemType.isPublic) span.innerHTML = "P"; else span.innerHTML = " ";
+			span = window.document.createElement("span");
+			span.classList.add("outlineStatic");
+			li.insertBefore(span,li.firstChild);
+			if(itemType.isStatic) span.innerHTML = "S"; else span.innerHTML = " ";
+		}
 	}
 };
 $hxClasses["outline.OutlineFormatter"] = outline.OutlineFormatter;

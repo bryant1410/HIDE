@@ -2,6 +2,7 @@ package outline;
 import core.OutlinePanel.TreeItem;
 
 import js.html.LIElement;
+import js.Browser;
 import jQuery.JQuery;
 import core.OutlinePanel;
 /**
@@ -48,18 +49,35 @@ class OutlineFormatter{
 				case "class": li.classList.add( "outlineClass");
 				case "typedef": li.classList.add( "outlineTypeDef");
 				case "abstract": li.classList.add( "outlineAbstract");
-				case "var": li.classList.add( "outlineVar");
+				case "var":li.classList.add( "outlineVar");
 				case "function": li.classList.add( "outlineFunction");
 			}
-					
-			if (!itemType.isPublic)
-			{
-				li.classList.add( "outlinePrivate");
-			}
-					
-			if (itemType.isStatic)
-			{
-				li.classList.add( "outlineStatic");
+			
+			if(itemType.type == "var" || itemType.type=="function" )
+			{	
+				var span = Browser.document.createElement("span");
+				span.classList.add( "outlinePrivate" );
+				li.insertBefore( span, li.firstChild);
+				if (!itemType.isPublic)
+				{
+					span.innerHTML = "P";
+				}
+				else 
+				{
+					span.innerHTML = " ";
+				}
+
+				span = Browser.document.createElement("span");
+				span.classList.add( "outlineStatic" );
+				li.insertBefore( span, li.firstChild);
+				if (itemType.isStatic)
+				{
+					span.innerHTML = "S";
+				}
+				else 
+				{
+					span.innerHTML = " ";
+				}
 			}
 
 		}
