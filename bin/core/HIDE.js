@@ -16002,12 +16002,10 @@ parser.ClasspathWalker.prototype = {
 			break;
 		default:
 		}
-		if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,fileName))) {
-			if(js.Node.require("fs").existsSync(path)) {
-				if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,"Std.hx"))) pathToStd = path; else {
-					path = js.Node.require("path").join(path,"std");
-					if(js.Node.require("fs").existsSync(path)) pathToStd = path;
-				}
+		if(js.Node.require("fs").existsSync(path)) {
+			if(js.Node.require("fs").existsSync(js.Node.require("path").join(path,fileName))) {
+				path = js.Node.require("path").join(path,"std");
+				if(js.Node.require("fs").existsSync(path)) pathToStd = path;
 			}
 		}
 		return pathToStd;

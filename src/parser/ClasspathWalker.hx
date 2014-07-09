@@ -158,22 +158,15 @@ class ClasspathWalker
 
 		}
 		
-		if (Node.fs.existsSync(Node.path.join(path, fileName)))
+		if (Node.fs.existsSync(path)) 
 		{
-			if (Node.fs.existsSync(path)) 
+			if (Node.fs.existsSync(Node.path.join(path, fileName)))
 			{
-				if (Node.fs.existsSync(Node.path.join(path, "Std.hx"))) 
+				path = Node.path.join(path, "std");
+
+				if (Node.fs.existsSync(path))
 				{
 					pathToStd = path;
-				}
-				else 
-				{
-					path = Node.path.join(path, "std");
-
-					if (Node.fs.existsSync(path))
-					{
-						pathToStd = path;
-					}
 				}
 			}
 		}

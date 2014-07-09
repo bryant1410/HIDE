@@ -13,7 +13,7 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "src/cm/Editor.hx"
+    ,"activeFile" : "src/parser/ClasspathWalker.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
