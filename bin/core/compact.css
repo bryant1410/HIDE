@@ -142,23 +142,9 @@
 
 #panelContentpanelfiletree .jqx-tree-item-li{
 	line-height:14px;
+	margin:0px !important;
 }
 
-
-
-/* Outline Panel */
-
-#outline .jqx-widget-content{
-	background: #e6e6e6;
-}
-
-#panelContentpaneloutline .jqx-tree-item{
-	padding:0px
-}
-
-#panelContentpaneloutline .jqx-tree-item-li{
-	line-height:14px;
-}
 
 
 
@@ -184,13 +170,13 @@
 .jqx-icon-arrow-up{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-up.png);
+	background-image:url( "images/compact/icon-up.png");
 }
 
 .jqx-icon-arrow-down{
 	width:9px;
 	margin-left:-2px;
-	background-image:url( images/compact/icon-down.png);
+	background-image:url( "images/compact/icon-down.png");
 }
 
 .jqx-scrollbar-button-state-hover{
@@ -363,3 +349,4 @@ ul.tabs > li:hover {
 #indent-type, #indent-width-label{
 	
 }
+

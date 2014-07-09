@@ -922,3 +922,98 @@ dropdown-menu,
 	line-height:14px;
 
 }
+
+
+#panelContentpaneloutline .jqx-tree-item{
+	padding:0px
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineFunction , 
+#panelContentpaneloutline .jqx-tree-item-li .outlineVar,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnum 
+{
+	line-height:14px;
+	margin-left:5px !important;
+	background-position: left;
+	background-repeat: no-repeat;
+}
+
+#panelContentpaneloutline .jqx-tree-dropdown{
+	margin-top: 2px;
+	margin-bottom: 15px;
+}
+
+#panelContentpaneloutline .jqx-tree-item-li .outlineTypeDef,
+#panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup,
+#panelContentpaneloutline .jqx-tree-item-li .outlineClass
+{
+	background-position: top left;
+	margin-left:-5px !important;
+	padding-left:12px;
+	background-repeat: no-repeat;
+}
+
+.outlineClass:before , .outlineEnumGroup:before , .outlineTypeDef:before {
+  position:absolute;
+  left:8px;
+  margin-top:2px;
+  margin-right:4px;
+  border-radius:50%;
+  font-size: 8px;
+ 
+  height: 12px;
+  width: 12px ;
+  line-height: 12px;
+  text-align: center;
+  color: white;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+ 
+  padding:0px;
+
+}
+
+.outlineClass:before{
+  content: "C";
+  background: #ff9d45;;
+}
+
+.outlineEnumGroup:before{
+  content: "E";
+  background: #7f66fc;
+}
+
+.outlineTypeDef:before{
+  content: "T";
+  background: #7cc576;
+}
+
+.outlineFunction:before , .outlineVar:before , .outlineEnum:before {
+  position:relative;
+  left:0px;
+  top:-6px;
+  margin-right:4px;
+  font-size: 7px;
+  
+  text-align: center;
+  color: white;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  padding:0px 2px 0px 2px;	
+}
+
+.outlineFunction:before {
+  content: "M";
+  background: #6d9ee1;
+}
+
+.outlineVar:before {
+  content: "V";
+  background: #fc6674;
+}
+
+
+.outlineEnum:before {
+  content: "E";
+  background: #7f66fc;
+}

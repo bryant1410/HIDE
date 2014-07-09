@@ -4,6 +4,7 @@ import haxe.Timer;
 import parser.OutlineHelper;
 import cm.Editor;
 import jQuery.JQuery;
+import outline.OutlineFormatter;
 
 /**
  * ...
@@ -39,7 +40,7 @@ class OutlinePanel
 	
 	var source:Array<TreeItem> = [];
 	
-	public function update():Void
+	public function update( ?treeItemFormats:Array<String> ):Void
 	{
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		
@@ -66,6 +67,8 @@ class OutlinePanel
 			}
 		}
 		);
+		
+		new OutlineFormatter( treeItemFormats );	
 	}
 	
 	public function addField(item:TreeItem):Void
