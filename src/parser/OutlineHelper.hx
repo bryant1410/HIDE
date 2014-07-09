@@ -119,8 +119,8 @@ class OutlineHelper
 			
 				for (item in outlineItem.fields ) 
 				{
-					 items.push( { label: item.name, value: {min: item.len , max: item.pos } } ) ;
-					trace("OutlineParser", item.pos );			
+					 items.push( { label: item.name, value: {min: item.pos , max: item.pos + item.len } } ) ;
+		
 					treeItemFormats.push( { type: item.type , isPublic: item.isPublic , isStatic: item.isStatic } );
 				}
 				
@@ -134,7 +134,7 @@ class OutlineHelper
 			
 				for (item in outlineItem.fields ) 
 				{
-					items.push( { label: item.name, value: item.pos } );
+					items.push( { label: item.name, value: {min: item.pos , max: item.pos + item.len } } );
 					treeItemFormats.push( { type: item.type , isPublic: item.isPublic , isStatic: item.isStatic });
 				}
 				
@@ -185,7 +185,7 @@ class OutlineHelper
 				for (item in getClassFields(data)) 
 				{
 					items.push( { label: item.name, value: item.pos } );
-					trace("AST", item.pos );	
+
 					treeItemFormats.push( "field" );
 				}
 				

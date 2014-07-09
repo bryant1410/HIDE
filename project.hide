@@ -12,22 +12,13 @@
     ]
     ,"files" : [
          {
-             "path" : "src\\HIDE.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 57
-        }
-        ,{
              "path" : "bin\\core\\compact.css"
             ,"useTabs" : true
             ,"indentSize" : 4
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 189
+            ,"activeLine" : 362
         }
         ,{
              "path" : "src\\outline\\OutlineFormatter.hx"
@@ -36,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 59
+            ,"activeLine" : 77
         }
         ,{
              "path" : "src\\parser\\OutlineHelper.hx"
@@ -45,14 +36,41 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 104
+            ,"activeLine" : 25
+        }
+        ,{
+             "path" : "src\\parser\\RegexParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 75
+        }
+        ,{
+             "path" : "src\\outline\\OutlineParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 51
+        }
+        ,{
+             "path" : "src\\core\\OutlinePanel.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 69
         }
     ]
-    ,"activeFile" : "src\\outline\\OutlineFormatter.hx"
+    ,"activeFile" : "src\\parser\\OutlineHelper.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
-    ,"runActionText" : "haxelib run node-webkit ~/HIDE/bin"
+    ,"runActionText" : ""
     ,"buildActionCommand" : null
     ,"hiddenItems" : [
 
