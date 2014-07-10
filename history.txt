@@ -6,7 +6,6 @@ I am active Haxe developer. Also I'm a co-founder of HIDE.
 
 Intro
 I actively used FlashDevelop for Haxe projects. It is pretty good, the best one, but sadly it's available only for Windows. One does not simply to port it to Mac and Linux and maintain.
-FlashDevelop had some annoying bugs at that time. (It's not so easy for Haxe developer to contribute to such project and I wanted to change many things, remaining only basic core).
 
 I was using very low end PC at that time, and I realized that I could create even more lightweight IDE, which will run cross platform and have features that I wanted to see.
 I wanted to have that freedom to be able to use Linux, since it's fast and doesn't require modern hardware.
