@@ -44,40 +44,55 @@ class OutlineFormatter{
 
 			switch( itemType.type)
 			{
-				case "enum": li.classList.add( "outlineEnum");
 				case "enumGroup": li.classList.add( "outlineEnumGroup");
 				case "class": li.classList.add( "outlineClass");
 				case "typedef": li.classList.add( "outlineTypeDef");
-				case "abstract": li.classList.add( "outlineAbstract");
-				case "var":li.classList.add( "outlineVar");
-				case "function": li.classList.add( "outlineFunction");
 			}
-			
+					
 			if(itemType.type == "var" || itemType.type=="function" )
 			{	
-				var span = Browser.document.createElement("span");
-				span.classList.add( "outlinePrivate" );
-				li.insertBefore( span, li.firstChild);
+				var element = Browser.document.createElement("div");
+				
+				li.insertBefore( element, li.firstChild);
 				if (!itemType.isPublic)
 				{
-					span.innerHTML = "P";
+					element.classList.add( "outlinePrivate" );
 				}
 				else 
 				{
-					span.innerHTML = " ";
+					element.classList.add( "outlinePublic" );
 				}
-
-				span = Browser.document.createElement("span");
-				span.classList.add( "outlineStatic" );
-				li.insertBefore( span, li.firstChild);
+				
+				element = Browser.document.createElement("div");
+					
+				li.insertBefore( element, li.firstChild);
+				
+				switch( itemType.type)
+				{
+					case "enum": 
+						element.classList.add( "outlineEnum");
+						element.innerHTML = "E";
+					//case "abstract": element.classList.add( "outlineAbstract");
+					case "var":
+						element.classList.add( "outlineVar");
+						element.innerHTML = "V";
+					case "function": 
+						element.classList.add( "outlineFunction");
+						element.innerHTML = "M";
+				}
+					
+				element = Browser.document.createElement("div");
+				
+				li.insertBefore( element, li.firstChild);
 				if (itemType.isStatic)
 				{
-					span.innerHTML = "S";
+					element.classList.add( "outlineStatic" );
 				}
-				else 
+				else
 				{
-					span.innerHTML = " ";
+					element.classList.add( "outlineNotStatic" );
 				}
+
 			}
 
 		}

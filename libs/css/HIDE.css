@@ -928,15 +928,6 @@ dropdown-menu,
 	padding:0px
 }
 
-#panelContentpaneloutline .jqx-tree-item-li .outlineFunction , 
-#panelContentpaneloutline .jqx-tree-item-li .outlineVar,
-#panelContentpaneloutline .jqx-tree-item-li .outlineEnum 
-{
-	line-height:14px;
-	margin-left:5px !important;
-	background-position: left;
-	background-repeat: no-repeat;
-}
 
 #panelContentpaneloutline .jqx-tree-dropdown{
 	margin-top: 2px;
@@ -988,32 +979,3 @@ dropdown-menu,
   background: #7cc576;
 }
 
-.outlineFunction:before , .outlineVar:before , .outlineEnum:before {
-  position:relative;
-  left:0px;
-  top:-6px;
-  margin-right:4px;
-  font-size: 7px;
-  
-  text-align: center;
-  color: white;
-  -moz-box-sizing: border-box;
-  box-sizing: border-box;
-  padding:0px 2px 0px 2px;	
-}
-
-.outlineFunction:before {
-  content: "M";
-  background: #6d9ee1;
-}
-
-.outlineVar:before {
-  content: "V";
-  background: #fc6674;
-}
-
-
-.outlineEnum:before {
-  content: "E";
-  background: #7f66fc;
-}

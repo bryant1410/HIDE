@@ -352,27 +352,54 @@ ul.tabs > li:hover {
 
 /* Outline Panel */
 
-.outlinePrivate, .outlineStatic
+.outlinePrivate, .outlineStatic, .outlineNotStatic, .outlinePublic,
+.outlineEnum, .outlineAbstract, .outlineVar, .outlineFunction 
 {
 	position:relative;
     left:0px;
-    top:-5px;
-    margin-right:4px;
+    
     font-size: 9px;
-    text-align: center;
-   
-	width:10px;
 	
+    text-align: center;
+    display:inline-block;
+	width:10px;
+	height:10px;
 }
 
 .outlinePrivate
 {
-	color:#ff0000 !important;
-	font-weight:bold;	
+	top:-4px;
+	background: center no-repeat url('images/lock.png');
 }
 
 .outlineStatic
 {
-	color:#127412 !important;
-	font-weight:bold;
+	color:#127412 !important;	
+}
+
+.outlineFunction , .outlineVar , .outlineEnum {
+  
+  position:relative;
+  top:-6px;
+  color: white;
+  line-height: 9px !important;
+  font-size: 8px;
+  padding
+  text-align: center;
+}
+
+.outlineFunction {
+
+  background: #6d9ee1;
+}
+
+.outlineVar {
+
+  background: #fc6674;
+}
+
+
+.outlineEnum {
+
+  background: #7f66fc;
 }

@@ -15811,9 +15811,6 @@ outline.OutlineFormatter = function(treeItemFormats) {
 		itemType = treeItemFormats.shift();
 		var _g2 = itemType.type;
 		switch(_g2) {
-		case "enum":
-			li.classList.add("outlineEnum");
-			break;
 		case "enumGroup":
 			li.classList.add("outlineEnumGroup");
 			break;
@@ -15823,25 +15820,31 @@ outline.OutlineFormatter = function(treeItemFormats) {
 		case "typedef":
 			li.classList.add("outlineTypeDef");
 			break;
-		case "abstract":
-			li.classList.add("outlineAbstract");
-			break;
-		case "var":
-			li.classList.add("outlineVar");
-			break;
-		case "function":
-			li.classList.add("outlineFunction");
-			break;
 		}
 		if(itemType.type == "var" || itemType.type == "function") {
-			var span = window.document.createElement("span");
-			span.classList.add("outlinePrivate");
-			li.insertBefore(span,li.firstChild);
-			if(!itemType.isPublic) span.innerHTML = "P"; else span.innerHTML = " ";
-			span = window.document.createElement("span");
-			span.classList.add("outlineStatic");
-			li.insertBefore(span,li.firstChild);
-			if(itemType.isStatic) span.innerHTML = "S"; else span.innerHTML = " ";
+			var element = window.document.createElement("div");
+			li.insertBefore(element,li.firstChild);
+			if(!itemType.isPublic) element.classList.add("outlinePrivate"); else element.classList.add("outlinePublic");
+			element = window.document.createElement("div");
+			li.insertBefore(element,li.firstChild);
+			var _g21 = itemType.type;
+			switch(_g21) {
+			case "enum":
+				element.classList.add("outlineEnum");
+				element.innerHTML = "E";
+				break;
+			case "var":
+				element.classList.add("outlineVar");
+				element.innerHTML = "V";
+				break;
+			case "function":
+				element.classList.add("outlineFunction");
+				element.innerHTML = "M";
+				break;
+			}
+			element = window.document.createElement("div");
+			li.insertBefore(element,li.firstChild);
+			if(itemType.isStatic) element.classList.add("outlineStatic"); else element.classList.add("outlineNotStatic");
 		}
 	}
 };
