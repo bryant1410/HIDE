@@ -29,34 +29,45 @@ haxelib run HIDE
 
 ##### Development version
 
-1. `haxelib git HIDE https://github.com/as3boyan/HIDE/ master bin`
-2. `haxelib install node-webkit`
-3. `haxelib run HIDE`
+```bash
+haxelib git HIDE https://github.com/as3boyan/HIDE/ master bin
+haxelib install node-webkit
+haxelib run HIDE
+```
 
 ##### How to build:
-1. Clone source using git
 
-        git clone --recursive https://github.com/HaxeIDE/HIDE.git
+1. Run following commands:
 
-1. You will need Haxe 3. Install haxelibs:
-	
-        haxelib install jQueryExtern
-        haxelib install tjson
-        haxelib install node-webkit
+```bash
+#Clone source using git
+git clone --recursive https://github.com/HaxeIDE/HIDE.git
 
-2. Navigate to the root folder and compile HIDE by running:
+#Haxe 3 is required. Install haxelibs
+haxelib install jQueryExtern
+haxelib install tjson
+haxelib install node-webkit
 
-        haxe HIDE.hxml
+#Navigate to the root directory
+cd HIDE
 
-3. Navigate to __HIDE/bin__ folder and run node-webkit there using:
+#Compile HIDE
+haxe HIDE.hxml
 
-        haxelib run node-webkit
+#Navigate to HIDE/bin directory
+cd bin
 
-4. Select __File__ -> __Open Project...__ and select __project.hide__ in the root folder of the HIDE repository to open HIDE project in HIDE
+#Run node-webkit
+haxelib run node-webkit
+```
 
-5. (Optional) Navigate to __HIDE/bin__ and run __npm install__ to install required dependencies(you might need to add __sudo__ if you work under Linux/Mac OS X)
+2. In HIDE select __File__ -> __Open Project...__ and select __project.hide__ in the root folder of the HIDE repository to open HIDE project in HIDE
 
-	npm install
+3. (Optional) Navigate to __HIDE/bin__ and run __npm install__ to install required dependencies(you might need to add __sudo__ if you work under Linux/Mac OS X)
+
+```bash
+npm install
+```
 
 ##### Contributing
 I am always thrilled to receive pull requests, and I do my best to process them as fast as possible. Not sure if that typo is worth a pull request? Do it! I will appreciate it.
