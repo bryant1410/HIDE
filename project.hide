@@ -1,0 +1,26 @@
+{
+     "type" : 2
+    ,"target" : null
+    ,"name" : "/HIDE"
+    ,"main" : "HIDE.hxml"
+    ,"projectPackage" : null
+    ,"company" : null
+    ,"license" : null
+    ,"url" : null
+    ,"targetData" : [
+
+    ]
+    ,"files" : [
+
+    ]
+    ,"activeFile" : "HIDE.hxml"
+    ,"openFLTarget" : null
+    ,"openFLBuildMode" : "Debug"
+    ,"runActionType" : 2
+    ,"runActionText" : null
+    ,"buildActionCommand" : null
+    ,"hiddenItems" : [
+
+    ]
+    ,"showHiddenItems" : false
+}
