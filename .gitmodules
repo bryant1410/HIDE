@@ -15,6 +15,7 @@
 [submodule "libs/hxparse"]
 	path = libs/hxparse
 	url = https://github.com/HaxeIDE/hxparse
+	branch = development
 [submodule "libs/haxeparser"]
 	path = libs/haxeparser
 	url = https://github.com/Simn/haxeparser
