@@ -26,7 +26,6 @@ typedef ClassField =
 	var pos:DeclarationPos;
 }
 
-	
 /**
  * ...
  * @author AS3Boyan
@@ -101,6 +100,7 @@ class OutlineHelper
         }
 	}
 	
+	
 	public function parseOutlineItems( outlineItems:Array<OutlineItem> )
 	{
 		var fileImports = [];
@@ -135,7 +135,7 @@ class OutlineHelper
 				for (item in outlineItem.fields ) 
 				{
 					items.push( { label: item.name, value: {min: item.pos , max: item.pos + item.len } } );
-					treeItemFormats.push( { type: item.type , isPublic: item.isPublic , isStatic: item.isStatic });
+					treeItemFormats.push( { type: item.type , isPublic: true , isStatic: item.isStatic });
 				}
 				
 				treeItems.push(treeItem);

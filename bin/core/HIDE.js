@@ -16602,7 +16602,7 @@ parser.OutlineHelper.prototype = {
 					var item1 = _g31[_g21];
 					++_g21;
 					items1.push({ label : item1.name, value : { min : item1.pos, max : item1.pos + item1.len}});
-					treeItemFormats.push({ type : item1.type, isPublic : item1.isPublic, isStatic : item1.isStatic});
+					treeItemFormats.push({ type : item1.type, isPublic : true, isStatic : item1.isStatic});
 				}
 				treeItems.push(treeItem1);
 				break;

@@ -36,7 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 25
+            ,"activeLine" : 125
         }
         ,{
              "path" : "src\\parser\\RegexParser.hx"
@@ -54,7 +54,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 51
+            ,"activeLine" : 174
         }
         ,{
              "path" : "src\\core\\OutlinePanel.hx"
