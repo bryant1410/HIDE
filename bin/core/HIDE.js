@@ -1327,7 +1327,7 @@ cm.Editor.load = function() {
 		}
 	});
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["base16-light","ambiance-mobile","solarized","night","base16-dark","midnight","vibrant-ink","xq-light","ambiance","elegant","tomorrow-night-eighties","twilight","paraiso-light","monokai","3024-night","3024-day","xq-dark","pastel-on-dark","erlang-dark","cobalt","lesser-dark","blackboard","mbo","neo","paraiso-dark","neat","eclipse","rubyblue","the-matrix","mdn-like"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes(["ambiance","blackboard","neat","base16-light","the-matrix","pastel-on-dark","mbo","midnight","rubyblue","erlang-dark","solarized","mdn-like","elegant","paraiso-dark","paraiso-light","xq-dark","eclipse","cobalt","3024-night","3024-day","neo","twilight","night","base16-dark","lesser-dark","ambiance-mobile","tomorrow-night-eighties","monokai","xq-light","vibrant-ink"],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -3043,12 +3043,14 @@ core.GoToLine.prototype = {
 		var tabManagerInstance = tabmanager.TabManager.get();
 		if(tabManagerInstance.selectedPath != null) Alertify.prompt("Go to Line",function(e,str) {
 			var cm2 = cm.Editor.editor;
-			var lineNumber = Std.parseInt(str);
+			var lineNumber = Std.parseInt(str) - 1;
 			cm2.centerOnLine(lineNumber);
 			var highlightRange = cm.HighlightRange.get();
 			var from = { line : lineNumber, ch : 0};
 			var to = { line : lineNumber, ch : cm2.getLine(lineNumber).length};
 			highlightRange.highlight(cm2,from,to);
+			cm2.setCursor({ line : lineNumber, ch : 0});
+			cm2.focus();
 		});
 	}
 	,__class__: core.GoToLine
