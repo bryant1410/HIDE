@@ -34,13 +34,15 @@ class GoToLine
 			Alertify.prompt("Go to Line", function (e:Bool, str:String):Void 
 			{
 				var cm2 = Editor.editor;
-				var lineNumber = Std.parseInt(str);
+				var lineNumber = Std.parseInt(str) - 1;
 				cm2.centerOnLine(lineNumber);
 				var highlightRange = cm.HighlightRange.get();
 				
 				var from = {line: lineNumber, ch: 0};
 				var to = {line: lineNumber, ch: cm2.getLine(lineNumber).length};
 				highlightRange.highlight(cm2, from, to);
+				cm2.setCursor( { line:lineNumber, ch:0} );
+				cm2.focus();
 			}
 			);
 		}
