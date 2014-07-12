@@ -36,7 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 31
+            ,"activeLine" : 445
         }
         ,{
              "path" : "src\\outline\\OutlineParser.hx"
@@ -45,7 +45,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 109
+            ,"activeLine" : 57
         }
         ,{
              "path" : "src\\core\\OutlinePanel.hx"
@@ -74,8 +74,17 @@
             ]
             ,"activeLine" : 960
         }
+        ,{
+             "path" : "src\\parser\\RegexParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 0
+        }
     ]
-    ,"activeFile" : "src\\outline\\OutlineFormatter.hx"
+    ,"activeFile" : "src\\outline\\OutlineParser.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

@@ -59,6 +59,7 @@ typedef OutlineFieldData =
 	var isStatic:Bool;
 	var type:String;
 	var params:Array<String>;
+	@:optional var endPos:Int;
 }
 
 
@@ -184,6 +185,8 @@ class OutlineParser extends RegexParser
 			var isStatic = ereg2.matched(1)=="static";
 			var isPublic = ereg2.matched(2)=="public";
 			
+					
+			
 			
             var name:String = ereg2.matched(3);
             
@@ -200,7 +203,40 @@ class OutlineParser extends RegexParser
 						params = str.split(",");
 					}
 					
-					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic});
+					var functionBody:String = ereg2.matchedRight();
+					
+					var leftBraces = functionBody.split("{");
+					var functionBodyLength:Int = 0;
+					var unClosedBraces:Int =1;
+					
+					for ( leftBrace in leftBraces )
+					{
+						unClosedBraces ++;
+						functionBodyLength ++; 
+						var rightBraces = leftBrace.split("}");	
+						
+						for ( rightBrace in rightBraces )
+						{
+							unClosedBraces --;
+							
+							if (unClosedBraces == 0 )
+							{
+								break;
+							}
+							functionBodyLength += rightBrace.length;
+						}
+					
+						if (unClosedBraces == 0 )
+						{
+							break;
+						}
+							
+						functionBodyLength += leftBrace.length;
+					}
+					
+					trace( functionBodyLength );
+					
+					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic , endPos: ( pos.pos + pos.len + functionBodyLength ) });
 					
 				}
             }

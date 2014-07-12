@@ -16097,7 +16097,30 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 					var params = null;
 					var str = ereg2.matched(4);
 					if(str != null) params = str.split(",");
-					functionDeclarations.push({ name : name, params : params, pos : pos, type : "", isPublic : isPublic, isStatic : isStatic});
+					var functionBody = ereg2.matchedRight();
+					var leftBraces = functionBody.split("{");
+					var functionBodyLength = 0;
+					var unClosedBraces = 1;
+					var _g = 0;
+					while(_g < leftBraces.length) {
+						var leftBrace = leftBraces[_g];
+						++_g;
+						unClosedBraces++;
+						functionBodyLength++;
+						var rightBraces = leftBrace.split("}");
+						var _g1 = 0;
+						while(_g1 < rightBraces.length) {
+							var rightBrace = rightBraces[_g1];
+							++_g1;
+							unClosedBraces--;
+							if(unClosedBraces == 0) break;
+							functionBodyLength += rightBrace.length;
+						}
+						if(unClosedBraces == 0) break;
+						functionBodyLength += leftBrace.length;
+					}
+					console.log(functionBodyLength);
+					functionDeclarations.push({ name : name, params : params, pos : pos, type : "", isPublic : isPublic, isStatic : isStatic, endPos : pos.pos + pos.len + functionBodyLength});
 				}
 			}
 			return "";
