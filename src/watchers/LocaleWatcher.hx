@@ -80,7 +80,7 @@ class LocaleWatcher
 		return value;
 	}
 	
-	static function processHtmlElements()
+	public static function processHtmlElements()
 	{
 		var element:Element;
 		var value:String;

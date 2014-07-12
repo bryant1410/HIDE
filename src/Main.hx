@@ -1,4 +1,5 @@
 package ;
+import watchers.LocaleWatcher;
 import core.HaxeHelper;
 import kha.KhaProject;
 
@@ -143,6 +144,8 @@ class Main
 			
 			var quickOpen = QuickOpen.get();
 
+			LocaleWatcher.processHtmlElements();
+			
             sync = false;
 
 			currentTime = Date.now().getTime();

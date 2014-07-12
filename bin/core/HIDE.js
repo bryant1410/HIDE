@@ -358,6 +358,7 @@ Main.main = function() {
 		var welcomeScreen = core.WelcomeScreen.get();
 		welcomeScreen.load();
 		var quickOpen = core.QuickOpen.get();
+		watchers.LocaleWatcher.processHtmlElements();
 		Main.sync = false;
 		Main.currentTime = new Date().getTime();
 		var processHelper = core.ProcessHelper.get();
