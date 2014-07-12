@@ -16051,16 +16051,31 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 			var methodInfo = methods[_g2];
 			++_g2;
 			while(outlineItemIndex + 1 < outlineItems.length && methodInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
-			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(methodInfo.name,"function",methodInfo.pos.pos,methodInfo.pos.len,methodInfo.isPublic,methodInfo.isStatic));
+			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(methodInfo.name + " (" + methodInfo.params.toString() + ")","function",methodInfo.pos.pos,methodInfo.pos.len,methodInfo.isPublic,methodInfo.isStatic));
 		}
-		var vars = this.getVariableDeclarations(data);
 		outlineItemIndex = 0;
-		var _g3 = 0;
-		while(_g3 < vars.length) {
-			var varInfo = vars[_g3];
-			++_g3;
+		var vars = this.getVariableDeclarations(data);
+		var methodIndex = 0;
+		var varInfo;
+		var varIndex;
+		var removedVarCount = 0;
+		var _g11 = 0;
+		var _g3 = vars.length;
+		while(_g11 < _g3) {
+			var i = _g11++;
+			varIndex = i + removedVarCount;
+			varInfo = vars[i];
 			while(outlineItemIndex + 1 < outlineItems.length && varInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
-			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(varInfo.name,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
+			while(methodIndex < methods.length && varInfo.pos.pos < methods[methodIndex].pos.pos) methodIndex++;
+			console.log(methodIndex);
+			if(methodIndex < methods.length && varInfo.pos.pos < methods[methodIndex].endPos) {
+				vars.splice(varIndex,1);
+				removedVarCount++;
+				continue;
+			}
+			var typeString = "";
+			if(varInfo.type != "") typeString = " : " + varInfo.type;
+			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(varInfo.name + typeString,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
 		}
 		return outlineItems;
 	}
@@ -16093,35 +16108,33 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 			var isPublic = ereg2.matched(2) == "public";
 			var name = ereg2.matched(3);
 			if(name != "") {
-				if(name != "new") {
-					var params = null;
-					var str = ereg2.matched(4);
-					if(str != null) params = str.split(",");
-					var functionBody = ereg2.matchedRight();
-					var leftBraces = functionBody.split("{");
-					var functionBodyLength = 0;
-					var unClosedBraces = 1;
-					var _g = 0;
-					while(_g < leftBraces.length) {
-						var leftBrace = leftBraces[_g];
-						++_g;
-						unClosedBraces++;
-						functionBodyLength++;
-						var rightBraces = leftBrace.split("}");
-						var _g1 = 0;
-						while(_g1 < rightBraces.length) {
-							var rightBrace = rightBraces[_g1];
-							++_g1;
-							unClosedBraces--;
-							if(unClosedBraces == 0) break;
-							functionBodyLength += rightBrace.length;
-						}
+				var params = null;
+				var str = ereg2.matched(4);
+				if(str != null) params = str.split(",");
+				var functionBody = ereg2.matchedRight();
+				var leftBraces = functionBody.split("{");
+				var functionBodyLength = 0;
+				var unClosedBraces = 1;
+				var _g = 0;
+				while(_g < leftBraces.length) {
+					var leftBrace = leftBraces[_g];
+					++_g;
+					unClosedBraces++;
+					functionBodyLength++;
+					var rightBraces = leftBrace.split("}");
+					var _g1 = 0;
+					while(_g1 < rightBraces.length) {
+						var rightBrace = rightBraces[_g1];
+						++_g1;
+						unClosedBraces--;
 						if(unClosedBraces == 0) break;
-						functionBodyLength += leftBrace.length;
+						functionBodyLength += rightBrace.length;
 					}
-					console.log(functionBodyLength);
-					functionDeclarations.push({ name : name, params : params, pos : pos, type : "", isPublic : isPublic, isStatic : isStatic, endPos : pos.pos + pos.len + functionBodyLength});
+					if(unClosedBraces == 0) break;
+					functionBodyLength += leftBrace.length;
 				}
+				console.log(functionBodyLength);
+				functionDeclarations.push({ name : name, params : params, pos : pos, type : "", isPublic : isPublic, isStatic : isStatic, endPos : pos.pos + pos.len + functionBodyLength});
 			}
 			return "";
 		});

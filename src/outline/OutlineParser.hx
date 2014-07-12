@@ -114,20 +114,42 @@ class OutlineParser extends RegexParser
 		{
 			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
 	
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name +" ("+ methodInfo.params.toString()+")" , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
 		}
 
 		// VARS
-		var vars = getVariableDeclarations( data );
 		outlineItemIndex = 0;
-		
-		for ( varInfo in vars )
-		{
+		var vars = getVariableDeclarations( data );
+		var methodIndex:Int = 0;
+		var varInfo;
+		var varIndex;
+		var removedVarCount = 0;
+
+		for ( i in 0...vars.length )
+		{		
+			varIndex = i + removedVarCount;
+			varInfo = vars[i];
+			 
 			while( outlineItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
 			
-
-
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
+			while( methodIndex < methods.length && varInfo.pos.pos < methods[ methodIndex].pos.pos )
+			{
+				methodIndex ++;
+			}
+			
+			trace( methodIndex );
+				
+			if( methodIndex < methods.length && varInfo.pos.pos < methods[methodIndex].endPos ) 
+			{
+				vars.splice(varIndex,1);
+				removedVarCount++;
+				continue;
+			}
+			
+			var typeString = "";
+			if( varInfo.type !="") typeString = " : " + varInfo.type;
+				
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name + typeString , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
 		}
 		
 		
@@ -192,8 +214,7 @@ class OutlineParser extends RegexParser
             
             if (name != "")
             {
-				if (name != "new")
-				{
+				
 					var params = null;
 					
 					var str = ereg2.matched(4);
@@ -238,8 +259,8 @@ class OutlineParser extends RegexParser
 					
 					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic , endPos: ( pos.pos + pos.len + functionBodyLength ) });
 					
-				}
-            }
+			}
+            
             
             return "";
         });
