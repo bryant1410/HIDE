@@ -357,13 +357,17 @@ ul.tabs > li:hover {
 {
 	position:relative;
     left:0px;
-    
     font-size: 9px;
-	
+	margin:0px 2px 0px 2px;
     text-align: center;
     display:inline-block;
 	width:10px;
 	height:10px;
+}
+
+.outlineStatic
+{
+	margin-left: 0px;
 }
 
 .outlinePrivate
@@ -374,7 +378,10 @@ ul.tabs > li:hover {
 
 .outlineStatic
 {
-	color:#127412 !important;	
+	position:relative;
+ 	top:-3px;
+	color:#16bd16 !important;
+	font-size:18px;
 }
 
 .outlineFunction , .outlineVar , .outlineEnum {
@@ -384,7 +391,6 @@ ul.tabs > li:hover {
   color: white;
   line-height: 9px !important;
   font-size: 8px;
-  padding
   text-align: center;
 }
 
@@ -402,4 +408,14 @@ ul.tabs > li:hover {
 .outlineEnum {
 
   background: #7f66fc;
+}
+
+.outlineField{
+	margin-left:-15px !important;
+}
+
+#panelContentpanelfiletree .jqx-tree-dropdown{
+
+	padding: 0 0 0 0px;
+
 }

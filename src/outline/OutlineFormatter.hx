@@ -47,10 +47,12 @@ class OutlineFormatter{
 				case "enumGroup": li.classList.add( "outlineEnumGroup");
 				case "class": li.classList.add( "outlineClass");
 				case "typedef": li.classList.add( "outlineTypeDef");
-			}
-					
+			}		
+			
 			if(itemType.type == "var" || itemType.type=="function" )
 			{	
+				li.classList.add( "outlineField");	
+				
 				var element = Browser.document.createElement("div");
 				
 				li.insertBefore( element, li.firstChild);
@@ -86,6 +88,7 @@ class OutlineFormatter{
 				li.insertBefore( element, li.firstChild);
 				if (itemType.isStatic)
 				{
+					element.innerHTML = "&#8226;";
 					element.classList.add( "outlineStatic" );
 				}
 				else

@@ -15822,6 +15822,7 @@ outline.OutlineFormatter = function(treeItemFormats) {
 			break;
 		}
 		if(itemType.type == "var" || itemType.type == "function") {
+			li.classList.add("outlineField");
 			var element = window.document.createElement("div");
 			li.insertBefore(element,li.firstChild);
 			if(!itemType.isPublic) element.classList.add("outlinePrivate"); else element.classList.add("outlinePublic");
@@ -15844,7 +15845,10 @@ outline.OutlineFormatter = function(treeItemFormats) {
 			}
 			element = window.document.createElement("div");
 			li.insertBefore(element,li.firstChild);
-			if(itemType.isStatic) element.classList.add("outlineStatic"); else element.classList.add("outlineNotStatic");
+			if(itemType.isStatic) {
+				element.innerHTML = "&#8226;";
+				element.classList.add("outlineStatic");
+			} else element.classList.add("outlineNotStatic");
 		}
 	}
 };

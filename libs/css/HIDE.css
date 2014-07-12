@@ -938,10 +938,8 @@ dropdown-menu,
 #panelContentpaneloutline .jqx-tree-item-li .outlineEnumGroup,
 #panelContentpaneloutline .jqx-tree-item-li .outlineClass
 {
-	background-position: top left;
 	margin-left:-5px !important;
 	padding-left:12px;
-	background-repeat: no-repeat;
 }
 
 .outlineClass:before , .outlineEnumGroup:before , .outlineTypeDef:before {
@@ -961,7 +959,7 @@ dropdown-menu,
   box-sizing: border-box;
  
   padding:0px;
-
+ 
 }
 
 .outlineClass:before{

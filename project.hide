@@ -18,7 +18,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 362
+            ,"activeLine" : 413
         }
         ,{
              "path" : "src\\outline\\OutlineFormatter.hx"
@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 77
+            ,"activeLine" : 70
         }
         ,{
              "path" : "src\\parser\\OutlineHelper.hx"
@@ -36,7 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 125
+            ,"activeLine" : 80
         }
         ,{
              "path" : "src\\parser\\RegexParser.hx"
@@ -45,7 +45,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 75
+            ,"activeLine" : 84
         }
         ,{
              "path" : "src\\outline\\OutlineParser.hx"
@@ -54,7 +54,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 174
+            ,"activeLine" : 192
         }
         ,{
              "path" : "src\\core\\OutlinePanel.hx"
@@ -64,6 +64,24 @@
 
             ]
             ,"activeLine" : 69
+        }
+        ,{
+             "path" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 2
+        }
+        ,{
+             "path" : "libs\\css\\HIDE.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 951
         }
     ]
     ,"activeFile" : "src\\parser\\OutlineHelper.hx"
