@@ -3044,12 +3044,14 @@ core.GoToLine.prototype = {
 		var tabManagerInstance = tabmanager.TabManager.get();
 		if(tabManagerInstance.selectedPath != null) Alertify.prompt("Go to Line",function(e,str) {
 			var cm2 = cm.Editor.editor;
-			var lineNumber = Std.parseInt(str);
+			var lineNumber = Std.parseInt(str) - 1;
 			cm2.centerOnLine(lineNumber);
 			var highlightRange = cm.HighlightRange.get();
 			var from = { line : lineNumber, ch : 0};
 			var to = { line : lineNumber, ch : cm2.getLine(lineNumber).length};
 			highlightRange.highlight(cm2,from,to);
+			cm2.setCursor({ line : lineNumber, ch : 0});
+			cm2.focus();
 		});
 	}
 	,__class__: core.GoToLine
