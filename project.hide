@@ -18,7 +18,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 413
+            ,"activeLine" : 384
         }
         ,{
              "path" : "src\\outline\\OutlineFormatter.hx"
@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 70
+            ,"activeLine" : 65
         }
         ,{
              "path" : "src\\parser\\OutlineHelper.hx"
@@ -36,16 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 80
-        }
-        ,{
-             "path" : "src\\parser\\RegexParser.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 84
+            ,"activeLine" : 31
         }
         ,{
              "path" : "src\\outline\\OutlineParser.hx"
@@ -54,7 +45,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 192
+            ,"activeLine" : 109
         }
         ,{
              "path" : "src\\core\\OutlinePanel.hx"
@@ -81,10 +72,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 951
+            ,"activeLine" : 960
         }
     ]
-    ,"activeFile" : "src\\parser\\OutlineHelper.hx"
+    ,"activeFile" : "src\\outline\\OutlineFormatter.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

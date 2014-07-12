@@ -47,9 +47,10 @@ class OutlineFormatter{
 				case "enumGroup": li.classList.add( "outlineEnumGroup");
 				case "class": li.classList.add( "outlineClass");
 				case "typedef": li.classList.add( "outlineTypeDef");
+				
 			}		
 			
-			if(itemType.type == "var" || itemType.type=="function" )
+			if(itemType.type == "var" || itemType.type=="function" || itemType.type=="enum" )
 			{	
 				li.classList.add( "outlineField");	
 				
@@ -62,6 +63,7 @@ class OutlineFormatter{
 				}
 				else 
 				{
+					element.innerHTML = "&#8226;";
 					element.classList.add( "outlinePublic" );
 				}
 				

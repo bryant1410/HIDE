@@ -15821,11 +15821,14 @@ outline.OutlineFormatter = function(treeItemFormats) {
 			li.classList.add("outlineTypeDef");
 			break;
 		}
-		if(itemType.type == "var" || itemType.type == "function") {
+		if(itemType.type == "var" || itemType.type == "function" || itemType.type == "enum") {
 			li.classList.add("outlineField");
 			var element = window.document.createElement("div");
 			li.insertBefore(element,li.firstChild);
-			if(!itemType.isPublic) element.classList.add("outlinePrivate"); else element.classList.add("outlinePublic");
+			if(!itemType.isPublic) element.classList.add("outlinePrivate"); else {
+				element.innerHTML = "&#8226;";
+				element.classList.add("outlinePublic");
+			}
 			element = window.document.createElement("div");
 			li.insertBefore(element,li.firstChild);
 			var _g21 = itemType.type;
@@ -16041,23 +16044,23 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 				};
 			})(regEx1,enumIndex));
 		}
-		var vars = this.getVariableDeclarations(data);
+		var methods = this.getFunctionDeclarations(data);
 		var outlineItemIndex = 0;
 		var _g2 = 0;
-		while(_g2 < vars.length) {
-			var varInfo = vars[_g2];
+		while(_g2 < methods.length) {
+			var methodInfo = methods[_g2];
 			++_g2;
-			while(outlineItemIndex + 1 < outlineItems.length && varInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
-			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(varInfo.name,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
-		}
-		var methods = this.getFunctionDeclarations(data);
-		outlineItemIndex = 0;
-		var _g3 = 0;
-		while(_g3 < methods.length) {
-			var methodInfo = methods[_g3];
-			++_g3;
 			while(outlineItemIndex + 1 < outlineItems.length && methodInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
 			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(methodInfo.name,"function",methodInfo.pos.pos,methodInfo.pos.len,methodInfo.isPublic,methodInfo.isStatic));
+		}
+		var vars = this.getVariableDeclarations(data);
+		outlineItemIndex = 0;
+		var _g3 = 0;
+		while(_g3 < vars.length) {
+			var varInfo = vars[_g3];
+			++_g3;
+			while(outlineItemIndex + 1 < outlineItems.length && varInfo.pos.pos > outlineItems[outlineItemIndex + 1].pos) outlineItemIndex++;
+			outlineItems[outlineItemIndex].fields.push(new outline.OutlineField(varInfo.name,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
 		}
 		return outlineItems;
 	}

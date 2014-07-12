@@ -75,6 +75,7 @@ class OutlineParser extends RegexParser
 		
 		var enumIndexs = new Array<Int>();
 		
+		// TYPES
 		var types = RegexParser.getTypeDeclarations( data );
 		var outlineItem;
 		
@@ -88,7 +89,8 @@ class OutlineParser extends RegexParser
 				enumIndexs.push( outlineItems.length -1 );
 			}
 		}
-	
+		
+		// ENUMS
 		for ( enumIndex in enumIndexs )
 		{
 			var enumBlock = data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ); 
@@ -102,10 +104,22 @@ class OutlineParser extends RegexParser
                 return "";
             });
 		}
-	
-		var vars = getVariableDeclarations( data );
-		var outlineItemIndex:Int = 0;
+		
+		// METHODS
+		var methods = getFunctionDeclarations(data);
+		var outlineItemIndex:Int = 0;		
 
+		for ( methodInfo in methods )
+		{
+			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
+	
+			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
+		}
+
+		// VARS
+		var vars = getVariableDeclarations( data );
+		outlineItemIndex = 0;
+		
 		for ( varInfo in vars )
 		{
 			while( outlineItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
@@ -115,16 +129,6 @@ class OutlineParser extends RegexParser
 			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
 		}
 		
-		
-		var methods = getFunctionDeclarations(data);
-		outlineItemIndex = 0;		
-
-		for ( methodInfo in methods )
-		{
-			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
-	
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
-		}
 		
 		return outlineItems;
 	}

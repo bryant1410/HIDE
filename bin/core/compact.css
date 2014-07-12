@@ -367,7 +367,11 @@ ul.tabs > li:hover {
 
 .outlineStatic
 {
-	margin-left: 0px;
+	margin-left: 2px;
+	position:relative;
+ 	top:-3px;
+	color:#16bd16 !important;
+	font-size:18px;
 }
 
 .outlinePrivate
@@ -376,12 +380,9 @@ ul.tabs > li:hover {
 	background: center no-repeat url('images/lock.png');
 }
 
-.outlineStatic
+.outlinePublic
 {
-	position:relative;
- 	top:-3px;
-	color:#16bd16 !important;
-	font-size:18px;
+	top:-6px;
 }
 
 .outlineFunction , .outlineVar , .outlineEnum {
