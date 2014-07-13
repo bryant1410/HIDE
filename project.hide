@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 65
+            ,"activeLine" : 0
         }
         ,{
              "path" : "src\\parser\\OutlineHelper.hx"
@@ -36,7 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 445
+            ,"activeLine" : 31
         }
         ,{
              "path" : "src\\outline\\OutlineParser.hx"
@@ -45,7 +45,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 151
+            ,"activeLine" : 261
         }
         ,{
              "path" : "src\\core\\OutlinePanel.hx"
@@ -54,7 +54,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 69
+            ,"activeLine" : 51
         }
         ,{
              "path" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
@@ -84,7 +84,7 @@
             ,"activeLine" : 0
         }
     ]
-    ,"activeFile" : "src\\outline\\OutlineParser.hx"
+    ,"activeFile" : "src\\core\\OutlinePanel.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

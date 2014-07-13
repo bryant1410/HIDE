@@ -108,51 +108,63 @@ class OutlineParser extends RegexParser
 		
 		// METHODS
 		var methods = getFunctionDeclarations(data);
-		var outlineItemIndex:Int = 0;		
+		var parentIndex:Int = 0;		
 
 		for ( methodInfo in methods )
 		{
-			while( outlineItemIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
+			while( parentIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
 	
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( methodInfo.name +" ("+ methodInfo.params.toString()+")" , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
+			outlineItems[ parentIndex ].fields.push( new OutlineField( methodInfo.name +" ("+ methodInfo.params.toString()+")" , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
 		}
 
+			
+			
+			
 		// VARS
-		outlineItemIndex = 0;
+		parentIndex = 0;
 		var vars = getVariableDeclarations( data );
-		var methodIndex:Int = 0;
+		var methodIndex = 0;
 		var varInfo;
 		var varIndex;
 		var removedVarCount = 0;
+		var hasRemovedVar;
 
 		for ( i in 0...vars.length )
-		{		
-			varIndex = i + removedVarCount;
-			varInfo = vars[i];
-			 
-			while( outlineItemIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ outlineItemIndex +1 ].pos ) outlineItemIndex ++;
-			
-			while( methodIndex < methods.length && varInfo.pos.pos < methods[ methodIndex].pos.pos )
+		{	
+			varIndex = i - removedVarCount;
+			varInfo = vars[varIndex];
+
+			hasRemovedVar = false;
+			for (methodIndex in 0...methods.length)
 			{
-				methodIndex ++;
+				 
+				if( varInfo.pos.pos >  methods[methodIndex].pos.pos && varInfo.pos.pos < methods[methodIndex].endPos )
+				{
+					vars.splice(varIndex,1);
+					removedVarCount++;
+					hasRemovedVar = true;
+					break;
+				}
 			}
-			
-			trace( methodIndex );
-				
-			if( methodIndex < methods.length && varInfo.pos.pos < methods[methodIndex].endPos ) 
+
+			if (hasRemovedVar)
 			{
-				vars.splice(varIndex,1);
-				removedVarCount++;
 				continue;
 			}
-			
+
+				
 			var typeString = "";
 			if( varInfo.type !="") typeString = " : " + varInfo.type;
-				
-			outlineItems[ outlineItemIndex ].fields.push( new OutlineField( varInfo.name + typeString , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
+			
+			while( parentIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
+
+			outlineItems[ parentIndex ].fields.push( new OutlineField( varInfo.name + typeString , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
 		}
 		
 		
+			
+			
+			
 		return outlineItems;
 	}
 		
