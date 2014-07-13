@@ -116,27 +116,27 @@ class OutlineParser extends RegexParser
 
 
 		// METHODS
-		var methods = getFunctionDeclarations(data);
-		var parentIndex:Int = 0;		
+		var methods = getFunctionDeclarations(data);		
+		var methodFields = new Array<OutlineField>();		
 
 		for ( methodInfo in methods )
 		{
-			while( parentIndex +1 < outlineItems.length && methodInfo.pos.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
-	
-			outlineItems[ parentIndex ].fields.push( new OutlineField( methodInfo.name +" ("+ methodInfo.params.toString()+")" , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
+			
+			methodFields.push( new OutlineField( methodInfo.name +" ("+ methodInfo.params.toString()+")" , "function" , methodInfo.pos.pos , methodInfo.pos.len , methodInfo.isPublic , methodInfo.isStatic) );
 		}
 
 			
 			
 			
 		// VARS
-		parentIndex = 0;
+		
 		var vars = getVariableDeclarations( data );
 		var methodIndex = 0;
 		var varInfo;
 		var varIndex;
 		var removedVarCount = 0;
 		var hasRemovedVar;
+		var varFields = new Array<OutlineField>();
 
 		for ( i in 0...vars.length )
 		{	
@@ -165,14 +165,37 @@ class OutlineParser extends RegexParser
 				
 			var typeString = "";
 			if( varInfo.type !="") typeString = " : " + varInfo.type;
-			
-			while( parentIndex +1 < outlineItems.length && varInfo.pos.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
+		
 
-			outlineItems[ parentIndex ].fields.push( new OutlineField( varInfo.name + typeString , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
+			varFields.push( new OutlineField( varInfo.name + typeString , "var" , varInfo.pos.pos , varInfo.pos.len , varInfo.isPublic , varInfo.isStatic ) );
 		}
 		
 		
-		// SORT	
+		// SORT
+		var parentIndex = 0;
+		var fieldInfo;
+		while( varFields.length != 0 && methodFields.length!=0)
+		{
+			if( varFields.length != 0 )
+			{
+				fieldInfo = varFields.shift();
+				
+				if (varFields.length ==0 )
+				{
+					parentIndex = 0;
+				}
+
+			}
+			else 
+			{
+				fieldInfo = methodFields.shift();
+			}
+			
+			while( parentIndex +1 < outlineItems.length && fieldInfo.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
+	
+			outlineItems[ parentIndex ].fields.push( fieldInfo );
+		}
+		
 			
 			
 		return outlineItems;
