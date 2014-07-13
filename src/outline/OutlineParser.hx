@@ -137,7 +137,8 @@ class OutlineParser extends RegexParser
 			hasRemovedVar = false;
 			for (methodIndex in 0...methods.length)
 			{
-				 
+				//trace( varInfo.name + " : " + varInfo.pos.pos +" "+ methods[methodIndex].name + " : " + methods[methodIndex].pos.pos + " " + methods[methodIndex].endPos ); 
+				
 				if( varInfo.pos.pos >  methods[methodIndex].pos.pos && varInfo.pos.pos < methods[methodIndex].endPos )
 				{
 					vars.splice(varIndex,1);
@@ -236,38 +237,46 @@ class OutlineParser extends RegexParser
 						params = str.split(",");
 					}
 					
-					var functionBody:String = ereg2.matchedRight();
+					var functionBody:String = data.substr(pos.pos + pos.len);
 					
 					var leftBraces = functionBody.split("{");
 					var functionBodyLength:Int = 0;
-					var unClosedBraces:Int =1;
+					var unClosedBraces:Int =0;
 					
 					for ( leftBrace in leftBraces )
 					{
 						unClosedBraces ++;
 						functionBodyLength ++; 
+						 
 						var rightBraces = leftBrace.split("}");	
-						
+				
+						trace( name + " leftBrace" , rightBraces.length);
+				
+						if (rightBraces.length == 1 ) continue;
+
 						for ( rightBrace in rightBraces )
 						{
+							trace(name + " rightBrace");
 							unClosedBraces --;
 							
 							if (unClosedBraces == 0 )
 							{
+								trace(name + " foundEnd");
 								break;
 							}
-							functionBodyLength += rightBrace.length;
+							functionBodyLength += rightBrace.length +1;
 						}
 					
 						if (unClosedBraces == 0 )
 						{
+							trace(name + " foundEnd");
 							break;
 						}
 							
 						functionBodyLength += leftBrace.length;
 					}
 					
-					trace( functionBodyLength );
+					
 					
 					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic , endPos: ( pos.pos + pos.len + functionBodyLength ) });
 					
