@@ -16147,29 +16147,33 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 				var leftBraces = functionBody.split("{");
 				var functionBodyLength = 0;
 				var unClosedBraces = 0;
-				var _g = 0;
-				while(_g < leftBraces.length) {
-					var leftBrace = leftBraces[_g];
-					++_g;
+				var leftBrace;
+				var rightBrace;
+				var _g1 = 1;
+				var _g = leftBraces.length;
+				while(_g1 < _g) {
+					var i = _g1++;
+					leftBrace = leftBraces[i];
 					unClosedBraces++;
 					functionBodyLength++;
 					var rightBraces = leftBrace.split("}");
-					haxe.Log.trace(name + " leftBrace",{ fileName : "OutlineParser.hx", lineNumber : 251, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : [rightBraces.length]});
+					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 256, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["leftBrace",rightBraces.length]});
 					if(rightBraces.length == 1) continue;
-					var _g1 = 0;
-					while(_g1 < rightBraces.length) {
-						var rightBrace = rightBraces[_g1];
-						++_g1;
-						haxe.Log.trace(name + " rightBrace",{ fileName : "OutlineParser.hx", lineNumber : 258, className : "outline.OutlineParser", methodName : "getFunctionDeclarations"});
+					var _g3 = 1;
+					var _g2 = rightBraces.length;
+					while(_g3 < _g2) {
+						var j = _g3++;
+						rightBrace = leftBraces[j];
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 263, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["rightBrace",rightBrace,unClosedBraces]});
 						unClosedBraces--;
 						if(unClosedBraces == 0) {
-							haxe.Log.trace(name + " foundEnd",{ fileName : "OutlineParser.hx", lineNumber : 263, className : "outline.OutlineParser", methodName : "getFunctionDeclarations"});
+							haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 268, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 							break;
 						}
 						functionBodyLength += rightBrace.length + 1;
 					}
 					if(unClosedBraces == 0) {
-						haxe.Log.trace(name + " foundEnd",{ fileName : "OutlineParser.hx", lineNumber : 271, className : "outline.OutlineParser", methodName : "getFunctionDeclarations"});
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 276, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 						break;
 					}
 					functionBodyLength += leftBrace.length;

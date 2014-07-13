@@ -76,6 +76,9 @@ class OutlineParser extends RegexParser
 		
 		var enumIndexs = new Array<Int>();
 		
+		
+		
+		
 		// TYPES
 		var types = RegexParser.getTypeDeclarations( data );
 		var outlineItem;
@@ -91,6 +94,9 @@ class OutlineParser extends RegexParser
 			}
 		}
 		
+	
+	
+	
 		// ENUMS
 		for ( enumIndex in enumIndexs )
 		{
@@ -106,6 +112,9 @@ class OutlineParser extends RegexParser
             });
 		}
 		
+
+
+
 		// METHODS
 		var methods = getFunctionDeclarations(data);
 		var parentIndex:Int = 0;		
@@ -163,7 +172,7 @@ class OutlineParser extends RegexParser
 		}
 		
 		
-			
+		// SORT	
 			
 			
 		return outlineItems;
@@ -242,26 +251,30 @@ class OutlineParser extends RegexParser
 					var leftBraces = functionBody.split("{");
 					var functionBodyLength:Int = 0;
 					var unClosedBraces:Int =0;
-					
-					for ( leftBrace in leftBraces )
+					var leftBrace;
+					var rightBrace;
+				
+					for ( i in 1...leftBraces.length )
 					{
+						leftBrace = leftBraces[i];
 						unClosedBraces ++;
 						functionBodyLength ++; 
 						 
 						var rightBraces = leftBrace.split("}");	
 				
-						trace( name + " leftBrace" , rightBraces.length);
+						trace( name , "leftBrace" , rightBraces.length);
 				
 						if (rightBraces.length == 1 ) continue;
 
-						for ( rightBrace in rightBraces )
+						for ( j in 1...rightBraces.length )
 						{
-							trace(name + " rightBrace");
+							rightBrace = leftBraces[j];
+							trace(name , "rightBrace" , rightBrace , unClosedBraces);
 							unClosedBraces --;
 							
 							if (unClosedBraces == 0 )
 							{
-								trace(name + " foundEnd");
+								trace(name , "foundEnd");
 								break;
 							}
 							functionBodyLength += rightBrace.length +1;
@@ -269,7 +282,7 @@ class OutlineParser extends RegexParser
 					
 						if (unClosedBraces == 0 )
 						{
-							trace(name + " foundEnd");
+							trace(name ,"foundEnd");
 							break;
 						}
 							
