@@ -16070,21 +16070,20 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 			})(regEx1,enumIndex));
 		}
 		var methods = this.getFunctionDeclarations(data);
-		var parentIndex = 0;
+		var methodFields = new Array();
 		var _g2 = 0;
 		while(_g2 < methods.length) {
 			var methodInfo = methods[_g2];
 			++_g2;
-			while(parentIndex + 1 < outlineItems.length && methodInfo.pos.pos > outlineItems[parentIndex + 1].pos) parentIndex++;
-			outlineItems[parentIndex].fields.push(new outline.OutlineField(methodInfo.name + " (" + methodInfo.params.toString() + ")","function",methodInfo.pos.pos,methodInfo.pos.len,methodInfo.isPublic,methodInfo.isStatic));
+			methodFields.push(new outline.OutlineField(methodInfo.name + " (" + methodInfo.params.toString() + ")","function",methodInfo.pos.pos,methodInfo.pos.len,methodInfo.isPublic,methodInfo.isStatic));
 		}
-		parentIndex = 0;
 		var vars = this.getVariableDeclarations(data);
 		var methodIndex = 0;
 		var varInfo;
 		var varIndex;
 		var removedVarCount = 0;
 		var hasRemovedVar;
+		var varFields = new Array();
 		var _g11 = 0;
 		var _g3 = vars.length;
 		while(_g11 < _g3) {
@@ -16106,8 +16105,30 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 			if(hasRemovedVar) continue;
 			var typeString = "";
 			if(varInfo.type != "") typeString = " : " + varInfo.type;
-			while(parentIndex + 1 < outlineItems.length && varInfo.pos.pos > outlineItems[parentIndex + 1].pos) parentIndex++;
-			outlineItems[parentIndex].fields.push(new outline.OutlineField(varInfo.name + typeString,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
+			varFields.push(new outline.OutlineField(varInfo.name + typeString,"var",varInfo.pos.pos,varInfo.pos.len,varInfo.isPublic,varInfo.isStatic));
+		}
+		var parentIndex = 0;
+		var fieldInfo;
+		var usingSmartSort = true;
+		while(varFields.length != 0 || methodFields.length != 0) {
+			if(usingSmartSort) {
+				if(varFields.length != 0) {
+					fieldInfo = varFields.shift();
+					if(varFields.length == 0) {
+						parentIndex = 0;
+						haxe.Log.trace("length == 0",{ fileName : "OutlineParser.hx", lineNumber : 193, className : "outline.OutlineParser", methodName : "parse"});
+					}
+				} else fieldInfo = methodFields.shift();
+				parentIndex = 0;
+			} else {
+				if(varFields.length == 0) fieldInfo = methodFields.shift(); else if(methodFields.length == 0) fieldInfo = varFields.shift(); else if(varFields[0].pos < methodFields[0].pos) fieldInfo = varFields.shift(); else {
+					fieldInfo = methodFields.shift();
+					haxe.Log.trace("method",{ fileName : "OutlineParser.hx", lineNumber : 220, className : "outline.OutlineParser", methodName : "parse"});
+				}
+				parentIndex = 0;
+			}
+			while(parentIndex + 1 < outlineItems.length && fieldInfo.pos > outlineItems[parentIndex + 1].pos) parentIndex++;
+			outlineItems[parentIndex].fields.push(fieldInfo);
 		}
 		return outlineItems;
 	}
@@ -16157,23 +16178,23 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 					unClosedBraces++;
 					functionBodyLength++;
 					var rightBraces = leftBrace.split("}");
-					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 256, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["leftBrace",rightBraces.length]});
+					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 322, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["leftBrace",rightBraces.length]});
 					if(rightBraces.length == 1) continue;
 					var _g3 = 1;
 					var _g2 = rightBraces.length;
 					while(_g3 < _g2) {
 						var j = _g3++;
 						rightBrace = leftBraces[j];
-						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 263, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["rightBrace",rightBrace,unClosedBraces]});
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 329, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["rightBrace",rightBrace,unClosedBraces]});
 						unClosedBraces--;
 						if(unClosedBraces == 0) {
-							haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 268, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
+							haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 334, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 							break;
 						}
 						functionBodyLength += rightBrace.length + 1;
 					}
 					if(unClosedBraces == 0) {
-						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 276, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 342, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 						break;
 					}
 					functionBodyLength += leftBrace.length;

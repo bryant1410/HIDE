@@ -174,21 +174,55 @@ class OutlineParser extends RegexParser
 		// SORT
 		var parentIndex = 0;
 		var fieldInfo;
-		while( varFields.length != 0 && methodFields.length!=0)
-		{
-			if( varFields.length != 0 )
-			{
-				fieldInfo = varFields.shift();
-				
-				if (varFields.length ==0 )
-				{
-					parentIndex = 0;
-				}
+		var usingSmartSort = true;
 
-			}
-			else 
+		while( varFields.length != 0 || methodFields.length!=0)
+		{
+			
+			// SMART SORT
+			// Currently only splits vars and methods
+			if( usingSmartSort)
 			{
-				fieldInfo = methodFields.shift();
+				if( varFields.length != 0 )
+				{
+					fieldInfo = varFields.shift();
+
+					if (varFields.length ==0 )
+					{
+						parentIndex = 0;
+						trace( "length == 0");
+					}
+
+				}
+				else 
+				{	
+					fieldInfo = methodFields.shift();
+				}
+					
+				parentIndex = 0;
+			}
+			// NO SORT
+			else
+			{
+				if( varFields.length == 0 ) 
+					fieldInfo = methodFields.shift();
+				else if( methodFields.length == 0 ) 
+					fieldInfo = varFields.shift();
+				else
+				{
+					if( varFields[0].pos < methodFields[0].pos )
+					{
+						fieldInfo = varFields.shift();
+					}
+					else
+					{
+						fieldInfo = methodFields.shift();
+						trace( "method");
+					}
+				}
+					
+				parentIndex = 0;	
+				
 			}
 			
 			while( parentIndex +1 < outlineItems.length && fieldInfo.pos > outlineItems[ parentIndex +1 ].pos ) parentIndex ++;
