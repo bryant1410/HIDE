@@ -16110,20 +16110,33 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 		var parentIndex = 0;
 		var fieldInfo;
 		var usingSmartSort = true;
+		if(usingSmartSort) {
+			var nameA;
+			var nameB;
+			var sortFunction = function(a,b) {
+				nameA = a.name.toLowerCase();
+				nameB = b.name.toLowerCase();
+				if(nameA < nameB) return -1;
+				if(nameA > nameB) return 1;
+				return 0;
+			};
+			varFields.sort(sortFunction);
+			methodFields.sort(sortFunction);
+		}
 		while(varFields.length != 0 || methodFields.length != 0) {
 			if(usingSmartSort) {
 				if(varFields.length != 0) {
 					fieldInfo = varFields.shift();
 					if(varFields.length == 0) {
 						parentIndex = 0;
-						haxe.Log.trace("length == 0",{ fileName : "OutlineParser.hx", lineNumber : 193, className : "outline.OutlineParser", methodName : "parse"});
+						haxe.Log.trace("length == 0",{ fileName : "OutlineParser.hx", lineNumber : 212, className : "outline.OutlineParser", methodName : "parse"});
 					}
 				} else fieldInfo = methodFields.shift();
 				parentIndex = 0;
 			} else {
 				if(varFields.length == 0) fieldInfo = methodFields.shift(); else if(methodFields.length == 0) fieldInfo = varFields.shift(); else if(varFields[0].pos < methodFields[0].pos) fieldInfo = varFields.shift(); else {
 					fieldInfo = methodFields.shift();
-					haxe.Log.trace("method",{ fileName : "OutlineParser.hx", lineNumber : 220, className : "outline.OutlineParser", methodName : "parse"});
+					haxe.Log.trace("method",{ fileName : "OutlineParser.hx", lineNumber : 239, className : "outline.OutlineParser", methodName : "parse"});
 				}
 				parentIndex = 0;
 			}
@@ -16178,23 +16191,23 @@ outline.OutlineParser.prototype = $extend(parser.RegexParser.prototype,{
 					unClosedBraces++;
 					functionBodyLength++;
 					var rightBraces = leftBrace.split("}");
-					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 322, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["leftBrace",rightBraces.length]});
+					haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 341, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["leftBrace",rightBraces.length]});
 					if(rightBraces.length == 1) continue;
 					var _g3 = 1;
 					var _g2 = rightBraces.length;
 					while(_g3 < _g2) {
 						var j = _g3++;
 						rightBrace = leftBraces[j];
-						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 329, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["rightBrace",rightBrace,unClosedBraces]});
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 348, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["rightBrace",rightBrace,unClosedBraces]});
 						unClosedBraces--;
 						if(unClosedBraces == 0) {
-							haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 334, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
+							haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 353, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 							break;
 						}
 						functionBodyLength += rightBrace.length + 1;
 					}
 					if(unClosedBraces == 0) {
-						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 342, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
+						haxe.Log.trace(name,{ fileName : "OutlineParser.hx", lineNumber : 361, className : "outline.OutlineParser", methodName : "getFunctionDeclarations", customParams : ["foundEnd"]});
 						break;
 					}
 					functionBodyLength += leftBrace.length;

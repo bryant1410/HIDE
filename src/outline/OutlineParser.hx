@@ -175,7 +175,26 @@ class OutlineParser extends RegexParser
 		var parentIndex = 0;
 		var fieldInfo;
 		var usingSmartSort = true;
-
+		
+		if( usingSmartSort )
+		{
+			var nameA:String;
+			var nameB:String;
+			var sortFunction = function(a:OutlineField, b:OutlineField):Int
+			{
+				nameA = a.name.toLowerCase();
+				nameB = b.name.toLowerCase();
+				if (nameA < nameB) return -1;
+				if (nameA > nameB) return 1;
+				return 0;
+			}; 
+			
+			varFields.sort( sortFunction);
+			
+			methodFields.sort( sortFunction);
+			
+		}
+		
 		while( varFields.length != 0 || methodFields.length!=0)
 		{
 			
