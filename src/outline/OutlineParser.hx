@@ -63,7 +63,7 @@ typedef OutlineFieldData =
 }
 
 
-class OutlineParser extends RegexParser
+class OutlineParser
 {
 	public function new() 
 	{
@@ -174,7 +174,7 @@ class OutlineParser extends RegexParser
 		// SORT
 		var parentIndex = 0;
 		var fieldInfo;
-		var usingSmartSort = true;
+		var usingSmartSort = false;
 		
 		if( usingSmartSort )
 		{
@@ -236,7 +236,6 @@ class OutlineParser extends RegexParser
 					else
 					{
 						fieldInfo = methodFields.shift();
-						trace( "method");
 					}
 				}
 					
@@ -337,20 +336,17 @@ class OutlineParser extends RegexParser
 						functionBodyLength ++; 
 						 
 						var rightBraces = leftBrace.split("}");	
-				
-						trace( name , "leftBrace" , rightBraces.length);
+			
 				
 						if (rightBraces.length == 1 ) continue;
 
 						for ( j in 1...rightBraces.length )
 						{
 							rightBrace = leftBraces[j];
-							trace(name , "rightBrace" , rightBrace , unClosedBraces);
 							unClosedBraces --;
 							
 							if (unClosedBraces == 0 )
 							{
-								trace(name , "foundEnd");
 								break;
 							}
 							functionBodyLength += rightBrace.length +1;
@@ -358,7 +354,6 @@ class OutlineParser extends RegexParser
 					
 						if (unClosedBraces == 0 )
 						{
-							trace(name ,"foundEnd");
 							break;
 						}
 							
