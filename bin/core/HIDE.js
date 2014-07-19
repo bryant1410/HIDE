@@ -4235,6 +4235,7 @@ core.OutlinePanel.prototype = {
 			e.stopPropagation();
 			e.preventDefault();
 			if(_g.useSorting) _g.useSorting = false; else _g.useSorting = true;
+			core.HaxeLint.updateLinting();
 		};
 	}
 	,source: null
@@ -4255,7 +4256,7 @@ core.OutlinePanel.prototype = {
 				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
-		new $("#panelContentpaneloutline").append(this.sortButton);
+		new $("#panelWrapperpaneloutline").append(this.sortButton);
 	}
 	,addField: function(item) {
 		this.source.push(item);

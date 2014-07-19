@@ -47,6 +47,7 @@ class OutlinePanel
 			else
 				useSorting = true;
 			
+			HaxeLint.updateLinting();
 		};
 	}
 	
@@ -92,7 +93,7 @@ class OutlinePanel
 		);
 		
 		
-		new JQuery('#panelContentpaneloutline').append(sortButton);
+		new JQuery('#panelWrapperpaneloutline').append(sortButton);
 	}
 	
 	public function addField(item:TreeItem):Void

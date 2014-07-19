@@ -18,7 +18,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 355
+            ,"activeLine" : 357
         }
         ,{
              "path" : "src\\outline\\OutlineFormatter.hx"
@@ -36,7 +36,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 55
+            ,"activeLine" : 32
         }
         ,{
              "path" : "src\\outline\\OutlineParser.hx"
@@ -66,7 +66,7 @@
             ,"activeLine" : 0
         }
     ]
-    ,"activeFile" : "src\\core\\OutlinePanel.hx"
+    ,"activeFile" : "src\\parser\\OutlineHelper.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
