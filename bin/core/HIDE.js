@@ -4215,6 +4215,8 @@ core.MenuCommands.add = function() {
 };
 core.OutlinePanel = function() {
 	this.source = [];
+	this.useSorting = false;
+	this.addSortButton();
 };
 $hxClasses["core.OutlinePanel"] = core.OutlinePanel;
 core.OutlinePanel.__name__ = ["core","OutlinePanel"];
@@ -4223,7 +4225,19 @@ core.OutlinePanel.get = function() {
 	return core.OutlinePanel.instance;
 };
 core.OutlinePanel.prototype = {
-	source: null
+	useSorting: null
+	,sortButton: null
+	,addSortButton: function() {
+		var _g = this;
+		this.sortButton = bootstrap.ButtonManager.get().createButton("Sort");
+		this.sortButton.classList.add("outlineSortButton");
+		this.sortButton.onclick = function(e) {
+			e.stopPropagation();
+			e.preventDefault();
+			if(_g.useSorting) _g.useSorting = false; else _g.useSorting = true;
+		};
+	}
+	,source: null
 	,update: function() {
 		new $("#outline").jqxTree({ source : this.source});
 		new $("#outline").dblclick(function(event) {
@@ -4241,6 +4255,7 @@ core.OutlinePanel.prototype = {
 				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
+		new $("#panelContentpaneloutline").append(this.sortButton);
 	}
 	,addField: function(item) {
 		this.source.push(item);
@@ -15968,7 +15983,8 @@ outline.OutlineParser.prototype = {
 		}
 		var parentIndex = 0;
 		var fieldInfo;
-		var usingSmartSort = false;
+		var usingSmartSort = core.OutlinePanel.get().useSorting;
+		console.log(usingSmartSort);
 		if(usingSmartSort) {
 			var nameA;
 			var nameB;

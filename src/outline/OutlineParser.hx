@@ -1,7 +1,7 @@
 package outline;
 
 import parser.RegexParser;
-
+import core.OutlinePanel;
 /**
  * @author Nick Holder
  */
@@ -174,8 +174,10 @@ class OutlineParser
 		// SORT
 		var parentIndex = 0;
 		var fieldInfo;
-		var usingSmartSort = false;
+		var usingSmartSort = OutlinePanel.get().useSorting;
 		
+trace( usingSmartSort );
+
 		if( usingSmartSort )
 		{
 			var nameA:String;

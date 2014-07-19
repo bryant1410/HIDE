@@ -352,6 +352,18 @@ ul.tabs > li:hover {
 
 /* Outline Panel */
 
+.outlineSortButton{
+	position:absolute;
+	top:4px;
+	right:4px;
+	padding-left:4px;
+	padding-right:4px;
+	padding-bottom:0px;
+	padding-top:0px;
+	font-size:8px;
+	text-transform:uppercase;
+}
+
 .outlinePrivate, .outlineStatic, .outlineNotStatic, .outlinePublic,
 .outlineEnum, .outlineAbstract, .outlineVar, .outlineFunction 
 {

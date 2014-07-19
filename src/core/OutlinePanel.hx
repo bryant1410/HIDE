@@ -5,7 +5,8 @@ import parser.OutlineHelper;
 import cm.Editor;
 import jQuery.JQuery;
 import outline.OutlineFormatter;
-
+import bootstrap.ButtonManager;
+import js.html.ButtonElement;
 /**
  * ...
  * @author AS3Boyan
@@ -23,10 +24,31 @@ class OutlinePanel
 {
 	static var instance:OutlinePanel;
 	
+	public var useSorting:Bool = false;
+	var sortButton:ButtonElement;
+	
 	public function new() 
 	{
-		
+		addSortButton();
 	}	
+	
+	function addSortButton()
+	{
+		sortButton = ButtonManager.get().createButton("Sort");
+		sortButton.classList.add("outlineSortButton");
+		
+		sortButton.onclick = function (e ):Void
+		{
+			e.stopPropagation();
+			e.preventDefault();
+			
+			if( useSorting )
+				useSorting = false;
+			else
+				useSorting = true;
+			
+		};
+	}
 	
 	public static function get()
 	{
@@ -42,6 +64,7 @@ class OutlinePanel
 	
 	public function update():Void
 	{
+		
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		
 		new JQuery('#outline').dblclick(function (event):Void 
@@ -68,6 +91,8 @@ class OutlinePanel
 		}
 		);
 		
+		
+		new JQuery('#panelContentpaneloutline').append(sortButton);
 	}
 	
 	public function addField(item:TreeItem):Void
