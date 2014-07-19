@@ -354,7 +354,7 @@ ul.tabs > li:hover {
 
 .outlineSortButton{
 	position:absolute;
-	top:4px;
+	bottom:16px;
 	right:14px;
 	padding-left:4px;
 	padding-right:4px;
