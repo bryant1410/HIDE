@@ -11,66 +11,13 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "bin\\core\\compact.css"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 357
-        }
-        ,{
-             "path" : "src\\outline\\OutlineFormatter.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 61
-        }
-        ,{
-             "path" : "src\\parser\\OutlineHelper.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 32
-        }
-        ,{
-             "path" : "src\\outline\\OutlineParser.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 3
-        }
-        ,{
-             "path" : "src\\core\\OutlinePanel.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 59
-        }
-        ,{
-             "path" : "bin\\core\\index.html"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 0
-        }
     ]
-    ,"activeFile" : "src\\parser\\OutlineHelper.hx"
+    ,"activeFile" : "bin/core/locale/en.json"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
-    ,"runActionText" : ""
+    ,"runActionText" : null
     ,"buildActionCommand" : null
     ,"hiddenItems" : [
 

@@ -1,6 +1,3 @@
-﻿if you want to support further development of HIDE, please consider donating some funds
-[![Support via Gittip](https://rawgithub.com/twolfson/gittip-badge/0.2.0/dist/gittip.png)](https://www.gittip.com/as3boyan/)
-
 HIDE
 ====
 
@@ -32,9 +29,45 @@ haxelib run HIDE
 
 ##### Development version
 
-1. `haxelib git HIDE https://github.com/as3boyan/HIDE/ master bin`
-2. `haxelib install node-webkit`
-3. `haxelib run HIDE`
+```bash
+haxelib git HIDE https://github.com/as3boyan/HIDE/ master bin
+haxelib install node-webkit
+haxelib run HIDE
+```
+
+##### How to build:
+
+1. Run following commands:
+
+```bash
+#Clone source using git
+git clone --recursive https://github.com/HaxeIDE/HIDE.git
+
+#Haxe 3 is required. Install haxelibs
+haxelib install jQueryExtern
+haxelib install tjson
+haxelib install node-webkit
+
+#Navigate to the root directory
+cd HIDE
+
+#Compile HIDE
+haxe HIDE.hxml
+
+#Navigate to HIDE/bin directory
+cd bin
+
+#Run node-webkit
+haxelib run node-webkit
+```
+
+2. In HIDE select __File__ -> __Open Project...__ and select __project.hide__ in the root folder of the HIDE repository to open HIDE project in HIDE
+
+3. (Optional) Navigate to __HIDE/bin__ and run __npm install__ to install required dependencies(you might need to add __sudo__ if you work under Linux/Mac OS X)
+
+```bash
+npm install
+```
 
 ##### Contributing
 I am always thrilled to receive pull requests, and I do my best to process them as fast as possible. Not sure if that typo is worth a pull request? Do it! I will appreciate it.
@@ -49,3 +82,4 @@ Completion types is from Tern which is licensed under the terms of the MIT Licen
 Completion description CodeMirror add-on by @angelozerr.
 Code snippets CodeMirror add-on by @angelozerr (with minor fixes by @AS3Boyan).
 jQueryExtern is released in the public domain.
+tjson is licensed under the terms of the MIT License
