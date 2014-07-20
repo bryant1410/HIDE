@@ -11,9 +11,35 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 2
+        }
+        ,{
+             "path" : "src\\parser\\OutlineHelper.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 219
+        }
+        ,{
+             "path" : "libs\\css\\HIDE.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 1034
+        }
     ]
-    ,"activeFile" : "bin/core/locale/en.json"
+    ,"activeFile" : "libs\\css\\HIDE.css"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
