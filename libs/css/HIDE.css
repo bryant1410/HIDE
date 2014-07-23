@@ -909,7 +909,6 @@ dropdown-menu,
 /* Outline Panel */
 
 
-
 #panelContentpaneloutline .jqx-tree-item{
 
 	padding:0px
@@ -979,7 +978,9 @@ dropdown-menu,
 
 /* Outline Panel */
 
-
+#panelContentpaneloutline{
+	padding-top: 20px !important;
+}
 
 .outlinePrivate, .outlineStatic, .outlineNotStatic, .outlinePublic,
 .outlineEnum, .outlineAbstract, .outlineVar, .outlineFunction 
@@ -1052,9 +1053,9 @@ dropdown-menu,
 
 /* Options bar*/
 .panelOptionsBar{
-	top:20px !important;
-	display: block;
-	text-align:right;
+	position:absolute;
+	width:100%;
+	top: 0px!important;
 }
 
 .panelOptionsButton{

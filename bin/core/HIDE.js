@@ -4263,7 +4263,7 @@ core.OutlinePanel.prototype = {
 				highlightRange.highlight(cm2,pos,pos2);
 			}
 		});
-		new $("#paneloutline").before(this.outlineOptionsPanel);
+		new $("#paneloutlineverticalScrollBar").before(this.outlineOptionsPanel);
 		new $("#outlineOptionsPanel").append(this.sortButton);
 	}
 	,addField: function(item) {

@@ -103,7 +103,7 @@ class OutlinePanel
 		}
 		);
 		
-		new JQuery('#paneloutline').before( outlineOptionsPanel );
+		new JQuery('#paneloutlineverticalScrollBar').before( outlineOptionsPanel );
 		
 		new JQuery('#outlineOptionsPanel').append(sortButton);
 	}

@@ -18,7 +18,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 75
+            ,"activeLine" : 101
         }
         ,{
              "path" : "libs\\css\\HIDE.css"
@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 1034
+            ,"activeLine" : 979
         }
         ,{
              "path" : "bin\\core\\metrodark.css"
@@ -45,7 +45,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 2
+            ,"activeLine" : 14
         }
         ,{
              "path" : "bin\\core\\compact.css"
@@ -54,10 +54,10 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 130
+            ,"activeLine" : 353
         }
     ]
-    ,"activeFile" : "bin\\core\\compact.css"
+    ,"activeFile" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2
