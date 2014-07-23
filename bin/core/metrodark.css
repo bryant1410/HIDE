@@ -1386,12 +1386,12 @@ background: rgba(92,184,17,.9);
 }
 
 /* */
-.optionsPanel{
+.panelOptionsBar{
 
 	background-color:#333333;
 }
 
-.optionsButton{
+.panelOptionsButton{
 	background-color:#888888;
 	border-color:#888888;
 }

@@ -11,9 +11,53 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src\\core\\OutlinePanel.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 75
+        }
+        ,{
+             "path" : "libs\\css\\HIDE.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 1034
+        }
+        ,{
+             "path" : "bin\\core\\metrodark.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 1390
+        }
+        ,{
+             "path" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 2
+        }
+        ,{
+             "path" : "bin\\core\\compact.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 130
+        }
     ]
-    ,"activeFile" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
+    ,"activeFile" : "bin\\core\\compact.css"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

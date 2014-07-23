@@ -4234,10 +4234,10 @@ core.OutlinePanel.prototype = {
 	,addSortButton: function() {
 		var _g = this;
 		this.outlineOptionsPanel = window.document.createElement("div");
-		this.outlineOptionsPanel.setAttribute("class","optionsPanel");
+		this.outlineOptionsPanel.setAttribute("class","panelOptionsBar");
 		this.outlineOptionsPanel.setAttribute("id","outlineOptionsPanel");
 		this.sortButton = bootstrap.ButtonManager.get().createButton("Sort");
-		this.sortButton.classList.add("optionsButton");
+		this.sortButton.classList.add("panelOptionsButton");
 		this.sortButton.onclick = function(e) {
 			e.stopPropagation();
 			e.preventDefault();

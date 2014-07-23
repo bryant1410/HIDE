@@ -133,7 +133,7 @@
 }
 
 #panelContentpanelfiletree .jqx-tree-dropdown{
-	padding: 0 20px 0 20px;
+	padding: 0px 0px 0px 13px;
 }
 
 #panelContentpanelfiletree .jqx-tree-item{
@@ -143,7 +143,7 @@
 
 #panelContentpanelfiletree .jqx-tree-item-li{
 	line-height:14px;
-	margin:0px 0px 0px 10px !important;
+	margin:0px 0px 0px 2px !important;
 }
 
 
@@ -352,7 +352,7 @@ ul.tabs > li:hover {
 }
 
 /* */
-.optionsPanel{
+.panelOptionsBar{
 
 	background-color:#eeeeee;
 }
