@@ -40,11 +40,11 @@ class OutlinePanel
 	{
 		
 		outlineOptionsPanel = Browser.document.createElement("div");
-		outlineOptionsPanel.setAttribute( "class" , "optionsPanel");
+		outlineOptionsPanel.setAttribute( "class" , "panelOptionsBar");
 		outlineOptionsPanel.setAttribute( "id" , "outlineOptionsPanel");
 		
 		sortButton = ButtonManager.get().createButton("Sort");
-		sortButton.classList.add("optionsButton");
+		sortButton.classList.add("panelOptionsButton");
 		
 		sortButton.onclick = function (e ):Void
 		{
@@ -76,8 +76,6 @@ class OutlinePanel
 	
 	public function update():Void
 	{
-		
-
 		
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		

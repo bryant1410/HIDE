@@ -11,53 +11,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 2
-        }
-        ,{
-             "path" : "src\\parser\\OutlineHelper.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 14
-        }
-        ,{
-             "path" : "libs\\css\\HIDE.css"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 1070
-        }
-        ,{
-             "path" : "src\\core\\OutlinePanel.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 85
-        }
-        ,{
-             "path" : "bin\\core\\compact.css"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
-
-            ]
-            ,"activeLine" : 357
-        }
     ]
-    ,"activeFile" : "libs\\css\\HIDE.css"
+    ,"activeFile" : "..\\..\\AppData\\Local\\HIDE\\.HIDE\\settings.json"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

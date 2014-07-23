@@ -1384,3 +1384,14 @@ background: rgba(254,26,0,.9);
 background: #5CB811;
 background: rgba(92,184,17,.9);
 }
+
+/* */
+.optionsPanel{
+
+	background-color:#333333;
+}
+
+.optionsButton{
+	background-color:#888888;
+	border-color:#888888;
+}
