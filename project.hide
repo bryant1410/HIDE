@@ -27,7 +27,7 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 219
+            ,"activeLine" : 14
         }
         ,{
              "path" : "libs\\css\\HIDE.css"
@@ -36,7 +36,25 @@
             ,"foldedRegions" : [
 
             ]
-            ,"activeLine" : 1034
+            ,"activeLine" : 1070
+        }
+        ,{
+             "path" : "src\\core\\OutlinePanel.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 85
+        }
+        ,{
+             "path" : "bin\\core\\compact.css"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 357
         }
     ]
     ,"activeFile" : "libs\\css\\HIDE.css"

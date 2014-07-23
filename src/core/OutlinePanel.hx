@@ -7,6 +7,9 @@ import jQuery.JQuery;
 import outline.OutlineFormatter;
 import bootstrap.ButtonManager;
 import js.html.ButtonElement;
+import js.html.Document;
+import js.Browser;
+import js.html.Element;
 /**
  * ...
  * @author AS3Boyan
@@ -26,7 +29,8 @@ class OutlinePanel
 	
 	public var useSorting:Bool = false;
 	var sortButton:ButtonElement;
-	
+	var outlineOptionsPanel:Element;
+
 	public function new() 
 	{
 		addSortButton();
@@ -34,8 +38,13 @@ class OutlinePanel
 	
 	function addSortButton()
 	{
+		
+		outlineOptionsPanel = Browser.document.createElement("div");
+		outlineOptionsPanel.setAttribute( "class" , "optionsPanel");
+		outlineOptionsPanel.setAttribute( "id" , "outlineOptionsPanel");
+		
 		sortButton = ButtonManager.get().createButton("Sort");
-		sortButton.classList.add("outlineSortButton");
+		sortButton.classList.add("optionsButton");
 		
 		sortButton.onclick = function (e ):Void
 		{
@@ -49,6 +58,8 @@ class OutlinePanel
 			
 			HaxeLint.updateLinting();
 		};
+		
+		
 	}
 	
 	public static function get()
@@ -65,6 +76,8 @@ class OutlinePanel
 	
 	public function update():Void
 	{
+		
+
 		
 		untyped new JQuery("#outline").jqxTree( { source: source } );
 		
@@ -92,8 +105,9 @@ class OutlinePanel
 		}
 		);
 		
+		new JQuery('#paneloutline').before( outlineOptionsPanel );
 		
-		new JQuery('#panelWrapperpaneloutline').append(sortButton);
+		new JQuery('#outlineOptionsPanel').append(sortButton);
 	}
 	
 	public function addField(item:TreeItem):Void

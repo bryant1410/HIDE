@@ -979,17 +979,7 @@ dropdown-menu,
 
 /* Outline Panel */
 
-.outlineSortButton{
-	position:absolute;
-	bottom:22px;
-	right:22px; 
-	padding-left:4px;
-	padding-right:4px;
-	padding-bottom:0px;
-	padding-top:0px;
-	font-size:8px;
-	text-transform:uppercase;
-}
+
 
 .outlinePrivate, .outlineStatic, .outlineNotStatic, .outlinePublic,
 .outlineEnum, .outlineAbstract, .outlineVar, .outlineFunction 
@@ -1058,4 +1048,24 @@ dropdown-menu,
 
 	padding: 0 0 0 0px;
 
+}
+
+
+.optionsPanel{
+
+	top:20px !important;
+	display: block;
+	text-align:right;
+}
+
+.optionsButton{
+	right:10px;
+ 	margin:2px;
+	margin-right:10px;
+	padding-left:4px;
+	padding-right:4px;
+	padding-bottom:0px;
+	padding-top:0px;
+	font-size:8px;
+	text-transform:uppercase;
 }
