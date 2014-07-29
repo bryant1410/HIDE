@@ -344,7 +344,7 @@ trace( usingSmartSort );
 
 						for ( j in 1...rightBraces.length )
 						{
-							rightBrace = leftBraces[j];
+							rightBrace = rightBraces[j];
 							unClosedBraces --;
 							
 							if (unClosedBraces == 0 )
