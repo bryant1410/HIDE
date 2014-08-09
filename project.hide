@@ -11,9 +11,35 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src\\outline\\OutlineParser.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 354
+        }
+        ,{
+             "path" : "src\\core\\OutlinePanel.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 44
+        }
+        ,{
+             "path" : "src\\outline\\BraceTest.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
+
+            ]
+            ,"activeLine" : 33
+        }
     ]
-    ,"activeFile" : "bin\\core\\metrodark.css"
+    ,"activeFile" : "src\\outline\\OutlineParser.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 2

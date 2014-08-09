@@ -256,6 +256,7 @@ class OutlineParser
 	}
 		
 		
+		
 	function getVariableDeclarations(data:String):Array<OutlineFieldData>
     {
 		var variableDeclarations:Array<OutlineFieldData> = [];
@@ -293,7 +294,8 @@ class OutlineParser
         return variableDeclarations;
     }
 
- function getFunctionDeclarations(data:String)
+
+ 	function getFunctionDeclarations(data:String)
     {
         var functionDeclarations:Array<OutlineFieldData> = [];
         
@@ -305,10 +307,6 @@ class OutlineParser
 			var pos = ereg2.matchedPos();
 			var isStatic = ereg2.matched(1)=="static";
 			var isPublic = ereg2.matched(2)=="public";
-			
-					
-			
-			
             var name:String = ereg2.matched(3);
             
             if (name != "")
@@ -324,14 +322,11 @@ class OutlineParser
 					}
 					
 					var functionBody:String = data.substr(pos.pos + pos.len);
-					
 					var leftBraces = functionBody.split("{");
-					var functionBodyLength:Int =leftBraces[0].length;
+					var functionBodyLength:Int =leftBraces[0].length +1;
 					var unClosedBraces:Int =0;
 					var leftBrace;
 					var rightBrace;
-				
-					trace( "StartBodyLength" , functionBodyLength );
 				
 					for ( i in 1...leftBraces.length )
 					{
@@ -343,7 +338,7 @@ class OutlineParser
 						if (rightBraces.length == 1 ) 
 						{
 							functionBodyLength += rightBraces[0].length;
-							trace("noRightBrace" , "length:" ,rightBraces[0].length, unClosedBraces , "functionBodyLength:  ",  functionBodyLength , "** \n",rightBraces[0]);
+							
 							continue;
 						}
 							
@@ -352,29 +347,26 @@ class OutlineParser
 							rightBrace = rightBraces[j];
 							
 							if( j != 0 ) unClosedBraces --;
-							else functionBodyLength ++;
-				
-							functionBodyLength += rightBrace.length ;
-							trace( "rightBrace"  ,  "length:" ,rightBrace.length , unClosedBraces ,functionBodyLength , "** \n" , rightBrace);
+							functionBodyLength ++;
 				
 							if (unClosedBraces == 0 )
 							{
-								trace(name , "foundEnd");
 								break;
+							}
+							else 
+							{
+								functionBodyLength += rightBrace.length ;
 							}
 							
 						}
 					
 						if (unClosedBraces == 0 )
 						{
-							trace(name ,"foundEnd");
+							
 							break;
 						}
 							
 					}
-					
-					
-					trace( pos.pos , pos.len ,  functionBodyLength );
 
 					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic , endPos: ( pos.pos + pos.len + functionBodyLength ) });
 					
