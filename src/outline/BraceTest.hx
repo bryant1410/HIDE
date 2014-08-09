@@ -1,79 +1,9 @@
 package core;
-import cm.HighlightRange;
-import haxe.Timer;
-import parser.OutlineHelper;
-import cm.Editor;
-import jQuery.JQuery;
-import outline.OutlineFormatter;
-import bootstrap.ButtonManager;
-import js.html.ButtonElement;
-import js.html.Document;
-import js.Browser;
-import js.html.Element;
-/**
- * ...
- * @author AS3Boyan
- */
 
-typedef TreeItem = {
-	var label:String;
-    @:optional var icon:String;
-	@:optional var items:Array<TreeItem>;
-	@:optional var expanded:Bool;
-	@:optional var value:Dynamic;
-}
  
-class OutlinePanel
+class BraceTest
 {
-	static var instance:OutlinePanel;
-	
-	public var useSorting:Bool = false;
-	var sortButton:ButtonElement;
-	var outlineOptionsPanel:Element;
-
-	public function new() 
-	{
-		addSortButton();
-	}	
-	
-	function addSortButton()
-	{
-		
-		outlineOptionsPanel = Browser.document.createElement("div");
-		outlineOptionsPanel.setAttribute( "class" , "panelOptionsBar");
-		outlineOptionsPanel.setAttribute( "id" , "outlineOptionsPanel");
-		
-		sortButton = ButtonManager.get().createButton("Sort");
-		sortButton.classList.add("panelOptionsButton");
-		
-		sortButton.onclick = function (e ):Void
-		{
-			e.stopPropagation();
-			e.preventDefault();
-			
-			if( useSorting )
-				useSorting = false;
-			else
-				useSorting = true;
-			
-			HaxeLint.updateLinting();
-		};
-		
-		
-	}
-	
-	public static function get()
-	{
-		if (instance == null)
-		{
-			instance = new OutlinePanel();
-		}
-			
-		return instance;
-	}
-	
-	var source:Array<TreeItem> = [];
-	
+	var nice;
 	public function update():Void
 	{
 		
@@ -107,14 +37,6 @@ class OutlinePanel
 		
 		new JQuery('#outlineOptionsPanel').append(sortButton);
 	}
+	var nick;
 	
-	public function addField(item:TreeItem):Void
-	{
-		source.push(item);
-	}
-	
-	public function clearFields():Void 
-	{
-		source = [];
-	}
 }

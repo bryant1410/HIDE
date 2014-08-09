@@ -176,7 +176,7 @@ class OutlineParser
 		var fieldInfo;
 		var usingSmartSort = OutlinePanel.get().useSorting;
 		
-trace( usingSmartSort );
+		//trace( usingSmartSort );
 
 		if( usingSmartSort )
 		{
@@ -326,44 +326,56 @@ trace( usingSmartSort );
 					var functionBody:String = data.substr(pos.pos + pos.len);
 					
 					var leftBraces = functionBody.split("{");
-					var functionBodyLength:Int = 0;
+					var functionBodyLength:Int =leftBraces[0].length;
 					var unClosedBraces:Int =0;
 					var leftBrace;
 					var rightBrace;
+				
+					trace( "StartBodyLength" , functionBodyLength );
 				
 					for ( i in 1...leftBraces.length )
 					{
 						leftBrace = leftBraces[i];
 						unClosedBraces ++;
-						functionBodyLength ++; 
 						 
 						var rightBraces = leftBrace.split("}");	
-			
 				
-						if (rightBraces.length == 1 ) continue;
-
-						for ( j in 1...rightBraces.length )
+						if (rightBraces.length == 1 ) 
+						{
+							functionBodyLength += rightBraces[0].length;
+							trace("noRightBrace" , "length:" ,rightBraces[0].length, unClosedBraces , "functionBodyLength:  ",  functionBodyLength , "** \n",rightBraces[0]);
+							continue;
+						}
+							
+						for ( j in 0...rightBraces.length )
 						{
 							rightBrace = rightBraces[j];
-							unClosedBraces --;
 							
+							if( j != 0 ) unClosedBraces --;
+							else functionBodyLength ++;
+				
+							functionBodyLength += rightBrace.length ;
+							trace( "rightBrace"  ,  "length:" ,rightBrace.length , unClosedBraces ,functionBodyLength , "** \n" , rightBrace);
+				
 							if (unClosedBraces == 0 )
 							{
+								trace(name , "foundEnd");
 								break;
 							}
-							functionBodyLength += rightBrace.length +1;
+							
 						}
 					
 						if (unClosedBraces == 0 )
 						{
+							trace(name ,"foundEnd");
 							break;
 						}
 							
-						functionBodyLength += leftBrace.length;
 					}
 					
 					
-					
+					trace( pos.pos , pos.len ,  functionBodyLength );
+
 					functionDeclarations.push({name: name, params: params ,pos: pos , type: "" , isPublic:isPublic , isStatic:isStatic , endPos: ( pos.pos + pos.len + functionBodyLength ) });
 					
 			}
