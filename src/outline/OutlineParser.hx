@@ -6,10 +6,6 @@ import core.OutlinePanel;
  * @author Nick Holder
  */
 
-enum TestEnum{
-	Enum1;
-	Enum2;
-}
 
 class OutlineItem
 {
