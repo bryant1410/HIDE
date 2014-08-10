@@ -343,7 +343,7 @@ class OutlineParser
 							rightBrace = rightBraces[j];
 							
 							if( j != 0 ) unClosedBraces --;
-							functionBodyLength ++;
+							
 				
 							if (unClosedBraces == 0 )
 							{
