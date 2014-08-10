@@ -12,6 +12,13 @@ typedef VariableData = {
 	var pos:{pos:Int, len:Int};
 }
 
+typedef PosData = 
+{
+	var pos:Int;
+	var len:Int;
+}
+
+	
 //Regex for parsing imports ported from haxe-sublime-bundle
 //https://github.com/clemos/haxe-sublime-bundle/blob/master/HaxeHelper.py#L21
 class RegexParser
@@ -49,13 +56,14 @@ class RegexParser
 	
     public static function getTypeDeclarations(data:String)
     {
-        var typeDeclarations:Array<{type:String, name:String, ?opaqueType:String}> = [];
+        var typeDeclarations:Array<{type:String, name:String, ?opaqueType:String , ?pos:PosData}> = [];
         
         var ereg = ~/(class|typedef|enum|typedef|abstract) +([A-Z][a-zA-Z0-9_]*) *(<[a-zA-Z0-9_,]+>)?/gm;
         
         ereg.map(data, function (ereg2)
                 {
-                    var typeDeclaration = {type: ereg2.matched(1), name: ereg2.matched(2)};
+					var pos = ereg.matchedPos();
+                    var typeDeclaration = {type: ereg2.matched(1), name: ereg2.matched(2) , pos: pos};
                     typeDeclarations.push(typeDeclaration);
                     return "";
                 });
@@ -65,7 +73,7 @@ class RegexParser
     
     public static function getFunctionDeclarations(data:String)
     {
-        var functionDeclarations:Array<{name:String, ?params:Array<String>}> = [];
+        var functionDeclarations:Array<{name:String, ?params:Array<String> ,  pos:PosData }> = [];
         
         var eregFunction = ~/function +([^;\.\(\) ]*)/gi;
         var eregFunctionWithParameters = ~/function *([a-zA-Z0-9_]*) *\(([^\)]*)/gm;
@@ -73,6 +81,7 @@ class RegexParser
         
         eregFunctionWithParameters.map(data, function (ereg2:EReg)
                         {
+							var pos = ereg2.matchedPos();
                             var name:String = ereg2.matched(1);
                             
                             if (name != null)
@@ -88,7 +97,7 @@ class RegexParser
 										params = str.split(",");
 									}
 									
-									functionDeclarations.push({name: name, params: params});
+									functionDeclarations.push({name: name, params: params ,pos: pos});
 								}
                             }
                             
