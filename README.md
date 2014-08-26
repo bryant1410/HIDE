@@ -5,6 +5,26 @@ HIDE - cross platform IDE for Haxe programming language
 
 Thanks to a group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under the terms of the MIT License.
 
+###History
+Project was actively developed for almost a year by @as3boyan. (Summer 2013 - Summer 2014).
+It's pretty huge project, and there is not much IDEs made purely on web technologies.
+@misterpah gave this project great starting boost with making starting menu and choosing Bootstrap framework as main framework for GUI. After that it was maintained mostly by @as3boyan. @misterpah decided to develop it's own IDE for Haxe, named Haxe Studio.
+
+@NickHolder did amazing job on outline panel(types, scope of functions and variables, sorting).
+
+###Architechture controversy
+At start @as3boyan and @misterpah worked on one branch(master).
+@as3boyan and @misterpah argued a lot on plugin system implementation(which was requirement from Haxe Foundation).
+@as3boyan and @misterpah implemented their own plugin systems.
+Then @as3boyan decided to integrate everything into the core. @misterpah didn't agreed with this decision.
+Anyway, they both worked on different branches.
+
+>Most IDEs integrate basic functionality to the core, for performance and stability reasons. And having lots of plugins, makes it harder to manage dependencies.
+
+
+###Project funding
+$2,740USD(including 7% fees) were equally split between two developers: @as3boyan and @misterpah.
+
 Google Plus:
 [HIDE Google Plus page](https://plus.google.com/113245482496557815887)
 
