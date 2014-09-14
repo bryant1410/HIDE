@@ -62,7 +62,7 @@ class OutlinePanel
 		
 	}
 	
-	public static function get()
+	public static function get():OutlinePanel
 	{
 		if (instance == null)
 		{

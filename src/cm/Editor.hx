@@ -1,5 +1,6 @@
 package cm;
 #if !macro
+import watchers.SettingsWatcher;
 import projectaccess.Project.FileData;
 import parser.RegexParser;
 import CodeMirror.Pos;
@@ -56,7 +57,7 @@ class Editor
 		
 		try 
 		{
-			options = TJSON.parse(Node.fs.readFileSync(Node.path.join("core", "config", "editor.json"), readFileOptions));
+			options = TJSON.parse(Node.fs.readFileSync(Node.path.join(SettingsWatcher.pathToFolder, "editor.json"), readFileOptions));
 		}
 		catch (err:Error)
 		{
