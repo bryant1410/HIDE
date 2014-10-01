@@ -1328,7 +1328,7 @@ cm.Editor.load = function() {
 		}
 	});
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["base16-light","ambiance-mobile","solarized","night","base16-dark","midnight","vibrant-ink","xq-light","ambiance","elegant","tomorrow-night-eighties","twilight","paraiso-light","monokai","3024-night","3024-day","xq-dark","pastel-on-dark","erlang-dark","cobalt","lesser-dark","blackboard","mbo","neo","paraiso-dark","neat","eclipse","rubyblue","the-matrix","mdn-like"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes(["3024-day","3024-night","ambiance-mobile","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","mbo","mdn-like","midnight","monokai","neat","neo","night","paraiso-dark","paraiso-light","pastel-on-dark","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -16581,7 +16581,8 @@ outline.OutlineParser.prototype = {
 		while(_g1 < enumIndexs.length) {
 			var enumIndex = [enumIndexs[_g1]];
 			++_g1;
-			var enumBlock = data.substring(outlineItems[enumIndex[0]].pos,outlineItems[enumIndex[0] + 1].pos);
+			var enumBlock;
+			if(outlineItems.length - 1 == enumIndex[0]) enumBlock = data.substring(outlineItems[enumIndex[0]].pos); else enumBlock = data.substring(outlineItems[enumIndex[0]].pos,outlineItems[enumIndex[0] + 1].pos);
 			var regEx1 = [new EReg("([A-Za-z0-9_]+);","gm")];
 			regEx1[0].map(enumBlock,(function(regEx1,enumIndex) {
 				return function(ereg2) {
@@ -18733,248 +18734,337 @@ $hxClasses["tjson.TJSON"] = tjson.TJSON;
 tjson.TJSON.__name__ = ["tjson","TJSON"];
 tjson.TJSON.parse = function(json,fileName,stringProcessor) {
 	if(fileName == null) fileName = "JSON Data";
-	tjson.TJSON.floatRegex = new EReg("^-?[0-9]*\\.[0-9]+$","");
-	tjson.TJSON.intRegex = new EReg("^-?[0-9]+$","");
-	tjson.TJSON.json = json;
-	tjson.TJSON.fileName = fileName;
-	tjson.TJSON.currentLine = 1;
-	tjson.TJSON.pos = 0;
-	if(stringProcessor == null) tjson.TJSON.strProcessor = tjson.TJSON.defaultStringProcessor; else tjson.TJSON.strProcessor = stringProcessor;
-	try {
-		return tjson.TJSON.doParse();
-	} catch( e ) {
-		if( js.Boot.__instanceof(e,String) ) {
-			throw fileName + " on line " + tjson.TJSON.currentLine + ": " + e;
-		} else throw(e);
-	}
-	return null;
+	var t = new tjson.TJSONParser(json,fileName,stringProcessor);
+	return t.doParse();
 };
-tjson.TJSON.encode = function(obj,style) {
-	if(!Reflect.isObject(obj)) throw "Provided object is not an object.";
-	var st;
-	if(js.Boot.__instanceof(style,tjson.EncodeStyle)) st = style; else if(style == "fancy") st = new tjson.FancyStyle(); else st = new tjson.SimpleStyle();
-	var buffer = new StringBuf();
-	if((obj instanceof Array) && obj.__enum__ == null || js.Boot.__instanceof(obj,List)) tjson.TJSON.encodeIterable(buffer,obj,st,0); else if(js.Boot.__instanceof(obj,haxe.ds.StringMap)) tjson.TJSON.encodeMap(buffer,obj,st,0); else tjson.TJSON.encodeObject(buffer,obj,st,0);
-	return buffer.b;
+tjson.TJSON.encode = function(obj,style,useCache) {
+	if(useCache == null) useCache = true;
+	var t = new tjson.TJSONEncoder(useCache);
+	return t.doEncode(obj,style);
 };
-tjson.TJSON.defaultStringProcessor = function(str) {
-	return str;
+tjson.TJSONParser = function(vjson,vfileName,stringProcessor) {
+	if(vfileName == null) vfileName = "JSON Data";
+	this.json = vjson;
+	this.fileName = vfileName;
+	this.currentLine = 1;
+	this.lastSymbolQuoted = false;
+	this.pos = 0;
+	this.floatRegex = new EReg("^-?[0-9]*\\.[0-9]+$","");
+	this.intRegex = new EReg("^-?[0-9]+$","");
+	if(stringProcessor == null) this.strProcessor = $bind(this,this.defaultStringProcessor); else this.strProcessor = stringProcessor;
+	this.cache = new Array();
 };
-tjson.TJSON.doParse = function() {
-	var s = tjson.TJSON.getNextSymbol();
-	if(s == "{") return tjson.TJSON.doObject();
-	if(s == "[") return tjson.TJSON.doArray();
-	return null;
-};
-tjson.TJSON.doObject = function() {
-	var o = { };
-	var val = "";
-	var key;
-	while(tjson.TJSON.pos < tjson.TJSON.json.length) {
-		key = tjson.TJSON.getNextSymbol();
-		if(key == "," && !tjson.TJSON.lastSymbolQuoted) continue;
-		if(key == "}" && !tjson.TJSON.lastSymbolQuoted) return o;
-		var seperator = tjson.TJSON.getNextSymbol();
-		if(seperator != ":") throw "Expected ':' but got '" + seperator + "' instead.";
-		var v = tjson.TJSON.getNextSymbol();
-		if(v == "{" && !tjson.TJSON.lastSymbolQuoted) val = tjson.TJSON.doObject(); else if(v == "[" && !tjson.TJSON.lastSymbolQuoted) val = tjson.TJSON.doArray(); else val = tjson.TJSON.convertSymbolToProperType(v);
-		o[key] = val;
-	}
-	throw "Unexpected end of file. Expected '}'";
-};
-tjson.TJSON.doArray = function() {
-	var a = new Array();
-	var val;
-	while(tjson.TJSON.pos < tjson.TJSON.json.length) {
-		val = tjson.TJSON.getNextSymbol();
-		if(val == "," && !tjson.TJSON.lastSymbolQuoted) continue; else if(val == "]" && !tjson.TJSON.lastSymbolQuoted) return a; else if(val == "{" && !tjson.TJSON.lastSymbolQuoted) val = tjson.TJSON.doObject(); else if(val == "[" && !tjson.TJSON.lastSymbolQuoted) val = tjson.TJSON.doArray(); else val = tjson.TJSON.convertSymbolToProperType(val);
-		a.push(val);
-	}
-	throw "Unexpected end of file. Expected ']'";
-};
-tjson.TJSON.convertSymbolToProperType = function(symbol) {
-	if(tjson.TJSON.lastSymbolQuoted) return symbol;
-	if(tjson.TJSON.looksLikeFloat(symbol)) return Std.parseFloat(symbol);
-	if(tjson.TJSON.looksLikeInt(symbol)) return Std.parseInt(symbol);
-	if(symbol.toLowerCase() == "true") return true;
-	if(symbol.toLowerCase() == "false") return false;
-	if(symbol.toLowerCase() == "null") return null;
-	return symbol;
-};
-tjson.TJSON.looksLikeFloat = function(s) {
-	return tjson.TJSON.floatRegex.match(s);
-};
-tjson.TJSON.looksLikeInt = function(s) {
-	return tjson.TJSON.intRegex.match(s);
-};
-tjson.TJSON.getNextSymbol = function() {
-	tjson.TJSON.lastSymbolQuoted = false;
-	var c = "";
-	var inQuote = false;
-	var quoteType = "";
-	var symbol = "";
-	var inEscape = false;
-	var inSymbol = false;
-	var inLineComment = false;
-	var inBlockComment = false;
-	while(tjson.TJSON.pos < tjson.TJSON.json.length) {
-		c = tjson.TJSON.json.charAt(tjson.TJSON.pos++);
-		if(c == "\n" && !inSymbol) tjson.TJSON.currentLine++;
-		if(inLineComment) {
-			if(c == "\n" || c == "\r") {
-				inLineComment = false;
-				tjson.TJSON.pos++;
-			}
-			continue;
+$hxClasses["tjson.TJSONParser"] = tjson.TJSONParser;
+tjson.TJSONParser.__name__ = ["tjson","TJSONParser"];
+tjson.TJSONParser.prototype = {
+	pos: null
+	,json: null
+	,lastSymbolQuoted: null
+	,fileName: null
+	,currentLine: null
+	,cache: null
+	,floatRegex: null
+	,intRegex: null
+	,strProcessor: null
+	,doParse: function() {
+		try {
+			var s = this.getNextSymbol();
+			if(s == "{") return this.doObject();
+			if(s == "[") return this.doArray();
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,String) ) {
+				throw this.fileName + " on line " + this.currentLine + ": " + e;
+			} else throw(e);
 		}
-		if(inBlockComment) {
-			if(c == "*" && tjson.TJSON.json.charAt(tjson.TJSON.pos) == "/") {
-				inBlockComment = false;
-				tjson.TJSON.pos++;
+		return null;
+	}
+	,doObject: function() {
+		var o = { };
+		var val = "";
+		var key;
+		this.cache.push(o);
+		while(this.pos < this.json.length) {
+			key = this.getNextSymbol();
+			if(key == "," && !this.lastSymbolQuoted) continue;
+			if(key == "}" && !this.lastSymbolQuoted) return o;
+			var seperator = this.getNextSymbol();
+			if(seperator != ":") throw "Expected ':' but got '" + seperator + "' instead.";
+			var v = this.getNextSymbol();
+			if(key == "_hxcls") {
+				var cls = Type.resolveClass(v);
+				if(cls == null) throw "Invalid class name - " + v;
+				o = Type.createEmptyInstance(cls);
+				this.cache.pop();
+				this.cache.push(o);
+				continue;
 			}
-			continue;
+			if(v == "{" && !this.lastSymbolQuoted) val = this.doObject(); else if(v == "[" && !this.lastSymbolQuoted) val = this.doArray(); else val = this.convertSymbolToProperType(v);
+			o[key] = val;
 		}
-		if(inQuote) {
-			if(inEscape) {
-				inEscape = false;
-				if(c == "'" || c == "\"") {
+		throw "Unexpected end of file. Expected '}'";
+	}
+	,doArray: function() {
+		var a = new Array();
+		var val;
+		while(this.pos < this.json.length) {
+			val = this.getNextSymbol();
+			if(val == "," && !this.lastSymbolQuoted) continue; else if(val == "]" && !this.lastSymbolQuoted) return a; else if(val == "{" && !this.lastSymbolQuoted) val = this.doObject(); else if(val == "[" && !this.lastSymbolQuoted) val = this.doArray(); else val = this.convertSymbolToProperType(val);
+			a.push(val);
+		}
+		throw "Unexpected end of file. Expected ']'";
+	}
+	,convertSymbolToProperType: function(symbol) {
+		if(this.lastSymbolQuoted) {
+			if(StringTools.startsWith(symbol,tjson.TJSON.OBJECT_REFERENCE_PREFIX)) {
+				var idx = Std.parseInt(HxOverrides.substr(symbol,tjson.TJSON.OBJECT_REFERENCE_PREFIX.length,null));
+				return this.cache[idx];
+			}
+			return symbol;
+		}
+		if(this.looksLikeFloat(symbol)) return Std.parseFloat(symbol);
+		if(this.looksLikeInt(symbol)) return Std.parseInt(symbol);
+		if(symbol.toLowerCase() == "true") return true;
+		if(symbol.toLowerCase() == "false") return false;
+		if(symbol.toLowerCase() == "null") return null;
+		return symbol;
+	}
+	,looksLikeFloat: function(s) {
+		return this.floatRegex.match(s);
+	}
+	,looksLikeInt: function(s) {
+		return this.intRegex.match(s);
+	}
+	,getNextSymbol: function() {
+		this.lastSymbolQuoted = false;
+		var c = "";
+		var inQuote = false;
+		var quoteType = "";
+		var symbol = "";
+		var inEscape = false;
+		var inSymbol = false;
+		var inLineComment = false;
+		var inBlockComment = false;
+		while(this.pos < this.json.length) {
+			c = this.json.charAt(this.pos++);
+			if(c == "\n" && !inSymbol) this.currentLine++;
+			if(inLineComment) {
+				if(c == "\n" || c == "\r") {
+					inLineComment = false;
+					this.pos++;
+				}
+				continue;
+			}
+			if(inBlockComment) {
+				if(c == "*" && this.json.charAt(this.pos) == "/") {
+					inBlockComment = false;
+					this.pos++;
+				}
+				continue;
+			}
+			if(inQuote) {
+				if(inEscape) {
+					inEscape = false;
+					if(c == "'" || c == "\"") {
+						symbol += c;
+						continue;
+					}
+					if(c == "t") {
+						symbol += "\t";
+						continue;
+					}
+					if(c == "n") {
+						symbol += "\n";
+						continue;
+					}
+					if(c == "\\") {
+						symbol += "\\";
+						continue;
+					}
+					if(c == "r") {
+						symbol += "\r";
+						continue;
+					}
+					if(c == "/") {
+						symbol += "/";
+						continue;
+					}
+					if(c == "u") {
+						var hexValue = 0;
+						var _g = 0;
+						while(_g < 4) {
+							var i = _g++;
+							if(this.pos >= this.json.length) throw "Unfinished UTF8 character";
+							var nc;
+							var index = this.pos++;
+							nc = HxOverrides.cca(this.json,index);
+							hexValue = hexValue << 4;
+							if(nc >= 48 && nc <= 57) hexValue += nc - 48; else if(nc >= 65 && nc <= 70) hexValue += 10 + nc - 65; else if(nc >= 97 && nc <= 102) hexValue += 10 + nc - 95; else throw "Not a hex digit";
+						}
+						var utf = new haxe.Utf8();
+						utf.__b += String.fromCharCode(hexValue);
+						symbol += utf.__b;
+						continue;
+					}
+					throw "Invalid escape sequence '\\" + c + "'";
+				} else {
+					if(c == "\\") {
+						inEscape = true;
+						continue;
+					}
+					if(c == quoteType) return symbol;
 					symbol += c;
 					continue;
 				}
-				if(c == "t") {
-					symbol += "\t";
+			} else if(c == "/") {
+				var c2 = this.json.charAt(this.pos);
+				if(c2 == "/") {
+					inLineComment = true;
+					this.pos++;
+					continue;
+				} else if(c2 == "*") {
+					inBlockComment = true;
+					this.pos++;
 					continue;
 				}
-				if(c == "n") {
-					symbol += "\n";
-					continue;
-				}
-				if(c == "\\") {
-					symbol += "\\";
-					continue;
-				}
-				if(c == "r") {
-					symbol += "\r";
-					continue;
-				}
-				if(c == "/") {
-					symbol += "/";
-					continue;
-				}
-				if(c == "u") {
-					var hexValue = 0;
-					var _g = 0;
-					while(_g < 4) {
-						var i = _g++;
-						if(tjson.TJSON.pos >= tjson.TJSON.json.length) throw "Unfinished UTF8 character";
-						var nc;
-						var index = tjson.TJSON.pos++;
-						nc = HxOverrides.cca(tjson.TJSON.json,index);
-						hexValue = hexValue << 4;
-						if(nc >= 48 && nc <= 57) hexValue += nc - 48; else if(nc >= 65 && nc <= 70) hexValue += 10 + nc - 65; else if(nc >= 97 && nc <= 102) hexValue += 10 + nc - 95; else throw "Not a hex digit";
-					}
-					var utf = new haxe.Utf8();
-					utf.__b += String.fromCharCode(hexValue);
-					symbol += utf.__b;
-					continue;
-				}
-				throw "Invalid escape sequence '\\" + c + "'";
-			} else {
-				if(c == "\\") {
-					inEscape = true;
-					continue;
-				}
-				if(c == quoteType) return symbol;
-				symbol += c;
-				continue;
 			}
-		} else if(c == "/") {
-			var c2 = tjson.TJSON.json.charAt(tjson.TJSON.pos);
-			if(c2 == "/") {
-				inLineComment = true;
-				tjson.TJSON.pos++;
-				continue;
-			} else if(c2 == "*") {
-				inBlockComment = true;
-				tjson.TJSON.pos++;
-				continue;
+			if(inSymbol) {
+				if(c == " " || c == "\n" || c == "\r" || c == "\t" || c == "," || c == ":" || c == "}" || c == "]") {
+					this.pos--;
+					return symbol;
+				} else {
+					symbol += c;
+					continue;
+				}
+			} else {
+				if(c == " " || c == "\t" || c == "\n" || c == "\r") continue;
+				if(c == "{" || c == "}" || c == "[" || c == "]" || c == "," || c == ":") return c;
+				if(c == "'" || c == "\"") {
+					inQuote = true;
+					quoteType = c;
+					this.lastSymbolQuoted = true;
+					continue;
+				} else {
+					inSymbol = true;
+					symbol = c;
+					continue;
+				}
 			}
 		}
-		if(inSymbol) {
-			if(c == " " || c == "\n" || c == "\r" || c == "\t" || c == "," || c == ":" || c == "}" || c == "]") {
-				tjson.TJSON.pos--;
-				return symbol;
-			} else {
-				symbol += c;
-				continue;
-			}
-		} else {
-			if(c == " " || c == "\t" || c == "\n" || c == "\r") continue;
-			if(c == "{" || c == "}" || c == "[" || c == "]" || c == "," || c == ":") return c;
-			if(c == "'" || c == "\"") {
-				inQuote = true;
-				quoteType = c;
-				tjson.TJSON.lastSymbolQuoted = true;
-				continue;
-			} else {
-				inSymbol = true;
-				symbol = c;
-				continue;
+		if(inQuote) throw "Unexpected end of data. Expected ( " + quoteType + " )";
+		return symbol;
+	}
+	,defaultStringProcessor: function(str) {
+		return str;
+	}
+	,__class__: tjson.TJSONParser
+};
+tjson.TJSONEncoder = function(useCache) {
+	if(useCache == null) useCache = true;
+	this.uCache = useCache;
+	if(this.uCache) this.cache = new Array();
+};
+$hxClasses["tjson.TJSONEncoder"] = tjson.TJSONEncoder;
+tjson.TJSONEncoder.__name__ = ["tjson","TJSONEncoder"];
+tjson.TJSONEncoder.prototype = {
+	cache: null
+	,uCache: null
+	,doEncode: function(obj,style) {
+		if(!Reflect.isObject(obj)) throw "Provided object is not an object.";
+		var st;
+		if(js.Boot.__instanceof(style,tjson.EncodeStyle)) st = style; else if(style == "fancy") st = new tjson.FancyStyle(); else st = new tjson.SimpleStyle();
+		var buffer = new StringBuf();
+		if((obj instanceof Array) && obj.__enum__ == null || js.Boot.__instanceof(obj,List)) buffer.add(this.encodeIterable(obj,st,0)); else if(js.Boot.__instanceof(obj,haxe.ds.StringMap)) buffer.add(this.encodeMap(obj,st,0)); else {
+			this.cacheEncode(obj);
+			buffer.add(this.encodeObject(obj,st,0));
+		}
+		return buffer.b;
+	}
+	,encodeObject: function(obj,style,depth) {
+		var buffer = new StringBuf();
+		buffer.add(style.beginObject(depth));
+		var fieldCount = 0;
+		var fields;
+		var cls = Type.getClass(obj);
+		if(cls != null) fields = Type.getInstanceFields(cls); else fields = Reflect.fields(obj);
+		{
+			var _g = Type["typeof"](obj);
+			switch(_g[1]) {
+			case 6:
+				var c = _g[2];
+				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
+				buffer.add("\"_hxcls\"" + style.keyValueSeperator(depth));
+				buffer.add(this.encodeValue(Type.getClassName(c),style,depth));
+				break;
+			default:
 			}
 		}
+		var _g1 = 0;
+		while(_g1 < fields.length) {
+			var field = fields[_g1];
+			++_g1;
+			var value = Reflect.field(obj,field);
+			var vStr = this.encodeValue(value,style,depth);
+			if(vStr != null) {
+				if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
+				buffer.add("\"" + field + "\"" + style.keyValueSeperator(depth) + vStr);
+			}
+		}
+		buffer.add(style.endObject(depth));
+		return buffer.b;
 	}
-	if(inQuote) throw "Unexpected end of data. Expected ( " + quoteType + " )";
-	return symbol;
-};
-tjson.TJSON.encodeObject = function(buffer,obj,style,depth) {
-	buffer.add(style.beginObject(depth));
-	var fieldCount = 0;
-	var fields;
-	var cls = Type.getClass(obj);
-	if(cls != null) fields = Type.getInstanceFields(cls); else fields = Reflect.fields(obj);
-	var _g = 0;
-	while(_g < fields.length) {
-		var field = fields[_g];
-		++_g;
-		if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
-		var value = Reflect.field(obj,field);
-		buffer.add("\"" + field + "\"" + style.keyValueSeperator(depth));
-		tjson.TJSON.encodeValue(buffer,value,style,depth);
+	,encodeMap: function(obj,style,depth) {
+		var buffer = new StringBuf();
+		buffer.add(style.beginObject(depth));
+		var fieldCount = 0;
+		var $it0 = obj.keys();
+		while( $it0.hasNext() ) {
+			var field = $it0.next();
+			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
+			var value = obj.get(field);
+			buffer.add("\"" + field + "\"" + style.keyValueSeperator(depth));
+			buffer.add(this.encodeValue(value,style,depth));
+		}
+		buffer.add(style.endObject(depth));
+		return buffer.b;
 	}
-	buffer.add(style.endObject(depth));
-};
-tjson.TJSON.encodeMap = function(buffer,obj,style,depth) {
-	buffer.add(style.beginObject(depth));
-	var fieldCount = 0;
-	var $it0 = obj.keys();
-	while( $it0.hasNext() ) {
-		var field = $it0.next();
-		if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
-		var value = obj.get(field);
-		buffer.add("\"" + field + "\"" + style.keyValueSeperator(depth));
-		tjson.TJSON.encodeValue(buffer,value,style,depth);
+	,encodeIterable: function(obj,style,depth) {
+		var buffer = new StringBuf();
+		buffer.add(style.beginArray(depth));
+		var fieldCount = 0;
+		var $it0 = $iterator(obj)();
+		while( $it0.hasNext() ) {
+			var value = $it0.next();
+			if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
+			buffer.add(this.encodeValue(value,style,depth));
+		}
+		buffer.add(style.endArray(depth));
+		return buffer.b;
 	}
-	buffer.add(style.endObject(depth));
-};
-tjson.TJSON.encodeIterable = function(buffer,obj,style,depth) {
-	buffer.add(style.beginArray(depth));
-	var fieldCount = 0;
-	var $it0 = $iterator(obj)();
-	while( $it0.hasNext() ) {
-		var value = $it0.next();
-		if(fieldCount++ > 0) buffer.add(style.entrySeperator(depth)); else buffer.add(style.firstEntry(depth));
-		tjson.TJSON.encodeValue(buffer,value,style,depth);
+	,cacheEncode: function(value) {
+		if(!this.uCache) return null;
+		var _g1 = 0;
+		var _g = this.cache.length;
+		while(_g1 < _g) {
+			var c = _g1++;
+			if(this.cache[c] == value) return "\"" + tjson.TJSON.OBJECT_REFERENCE_PREFIX + c + "\"";
+		}
+		this.cache.push(value);
+		return null;
 	}
-	buffer.add(style.endArray(depth));
-};
-tjson.TJSON.encodeValue = function(buffer,value,style,depth) {
-	if(((value | 0) === value) || typeof(value) == "number") buffer.add(value); else if((value instanceof Array) && value.__enum__ == null || js.Boot.__instanceof(value,List)) {
-		var v = value;
-		tjson.TJSON.encodeIterable(buffer,v,style,depth + 1);
-	} else if(js.Boot.__instanceof(value,List)) {
-		var v1 = value;
-		tjson.TJSON.encodeIterable(buffer,v1,style,depth + 1);
-	} else if(js.Boot.__instanceof(value,haxe.ds.StringMap)) tjson.TJSON.encodeMap(buffer,value,style,depth + 1); else if(typeof(value) == "string") buffer.add("\"" + StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(Std.string(value),"\\","\\\\"),"\n","\\n"),"\r","\\r"),"\"","\\\"") + "\""); else if(typeof(value) == "boolean") buffer.add(value); else if(Reflect.isObject(value)) tjson.TJSON.encodeObject(buffer,value,style,depth + 1); else if(value == null) buffer.b += "null"; else throw "Unsupported field type: " + Std.string(value);
+	,encodeValue: function(value,style,depth) {
+		if(((value | 0) === value) || typeof(value) == "number") return value; else if((value instanceof Array) && value.__enum__ == null || js.Boot.__instanceof(value,List)) {
+			var v = value;
+			return this.encodeIterable(v,style,depth + 1);
+		} else if(js.Boot.__instanceof(value,List)) {
+			var v1 = value;
+			return this.encodeIterable(v1,style,depth + 1);
+		} else if(js.Boot.__instanceof(value,haxe.ds.StringMap)) return this.encodeMap(value,style,depth + 1); else if(typeof(value) == "string") return "\"" + StringTools.replace(StringTools.replace(StringTools.replace(StringTools.replace(Std.string(value),"\\","\\\\"),"\n","\\n"),"\r","\\r"),"\"","\\\"") + "\""; else if(typeof(value) == "boolean") return value; else if(Reflect.isObject(value)) {
+			var ret = this.cacheEncode(value);
+			if(ret != null) return ret;
+			return this.encodeObject(value,style,depth + 1);
+		} else if(value == null) return "null"; else return null;
+	}
+	,__class__: tjson.TJSONEncoder
 };
 tjson.EncodeStyle = function() { };
 $hxClasses["tjson.EncodeStyle"] = tjson.EncodeStyle;
@@ -19668,6 +19758,7 @@ parser.ClassParser.classCompletions = new haxe.ds.StringMap();
 parser.ClassParser.haxeStdFileList = [];
 parser.ClassParser.filesList = [];
 projectaccess.ProjectAccess.currentProject = new projectaccess.Project();
+tjson.TJSON.OBJECT_REFERENCE_PREFIX = "@~obRef#";
 watchers.LocaleWatcher.listenerAdded = false;
 Main.main();
 })();

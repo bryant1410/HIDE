@@ -96,7 +96,17 @@ class OutlineParser
 		// ENUMS
 		for ( enumIndex in enumIndexs )
 		{
-			var enumBlock = data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ); 
+			var enumBlock;
+			if( outlineItems.length -1 == enumIndex )
+			{
+				enumBlock = data.substring( outlineItems[ enumIndex ].pos ); 
+			}
+			else
+			{
+				enumBlock = data.substring( outlineItems[ enumIndex ].pos , outlineItems[enumIndex+1].pos ); 
+			}
+
+
 			var regEx1 = ~/([A-Za-z0-9_]+);/gm;
 
 			regEx1.map(enumBlock, function (ereg2)
