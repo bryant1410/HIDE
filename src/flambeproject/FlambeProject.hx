@@ -1,10 +1,15 @@
 package flambeproject;
+import core.FileDialog;
 import core.ProcessHelper;
 import core.Splitter;
 import filetree.FileTree;
 import flambeproject.CreateFlambeProject;
 import haxe.Template;
+import haxe.Timer;
 import js.Browser;
+import js.html.CSSRule;
+import js.html.CSSStyleSheet;
+import js.html.StyleSheet;
 import js.html.TextAreaElement;
 import js.Node;
 import newprojectdialog.NewProjectDialog;
@@ -34,53 +39,23 @@ class FlambeProject
 	
 	public function new():Void
 	{
-		NewProjectDialog.getCategory("Flambe", 3).addItem("Flambe Project", createFlambeProject);		
+		var cssStyleSheet = Browser.document.createElement("style");
+		cssStyleSheet.innerText = ".alertify-log-doing {	color: #0eb5b5;		background: #a0dede;		border: 1px solid #c6e9e9;	}";
+		Browser.document.head.appendChild(cssStyleSheet);
+		NewProjectDialog.getCategory("Flambe", 3).addItem("Flambe Project", createFlambeProject);
+		FlambeHeaderMenu.get().destroy();
 	}
 	
 	public function createFlambeProject(data:ProjectData):Void
-	{	
-		//var params:Array<String>;
-		//
-			//var str:String = "";
-		//
-			//if (data.projectPackage != "")
-			//{
-				//str = data.projectPackage + ".";
-			//}
-			
-			//params = ["openfl:project", "\"" + str + data.projectName + "\""];
-			
-// 			if (data.projectCompany != "")
-// 			{
-// 				params.push("\"" + data.projectCompany + "\"");
-// 			}
-		
-		
+	{			
 		setupData(data);
-		runNewFlambe(data);
-		//createTemplate(data);
+		runNewFlambe(data,
+		function()
+		{
+			openProject(data);
+		});		
 		
 	}
-	
-	function runNewFlambe(__data:ProjectData) 
-	{
-		CreateFlambeProject.createProject(__data);
-		
-		//processHelper.runPersistentPr"
-			
-	}
-	
-	
-// 		CreateFlambeProject.createProject(params, data.projectLocation, function ()
-// 		{	
-// 			var pathToProject:String = js.Node.path.join(data.projectLocation, data.projectName);
-			
-// 			createProject(data);
-			
-// 			var tabManagerInstance = TabManager.get();
-// 			tabManagerInstance.openFileInNewTab(js.Node.path.join(pathToProject, "Source", "Main.hx"));
-// 		}
-// 		);
 	
 	function setupData(__data:ProjectData):Void
 	{
@@ -95,41 +70,33 @@ class FlambeProject
 		project.type = Project.FLAMBE;
 		project.target = Project.FLAMBE;
 		ProjectAccess.path = pathToProject;
-		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
+		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");//??
 		project.runActionType = Project.COMMAND;
-		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
+		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");//??
 		
-		//ProjectAccess.currentProject = project;
-		//
-		//
-		//
-		//ProjectAccess.save(function ():Void 
-		//{
-			//var path:String = js.Node.path.join(pathToProject, "project.hide");
-			//OpenProject.openProject(path);
-		//}
-		//);
+		ProjectAccess.currentProject = project;		
 	}
-	function createTemplate(__data:ProjectData) 
+	
+	function runNewFlambe(__data:ProjectData, __callback:Dynamic) 
 	{
-		var pathToProjectTemplates = Node.path.join("core", "templates", "project");
-		createYamlFile(pathToProjectTemplates,__data);
+		CreateFlambeProject.createProject(__data,__callback);		
 	}
-
-	function createYamlFile(__pathToProjectTemplates:String,__data:ProjectData):Void 
-	{		
-		var options:NodeFsFileOptions = { };
+	
+	function openProject(__data:ProjectData) 
+	{
+		var path:String = js.Node.path.join(ProjectAccess.path, "project.hide");
+		var onOpenProjectHadler = function ():Void
+		{			
+			OpenProject.openProject.bind(path);
+			//open main file
+			var pathToSrc:String = Node.path.join(__data.projectLocation, __data.projectName, "src");
+			var pathToMain = Node.path.join(pathToSrc, "urgame", "Main.hx");
+			var tabManagerInstance = TabManager.get();
+			tabManagerInstance.openFileInNewTab(pathToMain);
+		}
+			
+	
+		ProjectAccess.save(onOpenProjectHadler);	
 		
-		var temapltePath:String = "flambe/";
-		var targetFile:String = "flambe.yaml";
-		options.encoding = NodeC.UTF8;
-		var templateCode:String = Node.fs.readFileSync(Node.path.join(__pathToProjectTemplates+"/"+temapltePath, targetFile), options);
-		var pathToFile:String;
-		var templateCode = new Template(templateCode).execute( { file: "bin/" + ProjectAccess.currentProject.name + ".swf", pack: __data.projectPackage, dev_name:"teste" } );
-		
-		var pathJoins:String = Node.path.join(__data.projectLocation+"\\"+__data.projectName, targetFile);
-		trace(__data, templateCode, pathJoins );
-		Node.fs.writeFileSync(pathJoins, templateCode, NodeC.UTF8);
-		
-	}
+	}	
 }

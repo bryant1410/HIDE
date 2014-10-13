@@ -11,39 +11,41 @@ import newprojectdialog.NewProjectDialog.ProjectData;
  */
 class CreateFlambeProject
 {
-	public static function createProject(__data:ProjectData):Void
+	public static function createProject(__data:ProjectData, __callback:Dynamic):Void
 	{	
 		var pathToProject:String = js.Node.path.join(__data.projectLocation, __data.projectName);
 	
 		Alertify.log("Running command: flambe new " + pathToProject);
 		var processHelper = ProcessHelper.get();
-		
-		processHelper.runProcess("flambe", ["new",pathToProject], __data.projectLocation, onNewFlambeComplete, onNewFlambeFail);			
+		var localComplete = function (__stdout, __stderr):Void
+		 {
+			 onNewFlambeComplete(__stdout, __stderr);
+			 __callback();
+		 }
+		processHelper.runProcess("flambe", ["new",pathToProject], __data.projectLocation, localComplete, onNewFlambeFail);			
 	}
 	private static function onNewFlambeComplete(__stdout, __stderr):Void
 	 {
-		 trace("onNewFlambeComplete");
-			if (__stdout != "") 
-			{
-				Alertify.log("stdout:\n" + __stdout);
-			}
-
-			if (__stderr != "") 
-			{
-				Alertify.log("stderr:\n" + __stderr);
-			}
+		trace("onNewFlambeComplete");
+		stdAlert(Alertify.success,__stdout, __stderr);
+		FlambeHeaderMenu.get().create();
 	 }
 	 private static  function onNewFlambeFail(__code, __stdout, __stderr):Void 
+	{
+		trace("onNewFlambeFail");
+		stdAlert(Alertify.error,__stdout, __stderr);
+	}
+	private static  function stdAlert( __function:Dynamic, __stdout, __stderr):Void 
+	{
+		if (__stdout != "") 
 		{
-			trace("onNewFlambeFail");
-			if (__stdout != "") 
-			{
-				Alertify.error("stdout:\n" + __stdout);
-			}
-			
-			if (__stderr != "") 
-			{
-				Alertify.error("stderr:\n" + __stderr);
-			}
+			__function("stdout:\n" + __stdout);
 		}
+		
+		if (__stderr != "") 
+		{
+			__function("stderr:\n" + __stderr);
+		}
+	}
+	
 }

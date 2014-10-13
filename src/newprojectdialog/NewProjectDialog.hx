@@ -21,6 +21,8 @@ import js.html.ParagraphElement;
 import js.html.SelectElement;
 import js.html.SpanElement;
 import js.html.UListElement;
+import projectaccess.Project;
+import projectaccess.ProjectAccess;
 import watchers.LocaleWatcher;
 
 /**
@@ -145,17 +147,22 @@ class NewProjectDialog
 			projectLocation.value = location;
 		}
 		
-		loadData("Package");
-		loadData("Company");
+		loadData(FildNames.PACKAGE);
+		loadData(FildNames.COMPANY);
 		loadData("License");
-		loadData("URL");
+		loadData(FildNames.URL);
 		
-		loadCheckboxState("Package");
-		loadCheckboxState("Company");
+		loadCheckboxState(FildNames.PACKAGE);
+		loadCheckboxState(FildNames.COMPANY);
 		loadCheckboxState("License");
-		loadCheckboxState("URL");
-		loadCheckboxState("CreateDirectory");
-		
+		loadCheckboxState(FildNames.URL);
+		loadCheckboxState(FildNames.CREATE_DIRECTORY);
+
+		//if (ProjectAccess.currentProject.type == Project.FLAMBE)
+		//{
+			////loadCheckboxState("GameName");
+			//loadCheckboxState("Gameescription");
+		//}
 		lastProjectCategoryPath = Browser.getLocalStorage().getItem("lastProject");
 	}
 	
@@ -208,10 +215,10 @@ class NewProjectDialog
 
 				if (item.createProjectFunction != null)
 				{
-					var projectPackage:String = getCheckboxData("Package");
-					var projectCompany:String = getCheckboxData("Company");
+					var projectPackage:String = getCheckboxData(FildNames.PACKAGE);
+					var projectCompany:String = getCheckboxData(FildNames.COMPANY);
 					var projectLicense:String = getCheckboxData("License");
-					var projectURL:String = getCheckboxData("URL");
+					var projectURL:String = getCheckboxData(FildNames.URL);
 
 					var data:ProjectData = { 
 						projectName: projectName.value,
@@ -286,16 +293,16 @@ class NewProjectDialog
 
 				//Main.updateMenu();
 
-				saveData("Package");
-				saveData("Company");
+				saveData(FildNames.PACKAGE);
+				saveData(FildNames.COMPANY);
 				saveData("License");
-				saveData("URL");
+				saveData(FildNames.URL);
 
-				saveCheckboxState("Package");
-				saveCheckboxState("Company");
+				saveCheckboxState(FildNames.PACKAGE);
+				saveCheckboxState(FildNames.COMPANY);
 				saveCheckboxState("License");
-				saveCheckboxState("URL");
-				saveCheckboxState("CreateDirectory");
+				saveCheckboxState(FildNames.URL);
+				saveCheckboxState(FildNames.CREATE_DIRECTORY);
 
 				hide();
 			}
@@ -683,11 +690,16 @@ class NewProjectDialog
 		
 		page2.appendChild(row);
 		
-		createTextWithCheckbox(page2, "Package");
-		createTextWithCheckbox(page2, "Company");
-		createTextWithCheckbox(page2, "License");
-		createTextWithCheckbox(page2, "URL");
-		
+		createTextWithCheckbox(page2, FildNames.PACKAGE);
+		createTextWithCheckbox(page2, FildNames.COMPANY);
+		createTextWithCheckbox(page2,FildNames.LICENSE);
+		createTextWithCheckbox(page2, FildNames.URL);
+		//trace("NewProjectDialog", 1);
+		//if (ProjectAccess.currentProject.type == Project.FLAMBE)
+		//{
+			//loadCheckboxState("GameName");
+			////loadCheckboxState("Gameescription");
+		//}
 		row = Browser.document.createDivElement();
 		row.className = "row";
 		
@@ -703,7 +715,7 @@ class NewProjectDialog
 		createDirectoryForProject.checked = true;
 		label.appendChild(createDirectoryForProject);
 		
-		checkboxes.set("CreateDirectory", createDirectoryForProject);
+		checkboxes.set(FildNames.CREATE_DIRECTORY, createDirectoryForProject);
 		
 		createDirectoryForProject.onchange = function (e):Void
 		{
