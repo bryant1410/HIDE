@@ -17,10 +17,10 @@
   <classpaths>
     <class path="src" />
     <class path="externs\codemirror" />
-    <class path="libs\haxeparser-master\src" />
-    <class path="libs\haxeprinter\src" />
     <class path="libs\nodejs-std" />
     <class path="externs\alertify" />
+    <class path="libs\hxparse" />
+    <class path="libs\haxeprinter\src" />
   </classpaths>
   <!-- Build options -->
   <build>
@@ -29,7 +29,7 @@
     <option noInlineOnDebug="False" />
     <option mainClass="Main" />
     <option enabledebug="False" />
-    <option additional="-lib jQueryExtern&#xA;-lib hxparse&#xA;-lib tjson&#xA;-lib mustache&#xA;-resource libs/haxeprinter/res/config.json@config&#xA;-D noStyle&#xA;-D nodejs&#xA;-D source-map-content&#xA;-dce full&#xA;core.ProcessHelper&#xA;openflproject.OpenFLTools" />
+    <option additional="-lib jQueryExtern&#xA;-lib hxparse&#xA;-lib haxeparser&#xA;-lib tjson&#xA;-lib mustache&#xA;-resource libs/haxeprinter/res/config.json@config&#xA;-D noStyle&#xA;-D nodejs&#xA;-D source-map-content&#xA;-dce full&#xA;core.ProcessHelper&#xA;openflproject.OpenFLTools" />
   </build>
   <!-- haxelib libraries -->
   <haxelib>
@@ -51,7 +51,7 @@
   <options>
     <option showHiddenPaths="True" />
     <option testMovie="Custom" />
-    <option testMovieCommand="bat\run2.bat" />
+    <option testMovieCommand="$(ProjectDir)\bat\run_new_hide.bat $(ProjectDir)\bin\" />
   </options>
   <!-- Plugin storage -->
   <storage />

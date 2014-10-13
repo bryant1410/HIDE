@@ -602,6 +602,7 @@ class TabManager
 			case ".ml":
 					mode = "ocaml";
 			case ".yml":
+			case ".yaml":
 					mode = "yaml";
 			default:
 					
