@@ -14,8 +14,8 @@ class CreateFlambeProject
 	public static function createProject(__data:ProjectData, __callback:Dynamic):Void
 	{	
 		var pathToProject:String = js.Node.path.join(__data.projectLocation, __data.projectName);
-	
-		Alertify.log("Running command: flambe new " + pathToProject);
+		FlambeAlert.action();
+		Alertify.log("Running command: flambe new ");
 		var processHelper = ProcessHelper.get();
 		var localComplete = function (__stdout, __stderr):Void
 		 {
@@ -28,7 +28,7 @@ class CreateFlambeProject
 	 {
 		trace("onNewFlambeComplete");
 		stdAlert(Alertify.success,__stdout, __stderr);
-		FlambeHeaderMenu.get().create();
+		
 	 }
 	 private static  function onNewFlambeFail(__code, __stdout, __stderr):Void 
 	{

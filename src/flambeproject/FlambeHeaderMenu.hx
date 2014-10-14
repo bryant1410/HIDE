@@ -1,5 +1,6 @@
 package flambeproject;
 import flambeproject.FlambeBuild;
+import flambeproject.FlambeConstants;
 import js.Browser;
 import js.html.DivElement;
 import menu.BootstrapMenu;
@@ -11,17 +12,13 @@ import menu.Menu;
  */
 class FlambeHeaderMenu
 {
-
-	private static inline var MENU_NAME:String = "Flambe";
-	static var instance:FlambeHeaderMenu;
-	
+	static var instance:FlambeHeaderMenu;	
 	public static function get()
 	{
 		if (instance == null)
 		{
 			instance = new FlambeHeaderMenu();
-		}
-			
+		}			
 		return instance;
 	}
 	
@@ -32,17 +29,17 @@ class FlambeHeaderMenu
 	public function create():Void
 	{
 		destroy();
-		var flambeMenu:Menu = BootstrapMenu.getMenu(MENU_NAME);
+		var flambeMenu:Menu = BootstrapMenu.getMenu(FlambeConstants.HEADER_NAME);
 		var i:Int = 0;
 		
-		flambeMenu.addMenuItem("build and run", ++i, FlambeBuild.buildDebugAnRun);
-		flambeMenu.addMenuItem("build", ++i, FlambeBuild.buildDebug);
-		flambeMenu.addMenuItem("run", ++i, FlambeBuild.runBuild);
-		flambeMenu.addMenuItem("Run server", ++i, FlambeBuild.runServer);
-		flambeMenu.addMenuItem("Wiki", ++i, FlambeBuild.openWiki);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_1, ++i, FlambeBuild.buildDebugAnRun);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_2, ++i, FlambeBuild.buildDebug);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_3, ++i, FlambeBuild.runBuild);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_4, ++i, FlambeBuild.runServer);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_5, ++i, FlambeBuild.openWiki);
 	}
 	public function destroy():Void
 	{
-		BootstrapMenu.removeMenu(MENU_NAME);
+		BootstrapMenu.removeMenu(FlambeConstants.HEADER_NAME);
 	}
 }

@@ -149,12 +149,12 @@ class NewProjectDialog
 		
 		loadData(FildNames.PACKAGE);
 		loadData(FildNames.COMPANY);
-		loadData("License");
+		loadData(FildNames.LICENSE);
 		loadData(FildNames.URL);
 		
 		loadCheckboxState(FildNames.PACKAGE);
 		loadCheckboxState(FildNames.COMPANY);
-		loadCheckboxState("License");
+		loadCheckboxState(FildNames.LICENSE);
 		loadCheckboxState(FildNames.URL);
 		loadCheckboxState(FildNames.CREATE_DIRECTORY);
 
@@ -217,7 +217,7 @@ class NewProjectDialog
 				{
 					var projectPackage:String = getCheckboxData(FildNames.PACKAGE);
 					var projectCompany:String = getCheckboxData(FildNames.COMPANY);
-					var projectLicense:String = getCheckboxData("License");
+					var projectLicense:String = getCheckboxData(FildNames.LICENSE);
 					var projectURL:String = getCheckboxData(FildNames.URL);
 
 					var data:ProjectData = { 
@@ -295,12 +295,12 @@ class NewProjectDialog
 
 				saveData(FildNames.PACKAGE);
 				saveData(FildNames.COMPANY);
-				saveData("License");
+				saveData(FildNames.LICENSE);
 				saveData(FildNames.URL);
 
 				saveCheckboxState(FildNames.PACKAGE);
 				saveCheckboxState(FildNames.COMPANY);
-				saveCheckboxState("License");
+				saveCheckboxState(FildNames.LICENSE);
 				saveCheckboxState(FildNames.URL);
 				saveCheckboxState(FildNames.CREATE_DIRECTORY);
 

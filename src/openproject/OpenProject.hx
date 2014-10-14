@@ -181,6 +181,10 @@ class OpenProject
 					{
 						FlambeHeaderMenu.get().create();
 					}
+					else
+					{
+						FlambeHeaderMenu.get().destroy();
+					}
 					projectOptions.updateProjectOptions();
 					fileTree.load(project.name, pathToProject);
 					

@@ -39,10 +39,9 @@ class FlambeProject
 	
 	public function new():Void
 	{
-		var cssStyleSheet = Browser.document.createElement("style");
-		cssStyleSheet.innerText = ".alertify-log-doing {	color: #0eb5b5;		background: #a0dede;		border: 1px solid #c6e9e9;	}";
-		Browser.document.head.appendChild(cssStyleSheet);
-		NewProjectDialog.getCategory("Flambe", 3).addItem("Flambe Project", createFlambeProject);
+		FlambeAlert.creteCSS();
+		
+		NewProjectDialog.getCategory(FlambeConstants.CATEGORY_NAME, FlambeConstants.CATEGORY_POSITION).addItem(FlambeConstants.CATEGORY_ITEM_1, createFlambeProject);
 		FlambeHeaderMenu.get().destroy();
 	}
 	
@@ -92,11 +91,18 @@ class FlambeProject
 			var pathToSrc:String = Node.path.join(__data.projectLocation, __data.projectName, "src");
 			var pathToMain = Node.path.join(pathToSrc, "urgame", "Main.hx");
 			var tabManagerInstance = TabManager.get();
-			tabManagerInstance.openFileInNewTab(pathToMain);
-		}
+			//tabManagerInstance.openFileInNewTab(pathToMain,true,onCompleteOpenProject);
+			tabManagerInstance.openFileInNewTab(path, true,onCompleteOpenProject);
 			
-	
+		}		
 		ProjectAccess.save(onOpenProjectHadler);	
 		
 	}	
+	
+	function onCompleteOpenProject(__code:String) 
+	{
+		Alertify.log("_onCompleteOpenProject=" + __code);
+		trace(__code);
+		FlambeHeaderMenu.get().create();
+	}
 }
