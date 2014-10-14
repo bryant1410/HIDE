@@ -65,6 +65,7 @@ class OpenProject
 	
 	static function parseProject(path:String):Void
 	{	
+		FlambeHeaderMenu.get().destroy();
 		trace("open: " + path);
         
 		var filename:String = Node.path.basename(path);

@@ -69,9 +69,9 @@ class FlambeProject
 		project.type = Project.FLAMBE;
 		project.target = Project.FLAMBE;
 		ProjectAccess.path = pathToProject;
-		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");//??
+		//project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");//??
 		project.runActionType = Project.COMMAND;
-		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");//??
+		//project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");//??
 		
 		ProjectAccess.currentProject = project;		
 	}
@@ -86,13 +86,15 @@ class FlambeProject
 		var path:String = js.Node.path.join(ProjectAccess.path, "project.hide");
 		var onOpenProjectHadler = function ():Void
 		{			
-			OpenProject.openProject.bind(path);
+			//OpenProject.openProject.bind(path);
+			OpenProject.openProject(path);
 			//open main file
 			var pathToSrc:String = Node.path.join(__data.projectLocation, __data.projectName, "src");
-			var pathToMain = Node.path.join(pathToSrc, "urgame", "Main.hx");
+			
+			var pathToMain = Node.path.join(pathToSrc, FlambeConstants.DEAFULT_PACK, "Main.hx");
 			var tabManagerInstance = TabManager.get();
-			//tabManagerInstance.openFileInNewTab(pathToMain,true,onCompleteOpenProject);
-			tabManagerInstance.openFileInNewTab(path, true,onCompleteOpenProject);
+			tabManagerInstance.openFileInNewTab(pathToMain,true,onCompleteOpenProject);
+			//tabManagerInstance.openFileInNewTab(path, true,onCompleteOpenProject);
 			
 		}		
 		ProjectAccess.save(onOpenProjectHadler);	
@@ -101,8 +103,7 @@ class FlambeProject
 	
 	function onCompleteOpenProject(__code:String) 
 	{
-		Alertify.log("_onCompleteOpenProject=" + __code);
-		trace(__code);
+		Alertify.success("OpenProjectCompleted");
 		FlambeHeaderMenu.get().create();
 	}
 }

@@ -22,6 +22,7 @@ class FlambeConstants
 	public static inline var HEADER_ITEM_4:String = "Run server";
 	public static inline var HEADER_ITEM_5:String = "Wiki";
 	public static inline var LOG_STYLE_NAME:String = "doing";
+	public static inline var DEAFULT_PACK:String = "urgame";
 	
 	
 	

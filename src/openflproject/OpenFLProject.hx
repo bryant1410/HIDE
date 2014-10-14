@@ -116,11 +116,11 @@ class OpenFLProject
 		project.url = data.projectURL;
 		project.type = Project.OPENFL;
 		//project.target = target;
-		//project.openFLTarget = "flash";
+		project.openFLTarget = "flash";
 		ProjectAccess.path = pathToProject;
-		//project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
+		project.buildActionCommand = ["haxelib", "run", "lime", "build", '"%path%"', project.openFLTarget, "--connect", "5000"].join(" ");
 		project.runActionType = Project.COMMAND;
-	//	project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
+		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
 		
 		ProjectAccess.currentProject = project;		
 	}
