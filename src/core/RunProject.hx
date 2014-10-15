@@ -255,7 +255,7 @@ class RunProject
 				var dirname:String = Node.path.dirname(path);
 				var filename:String = Node.path.basename(path);
 				
-				if (buildHxml || project.type == Project.HXML || project.type == Project.HAXE)
+				if (buildHxml || project.type == Project.HXML || project.type == Project.HAXE || project.type == Project.FLAMBE )
 				{
 					var hxmlData:String;
 					

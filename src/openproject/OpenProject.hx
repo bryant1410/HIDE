@@ -1,5 +1,6 @@
 package openproject;
 import core.ProcessHelper;
+import flambeproject.FlambeHeaderMenu;
 import projectaccess.Project.FileData;
 import core.OutlinePanel;
 import core.FileDialog;
@@ -64,6 +65,7 @@ class OpenProject
 	
 	static function parseProject(path:String):Void
 	{	
+		FlambeHeaderMenu.get().destroy();
 		trace("open: " + path);
         
 		var filename:String = Node.path.basename(path);
@@ -176,7 +178,14 @@ class OpenProject
 							project.openFLBuildMode = "Debug";
 						}
 					}
-						
+					if (project.type == Project.FLAMBE)
+					{
+						FlambeHeaderMenu.get().create();
+					}
+					else
+					{
+						FlambeHeaderMenu.get().destroy();
+					}
 					projectOptions.updateProjectOptions();
 					fileTree.load(project.name, pathToProject);
 					

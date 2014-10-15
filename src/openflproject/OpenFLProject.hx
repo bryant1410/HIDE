@@ -122,14 +122,7 @@ class OpenFLProject
 		project.runActionType = Project.COMMAND;
 		project.runActionText = ["haxelib", "run", "lime", "run", '"%path%"', project.openFLTarget].join(" ");
 		
-		ProjectAccess.currentProject = project;
-		
-		ProjectAccess.save(function ():Void 
-		{
-			var path:String = js.Node.path.join(pathToProject, "project.hide");
-			OpenProject.openProject(path);
-		}
-		);
+		ProjectAccess.currentProject = project;		
 	}
 	
 }

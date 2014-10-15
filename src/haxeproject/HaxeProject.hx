@@ -169,7 +169,7 @@ class HaxeProject
 			fileTemplate = tabManagerInstance.generateTemplate(fileTemplate, data.projectPackage);
 			
 			var templateCode = new Template(code).execute(fileTemplate);
-			
+		
 			js.Node.fs.writeFile(pathToMain, templateCode, function (error:js.Node.NodeErr):Void
 			{
 				if (error != null)

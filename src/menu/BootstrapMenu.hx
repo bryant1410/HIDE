@@ -103,7 +103,7 @@ class BootstrapMenu
 		
 		return menu;
 	}
-
+		
 	public static function addMenuToDocument(menu:Menu):Void
 	{
 		var div:Element = cast(Browser.document.getElementById("position-navbar"), Element);
@@ -139,4 +139,16 @@ class BootstrapMenu
 			menuArray.push(menu);
 		}
 	}
+	//@todo
+	public static function removeMenu(name:String, ?position:Int):Void
+	{
+		var menu:Menu;
+		if (menus.exists(name))
+		{
+			menu = menus.get(name);
+			menu.removeFromDocument();
+			menus.remove(name);		
+		}
+	}
+
 }

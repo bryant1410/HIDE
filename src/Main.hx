@@ -1,4 +1,5 @@
 package ;
+import flambeproject.FlambeProject;
 import watchers.LocaleWatcher;
 import core.HaxeHelper;
 import kha.KhaProject;
@@ -130,6 +131,7 @@ class Main
 
 			var haxeProject = HaxeProject.get();
 			var openFLProject = OpenFLProject.get();
+			var flambeProject = FlambeProject.get();
 			var khaProject = KhaProject.get();
             khaProject.load();
 
