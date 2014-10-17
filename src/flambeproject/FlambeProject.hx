@@ -52,8 +52,7 @@ class FlambeProject
 		function()
 		{
 			openProject(data);
-		});		
-		
+		});			
 	}
 	
 	function setupData(__data:ProjectData):Void
@@ -93,12 +92,10 @@ class FlambeProject
 			
 			var pathToMain = Node.path.join(pathToSrc, FlambeConstants.DEAFULT_PACK, "Main.hx");
 			var tabManagerInstance = TabManager.get();
-			tabManagerInstance.openFileInNewTab(pathToMain,true,onCompleteOpenProject);
-			//tabManagerInstance.openFileInNewTab(path, true,onCompleteOpenProject);
-			
+			tabManagerInstance.openFileInNewTab(pathToMain,true,onCompleteOpenProject);		
 		}		
-		ProjectAccess.save(onOpenProjectHadler);	
-		
+		ProjectAccess.currentProject.main = FlambeConstants.DEAFULT_PACK + "/Main.hx";
+		ProjectAccess.save(onOpenProjectHadler);			
 	}	
 	
 	function onCompleteOpenProject(__code:String) 
@@ -106,4 +103,5 @@ class FlambeProject
 		Alertify.success("OpenProjectCompleted");
 		FlambeHeaderMenu.get().create();
 	}
+	
 }

@@ -1,17 +1,15 @@
 package newprojectdialog;
-import js.node.Mkdirp;
 import bootstrap.ButtonManager;
 import core.FileDialog;
 import dialogs.ModalDialog;
+import flambeproject.FlambeConstants;
+import flambeproject.FlambePage;
 import haxe.ds.StringMap;
-import haxe.Timer;
 import jQuery.JQuery;
 import js.Browser;
 import js.html.AnchorElement;
 import js.html.ButtonElement;
 import js.html.DivElement;
-import js.html.Event;
-import js.html.HeadingElement;
 import js.html.InputElement;
 import js.html.LabelElement;
 import js.html.LIElement;
@@ -21,8 +19,7 @@ import js.html.ParagraphElement;
 import js.html.SelectElement;
 import js.html.SpanElement;
 import js.html.UListElement;
-import projectaccess.Project;
-import projectaccess.ProjectAccess;
+import js.node.Mkdirp;
 import watchers.LocaleWatcher;
 
 /**
@@ -151,18 +148,13 @@ class NewProjectDialog
 		loadData(FildNames.COMPANY);
 		loadData(FildNames.LICENSE);
 		loadData(FildNames.URL);
-		
+		FlambePage.loadData();
 		loadCheckboxState(FildNames.PACKAGE);
 		loadCheckboxState(FildNames.COMPANY);
 		loadCheckboxState(FildNames.LICENSE);
 		loadCheckboxState(FildNames.URL);
 		loadCheckboxState(FildNames.CREATE_DIRECTORY);
 
-		//if (ProjectAccess.currentProject.type == Project.FLAMBE)
-		//{
-			////loadCheckboxState("GameName");
-			//loadCheckboxState("Gameescription");
-		//}
 		lastProjectCategoryPath = Browser.getLocalStorage().getItem("lastProject");
 	}
 	
@@ -292,7 +284,7 @@ class NewProjectDialog
 				//}
 
 				//Main.updateMenu();
-
+				FlambePage.saveAllData();
 				saveData(FildNames.PACKAGE);
 				saveData(FildNames.COMPANY);
 				saveData(FildNames.LICENSE);
@@ -638,6 +630,7 @@ class NewProjectDialog
 	
 	private static function createPage2():DivElement
 	{
+		
 		page2 = Browser.document.createDivElement();
 		page2.style.padding = "15px";
 		
@@ -690,16 +683,13 @@ class NewProjectDialog
 		
 		page2.appendChild(row);
 		
+		
 		createTextWithCheckbox(page2, FildNames.PACKAGE);
 		createTextWithCheckbox(page2, FildNames.COMPANY);
 		createTextWithCheckbox(page2,FildNames.LICENSE);
 		createTextWithCheckbox(page2, FildNames.URL);
-		//trace("NewProjectDialog", 1);
-		//if (ProjectAccess.currentProject.type == Project.FLAMBE)
-		//{
-			//loadCheckboxState("GameName");
-			////loadCheckboxState("Gameescription");
-		//}
+		FlambePage.createPage2(page2);
+	
 		row = Browser.document.createDivElement();
 		row.className = "row";
 		
@@ -769,7 +759,7 @@ class NewProjectDialog
 		}
 	}
 	
-	private static function createTextWithCheckbox(_page2:DivElement, _text:String):Void
+	public static function createTextWithCheckbox(_page2:DivElement, _text:String):Void
 	{
 		var row:DivElement = Browser.document.createDivElement();
 		row.className = "row";
@@ -879,7 +869,14 @@ class NewProjectDialog
 	public static function updateListItems(category:Category, ?item:String):Void
 	{		
 		selectedCategory = category;
-		
+		if (selectedCategory.name == FlambeConstants.CATEGORY_NAME)
+		{
+			FlambePage.show();
+		}
+		else
+		{
+			FlambePage.hide();
+		}
 		new JQuery(list).children().remove();
 		
 		setListItems(list, category.getItems(), item);

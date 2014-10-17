@@ -61,20 +61,29 @@ class FlambeBuild
 	//___________________________________________________________________________
 	//feedback
 	//___________________________________________________________________________
-	private static function onProcessComplete(__stdout, __stderr):Void
+	private static function onProcessComplete(__stdout:String, __stderr:String):Void
 	 {
 		stdAlert(Alertify.success,__stdout, __stderr);
 	 }
-	 private static  function onProcessFail(__code, __stdout, __stderr):Void 
+	 private static  function onProcessFail(__code, __stdout:String, __stderr:String):Void 
 	{		
 		stdAlert(Alertify.error,__stdout, __stderr);
 	}
 	
-	private static  function stdAlert( __function:Dynamic, __stdout, __stderr):Void 
+	private static  function stdAlert( __function:Dynamic, __stdout:String, __stderr:String):Void 
 	{
 		if (__stdout != "") 
 		{
-			__function("stdout:\n" + __stdout);
+			if (__stdout.indexOf("Serving on") != -1)
+			{
+				Alertify.success(__stdout);
+				
+			}
+			else
+			{
+				__function("stdout:\n" + __stdout);
+			}
+			
 		}
 		
 		if (__stderr != "") 
