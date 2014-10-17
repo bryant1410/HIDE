@@ -11,13 +11,14 @@ import js.html.ParagraphElement;
  */
 class ListGroup
 {
+	public var length:Int;
 	var listGroup:DivElement;
 	var items:Array<AnchorElement> = [];
 
 	public function new() 
 	{
 		listGroup = Browser.document.createDivElement();
-		listGroup.className = "list-group";
+		listGroup.className = "list-group";		
 	}
 
 	public function addItem(text:String, description:String, ?onClick:Dynamic)
@@ -43,6 +44,7 @@ class ListGroup
 		
         items.push(a);
 		listGroup.appendChild(a);
+		length = items.length;
 	}
 	
     public function clear():Void
@@ -57,6 +59,7 @@ class ListGroup
         };
         
         items = [];
+		length = -1;
     }
     
     public function getItems():Array<AnchorElement>

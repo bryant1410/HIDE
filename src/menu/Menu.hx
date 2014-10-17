@@ -32,12 +32,12 @@ class MenuButtonItem implements MenuItem
 {	
 	var li:LIElement;
 	public var position:Int;
-	
+	public var menuItem:String;
 	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "", ?_submenu:Bool = false)
 	{		
 		var hotkeyText:String = _hotkey;
 		
-		var menuItem:String = _menu + "->" + _text;
+		menuItem = _menu + "->" + _text;
 		
 		var span:SpanElement = Browser.document.createSpanElement();
         span.className = "hotkey";
@@ -359,7 +359,10 @@ class Menu
 		
 		return submenus.get(name);
 	}
-	
+	public function getItems():Array<MenuButtonItem>
+	{
+		return items;
+	}
 	public function getElement():Element
 	{
 		return li;

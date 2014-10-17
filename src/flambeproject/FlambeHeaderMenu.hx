@@ -1,6 +1,7 @@
 package flambeproject;
 import flambeproject.FlambeBuild;
 import flambeproject.FlambeConstants;
+import flambeproject.FlambeHotkeyPanel;
 import js.Browser;
 import js.html.DivElement;
 import menu.BootstrapMenu;
@@ -37,6 +38,8 @@ class FlambeHeaderMenu
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_3, ++i, FlambeBuild.runBuild);
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_4, ++i, FlambeBuild.runServer);
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_5, ++i, FlambeBuild.openWiki);
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_6, ++i, new FlambeHotkeyPanel(flambeMenu).show,"Shift-F");
+		
 	}
 	public function destroy():Void
 	{
