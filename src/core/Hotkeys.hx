@@ -91,7 +91,7 @@ class Hotkeys
 		}
 	}
 	
-	public static function getHotkeyCommandCallback(menuItem:String)
+	public static function getHotkeyCommandCallback(menuItem:String):Dynamic
 	{
 		return commandMap.get(menuItem);
 	}
