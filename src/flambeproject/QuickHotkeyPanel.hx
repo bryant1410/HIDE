@@ -29,6 +29,7 @@ class QuickHotkeyPanel
     
     var activeItemIndex:Int;
 	var title:String;
+	var visible:Bool;
 	public function new() 
 	{
 		setup();
@@ -48,7 +49,7 @@ class QuickHotkeyPanel
     
 	function setup():Void
 	{
-		
+		visible = false;
 		activeItemIndex = 0;
 		panel = js.Browser.document.createDivElement();
         panel.className = "panel panel-default";
@@ -79,6 +80,12 @@ class QuickHotkeyPanel
 
 	public function show(__title:String, __listGroup:ListGroup, ?__enabeAutoAction:Bool)
     {   
+		if (visible == true)
+		{
+			return;
+		}
+		visible = true;
+		
 		title = __title;
 		updateList(__listGroup);		
 		makeSureActiveItemVisible();
@@ -89,10 +96,12 @@ class QuickHotkeyPanel
         input.focus();
     	
 		
-		var t:Timer = new Timer(500); //workaround to click at menu and shortcut
+		var t:Timer = new Timer(300); //workaround to click at menu and shortcut
 		t.run = function ()
 		{
-			input.disabled= false;
+			input.disabled = false;
+			input.focus();
+			//input.click();
 			registerListeners();
 			makeSureActiveItemVisible();
 			onInput(null);
@@ -103,11 +112,6 @@ class QuickHotkeyPanel
 	
 	function updateList(__listGroup:ListGroup) 
 	{
-		//if (listGroup != null)
-		//{
-			////listGroup.clear();	
-			////listGroup.getElement().remove();
-		//}
 		listGroup = __listGroup;
 		listGroup.getElement().id = "quickOpenListGroup";
 		div.appendChild(listGroup.getElement());		
@@ -124,13 +128,13 @@ class QuickHotkeyPanel
     }
 	
 	function onInput(e)
-	{
+	{		
         activeItemIndex = 0;        
         core.Helper.debounce("actioncompletion", function ()
                           	{
 								var valueList = StringTools.trim(input.value);								
 								valueList = valueList.split(" ")[0];
-								var value = Std.parseInt(valueList);
+								var value = Std.parseInt(valueList);							
 								var length = listGroup.length;
 								if (value == null || value < 0 || value >= length)
 								{
@@ -257,6 +261,12 @@ class QuickHotkeyPanel
 
     function hide()
     {		
+		if (visible == false)
+		{
+			return;
+		}
+		onInput(null);
+		visible = false;
         panel.style.display = "none";
         unregisterListeners();
 				
@@ -266,6 +276,12 @@ class QuickHotkeyPanel
         {
         	cm.Editor.editor.focus();
         }
+		if (listGroup != null)
+		{
+			listGroup.getElement().remove();			
+		}
+		input.disabled = true;
+		input.value = "";
     }
 	
 	function makeSureActiveItemVisible()
