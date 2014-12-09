@@ -5,6 +5,8 @@ import js.Browser;
 import js.html.AnchorElement;
 import js.html.DivElement;
 import js.html.Element;
+import js.html.EventListener;
+import js.html.InputElement;
 import js.html.LIElement;
 import js.html.LinkElement;
 import js.html.MouseEvent;
@@ -12,6 +14,7 @@ import js.html.NodeList;
 import js.html.SpanElement;
 import js.html.UListElement;
 import js.Node;
+import menu.Menu.MenuButtonItem;
 import watchers.LocaleWatcher;
 
 /**
@@ -30,13 +33,15 @@ interface MenuItem
 //http://haxe.org/manual/tips_and_tricks
 class MenuButtonItem implements MenuItem
 {	
+	var anchorElement:AnchorElement;
 	var li:LIElement;
 	public var position:Int;
 	public var menuItem:String;
+	public var action:Dynamic;	
 	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "", ?_submenu:Bool = false)
 	{		
 		var hotkeyText:String = _hotkey;
-		
+		action = _onClickFunction;
 		menuItem = _menu + "->" + _text;
 		
 		var span:SpanElement = Browser.document.createSpanElement();
@@ -50,24 +55,25 @@ class MenuButtonItem implements MenuItem
 		li = Browser.document.createLIElement();	
 		li.classList.add("menu-item");
 		
-		var a:AnchorElement = Browser.document.createAnchorElement();
-		a.style.left = "0";
+		anchorElement = Browser.document.createAnchorElement();
+		anchorElement.style.left = "0";
 		
 		//Do not translate submenu items
 		if (!_submenu)
 		{
-			a.textContent = LocaleWatcher.getStringSync(_text);
-			a.setAttribute("localeString", _text);
+			anchorElement.textContent = LocaleWatcher.getStringSync(_text);
+			anchorElement.setAttribute("localeString", _text);
 		}
 		else 
 		{
-			a.textContent = _text;
+			anchorElement.textContent = _text;
 		}
 		
 		if (_onClickFunction != null) 
 		{
-			a.onclick = function (e:js.html.MouseEvent)
-			{                
+			anchorElement.onclick = function (e:js.html.MouseEvent)
+			{          
+				trace("cli");
 				if (li.className != "disabled")
 				{                    
 					_onClickFunction();
@@ -75,11 +81,9 @@ class MenuButtonItem implements MenuItem
 			};
 		}
 		
-		a.innerText = _text;
-
-		a.appendChild(span);
-		
-		li.appendChild(a);
+		anchorElement.innerText = _text;
+		anchorElement.appendChild(span);
+		li.appendChild(anchorElement);
 	}
 	
 	public function getElement():LIElement
@@ -111,12 +115,14 @@ class Submenu
 	var li:LIElement;
 	var name:String;
 	var parentMenu:String;
+	var items:Array<MenuButtonItem>;
 	
 	public function new(_parentMenu:String, _name:String)
 	{
 		name = _name;
 		parentMenu = _parentMenu;
 		
+		items = [];
 		//http://stackoverflow.com/questions/18023493/bootstrap-3-dropdown-sub-menu-missing
 		
 		var li2:LIElement = Browser.document.createLIElement();
@@ -176,19 +182,34 @@ class Submenu
 	{
 		var menuButtonItem:MenuButtonItem = new MenuButtonItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
 		ul.appendChild(menuButtonItem.getElement());
+		items.push(menuButtonItem);
+	}
+	
+	public function addMenuCheckItem(_text:String, _position:Int, _onClickFunction:Dynamic, ?_hotkey:String):Void
+	{
+		var menuButtonItem:MenuButtonItem = new MenuCheckItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
+		ul.appendChild(menuButtonItem.getElement());
+		items.push(menuButtonItem);
 	}
 	
 	public function clear():Void 
 	{
+		items = [];
 		while (ul.firstChild != null) 
 		{
 			ul.removeChild(ul.firstChild);
 		}
+		
 	}
 	
 	public function getElement():Element
 	{
 		return li;
+	}
+	
+	public function getItems():Array<MenuButtonItem>
+	{
+		return items;
 	}
 }
  
@@ -366,5 +387,37 @@ class Menu
 	public function getElement():Element
 	{
 		return li;
+	}
+}
+
+
+class MenuCheckItem extends MenuButtonItem
+{
+	public var checked:Bool = false;
+	public function new(_menu:String, _text:String, _onClickFunction:MenuCheckItem->Void, ?_hotkey:String = "", ?_submenu:Bool = false)
+	{	
+		super(_menu, _text, _onClickFunction, _hotkey, _submenu);
+		var span:SpanElement = Browser.document.createSpanElement();
+        span.className = "hotkey";
+		var checkbox:InputElement = Browser.document.createInputElement();
+		checkbox.type = "checkbox";
+		checkbox.checked = checked;
+		span.appendChild(checkbox);
+		anchorElement.appendChild(span);
+		
+		if (_onClickFunction != null) 
+		{		
+			anchorElement.onclick = function (e:js.html.MouseEvent)
+			{
+				if (li.className == "disabled")
+				{  
+					return;
+				}
+				checked = !checked;
+				checkbox.checked = checked;
+				_onClickFunction(this);
+			};		
+		}
+	
 	}
 }
