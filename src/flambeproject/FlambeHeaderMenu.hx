@@ -38,9 +38,23 @@ class FlambeHeaderMenu
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_3, ++i, FlambeBuild.runBuild);
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_4, ++i, FlambeBuild.runServer);
 		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_5, ++i, FlambeBuild.openWiki);
-		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_6, ++i, new FlambeHotkeyPanel(flambeMenu).show,"Shift-F");
+		createSubMenu(flambeMenu) ;		
+		
+		flambeMenu.addMenuItem(FlambeConstants.HEADER_ITEM_7, ++i, new FlambeHotkeyPanel(flambeMenu).show,FlambeConstants.HOTKEY_SHORTCUT);
 		
 	}
+	
+	function createSubMenu(menu:Menu):Submenu
+	{
+		var i:Int = 0;
+		var submenu:Submenu = menu.addSubmenu(FlambeConstants.HEADER_ITEM_6);		
+		submenu.addMenuCheckItem(FlambeConstants.TARGET_FLASH,++i,	FlambeBuild.activeFlash);
+		submenu.addMenuCheckItem(FlambeConstants.TARGET_HTML,++i,	FlambeBuild.activeHtml);
+		submenu.addMenuCheckItem(FlambeConstants.TARGET_FIREFOX,++i,	FlambeBuild.activeFirefox);
+		submenu.addMenuCheckItem(FlambeConstants.TARGET_ANDROID,++i,	FlambeBuild.activeAndroid);	
+		return submenu;
+	}
+	
 	public function destroy():Void
 	{
 		BootstrapMenu.removeMenu(FlambeConstants.HEADER_NAME);

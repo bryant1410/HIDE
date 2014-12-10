@@ -27,7 +27,7 @@ class FlambeProject
 {
 	static var instance:FlambeProject;
 	
-	public static function get()
+	public static function get():FlambeProject
 	{
 		if (instance == null)
 		{
@@ -101,7 +101,18 @@ class FlambeProject
 	function onCompleteOpenProject(__code:String) 
 	{
 		Alertify.success("OpenProjectCompleted");
+		setup(); 
+	}
+	
+	public function setup():Void
+	{
 		FlambeHeaderMenu.get().create();
+		FlambeYamlParser.get().openFile();
+	}
+	
+	public function destroy():Void
+	{
+		FlambeHeaderMenu.get().destroy();
 	}
 	
 }
