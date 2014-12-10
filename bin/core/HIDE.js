@@ -91,7 +91,7 @@ HIDE.traceScriptLoadingInfo = function(name,url) {
 HIDE.getPluginPath = function(name) {
 	var pluginManager = pluginloader.PluginManager.get();
 	var pathToPlugin = pluginManager.pathToPlugins.get(name);
-	if(pathToPlugin == null) console.log("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'");
+	if(pathToPlugin == null) haxe.Log.trace("HIDE can't find path for plugin: " + name + "\nPlease check folder structure of plugin, make sure that it corresponds to it's 'name'",{ fileName : "HIDE.hx", lineNumber : 99, className : "HIDE", methodName : "getPluginPath"});
 	return pathToPlugin;
 };
 HIDE.openPageInNewWindow = function(name,url,params) {
@@ -312,7 +312,7 @@ Main.main = function() {
 	Main.window.showDevTools();
 	Main.window.title = "HIDE";
 	js.Node.process.on("uncaughtException",function(err) {
-		console.log(err);
+		haxe.Log.trace(err,{ fileName : "Main.hx", lineNumber : 73, className : "Main", methodName : "main"});
 		Main.window.show();
 	});
 	Main.sync = true;
@@ -348,6 +348,7 @@ Main.main = function() {
 		projectaccess.ProjectAccess.registerSaveOnCloseListener();
 		var haxeProject = haxeproject.HaxeProject.get();
 		var openFLProject = openflproject.OpenFLProject.get();
+		var flambeProject = flambeproject.FlambeProject.get();
 		var khaProject = kha.KhaProject.get();
 		khaProject.load();
 		core.CompilationOutput.load();
@@ -373,24 +374,28 @@ Main.main = function() {
 			}
 		});
 		processHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
-			console.log("npm installed " + (installed1 == null?"null":"" + installed1));
+			haxe.Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 177, className : "Main", methodName : "main"});
 			if(installed1) processHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
-				console.log("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1));
+				haxe.Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 183, className : "Main", methodName : "main"});
 			},function(code,stdout1,stderr1) {
-				console.log("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1));
+				haxe.Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 187, className : "Main", methodName : "main"});
 			});
 		});
 		processHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
-			console.log("lime installed " + (installed2 == null?"null":"" + installed2));
+			haxe.Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 196, className : "Main", methodName : "main"});
 		});
 		processHelper.checkProcessInstalled("git",["--version"],function(installed3) {
-			console.log("git installed " + (installed3 == null?"null":"" + installed3));
+			haxe.Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 202, className : "Main", methodName : "main"});
 		});
 		Main.window.show();
+		Main.setupTools();
 	});
 	Main.window.on("close",function(e1) {
 		nodejs.webkit.App.closeAllWindows();
 	});
+};
+Main.setupTools = function() {
+	tools.gradle.GradleTool.get().setup();
 };
 var IMap = function() { };
 $hxClasses["IMap"] = IMap;
@@ -968,7 +973,8 @@ bootstrap.ListGroup = function() {
 $hxClasses["bootstrap.ListGroup"] = bootstrap.ListGroup;
 bootstrap.ListGroup.__name__ = ["bootstrap","ListGroup"];
 bootstrap.ListGroup.prototype = {
-	listGroup: null
+	length: null
+	,listGroup: null
 	,items: null
 	,addItem: function(text,description,onClick) {
 		var a;
@@ -990,11 +996,13 @@ bootstrap.ListGroup.prototype = {
 		a.appendChild(p);
 		this.items.push(a);
 		this.listGroup.appendChild(a);
+		this.length = this.items.length;
 	}
 	,clear: function() {
 		var len = this.listGroup.childNodes.length;
 		while(len-- > 0) this.listGroup.removeChild(this.listGroup.lastChild);
 		this.items = [];
+		this.length = -1;
 	}
 	,getItems: function() {
 		return this.items;
@@ -1227,7 +1235,7 @@ cm.ERegPreview.update = function(cm1) {
 			return "";
 		});
 	} catch( unknown ) {
-		console.log(unknown);
+		haxe.Log.trace(unknown,{ fileName : "ERegPreview.hx", lineNumber : 53, className : "cm.ERegPreview", methodName : "update"});
 	}
 };
 cm.Editor = function() { };
@@ -1242,7 +1250,7 @@ cm.Editor.load = function() {
 		options = tjson.TJSON.parse(js.Node.require("fs").readFileSync(js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"editor.json"),readFileOptions));
 	} catch( err ) {
 		if( js.Boot.__instanceof(err,Error) ) {
-			console.log(err);
+			haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 64, className : "cm.Editor", methodName : "load"});
 		} else throw(err);
 	}
 	cm.Editor.walk(options);
@@ -1328,7 +1336,7 @@ cm.Editor.load = function() {
 		}
 	});
 	new $("#editor").hide(0);
-	cm.Editor.loadThemes(["3024-day","3024-night","ambiance-mobile","ambiance","base16-dark","base16-light","blackboard","cobalt","eclipse","elegant","erlang-dark","lesser-dark","mbo","mdn-like","midnight","monokai","neat","neo","night","paraiso-dark","paraiso-light","pastel-on-dark","rubyblue","solarized","the-matrix","tomorrow-night-eighties","twilight","vibrant-ink","xq-dark","xq-light"],cm.Editor.loadTheme);
+	cm.Editor.loadThemes([],cm.Editor.loadTheme);
 	var value = "";
 	var map = CodeMirror.keyMap.sublime;
 	var mapK = CodeMirror.keyMap["sublime-Ctrl-K"];
@@ -1450,7 +1458,7 @@ cm.Editor.load = function() {
 						suggestions.push("new " + type);
 						completionInstance.showCodeSuggestions(suggestions);
 					} else {
-						console.log(name);
+						haxe.Log.trace(name,{ fileName : "Editor.hx", lineNumber : 428, className : "cm.Editor", methodName : "load"});
 						var ereg4 = new EReg("[\t ]*" + name + "[\t ]*= *(.+)$","gm");
 						ereg4.map(value1,function(ereg32) {
 							var text2 = StringTools.trim(ereg32.matched(1));
@@ -1493,7 +1501,7 @@ cm.Editor.load = function() {
 		}
 		var tab = tabManagerInstance.tabMap.get(tabManagerInstance.selectedPath);
 		tab.setChanged(!tab.doc.isClean());
-		console.log(e2);
+		haxe.Log.trace(e2,{ fileName : "Editor.hx", lineNumber : 539, className : "cm.Editor", methodName : "load"});
 		if(HxOverrides.indexOf(["+input","+delete"],e2.origin,0) != -1) {
 			var text3 = e2.text[0];
 			var removed = e2.removed[0];
@@ -1556,13 +1564,13 @@ cm.Editor.saveFoldedRegions = function() {
 		if(selectedFile != null) {
 			selectedFile.foldedRegions = foldedRegions;
 			selectedFile.activeLine = cursor.line;
-			console.log("folding regions saved successfully for" + Std.string(selectedFile));
-		} else console.log("cannot save folded regions for this document");
-	} else console.log("unable to preserve code folding for" + Std.string(doc));
+			haxe.Log.trace("folding regions saved successfully for" + Std.string(selectedFile),{ fileName : "Editor.hx", lineNumber : 661, className : "cm.Editor", methodName : "saveFoldedRegions"});
+		} else haxe.Log.trace("cannot save folded regions for this document",{ fileName : "Editor.hx", lineNumber : 665, className : "cm.Editor", methodName : "saveFoldedRegions"});
+	} else haxe.Log.trace("unable to preserve code folding for" + Std.string(doc),{ fileName : "Editor.hx", lineNumber : 670, className : "cm.Editor", methodName : "saveFoldedRegions"});
 };
 cm.Editor.triggerCompletion = function(cm1,dot) {
 	if(dot == null) dot = false;
-	console.log("triggerCompletion");
+	haxe.Log.trace("triggerCompletion",{ fileName : "Editor.hx", lineNumber : 677, className : "cm.Editor", methodName : "triggerCompletion"});
 	var tabManagerInstance = tabmanager.TabManager.get();
 	var completionInstance = core.Completion.get();
 	var modeName = tabManagerInstance.getCurrentDocument().getMode().name;
@@ -1594,13 +1602,13 @@ cm.Editor.walk = function(object) {
 				Reflect.setField(object,field,Type.createInstance(regexp,[value.substring(6)]));
 			} catch( err ) {
 				if( js.Boot.__instanceof(err,Error) ) {
-					console.log(err);
+					haxe.Log.trace(err,{ fileName : "Editor.hx", lineNumber : 723, className : "cm.Editor", methodName : "walk"});
 				} else throw(err);
 			} else if(StringTools.startsWith(value,"eval")) try {
 				Reflect.setField(object,field,js.Lib["eval"](value.substring(4)));
 			} catch( err1 ) {
 				if( js.Boot.__instanceof(err1,Error) ) {
-					console.log(err1);
+					haxe.Log.trace(err1,{ fileName : "Editor.hx", lineNumber : 734, className : "cm.Editor", methodName : "walk"});
 				} else throw(err1);
 			}
 		}
@@ -1682,7 +1690,7 @@ cm.Xml.prototype = {
 		try {
 			xml = haxe.xml.Parser.parse(data);
 		} catch( unknown ) {
-			console.log(unknown);
+			haxe.Log.trace(unknown,{ fileName : "Xml.hx", lineNumber : 46, className : "cm.Xml", methodName : "generateXmlCompletion"});
 		}
 		var tags = { '!attrs' : { }};
 		if(xml != null) {
@@ -2463,7 +2471,7 @@ core.Completion.prototype = {
 	}
 	,processArguments: function(projectArguments,onComplete,_pos,mode,moveCursorToStart) {
 		var _g = this;
-		console.log("processArguments");
+		haxe.Log.trace("processArguments",{ fileName : "Completion.hx", lineNumber : 385, className : "core.Completion", methodName : "processArguments"});
 		projectArguments.push("--no-output");
 		projectArguments.push("--display");
 		var cm1 = cm.Editor.editor;
@@ -2482,7 +2490,7 @@ core.Completion.prototype = {
 		this.completions = [];
 		this.declarationPositions = [];
 		var params = ["--connect","5000","--cwd",HIDE.surroundWithQuotes(projectaccess.ProjectAccess.path)].concat(projectArguments);
-		console.log(params);
+		haxe.Log.trace(params,{ fileName : "Completion.hx", lineNumber : 433, className : "core.Completion", methodName : "processArguments"});
 		var pathToHaxe = core.HaxeHelper.getPathToHaxe();
 		var processHelper = core.ProcessHelper.get();
 		processHelper.runProcess(pathToHaxe,params,null,function(stdout,stderr) {
@@ -2521,8 +2529,8 @@ core.Completion.prototype = {
 			}
 			onComplete();
 		},function(code,stdout1,stderr1) {
-			console.log(code);
-			console.log(stderr1);
+			haxe.Log.trace(code,{ fileName : "Completion.hx", lineNumber : 492, className : "core.Completion", methodName : "processArguments"});
+			haxe.Log.trace(stderr1,{ fileName : "Completion.hx", lineNumber : 493, className : "core.Completion", methodName : "processArguments"});
 			onComplete();
 		});
 	}
@@ -2767,10 +2775,10 @@ core.Completion.prototype = {
 						topLevelClassList.push({ name : relativeImport, fullName : item});
 					} else if(filePackage.filePackage != null && filePackage.filePackage != "" && StringTools.startsWith(item,filePackage.filePackage + ".")) {
 						relativeImport = HxOverrides.substr(item,filePackage.filePackage.length + 1,null);
-						console.log(relativeImport);
+						haxe.Log.trace(relativeImport,{ fileName : "Completion.hx", lineNumber : 872, className : "core.Completion", methodName : "getClassList"});
 						if(StringTools.startsWith(relativeImport,mainClass + ".")) {
 							relativeImport = HxOverrides.substr(relativeImport,mainClass.length + 1,null);
-							console.log(relativeImport);
+							haxe.Log.trace(relativeImport,{ fileName : "Completion.hx", lineNumber : 877, className : "core.Completion", methodName : "getClassList"});
 							topLevelClassList.push({ name : relativeImport, fullName : item});
 						} else importsList.push(relativeImport);
 					} else {
@@ -3215,7 +3223,7 @@ core.HaxeLint.updateLinting = function() {
 			try {
 				core.HaxeParserProvider.getClassName();
 			} catch( e ) {
-				console.log(e);
+				haxe.Log.trace(e,{ fileName : "HaxeLint.hx", lineNumber : 73, className : "core.HaxeLint", methodName : "updateLinting"});
 			}
 			var path = tabManagerInstance.getCurrentDocumentPath();
 			outlineHelper.getList(doc.getValue(),path);
@@ -3514,7 +3522,7 @@ core.HaxeParserProvider.getClassName = function() {
 				}
 			}
 		} catch( e ) { if( e != "__break__" ) throw e; }
-	} else console.log("ast is null");
+	} else haxe.Log.trace("ast is null",{ fileName : "HaxeParserProvider.hx", lineNumber : 238, className : "core.HaxeParserProvider", methodName : "getClassName"});
 };
 core.HaxeParserProvider.parse = function(data,path) {
 	var input = byte.js._ByteData.ByteData_Impl_.ofString(data);
@@ -3584,18 +3592,18 @@ core.HaxeServer.__name__ = ["core","HaxeServer"];
 core.HaxeServer.check = function() {
 	var socket = js.Node.require("net").connect(5000,"localhost");
 	socket.on("error",function(e) {
-		console.log("Haxe server is not found at localhost:5000");
+		haxe.Log.trace("Haxe server is not found at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 24, className : "core.HaxeServer", methodName : "check"});
 	});
 	socket.on("close",function(e1) {
 		if(e1) core.HaxeServer.start();
 	});
 };
 core.HaxeServer.start = function() {
-	console.log("Starting new Haxe server at localhost:5000");
+	haxe.Log.trace("Starting new Haxe server at localhost:5000",{ fileName : "HaxeServer.hx", lineNumber : 39, className : "core.HaxeServer", methodName : "start"});
 	var processHelper = core.ProcessHelper.get();
 	core.HaxeServer.haxeServer = processHelper.runPersistentProcess(core.HaxeHelper.getPathToHaxe(),["--wait","5000"],null,function(code,stdout,stderr) {
-		console.log(stdout);
-		console.log(stderr);
+		haxe.Log.trace(stdout,{ fileName : "HaxeServer.hx", lineNumber : 45, className : "core.HaxeServer", methodName : "start"});
+		haxe.Log.trace(stderr,{ fileName : "HaxeServer.hx", lineNumber : 46, className : "core.HaxeServer", methodName : "start"});
 	});
 	var $window = nodejs.webkit.Window.get();
 	$window.on("close",function(e) {
@@ -3624,7 +3632,7 @@ $hxClasses["core.Hotkeys"] = core.Hotkeys;
 core.Hotkeys.__name__ = ["core","Hotkeys"];
 core.Hotkeys.prepare = function() {
 	core.Hotkeys.commandKey = core.Utils.os == 2;
-	console.log("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey));
+	haxe.Log.trace("Hotkeys adjusted for Mac OS X " + Std.string(core.Hotkeys.commandKey),{ fileName : "Hotkeys.hx", lineNumber : 38, className : "core.Hotkeys", methodName : "prepare"});
 	core.Hotkeys.pathToData = js.Node.require("path").join(watchers.SettingsWatcher.pathToFolder,"hotkeys.json");
 	core.Hotkeys.parseData();
 	watchers.Watcher.watchFileForUpdates(core.Hotkeys.pathToData,function() {
@@ -3656,6 +3664,9 @@ core.Hotkeys.add = function(menuItem,hotkeyText,span,onKeyDown) {
 			if(core.Hotkeys.isHotkeyEvent(hotkey,e)) e.preventDefault();
 		});
 	}
+};
+core.Hotkeys.getHotkeyCommandCallback = function(menuItem) {
+	return core.Hotkeys.commandMap.get(menuItem);
 };
 core.Hotkeys.addHotkey = function(menuItem,hotkeyText) {
 	if(hotkeyText == null) hotkeyText = "";
@@ -3876,7 +3887,7 @@ core.ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 				var item = list[_g2];
 				++_g2;
 				if(StringTools.endsWith(item,searchPattern)) {
-					console.log(item);
+					haxe.Log.trace(item,{ fileName : "ImportDefinition.hx", lineNumber : 161, className : "core.ImportDefinition", methodName : "checkImport"});
 					var _g3 = 0;
 					while(_g3 < topLevelClassList.length) {
 						var topLevelClass1 = topLevelClassList[_g3];
@@ -4385,7 +4396,7 @@ core.ProcessHelper.prototype = {
 		textarea = js.Boot.__cast(window.document.getElementById("outputTextArea") , HTMLTextAreaElement);
 		if(StringTools.trim(stdout) != "") {
 			textarea.value += "stdout:\n" + stdout;
-			console.log("stdout:\n" + stdout);
+			haxe.Log.trace("stdout:\n" + stdout,{ fileName : "ProcessHelper.hx", lineNumber : 120, className : "core.ProcessHelper", methodName : "processOutput"});
 		}
 		core.HaxeLint.fileData = new haxe.ds.StringMap();
 		var switchToResultsTab = false;
@@ -4460,7 +4471,7 @@ core.ProcessHelper.prototype = {
 				}
 			}
 			textarea.value += "stderr:\n" + stderr;
-			console.log("stderr:\n" + stderr);
+			haxe.Log.trace("stderr:\n" + stderr,{ fileName : "ProcessHelper.hx", lineNumber : 245, className : "core.ProcessHelper", methodName : "processOutput"});
 		}
 		if(code == 0) {
 			Alertify.success("Build complete!");
@@ -4500,14 +4511,14 @@ core.ProcessHelper.prototype = {
 			}
 		});
 		process1.on("error",function(e) {
-			console.log(e);
+			haxe.Log.trace(e,{ fileName : "ProcessHelper.hx", lineNumber : 320, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 		});
 		process1.on("close",function(code) {
-			console.log(_g.processStdout);
-			console.log(_g.processStderr);
+			haxe.Log.trace(_g.processStdout,{ fileName : "ProcessHelper.hx", lineNumber : 326, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
+			haxe.Log.trace(_g.processStderr,{ fileName : "ProcessHelper.hx", lineNumber : 327, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 			if(onClose != null) onClose(code,_g.processStdout,_g.processStderr);
 			if(code != 0) process1 = null;
-			console.log("started process quit with exit code " + code);
+			haxe.Log.trace("started process quit with exit code " + code,{ fileName : "ProcessHelper.hx", lineNumber : 339, className : "core.ProcessHelper", methodName : "runPersistentProcess"});
 		});
 		return process1;
 	}
@@ -4515,9 +4526,9 @@ core.ProcessHelper.prototype = {
 		var installed;
 		js.Node.require("child_process").exec(this.processParamsToCommand(process,params),{ },function(error,stdout,stderr) {
 			if(error == null) installed = true; else {
-				console.log(error);
-				console.log(stdout);
-				console.log(stderr);
+				haxe.Log.trace(error,{ fileName : "ProcessHelper.hx", lineNumber : 363, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
+				haxe.Log.trace(stdout,{ fileName : "ProcessHelper.hx", lineNumber : 364, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
+				haxe.Log.trace(stderr,{ fileName : "ProcessHelper.hx", lineNumber : 365, className : "core.ProcessHelper", methodName : "checkProcessInstalled"});
 				installed = false;
 			}
 			onComplete(installed);
@@ -4719,12 +4730,12 @@ core.RecentProjectsList = function() {
 		if(recentProjectsData != null) try {
 			this.projectList = tjson.TJSON.parse(recentProjectsData);
 		} catch( unknown ) {
-			console.log(unknown);
+			haxe.Log.trace(unknown,{ fileName : "RecentProjectsList.hx", lineNumber : 52, className : "core.RecentProjectsList", methodName : "new"});
 		}
 		if(recentFilesData1 != null) try {
 			this.fileList = tjson.TJSON.parse(recentFilesData1);
 		} catch( unknown1 ) {
-			console.log(unknown1);
+			haxe.Log.trace(unknown1,{ fileName : "RecentProjectsList.hx", lineNumber : 64, className : "core.RecentProjectsList", methodName : "new"});
 		}
 	}
 	nodejs.webkit.Window.get().on("close",function() {
@@ -4910,9 +4921,9 @@ core.RunProject.killRunningProcessAndRunNew = function(process,params,cwd) {
 	return processHelper.runPersistentProcess(process,params,cwd,null,true);
 };
 core.RunProject.killRunProcess = function() {
-	console.log(core.RunProject.runProcess);
+	haxe.Log.trace(core.RunProject.runProcess,{ fileName : "RunProject.hx", lineNumber : 193, className : "core.RunProject", methodName : "killRunProcess"});
 	if(core.RunProject.runProcess != null) {
-		console.log("kill");
+		haxe.Log.trace("kill",{ fileName : "RunProject.hx", lineNumber : 197, className : "core.RunProject", methodName : "killRunProcess"});
 		core.RunProject.runProcess.kill();
 	}
 };
@@ -4945,7 +4956,7 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 		var buildHxml = extname == ".hxml";
 		var dirname = js.Node.require("path").dirname(path);
 		var filename = js.Node.require("path").basename(path);
-		if(buildHxml || project.type == 2 || project.type == 0) {
+		if(buildHxml || project.type == 2 || project.type == 0 || project.type == 3) {
 			var hxmlData;
 			if(!buildHxml) {
 				dirname = pathToProject;
@@ -4965,7 +4976,7 @@ core.RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 					if(err == null) {
 						hxmlData = data;
 						build.Hxml.checkHxml(dirname,filename,hxmlData,onComplete);
-					} else console.log(err);
+					} else haxe.Log.trace(err,{ fileName : "RunProject.hx", lineNumber : 288, className : "core.RunProject", methodName : "buildSpecifiedProject"});
 				});
 			} else {
 				hxmlData = cm.Editor.editor.getValue();
@@ -5045,7 +5056,7 @@ core.Utils.prepare = function() {
 	var platform = js.Node.require("os").platform();
 	core.Utils.os = 3;
 	if(platform == "linux") core.Utils.os = 1; else if(platform == "darwin") core.Utils.os = 2; else if(platform.indexOf("win") == 0) core.Utils.os = 0;
-	console.log("platform is " + (platform == null?"null":"" + platform));
+	haxe.Log.trace("platform is " + (platform == null?"null":"" + platform),{ fileName : "Utils.hx", lineNumber : 37, className : "core.Utils", methodName : "prepare"});
 };
 core.WelcomeScreen = function() {
 };
@@ -5773,23 +5784,14 @@ filetree.FileTree.prototype = {
 		}
 		var classpathWalker = parser.ClasspathWalker.get();
 		var config = { path : path, listener : function(changeType,filePath,fileCurrentStat,filePreviousStat) {
-			console.log(changeType);
-			console.log(filePath);
-			console.log(fileCurrentStat);
-			console.log(filePreviousStat);
 			switch(changeType) {
 			case "create":
-				console.log(changeType);
-				console.log(filePath);
 				js.Node.require("fs").stat(filePath,function(error,stat) {
 					if(error == null) {
 						if(stat.isFile()) {
 							if(changeType == "create") classpathWalker.addFile(filePath); else classpathWalker.removeFile(filePath);
-						} else if(stat.isDirectory()) {
-							console.log(changeType);
-							console.log(filePath);
-						}
-					} else console.log(error);
+						} else if(stat.isDirectory()) haxe.Log.trace("stat.isDirectory()",{ fileName : "FileTree.hx", lineNumber : 633, className : "filetree.FileTree", methodName : "load", customParams : [changeType,filePath]});
+					} else haxe.Log.trace("error->",{ fileName : "FileTree.hx", lineNumber : 639, className : "filetree.FileTree", methodName : "load", customParams : [error]});
 				});
 				break;
 			case "delete":
@@ -5806,11 +5808,516 @@ filetree.FileTree.prototype = {
 	}
 	,__class__: filetree.FileTree
 };
+var flambeproject = {};
+flambeproject.CreateFlambeProject = function() { };
+$hxClasses["flambeproject.CreateFlambeProject"] = flambeproject.CreateFlambeProject;
+flambeproject.CreateFlambeProject.__name__ = ["flambeproject","CreateFlambeProject"];
+flambeproject.CreateFlambeProject.createProject = function(__data,__callback) {
+	var pathToProject = js.Node.require("path").join(__data.projectLocation,__data.projectName);
+	flambeproject.FlambeAlert.action();
+	Alertify.log("Running command: flambe new ");
+	var processHelper = core.ProcessHelper.get();
+	var localComplete = function(__stdout,__stderr) {
+		flambeproject.CreateFlambeProject.onNewFlambeComplete(__stdout,__stderr);
+		__callback();
+	};
+	processHelper.runProcess("flambe",["new",pathToProject],__data.projectLocation,localComplete,flambeproject.CreateFlambeProject.onNewFlambeFail);
+};
+flambeproject.CreateFlambeProject.onNewFlambeComplete = function(__stdout,__stderr) {
+	haxe.Log.trace("onNewFlambeComplete",{ fileName : "CreateFlambeProject.hx", lineNumber : 33, className : "flambeproject.CreateFlambeProject", methodName : "onNewFlambeComplete"});
+	flambeproject.CreateFlambeProject.parseYaml(function() {
+		flambeproject.CreateFlambeProject.stdAlert(Alertify.success,__stdout,__stderr);
+	});
+};
+flambeproject.CreateFlambeProject.onNewFlambeFail = function(__code,__stdout,__stderr) {
+	haxe.Log.trace("onNewFlambeFail",{ fileName : "CreateFlambeProject.hx", lineNumber : 43, className : "flambeproject.CreateFlambeProject", methodName : "onNewFlambeFail"});
+	flambeproject.CreateFlambeProject.stdAlert(Alertify.error,__stdout,__stderr);
+};
+flambeproject.CreateFlambeProject.stdAlert = function(__function,__stdout,__stderr) {
+	if(__stdout != "") __function("stdout:\n" + __stdout);
+	if(__stderr != "") __function("stderr:\n" + __stderr);
+};
+flambeproject.CreateFlambeProject.parseYaml = function(__calback) {
+	var file = projectaccess.ProjectAccess.path + "/flambe.yaml";
+	var openFileHandle = function(code) {
+		code = flambeproject.CreateFlambeProject.repalceText(code);
+		js.Node.require("fs").writeFileSync(file,code,"utf8");
+		__calback();
+	};
+	tabmanager.TabManager.get().openFile(file,openFileHandle);
+};
+flambeproject.CreateFlambeProject.repalceText = function(code) {
+	var a = js.Browser.getLocalStorage();
+	var devNameValue = js.Browser.getLocalStorage().getItem("DevName");
+	var gameNameValue = js.Browser.getLocalStorage().getItem("GameName");
+	var gameIdValue = js.Browser.getLocalStorage().getItem("GameID");
+	var platformValue = js.Browser.getLocalStorage().getItem("Platform");
+	if(devNameValue != null && devNameValue != "") code = StringTools.replace(code,"name: Your Company Name","name: " + devNameValue);
+	if(gameNameValue != null && gameNameValue != "") code = StringTools.replace(code,"name: Your Game","name: " + gameNameValue);
+	if(gameIdValue != null && gameIdValue != "") code = StringTools.replace(code,"id: com.yourdomain.yourgame","id: " + gameIdValue);
+	if(platformValue != null && platformValue != "") code = StringTools.replace(code,"default_platform: flash","default_platform: " + platformValue);
+	return code;
+};
+flambeproject.FlambeAlert = function() { };
+$hxClasses["flambeproject.FlambeAlert"] = flambeproject.FlambeAlert;
+flambeproject.FlambeAlert.__name__ = ["flambeproject","FlambeAlert"];
+flambeproject.FlambeAlert.creteCSS = function() {
+	var cssStyleSheet = window.document.createElement("style");
+	cssStyleSheet.innerText = ".alertify-log-" + "doing" + " {\tcolor: #0eb5b5;\t\tbackground: #a0dede;\t\tborder: 1px solid #c6e9e9;\t}";
+	window.document.head.appendChild(cssStyleSheet);
+};
+flambeproject.FlambeAlert.action = function() {
+	Alertify.log("Doing...","doing");
+};
+flambeproject.FlambeBuild = function() { };
+$hxClasses["flambeproject.FlambeBuild"] = flambeproject.FlambeBuild;
+flambeproject.FlambeBuild.__name__ = ["flambeproject","FlambeBuild"];
+flambeproject.FlambeBuild.buildDebug = function() {
+	flambeproject.FlambeAlert.action();
+	flambeproject.FlambeBuild.runFlambeProcess(["build","--debug"]);
+};
+flambeproject.FlambeBuild.runBuild = function() {
+	flambeproject.FlambeAlert.action();
+	flambeproject.FlambeBuild.runFlambeProcess(["run","--debug","--no-build"]);
+};
+flambeproject.FlambeBuild.runServer = function() {
+	flambeproject.FlambeAlert.action();
+	flambeproject.FlambeBuild.runFlambeProcess(["server"]);
+};
+flambeproject.FlambeBuild.buildDebugAnRun = function() {
+	flambeproject.FlambeAlert.action();
+	var processHelper = core.ProcessHelper.get();
+	var run = function(__stdout,__stderr) {
+		flambeproject.FlambeBuild.runFlambeProcess(["run","--debug","--no-build"]);
+	};
+	flambeproject.FlambeBuild.runFlambeProcess(["build","--debug"],run);
+};
+flambeproject.FlambeBuild.runFlambeProcess = function(params,onComplete,onFailed) {
+	var processHelper = core.ProcessHelper.get();
+	processHelper.runProcess("flambe",params,projectaccess.ProjectAccess.path,onComplete == null?flambeproject.FlambeBuild.onProcessComplete:onComplete,onFailed == null?flambeproject.FlambeBuild.onProcessFail:onFailed);
+};
+flambeproject.FlambeBuild.openWiki = function() {
+	flambeproject.FlambeAlert.action();
+	(function() {
+		return HIDE.openPageInNewWindow(null,"https://github.com/markknol/flambe-guide/wiki/",{ toolbar : false});
+	});
+};
+flambeproject.FlambeBuild.onProcessComplete = function(__stdout,__stderr) {
+	flambeproject.FlambeBuild.stdAlert(Alertify.success,__stdout,__stderr);
+};
+flambeproject.FlambeBuild.onProcessFail = function(__code,__stdout,__stderr) {
+	flambeproject.FlambeBuild.stdAlert(Alertify.error,__stdout,__stderr);
+};
+flambeproject.FlambeBuild.stdAlert = function(__function,__stdout,__stderr) {
+	if(__stdout != "") {
+		if(__stdout.indexOf("Serving on") != -1) Alertify.success(__stdout); else __function("stdout:\n" + __stdout);
+	}
+	if(__stderr != "") __function("stderr:\n" + __stderr);
+};
+flambeproject.FlambeHeaderMenu = function() {
+};
+$hxClasses["flambeproject.FlambeHeaderMenu"] = flambeproject.FlambeHeaderMenu;
+flambeproject.FlambeHeaderMenu.__name__ = ["flambeproject","FlambeHeaderMenu"];
+flambeproject.FlambeHeaderMenu.get = function() {
+	if(flambeproject.FlambeHeaderMenu.instance == null) flambeproject.FlambeHeaderMenu.instance = new flambeproject.FlambeHeaderMenu();
+	return flambeproject.FlambeHeaderMenu.instance;
+};
+flambeproject.FlambeHeaderMenu.prototype = {
+	create: function() {
+		this.destroy();
+		var flambeMenu = menu.BootstrapMenu.getMenu("Flambe");
+		var i = 0;
+		flambeMenu.addMenuItem("Build and run",++i,flambeproject.FlambeBuild.buildDebugAnRun);
+		flambeMenu.addMenuItem("Build",++i,flambeproject.FlambeBuild.buildDebug);
+		flambeMenu.addMenuItem("Run",++i,flambeproject.FlambeBuild.runBuild);
+		flambeMenu.addMenuItem("Run server",++i,flambeproject.FlambeBuild.runServer);
+		flambeMenu.addMenuItem("Wiki",++i,flambeproject.FlambeBuild.openWiki);
+		flambeMenu.addMenuItem("HotkeyPanel",++i,($_=new flambeproject.FlambeHotkeyPanel(flambeMenu),$bind($_,$_.show)),"Shift-F");
+	}
+	,destroy: function() {
+		menu.BootstrapMenu.removeMenu("Flambe");
+	}
+	,__class__: flambeproject.FlambeHeaderMenu
+};
+flambeproject.HeaderHotkeyPanel = function(__menu) {
+	this.qickHotkeyPanel = flambeproject.QuickHotkeyPanel.get();
+	this.menu = __menu;
+	this.listGroup = new bootstrap.ListGroup();
+};
+$hxClasses["flambeproject.HeaderHotkeyPanel"] = flambeproject.HeaderHotkeyPanel;
+flambeproject.HeaderHotkeyPanel.__name__ = ["flambeproject","HeaderHotkeyPanel"];
+flambeproject.HeaderHotkeyPanel.prototype = {
+	qickHotkeyPanel: null
+	,menu: null
+	,listGroup: null
+	,__class__: flambeproject.HeaderHotkeyPanel
+};
+flambeproject.FlambeHotkeyPanel = function(__menu) {
+	flambeproject.HeaderHotkeyPanel.call(this,__menu);
+};
+$hxClasses["flambeproject.FlambeHotkeyPanel"] = flambeproject.FlambeHotkeyPanel;
+flambeproject.FlambeHotkeyPanel.__name__ = ["flambeproject","FlambeHotkeyPanel"];
+flambeproject.FlambeHotkeyPanel.__super__ = flambeproject.HeaderHotkeyPanel;
+flambeproject.FlambeHotkeyPanel.prototype = $extend(flambeproject.HeaderHotkeyPanel.prototype,{
+	show: function() {
+		this.setupList();
+		this.qickHotkeyPanel.show("Flambe",this.listGroup,true);
+	}
+	,setupList: function() {
+		this.listGroup.clear();
+		var items = this.menu.getItems();
+		var item;
+		var length = items.length - 2;
+		var _g = 0;
+		while(_g < length) {
+			var i = _g++;
+			item = items[i];
+			this.listGroup.addItem(item.menuItem,Std.string(i + 1),core.Hotkeys.getHotkeyCommandCallback(item.menuItem));
+		}
+	}
+	,__class__: flambeproject.FlambeHotkeyPanel
+});
+flambeproject.FlambePage = function() { };
+$hxClasses["flambeproject.FlambePage"] = flambeproject.FlambePage;
+flambeproject.FlambePage.__name__ = ["flambeproject","FlambePage"];
+flambeproject.FlambePage.hide = function() {
+	flambeproject.FlambePage.options.style.display = "none";
+};
+flambeproject.FlambePage.show = function() {
+	flambeproject.FlambePage.options.style.display = "";
+};
+flambeproject.FlambePage.createPage2 = function(page2) {
+	flambeproject.FlambePage.textfields = new haxe.ds.StringMap();
+	flambeproject.FlambePage.checkboxes = new haxe.ds.StringMap();
+	var _this = window.document;
+	flambeproject.FlambePage.options = _this.createElement("div");
+	flambeproject.FlambePage.options.className = "options flmabe";
+	flambeproject.FlambePage.createTextWithCheckbox(page2,"GameName");
+	flambeproject.FlambePage.createTextWithCheckbox(page2,"DevName");
+	flambeproject.FlambePage.createTextWithCheckbox(page2,"Platform");
+	flambeproject.FlambePage.createTextWithCheckbox(page2,"GameID");
+	page2.appendChild(flambeproject.FlambePage.options);
+};
+flambeproject.FlambePage.createTextWithCheckbox = function(_page2,_text) {
+	var row;
+	var _this = window.document;
+	row = _this.createElement("div");
+	row.className = "row";
+	var inputGroup;
+	var _this1 = window.document;
+	inputGroup = _this1.createElement("div");
+	inputGroup.className = "input-group";
+	row.appendChild(inputGroup);
+	var inputGroupAddon;
+	var _this2 = window.document;
+	inputGroupAddon = _this2.createElement("span");
+	inputGroupAddon.className = "input-group-addon";
+	inputGroup.appendChild(inputGroupAddon);
+	var checkbox;
+	var _this3 = window.document;
+	checkbox = _this3.createElement("input");
+	checkbox.type = "checkbox";
+	checkbox.checked = true;
+	inputGroupAddon.appendChild(checkbox);
+	flambeproject.FlambePage.checkboxes.set(_text + "checkbox",checkbox);
+	var text;
+	var _this4 = window.document;
+	text = _this4.createElement("input");
+	text.type = "text";
+	text.className = "form-control";
+	text.id = _text;
+	text.placeholder = watchers.LocaleWatcher.getStringSync(_text);
+	flambeproject.FlambePage.textfields.set(_text,text);
+	checkbox.onchange = function(e) {
+		if(checkbox.checked) text.disabled = false; else text.disabled = true;
+	};
+	inputGroup.appendChild(text);
+	flambeproject.FlambePage.options.appendChild(row);
+};
+flambeproject.FlambePage.loadData = function() {
+	flambeproject.FlambePage.setDefaultData("GameName",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.setDefaultData("DevName",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.setDefaultData("Platform",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.setDefaultData("GameID",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.setDefaultData("GameName" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.setDefaultData("DevName" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.setDefaultData("Platform" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.setDefaultData("GameID" + "checkbox",flambeproject.FlambePage.checkboxes);
+};
+flambeproject.FlambePage.setDefaultData = function(__text,__map) {
+	var element = __map.get(__text);
+	var value;
+	if(element.type == "checkbox") {
+		value = js.Browser.getLocalStorage().getItem(__text);
+		if(value != null && value != "") element.value = value;
+	} else {
+		value = js.Browser.getLocalStorage().getItem(__text);
+		if(value != null && value != "") element.checked = value;
+	}
+};
+flambeproject.FlambePage.saveData = function(__text,__map) {
+	var element = __map.get(__text);
+	var value;
+	if(element.type == "checkbox") value = element.checked; else value = element.value;
+	if(value != null && value != "") js.Browser.getLocalStorage().setItem(__text,value);
+};
+flambeproject.FlambePage.saveAllData = function() {
+	flambeproject.FlambePage.saveData("GameName",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.saveData("DevName",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.saveData("Platform",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.saveData("GameID",flambeproject.FlambePage.textfields);
+	flambeproject.FlambePage.saveData("GameName" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.saveData("DevName" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.saveData("Platform" + "checkbox",flambeproject.FlambePage.checkboxes);
+	flambeproject.FlambePage.saveData("GameID" + "checkbox",flambeproject.FlambePage.checkboxes);
+};
+flambeproject.FlambeProject = function() {
+	flambeproject.FlambeAlert.creteCSS();
+	newprojectdialog.NewProjectDialog.getCategory("Flambe",3).addItem("Flambe Project",$bind(this,this.createFlambeProject));
+	flambeproject.FlambeHeaderMenu.get().destroy();
+};
+$hxClasses["flambeproject.FlambeProject"] = flambeproject.FlambeProject;
+flambeproject.FlambeProject.__name__ = ["flambeproject","FlambeProject"];
+flambeproject.FlambeProject.get = function() {
+	if(flambeproject.FlambeProject.instance == null) flambeproject.FlambeProject.instance = new flambeproject.FlambeProject();
+	return flambeproject.FlambeProject.instance;
+};
+flambeproject.FlambeProject.prototype = {
+	createFlambeProject: function(data) {
+		var _g = this;
+		this.setupData(data);
+		this.runNewFlambe(data,function() {
+			_g.openProject(data);
+		});
+	}
+	,setupData: function(__data) {
+		var pathToProject = js.Node.require("path").join(__data.projectLocation,__data.projectName);
+		var project = new projectaccess.Project();
+		project.name = __data.projectName;
+		project.projectPackage = __data.projectPackage;
+		project.company = __data.projectCompany;
+		project.license = __data.projectLicense;
+		project.url = __data.projectURL;
+		project.type = 3;
+		project.target = 3;
+		projectaccess.ProjectAccess.path = pathToProject;
+		project.runActionType = 2;
+		projectaccess.ProjectAccess.currentProject = project;
+	}
+	,runNewFlambe: function(__data,__callback) {
+		flambeproject.CreateFlambeProject.createProject(__data,__callback);
+	}
+	,openProject: function(__data) {
+		var _g = this;
+		var path = js.Node.require("path").join(projectaccess.ProjectAccess.path,"project.hide");
+		var onOpenProjectHadler = function() {
+			openproject.OpenProject.openProject(path);
+			var pathToSrc = js.Node.require("path").join(__data.projectLocation,__data.projectName,"src");
+			var pathToMain = js.Node.require("path").join(pathToSrc,"urgame","Main.hx");
+			var tabManagerInstance = tabmanager.TabManager.get();
+			tabManagerInstance.openFileInNewTab(pathToMain,true,$bind(_g,_g.onCompleteOpenProject));
+		};
+		projectaccess.ProjectAccess.currentProject.main = "urgame" + "/Main.hx";
+		projectaccess.ProjectAccess.save(onOpenProjectHadler);
+	}
+	,onCompleteOpenProject: function(__code) {
+		Alertify.success("OpenProjectCompleted");
+		flambeproject.FlambeHeaderMenu.get().create();
+	}
+	,__class__: flambeproject.FlambeProject
+};
+flambeproject.QuickHotkeyPanel = function() {
+	this.setup();
+};
+$hxClasses["flambeproject.QuickHotkeyPanel"] = flambeproject.QuickHotkeyPanel;
+flambeproject.QuickHotkeyPanel.__name__ = ["flambeproject","QuickHotkeyPanel"];
+flambeproject.QuickHotkeyPanel.get = function() {
+	if(flambeproject.QuickHotkeyPanel.instance == null) flambeproject.QuickHotkeyPanel.instance = new flambeproject.QuickHotkeyPanel();
+	return flambeproject.QuickHotkeyPanel.instance;
+};
+flambeproject.QuickHotkeyPanel.prototype = {
+	div: null
+	,panel: null
+	,panelBody: null
+	,inputGroup: null
+	,listGroup: null
+	,input: null
+	,activeItemIndex: null
+	,title: null
+	,setup: function() {
+		this.activeItemIndex = 0;
+		var _this = window.document;
+		this.panel = _this.createElement("div");
+		this.panel.className = "panel panel-default";
+		this.panel.id = "quickOpen";
+		var _this1 = window.document;
+		this.panelBody = _this1.createElement("div");
+		this.panelBody.className = "panel-body";
+		this.panel.appendChild(this.panelBody);
+		var _this2 = window.document;
+		this.div = _this2.createElement("div");
+		this.inputGroup = new bootstrap.InputGroup();
+		this.inputGroup.getElement().id = "quickOpenInputGroup";
+		this.input = this.inputGroup.getInput();
+		this.input.disabled = true;
+		this.div.appendChild(this.inputGroup.getElement());
+		this.panel.style.display = "none";
+		this.panelBody.appendChild(this.div);
+		new $(window.document.body).append(this.panel);
+	}
+	,show: function(__title,__listGroup,__enabeAutoAction) {
+		var _g = this;
+		this.title = __title;
+		this.updateList(__listGroup);
+		this.makeSureActiveItemVisible();
+		this.input.value = "";
+		this.panel.style.display = "";
+		this.input.focus();
+		var t = new haxe.Timer(500);
+		t.run = function() {
+			_g.input.disabled = false;
+			_g.registerListeners();
+			_g.makeSureActiveItemVisible();
+			_g.onInput(null);
+			t.stop();
+		};
+	}
+	,updateList: function(__listGroup) {
+		this.listGroup = __listGroup;
+		this.listGroup.getElement().id = "quickOpenListGroup";
+		this.div.appendChild(this.listGroup.getElement());
+	}
+	,onKeyUp: function(e) {
+		var _g = e.keyCode;
+		switch(_g) {
+		case 27:
+			this.hide();
+			break;
+		default:
+		}
+	}
+	,onInput: function(e) {
+		var _g = this;
+		this.activeItemIndex = 0;
+		core.Helper.debounce("actioncompletion",function() {
+			var valueList = StringTools.trim(_g.input.value);
+			valueList = valueList.split(" ")[0];
+			var value = Std.parseInt(valueList);
+			var length = _g.listGroup.length;
+			if(value == null || value < 0 || value >= length) return;
+			var anchorElementList = _g.listGroup.getItems();
+			var anchorElement;
+			var paragraphElement;
+			var _g1 = 0;
+			while(_g1 < length) {
+				var i = _g1++;
+				anchorElement = anchorElementList[i];
+				paragraphElement = anchorElement.getElementsByClassName("list-group-item-text").item(0);
+				if(Std.parseInt(paragraphElement.textContent) == value) {
+					anchorElement.click();
+					_g.hide();
+					break;
+				}
+			}
+		},100);
+	}
+	,onKeyDown: function(e) {
+		var _g = e.keyCode;
+		switch(_g) {
+		case 38:
+			e.preventDefault();
+			this.activeItemIndex--;
+			if(this.activeItemIndex < 0) this.activeItemIndex = this.listGroup.length - 1;
+			this.makeSureActiveItemVisible();
+			break;
+		case 40:
+			e.preventDefault();
+			this.activeItemIndex++;
+			if(this.activeItemIndex >= this.listGroup.length) this.activeItemIndex = 0;
+			this.makeSureActiveItemVisible();
+			break;
+		case 33:
+			e.preventDefault();
+			this.activeItemIndex += -5;
+			if(this.activeItemIndex < 0) this.activeItemIndex = 0;
+			this.makeSureActiveItemVisible();
+			break;
+		case 34:
+			e.preventDefault();
+			this.activeItemIndex += 5;
+			if(this.activeItemIndex >= this.listGroup.length) this.activeItemIndex = this.listGroup.length - 1;
+			this.makeSureActiveItemVisible();
+			break;
+		case 35:
+			if(!e.shiftKey) {
+				e.preventDefault();
+				this.activeItemIndex = this.listGroup.length - 1;
+				this.makeSureActiveItemVisible();
+			}
+			break;
+		case 36:
+			if(!e.shiftKey) {
+				e.preventDefault();
+				this.activeItemIndex = 0;
+				this.makeSureActiveItemVisible();
+			}
+			break;
+		case 13:
+			e.preventDefault();
+			this.listGroup.getItems()[this.activeItemIndex].click();
+			break;
+		}
+	}
+	,onClick: function(e) {
+		this.hide();
+	}
+	,registerListeners: function() {
+		window.document.addEventListener("keyup",$bind(this,this.onKeyUp));
+		window.document.addEventListener("click",$bind(this,this.onClick));
+		this.input.addEventListener("input",$bind(this,this.onInput));
+		this.input.addEventListener("keydown",$bind(this,this.onKeyDown));
+	}
+	,unregisterListeners: function() {
+		window.document.removeEventListener("keyup",$bind(this,this.onKeyUp));
+		window.document.removeEventListener("click",$bind(this,this.onClick));
+		this.input.removeEventListener("input",$bind(this,this.onInput));
+		this.input.removeEventListener("keydown",$bind(this,this.onKeyDown));
+	}
+	,hide: function() {
+		this.panel.style.display = "none";
+		this.unregisterListeners();
+		var tabManagerInstance = tabmanager.TabManager.get();
+		if(tabManagerInstance.selectedPath != null) cm.Editor.editor.focus();
+	}
+	,makeSureActiveItemVisible: function() {
+		var items = this.listGroup.getItems();
+		var _g1 = 0;
+		var _g = items.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			if(i != this.activeItemIndex) {
+				if(items[i].classList.contains("active")) items[i].classList.remove("active");
+			} else if(!items[i].classList.contains("active")) items[i].classList.add("active");
+		}
+		var container = this.listGroup.getElement();
+		if(this.activeItemIndex > 0) {
+			var node = items[this.activeItemIndex];
+			if(node.offsetTop - node.offsetHeight < container.scrollTop) container.scrollTop = node.offsetTop - 48; else if(node.offsetTop > container.scrollTop + container.clientHeight) container.scrollTop = node.offsetTop - container.clientHeight;
+		} else container.scrollTop = 0;
+	}
+	,__class__: flambeproject.QuickHotkeyPanel
+};
 haxe.Json = function() { };
 $hxClasses["haxe.Json"] = haxe.Json;
 haxe.Json.__name__ = ["haxe","Json"];
 haxe.Json.parse = function(jsonString) {
 	return JSON.parse(jsonString);
+};
+haxe.Log = function() { };
+$hxClasses["haxe.Log"] = haxe.Log;
+haxe.Log.__name__ = ["haxe","Log"];
+haxe.Log.trace = function(v,infos) {
+	js.Boot.__trace(v,infos);
 };
 haxe.Resource = function() { };
 $hxClasses["haxe.Resource"] = haxe.Resource;
@@ -8693,6 +9200,25 @@ var js = {};
 js.Boot = function() { };
 $hxClasses["js.Boot"] = js.Boot;
 js.Boot.__name__ = ["js","Boot"];
+js.Boot.__unhtml = function(s) {
+	return s.split("&").join("&amp;").split("<").join("&lt;").split(">").join("&gt;");
+};
+js.Boot.__trace = function(v,i) {
+	var msg;
+	if(i != null) msg = i.fileName + ":" + i.lineNumber + ": "; else msg = "";
+	msg += js.Boot.__string_rec(v,"");
+	if(i != null && i.customParams != null) {
+		var _g = 0;
+		var _g1 = i.customParams;
+		while(_g < _g1.length) {
+			var v1 = _g1[_g];
+			++_g;
+			msg += "," + js.Boot.__string_rec(v1,"");
+		}
+	}
+	var d;
+	if(typeof(document) != "undefined" && (d = document.getElementById("haxe:trace")) != null) d.innerHTML += js.Boot.__unhtml(msg) + "<br/>"; else if(typeof console != "undefined" && console.log != null) console.log(msg);
+};
 js.Boot.getClass = function(o) {
 	if((o instanceof Array) && o.__enum__ == null) return Array; else return o.__class__;
 };
@@ -9012,29 +9538,60 @@ haxeparser.SmallType.SNull.__enum__ = haxeparser.SmallType;
 haxeparser.SmallType.SBool = function(b) { var $x = ["SBool",1,b]; $x.__enum__ = haxeparser.SmallType; $x.toString = $estr; return $x; };
 haxeparser.SmallType.SFloat = function(f) { var $x = ["SFloat",2,f]; $x.__enum__ = haxeparser.SmallType; $x.toString = $estr; return $x; };
 haxeparser.SmallType.SString = function(s) { var $x = ["SString",3,s]; $x.__enum__ = haxeparser.SmallType; $x.toString = $estr; return $x; };
-hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token = function(stream) {
+hxparse.Parser = function(stream) {
 	this.stream = stream;
 };
-$hxClasses["hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token"] = hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token;
-hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token.__name__ = ["hxparse","Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token"];
-hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token.prototype = {
+$hxClasses["hxparse.Parser"] = hxparse.Parser;
+hxparse.Parser.__name__ = ["hxparse","Parser"];
+hxparse.Parser.prototype = {
 	last: null
 	,stream: null
 	,token: null
-	,peek: null
-	,__class__: hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token
+	,peek: function(n) {
+		if(this.token == null) {
+			this.token = new haxe.ds.GenericCell(this.stream.token(),null);
+			n--;
+		}
+		var tok = this.token;
+		while(n > 0) {
+			if(tok.next == null) tok.next = new haxe.ds.GenericCell(this.stream.token(),null);
+			tok = tok.next;
+			n--;
+		}
+		return tok.elt;
+	}
+	,parseOptional: function(f) {
+		try {
+			return f();
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
+				return null;
+			} else throw(e);
+		}
+	}
+	,parseRepeat: function(f) {
+		var acc = [];
+		while(true) try {
+			acc.push(f());
+		} catch( e ) {
+			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
+				return acc;
+			} else throw(e);
+		}
+	}
+	,__class__: hxparse.Parser
 };
 hxparse.ParserBuilder = function() { };
 $hxClasses["hxparse.ParserBuilder"] = hxparse.ParserBuilder;
 hxparse.ParserBuilder.__name__ = ["hxparse","ParserBuilder"];
 haxeparser.HaxeCondParser = function(stream) {
-	hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token.call(this,stream);
+	hxparse.Parser.call(this,stream);
 };
 $hxClasses["haxeparser.HaxeCondParser"] = haxeparser.HaxeCondParser;
 haxeparser.HaxeCondParser.__name__ = ["haxeparser","HaxeCondParser"];
 haxeparser.HaxeCondParser.__interfaces__ = [hxparse.ParserBuilder];
-haxeparser.HaxeCondParser.__super__ = hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token;
-haxeparser.HaxeCondParser.prototype = $extend(hxparse.Parser_hxparse_LexerTokenSource_haxeparser_Token_haxeparser_Token.prototype,{
+haxeparser.HaxeCondParser.__super__ = hxparse.Parser;
+haxeparser.HaxeCondParser.prototype = $extend(hxparse.Parser.prototype,{
 	parseMacroCond: function(allowOp) {
 		{
 			var _g = this.peek(0);
@@ -9471,56 +10028,13 @@ haxeparser.HaxeTokenSource.prototype = {
 	}
 	,__class__: haxeparser.HaxeTokenSource
 };
-hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token = function(stream) {
-	this.stream = stream;
-};
-$hxClasses["hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token"] = hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token;
-hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token.__name__ = ["hxparse","Parser_haxeparser_HaxeTokenSource_haxeparser_Token"];
-hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token.prototype = {
-	last: null
-	,stream: null
-	,token: null
-	,peek: function(n) {
-		if(this.token == null) {
-			this.token = new haxe.ds.GenericCell(this.stream.token(),null);
-			n--;
-		}
-		var tok = this.token;
-		while(n > 0) {
-			if(tok.next == null) tok.next = new haxe.ds.GenericCell(this.stream.token(),null);
-			tok = tok.next;
-			n--;
-		}
-		return tok.elt;
-	}
-	,parseOptional: function(f) {
-		try {
-			return f();
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
-				return null;
-			} else throw(e);
-		}
-	}
-	,parseRepeat: function(f) {
-		var acc = [];
-		while(true) try {
-			acc.push(f());
-		} catch( e ) {
-			if( js.Boot.__instanceof(e,hxparse.NoMatch) ) {
-				return acc;
-			} else throw(e);
-		}
-	}
-	,__class__: hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token
-};
 haxeparser.HaxeParser = function(input,sourceName) {
 	this.doResume = false;
 	this.defines = new haxe.ds.StringMap();
 	this.defines.set("true",true);
 	var lexer = new haxeparser.HaxeLexer(input,sourceName);
 	var ts = new haxeparser.HaxeTokenSource(lexer,this.defines);
-	hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token.call(this,ts);
+	hxparse.Parser.call(this,ts);
 	this.inMacro = false;
 	this.doc = "";
 };
@@ -9695,12 +10209,16 @@ haxeparser.HaxeParser.makeMeta = function(name,params,e,p1) {
 		}
 	}
 };
-haxeparser.HaxeParser.aadd = function(a,t) {
+haxeparser.HaxeParser.apush = function(a,t) {
 	a.push(t);
 	return a;
 };
-haxeparser.HaxeParser.__super__ = hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token;
-haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSource_haxeparser_Token.prototype,{
+haxeparser.HaxeParser.aunshift = function(a,t) {
+	a.unshift(t);
+	return a;
+};
+haxeparser.HaxeParser.__super__ = hxparse.Parser;
+haxeparser.HaxeParser.prototype = $extend(hxparse.Parser.prototype,{
 	defines: null
 	,doResume: null
 	,doc: null
@@ -10042,7 +10560,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 	,parseTypeDecls: function(pack,acc) {
 		try {
 			var v = this.parseTypeDecl();
-			var l = this.parseTypeDecls(pack,haxeparser.HaxeParser.aadd(acc,v));
+			var l = this.parseTypeDecls(pack,haxeparser.HaxeParser.apush(acc,v));
 			return l;
 		} catch( _ ) {
 			if( js.Boot.__instanceof(_,hxparse.NoMatch) ) {
@@ -10619,12 +11137,12 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 					this.last = this.token.elt;
 					this.token = this.token.next;
 					var l = this.parseCommonFlags();
-					return haxeparser.HaxeParser.aadd(l,{ c : haxeparser.ClassFlag.HPrivate, e : haxeparser.EnumFlag.EPrivate});
+					return haxeparser.HaxeParser.apush(l,{ c : haxeparser.ClassFlag.HPrivate, e : haxeparser.EnumFlag.EPrivate});
 				case 25:
 					this.last = this.token.elt;
 					this.token = this.token.next;
 					var l1 = this.parseCommonFlags();
-					return haxeparser.HaxeParser.aadd(l1,{ c : haxeparser.ClassFlag.HExtern, e : haxeparser.EnumFlag.EExtern});
+					return haxeparser.HaxeParser.apush(l1,{ c : haxeparser.ClassFlag.HExtern, e : haxeparser.EnumFlag.EExtern});
 				default:
 					return [];
 				}
@@ -10683,7 +11201,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 	,parseMeta: function() {
 		try {
 			var entry = this.parseMetaEntry();
-			return haxeparser.HaxeParser.aadd(this.parseMeta(),entry);
+			return haxeparser.HaxeParser.apush(this.parseMeta(),entry);
 		} catch( _ ) {
 			if( js.Boot.__instanceof(_,hxparse.NoMatch) ) {
 				return [];
@@ -10781,7 +11299,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 					var p1 = _g.pos;
 					this.last = this.token.elt;
 					this.token = this.token.next;
-					return { flags : haxeparser.HaxeParser.aadd([],haxeparser.ClassFlag.HInterface), pos : p1};
+					return { flags : haxeparser.HaxeParser.apush([],haxeparser.ClassFlag.HInterface), pos : p1};
 				default:
 					throw new hxparse.NoMatch(this.stream.curPos(),this.peek(0));
 				}
@@ -10922,7 +11440,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 			case 10:
 				this.last = this.token.elt;
 				this.token = this.token.next;
-				return this.parseTypePath1(haxeparser.HaxeParser.aadd(pack,ident.name));
+				return this.parseTypePath1(haxeparser.HaxeParser.apush(pack,ident.name));
 			case 9:
 				this.last = this.token.elt;
 				this.token = this.token.next;
@@ -11095,7 +11613,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 				case 1:
 					var r = t2[3];
 					var args = t2[2];
-					return haxe.macro.ComplexType.TFunction(haxeparser.HaxeParser.aadd(args,t),r);
+					return haxe.macro.ComplexType.TFunction(haxeparser.HaxeParser.apush(args,t),r);
 				default:
 					return haxe.macro.ComplexType.TFunction([t],t2);
 				}
@@ -11137,7 +11655,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 						default:
 							t1 = haxe.macro.ComplexType.TPath({ pack : [], name : "Null", sub : null, params : [haxe.macro.TypeParam.TPType(t)]});
 						}
-						return haxeparser.HaxeParser.aadd(acc,{ name : id.name, meta : opt?[{ name : ":optional", params : [], pos : id.pos}]:[], access : [], doc : null, kind : haxe.macro.FieldType.FVar(t1,null), pos : haxeparser.HaxeParser.punion(id.pos,p2)});
+						return haxeparser.HaxeParser.aunshift(acc,{ name : id.name, meta : opt?[{ name : ":optional", params : [], pos : id.pos}]:[], access : [], doc : null, kind : haxe.macro.FieldType.FVar(t1,null), pos : haxeparser.HaxeParser.punion(id.pos,p2)});
 					};
 					{
 						var _g11 = this.peek(0);
@@ -11498,7 +12016,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 										case 35:
 											_g.last = _g.token.elt;
 											_g.token = _g.token.next;
-											var l1 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.AInline));
+											var l1 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.apush(l,haxe.macro.Access.AInline));
 											return l1;
 										default:
 											return l;
@@ -11518,7 +12036,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 										if(!Lambda.has(l,haxe.macro.Access.ADynamic)) {
 											_g.last = _g.token.elt;
 											_g.token = _g.token.next;
-											var l2 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.ADynamic));
+											var l2 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.apush(l,haxe.macro.Access.ADynamic));
 											return l2;
 										} else return def5();
 										break;
@@ -11540,7 +12058,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 									if(!Lambda.has(l,haxe.macro.Access.AOverride)) {
 										_g.last = _g.token.elt;
 										_g.token = _g.token.next;
-										var l3 = _g.parseCfRights(false,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.AOverride));
+										var l3 = _g.parseCfRights(false,haxeparser.HaxeParser.apush(l,haxe.macro.Access.AOverride));
 										return l3;
 									} else return def4();
 									break;
@@ -11562,7 +12080,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 								if(!(Lambda.has(l,haxe.macro.Access.APublic) || Lambda.has(l,haxe.macro.Access.APrivate))) {
 									_g.last = _g.token.elt;
 									_g.token = _g.token.next;
-									var l4 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.APrivate));
+									var l4 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.apush(l,haxe.macro.Access.APrivate));
 									return l4;
 								} else return def3();
 								break;
@@ -11584,7 +12102,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 							if(!(Lambda.has(l,haxe.macro.Access.APublic) || Lambda.has(l,haxe.macro.Access.APrivate))) {
 								_g.last = _g.token.elt;
 								_g.token = _g.token.next;
-								var l5 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.APublic));
+								var l5 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.apush(l,haxe.macro.Access.APublic));
 								return l5;
 							} else return def2();
 							break;
@@ -11606,7 +12124,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 						if(!Lambda.has(l,haxe.macro.Access.AMacro)) {
 							_g.last = _g.token.elt;
 							_g.token = _g.token.next;
-							var l6 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.AMacro));
+							var l6 = _g.parseCfRights(allowStatic,haxeparser.HaxeParser.apush(l,haxe.macro.Access.AMacro));
 							return l6;
 						} else return def1();
 						break;
@@ -11628,7 +12146,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 					if(allowStatic) {
 						this.last = this.token.elt;
 						this.token = this.token.next;
-						var l7 = this.parseCfRights(false,haxeparser.HaxeParser.aadd(l,haxe.macro.Access.AStatic));
+						var l7 = this.parseCfRights(false,haxeparser.HaxeParser.apush(l,haxe.macro.Access.AStatic));
 						return l7;
 					} else return def();
 					break;
@@ -11871,7 +12389,7 @@ haxeparser.HaxeParser.prototype = $extend(hxparse.Parser_haxeparser_HaxeTokenSou
 	,block: function(acc) {
 		try {
 			var e = this.parseBlockElt();
-			return this.block(haxeparser.HaxeParser.aadd(acc,e));
+			return this.block(haxeparser.HaxeParser.apush(acc,e));
 		} catch( e1 ) {
 			if( js.Boot.__instanceof(e1,hxparse.NoMatch) ) {
 				return acc;
@@ -14465,7 +14983,7 @@ haxeprinter.Printer.prototype = {
 		if(this.config.empty_line_after_import) this.newline();
 	}
 	,printAbstract: function(data) {
-		console.log(data);
+		haxe.Log.trace(data,{ fileName : "Printer.hx", lineNumber : 155, className : "haxeprinter.Printer", methodName : "printAbstract"});
 	}
 	,printClass: function(type) {
 		if(this.buf.b.length > 0 && this.config.empty_line_before_type) this.newline();
@@ -14960,14 +15478,14 @@ haxeproject.HaxeProject = function() {
 	var path = js.Node.require("path").join("core","templates","Main.tpl");
 	js.Node.require("fs").readFile(path,options,function(error,data) {
 		if(error == null) _g.code = data; else {
-			console.log(error);
+			haxe.Log.trace(error,{ fileName : "HaxeProject.hx", lineNumber : 64, className : "haxeproject.HaxeProject", methodName : "new"});
 			Alertify.error("Can't load template " + path);
 		}
 	});
 	path = js.Node.require("path").join("core","templates","index.tpl");
 	js.Node.require("fs").readFile(path,options,function(error1,data1) {
 		if(error1 == null) _g.indexPageCode = data1; else {
-			console.log(error1);
+			haxe.Log.trace(error1,{ fileName : "HaxeProject.hx", lineNumber : 80, className : "haxeproject.HaxeProject", methodName : "new"});
 			Alertify.error("Can't load template " + path);
 		}
 	});
@@ -15039,7 +15557,7 @@ haxeproject.HaxeProject.prototype = {
 					if(exists) {
 						var tabManagerInstance1 = tabmanager.TabManager.get();
 						tabManagerInstance1.openFileInNewTab(pathToMain);
-					} else console.log(pathToMain + " file was not generated");
+					} else haxe.Log.trace(pathToMain + " file was not generated",{ fileName : "HaxeProject.hx", lineNumber : 189, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
 				});
 			});
 			var filenames = ["flash","javascript","neko","php","cpp","java","csharp","python"];
@@ -15103,7 +15621,7 @@ haxeproject.HaxeProject.prototype = {
 					var pathToWebPage = js.Node.require("path").join(pathToProject,"bin","index.html");
 					js.Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
 						if(error2 != null) {
-							console.log(error2);
+							haxe.Log.trace(error2,{ fileName : "HaxeProject.hx", lineNumber : 275, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
 							Alertify.error("Generate web page error: " + error2);
 						}
 					});
@@ -15351,6 +15869,14 @@ menu.BootstrapMenu.addMenuToDocument = function(menu1) {
 		menu.BootstrapMenu.menuArray.push(menu1);
 	}
 };
+menu.BootstrapMenu.removeMenu = function(name,position) {
+	var menu1;
+	if(menu.BootstrapMenu.menus.exists(name)) {
+		menu1 = menu.BootstrapMenu.menus.get(name);
+		menu1.removeFromDocument();
+		menu.BootstrapMenu.menus.remove(name);
+	}
+};
 menu.MenuItem = function() { };
 $hxClasses["menu.MenuItem"] = menu.MenuItem;
 menu.MenuItem.__name__ = ["menu","MenuItem"];
@@ -15359,12 +15885,13 @@ menu.MenuButtonItem = function(_menu,_text,_onClickFunction,_hotkey,_submenu) {
 	if(_hotkey == null) _hotkey = "";
 	var _g = this;
 	var hotkeyText = _hotkey;
-	var menuItem = _menu + "->" + _text;
+	this.action = _onClickFunction;
+	this.menuItem = _menu + "->" + _text;
 	var span;
 	var _this = window.document;
 	span = _this.createElement("span");
 	span.className = "hotkey";
-	if(!_submenu) core.Hotkeys.add(menuItem,hotkeyText,span,_onClickFunction);
+	if(!_submenu) core.Hotkeys.add(this.menuItem,hotkeyText,span,_onClickFunction);
 	var _this1 = window.document;
 	this.li = _this1.createElement("li");
 	this.li.classList.add("menu-item");
@@ -15389,6 +15916,8 @@ menu.MenuButtonItem.__interfaces__ = [menu.MenuItem];
 menu.MenuButtonItem.prototype = {
 	li: null
 	,position: null
+	,menuItem: null
+	,action: null
 	,getElement: function() {
 		return this.li;
 	}
@@ -15413,6 +15942,7 @@ menu.Submenu = function(_parentMenu,_name) {
 	var _g = this;
 	this.name = _name;
 	this.parentMenu = _parentMenu;
+	this.items = [];
 	var li2;
 	var _this = window.document;
 	li2 = _this.createElement("li");
@@ -15453,15 +15983,21 @@ menu.Submenu.prototype = {
 	,li: null
 	,name: null
 	,parentMenu: null
+	,items: null
 	,addMenuItem: function(_text,_position,_onClickFunction,_hotkey) {
 		var menuButtonItem = new menu.MenuButtonItem(this.parentMenu + "->" + this.name,_text,_onClickFunction,_hotkey,true);
 		this.ul.appendChild(menuButtonItem.getElement());
+		this.items.push(menuButtonItem);
 	}
 	,clear: function() {
+		this.items = [];
 		while(this.ul.firstChild != null) this.ul.removeChild(this.ul.firstChild);
 	}
 	,getElement: function() {
 		return this.li;
+	}
+	,getItems: function() {
+		return this.items;
 	}
 	,__class__: menu.Submenu
 };
@@ -15554,6 +16090,9 @@ menu.Menu.prototype = {
 	,getSubmenu: function(name) {
 		if(!this.submenus.exists(name)) this.submenus.set(name,this.addSubmenu(name));
 		return this.submenus.get(name);
+	}
+	,getItems: function() {
+		return this.items;
 	}
 	,getElement: function() {
 		return this.li;
@@ -15685,6 +16224,7 @@ newprojectdialog.NewProjectDialog.load = function() {
 	newprojectdialog.NewProjectDialog.loadData("Company");
 	newprojectdialog.NewProjectDialog.loadData("License");
 	newprojectdialog.NewProjectDialog.loadData("URL");
+	flambeproject.FlambePage.loadData();
 	newprojectdialog.NewProjectDialog.loadCheckboxState("Package");
 	newprojectdialog.NewProjectDialog.loadCheckboxState("Company");
 	newprojectdialog.NewProjectDialog.loadCheckboxState("License");
@@ -15725,6 +16265,7 @@ newprojectdialog.NewProjectDialog.createProject = function() {
 			item.createProjectFunction(data);
 			js.Browser.getLocalStorage().setItem("Location",location);
 		}
+		flambeproject.FlambePage.saveAllData();
 		newprojectdialog.NewProjectDialog.saveData("Package");
 		newprojectdialog.NewProjectDialog.saveData("Company");
 		newprojectdialog.NewProjectDialog.saveData("License");
@@ -15962,6 +16503,7 @@ newprojectdialog.NewProjectDialog.createPage2 = function() {
 	newprojectdialog.NewProjectDialog.createTextWithCheckbox(newprojectdialog.NewProjectDialog.page2,"Company");
 	newprojectdialog.NewProjectDialog.createTextWithCheckbox(newprojectdialog.NewProjectDialog.page2,"License");
 	newprojectdialog.NewProjectDialog.createTextWithCheckbox(newprojectdialog.NewProjectDialog.page2,"URL");
+	flambeproject.FlambePage.createPage2(newprojectdialog.NewProjectDialog.page2);
 	var _this7 = window.document;
 	row = _this7.createElement("div");
 	row.className = "row";
@@ -16099,6 +16641,7 @@ newprojectdialog.NewProjectDialog.createSubcategory = function(text,category) {
 };
 newprojectdialog.NewProjectDialog.updateListItems = function(category,item) {
 	newprojectdialog.NewProjectDialog.selectedCategory = category;
+	if(newprojectdialog.NewProjectDialog.selectedCategory.name == "Flambe") flambeproject.FlambePage.show(); else flambeproject.FlambePage.hide();
 	new $(newprojectdialog.NewProjectDialog.list).children().remove();
 	newprojectdialog.NewProjectDialog.setListItems(newprojectdialog.NewProjectDialog.list,category.getItems(),item);
 	newprojectdialog.NewProjectDialog.checkSelectedOptions();
@@ -16217,10 +16760,6 @@ openflproject.OpenFLProject.prototype = {
 		project.runActionType = 2;
 		project.runActionText = ["haxelib","run","lime","run","\"%path%\"",project.openFLTarget].join(" ");
 		projectaccess.ProjectAccess.currentProject = project;
-		projectaccess.ProjectAccess.save(function() {
-			var path = js.Node.require("path").join(pathToProject,"project.hide");
-			openproject.OpenProject.openProject(path);
-		});
 	}
 	,__class__: openflproject.OpenFLProject
 };
@@ -16300,11 +16839,13 @@ openproject.OpenProject.openProject = function(pathToProject,project) {
 };
 openproject.OpenProject.checkIfFileExists = function(path) {
 	js.Node.require("fs").exists(path,function(exists) {
-		if(exists) openproject.OpenProject.parseProject(path); else console.log("previously opened project: " + path + " was not found");
+		if(exists) openproject.OpenProject.parseProject(path); else haxe.Log.trace("previously opened project: " + path + " was not found",{ fileName : "OpenProject.hx", lineNumber : 61, className : "openproject.OpenProject", methodName : "checkIfFileExists"});
 	});
 };
 openproject.OpenProject.parseProject = function(path) {
-	console.log("open: " + path);
+	flambeproject.FlambeHeaderMenu.get().destroy();
+	tools.gradle.GradleTool.get().destroy();
+	haxe.Log.trace("open: " + path,{ fileName : "OpenProject.hx", lineNumber : 71, className : "openproject.OpenProject", methodName : "parseProject"});
 	var filename = js.Node.require("path").basename(path);
 	var outlinePanel = core.OutlinePanel.get();
 	var tabManagerInstance = tabmanager.TabManager.get();
@@ -16353,7 +16894,7 @@ openproject.OpenProject.parseProject = function(path) {
 											js.Node.require("fs").exists(fullPathToActiveFile,(function() {
 												return function(exists1) {
 													if(exists1) {
-														console.log(fullPathToActiveFile);
+														haxe.Log.trace(fullPathToActiveFile,{ fileName : "OpenProject.hx", lineNumber : 149, className : "openproject.OpenProject", methodName : "parseProject"});
 														tabManagerInstance.selectDoc(fullPathToActiveFile);
 														cm.Editor.editor.focus();
 													}
@@ -16361,6 +16902,7 @@ openproject.OpenProject.parseProject = function(path) {
 											})());
 										}
 									}
+									openproject.OpenProject.onOpenPeojectComplete();
 								};
 							})());
 						};
@@ -16372,6 +16914,7 @@ openproject.OpenProject.parseProject = function(path) {
 			if(project.type == 1) {
 				if(project.openFLBuildMode == null) project.openFLBuildMode = "Debug";
 			}
+			if(project.type == 3) flambeproject.FlambeHeaderMenu.get().create(); else flambeproject.FlambeHeaderMenu.get().destroy();
 			projectOptions.updateProjectOptions();
 			fileTree.load(project.name,pathToProject);
 			splitter.show();
@@ -16415,15 +16958,18 @@ openproject.OpenProject.parseProject = function(path) {
 					var fast = new haxe.xml.Fast(xml);
 					if(fast.hasNode.resolve("project")) openproject.OpenFL.open(path); else Alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
 				} else {
-					console.log(error1);
+					haxe.Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 262, className : "openproject.OpenProject", methodName : "parseProject"});
 					Alertify.error("Can't open file: " + path + "\n" + error1);
 				}
 			});
 			break;
 		default:
 		}
-		tabManagerInstance.openFileInNewTab(path);
+		tabManagerInstance.openFileInNewTab(path,true,openproject.OpenProject.onOpenPeojectComplete);
 	}
+};
+openproject.OpenProject.onOpenPeojectComplete = function() {
+	tools.gradle.GradleTool.get().searchBuildFile();
 };
 openproject.OpenProject.searchForLastProject = function() {
 	var pathToLastProject = js.Browser.getLocalStorage().getItem("pathToLastProject");
@@ -16451,8 +16997,8 @@ openproject.OpenProject.parseProjectData = function(data) {
 	try {
 		project = tjson.TJSON.parse(data);
 	} catch( unknown ) {
-		console.log(unknown);
-		console.log(data);
+		haxe.Log.trace(unknown,{ fileName : "OpenProject.hx", lineNumber : 328, className : "openproject.OpenProject", methodName : "parseProjectData"});
+		haxe.Log.trace(data,{ fileName : "OpenProject.hx", lineNumber : 329, className : "openproject.OpenProject", methodName : "parseProjectData"});
 		project = js.Node.parse(data);
 	}
 	return project;
@@ -16652,7 +17198,7 @@ outline.OutlineParser.prototype = {
 					fieldInfo = varFields.shift();
 					if(varFields.length == 0) {
 						parentIndex = 0;
-						console.log("length == 0");
+						haxe.Log.trace("length == 0",{ fileName : "OutlineParser.hx", lineNumber : 220, className : "outline.OutlineParser", methodName : "parse"});
 					}
 				} else fieldInfo = methodFields.shift();
 				parentIndex = 0;
@@ -17084,7 +17630,7 @@ parser.ClasspathWalker.prototype = {
 				_g.processFile(pathToFile1,std);
 			});
 			emitter.on("error",function(pathToFile2,stat2) {
-				console.log(pathToFile2);
+				haxe.Log.trace(pathToFile2,{ fileName : "ClasspathWalker.hx", lineNumber : 375, className : "parser.ClasspathWalker", methodName : "parseClasspath"});
 			});
 		}
 	}
@@ -17151,7 +17697,7 @@ parser.ClasspathWalker.prototype = {
 				_g.addFile(path2);
 			});
 			emitter.on("error",function(path3,stat2) {
-				console.log(path3);
+				haxe.Log.trace(path3,{ fileName : "ClasspathWalker.hx", lineNumber : 508, className : "parser.ClasspathWalker", methodName : "walkProjectDirectory"});
 			});
 		}
 	}
@@ -17408,14 +17954,14 @@ pluginloader.PluginManager.prototype = {
 		});
 		haxe.Timer.delay(function() {
 			if(_g.requestedPluginsData.length > 0) {
-				console.log("still not loaded plugins: ");
+				haxe.Log.trace("still not loaded plugins: ",{ fileName : "PluginManager.hx", lineNumber : 116, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
 				var _g1 = 0;
 				var _g2 = _g.requestedPluginsData;
 				while(_g1 < _g2.length) {
 					var pluginData = _g2[_g1];
 					++_g1;
-					console.log(pluginData.name + ": can't load plugin, required plugins are not found");
-					console.log(pluginData.plugins);
+					haxe.Log.trace(pluginData.name + ": can't load plugin, required plugins are not found",{ fileName : "PluginManager.hx", lineNumber : 120, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
+					haxe.Log.trace(pluginData.plugins,{ fileName : "PluginManager.hx", lineNumber : 121, className : "pluginloader.PluginManager", methodName : "loadPlugins"});
 				}
 				_g.savePluginsMTime();
 			}
@@ -17448,7 +17994,7 @@ pluginloader.PluginManager.prototype = {
 		var _g1 = this;
 		var pathToFolder;
 		js.Node.require("fs").readdir(js.Node.require("path").join(path,pathToPlugin),function(error,folders) {
-			if(error != null) console.log(error); else {
+			if(error != null) haxe.Log.trace(error,{ fileName : "PluginManager.hx", lineNumber : 176, className : "pluginloader.PluginManager", methodName : "readDir"}); else {
 				var _g = 0;
 				while(_g < folders.length) {
 					var item = [folders[_g]];
@@ -17483,7 +18029,7 @@ pluginloader.PluginManager.prototype = {
 	,loadPlugin: function(pathToPlugin) {
 		var pathToMain = js.Node.require("path").join(pathToPlugin,"bin","Main.js");
 		js.Node.require("fs").exists(pathToMain,function(exists) {
-			if(exists) HIDE.loadJS(null,[pathToMain]); else console.log(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin");
+			if(exists) HIDE.loadJS(null,[pathToMain]); else haxe.Log.trace(pathToMain + " is not found/nPlease compile " + pathToPlugin + " plugin",{ fileName : "PluginManager.hx", lineNumber : 235, className : "pluginloader.PluginManager", methodName : "loadPlugin"});
 		});
 	}
 	,compilePlugin: function(name,pathToPlugin,onSuccess,onFailed) {
@@ -17500,11 +18046,11 @@ pluginloader.PluginManager.prototype = {
 		var startTime = new Date().getTime();
 		var delta;
 		var command = ["haxe","--cwd",HIDE.surroundWithQuotes(pathToPlugin),"plugin.hxml"].join(" ");
-		console.log(command);
+		haxe.Log.trace(command,{ fileName : "PluginManager.hx", lineNumber : 270, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 		var haxeCompilerProcess = js.Node.require("child_process").exec(command,{ },function(err,stdout,stderr) {
 			if(err == null) {
 				delta = new Date().getTime() - startTime;
-				Std.string(console.log(name + " compilation took " + (delta == null?"null":"" + delta))) + " ms";
+				Std.string(haxe.Log.trace(name + " compilation took " + (delta == null?"null":"" + delta),{ fileName : "PluginManager.hx", lineNumber : 278, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"})) + " ms";
 				onSuccess(pathToPlugin);
 				_g.pluginsMTime.set(name,Std.parseInt(Std.string(new Date().getTime())));
 			} else {
@@ -17517,12 +18063,12 @@ pluginloader.PluginManager.prototype = {
 					textarea.value = "Plugins compile-time errors:\n";
 					window.document.body.appendChild(textarea);
 				} else textarea = js.Boot.__cast(element , HTMLTextAreaElement);
-				console.log(pathToPlugin + " stderr: " + stderr);
+				haxe.Log.trace(pathToPlugin + " stderr: " + stderr,{ fileName : "PluginManager.hx", lineNumber : 301, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 				textarea.value += name + "\n" + stderr + "\n";
-				console.log("can't load " + name + " plugin, compilation failed");
+				haxe.Log.trace("can't load " + name + " plugin, compilation failed",{ fileName : "PluginManager.hx", lineNumber : 304, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 				var regex = new EReg("haxelib install (.+) ","gim");
 				regex.map(stderr,function(ereg) {
-					console.log(ereg);
+					haxe.Log.trace(ereg,{ fileName : "PluginManager.hx", lineNumber : 309, className : "pluginloader.PluginManager", methodName : "startPluginCompilation"});
 					return "";
 				});
 				if(onFailed != null) onFailed(stderr);
@@ -17609,7 +18155,7 @@ projectaccess.ProjectAccess.save = function(onComplete,sync) {
 				if(onComplete != null) onComplete();
 			});
 		},250);
-	} else console.log("project path is null");
+	} else haxe.Log.trace("project path is null",{ fileName : "ProjectAccess.hx", lineNumber : 73, className : "projectaccess.ProjectAccess", methodName : "save"});
 };
 projectaccess.ProjectAccess.isItemInIgnoreList = function(path) {
 	var ignore = false;
@@ -18251,7 +18797,7 @@ tabmanager.TabManager.prototype = {
 			var selectedFile = projectaccess.ProjectAccess.getFileByPath(_g.getCurrentDocumentPath());
 			if(selectedFile != null) {
 				selectedFile.useTabs = !selectedFile.useTabs;
-				console.log(selectedFile.useTabs);
+				haxe.Log.trace(selectedFile.useTabs,{ fileName : "TabManager.hx", lineNumber : 135, className : "tabmanager.TabManager", methodName : "load"});
 				_g.updateIndentationSettings(selectedFile);
 				_g.loadIndentationSettings(cm.Editor.editor,selectedFile);
 			}
@@ -18287,7 +18833,7 @@ tabmanager.TabManager.prototype = {
 		var options = { };
 		options.encoding = "utf8";
 		js.Node.require("fs").readFile(path,options,function(error,code) {
-			if(error != null) console.log(error); else onComplete(code);
+			if(error != null) haxe.Log.trace(error,{ fileName : "TabManager.hx", lineNumber : 201, className : "tabmanager.TabManager", methodName : "openFile"}); else onComplete(code);
 		});
 	}
 	,openFileInNewTab: function(path,show,onComplete) {
@@ -18315,7 +18861,7 @@ tabmanager.TabManager.prototype = {
 				if(show) _g.selectDoc(path);
 				_g.checkTabsCount();
 				if(onComplete != null) onComplete();
-			} else console.log("tab-manager: can't load file " + path);
+			} else haxe.Log.trace("tab-manager: can't load file " + path,{ fileName : "TabManager.hx", lineNumber : 272, className : "tabmanager.TabManager", methodName : "openFileInNewTab"});
 		});
 	}
 	,createFileInNewTab: function(pathToFile) {
@@ -18526,6 +19072,8 @@ tabmanager.TabManager.prototype = {
 			mode = "ocaml";
 			break;
 		case ".yml":
+			break;
+		case ".yaml":
 			mode = "yaml";
 			break;
 		default:
@@ -18590,7 +19138,7 @@ tabmanager.TabManager.prototype = {
 					}
 					this.loadIndentationSettings(cm1,selectedFile);
 					this.updateIndentationSettings(selectedFile);
-				} else console.log("can't load folded regions for active document");
+				} else haxe.Log.trace("can't load folded regions for active document",{ fileName : "TabManager.hx", lineNumber : 719, className : "tabmanager.TabManager", methodName : "selectDoc"});
 			}
 			cm1.focus();
 			window.document.getElementById("status-file").textContent = "-" + Std.string(doc.lineCount()) + " Lines";
@@ -18633,7 +19181,7 @@ tabmanager.TabManager.prototype = {
 		return !tab.doc.isClean();
 	}
 	,saveActiveFile: function(onComplete) {
-		if(this.selectedPath != null) this.saveDoc(this.selectedPath,onComplete); else console.log(this.selectedPath);
+		if(this.selectedPath != null) this.saveDoc(this.selectedPath,onComplete); else haxe.Log.trace(this.selectedPath,{ fileName : "TabManager.hx", lineNumber : 814, className : "tabmanager.TabManager", methodName : "saveActiveFile"});
 	}
 	,saveActiveFileAs: function() {
 		var _g = this;
@@ -19145,6 +19693,442 @@ tjson.FancyStyle.prototype = {
 	}
 	,__class__: tjson.FancyStyle
 };
+var tools = {};
+tools.gradle = {};
+tools.gradle.GradleConfig = function() {
+	this.path = "";
+	this.settingsFile = "";
+	this.buildFile = "";
+	this.showDebug = false;
+	this.showStack = false;
+};
+$hxClasses["tools.gradle.GradleConfig"] = tools.gradle.GradleConfig;
+tools.gradle.GradleConfig.__name__ = ["tools","gradle","GradleConfig"];
+tools.gradle.GradleConfig.prototype = {
+	path: null
+	,settingsFile: null
+	,buildFile: null
+	,showDebug: null
+	,showStack: null
+	,__class__: tools.gradle.GradleConfig
+};
+tools.gradle.Tool = function() {
+	this.gradleTool = tools.gradle.GradleTool.get();
+};
+$hxClasses["tools.gradle.Tool"] = tools.gradle.Tool;
+tools.gradle.Tool.__name__ = ["tools","gradle","Tool"];
+tools.gradle.Tool.prototype = {
+	gradleTool: null
+	,__class__: tools.gradle.Tool
+};
+tools.gradle.GradleHeaderMenu = function() {
+	tools.gradle.Tool.call(this);
+};
+$hxClasses["tools.gradle.GradleHeaderMenu"] = tools.gradle.GradleHeaderMenu;
+tools.gradle.GradleHeaderMenu.__name__ = ["tools","gradle","GradleHeaderMenu"];
+tools.gradle.GradleHeaderMenu.__super__ = tools.gradle.Tool;
+tools.gradle.GradleHeaderMenu.prototype = $extend(tools.gradle.Tool.prototype,{
+	create: function() {
+		this.destroy();
+		var menu1 = menu.BootstrapMenu.getMenu("Gradle");
+		var i = 0;
+		this.setupFirstMenu(menu1);
+		this.setupSecondMenu(menu1);
+		this.setupThirdMenu(menu1);
+		menu1.addMenuItem("HotkeyPanel",++i,($_=new tools.gradle.GradleHotkeyPanel(menu1),$bind($_,$_.show)),"Ctrl-Alt-G");
+	}
+	,setupFirstMenu: function(menu) {
+		var submenu = menu.addSubmenu("Tasks");
+		var list = this.gradleTool.getTaskList();
+		this.createSubmenuItens(submenu,list);
+	}
+	,setupSecondMenu: function(menu) {
+		var submenu = menu.addSubmenu("HelpTasks");
+		var list = this.gradleTool.getSetupTaskList();
+		this.createSubmenuItens(submenu,list);
+	}
+	,setupThirdMenu: function(menu) {
+		var submenu = menu.addSubmenu("SetupTasks");
+		var list = this.gradleTool.getHelpTaskList();
+		this.createSubmenuItens(submenu,list);
+	}
+	,createSubmenuItens: function(submenu,list) {
+		var _g1 = this;
+		var length = list.length;
+		var _g = 0;
+		while(_g < length) {
+			var i = _g++;
+			var commandName = [list[i]];
+			submenu.addMenuItem(commandName[0],i,(function(commandName) {
+				return function() {
+					_g1.gradleTool.executeTask(null,[commandName[0]]);
+				};
+			})(commandName));
+		}
+	}
+	,destroy: function() {
+		menu.BootstrapMenu.removeMenu("Gradle");
+	}
+	,__class__: tools.gradle.GradleHeaderMenu
+});
+tools.gradle.GradleHotkeyPanel = function(__menu) {
+	flambeproject.HeaderHotkeyPanel.call(this,__menu);
+};
+$hxClasses["tools.gradle.GradleHotkeyPanel"] = tools.gradle.GradleHotkeyPanel;
+tools.gradle.GradleHotkeyPanel.__name__ = ["tools","gradle","GradleHotkeyPanel"];
+tools.gradle.GradleHotkeyPanel.__super__ = flambeproject.HeaderHotkeyPanel;
+tools.gradle.GradleHotkeyPanel.prototype = $extend(flambeproject.HeaderHotkeyPanel.prototype,{
+	show: function() {
+		this.setupList();
+		this.qickHotkeyPanel.show("Gradle",this.listGroup,true);
+	}
+	,setupList: function() {
+		this.listGroup.clear();
+		var submenu = this.menu.getSubmenu("Tasks");
+		var items = submenu.getItems();
+		var item;
+		var length = items.length;
+		var _g = 0;
+		while(_g < length) {
+			var i = _g++;
+			item = items[i];
+			this.listGroup.addItem(item.menuItem,Std.string(i + 1),item.action);
+		}
+	}
+	,__class__: tools.gradle.GradleHotkeyPanel
+});
+tools.gradle.GradleProcess = function() {
+	tools.gradle.Tool.call(this);
+	this.runningProcessesControl = new tools.gradle.RunningProcessesControl();
+};
+$hxClasses["tools.gradle.GradleProcess"] = tools.gradle.GradleProcess;
+tools.gradle.GradleProcess.__name__ = ["tools","gradle","GradleProcess"];
+tools.gradle.GradleProcess.__super__ = tools.gradle.Tool;
+tools.gradle.GradleProcess.prototype = $extend(tools.gradle.Tool.prototype,{
+	runningProcessesControl: null
+	,buildFileOption: null
+	,run: function(file,params,onComplete,onFailed) {
+		var _g = this;
+		var isRunning = this.runningProcessesControl.check(file,params);
+		if(isRunning == true) {
+			haxe.Log.trace("isRunning->",{ fileName : "GradleProcess.hx", lineNumber : 30, className : "tools.gradle.GradleProcess", methodName : "run", customParams : [file,params]});
+			return;
+		}
+		var key = this.runningProcessesControl.lastKey;
+		if(file == null) file = js.Node.require("path").join(projectaccess.ProjectAccess.path,this.gradleTool.config.path,this.gradleTool.config.buildFile);
+		this.buildFileOption = ["-b",file];
+		if(params == null) params = [];
+		params = this.buildFileOption.concat(params);
+		var completeHandler = function(stdout,stderr) {
+			_g.runningProcessesControl.stopProcesses(key);
+			_g.setOutput(stdout,stderr);
+			if(onComplete == null) return;
+			onComplete(stdout,stderr);
+		};
+		var failedHandler = function(code,stdout1,stderr1) {
+			_g.runningProcessesControl.stopProcesses(key);
+			_g.setOutput(stdout1,stderr1,code);
+			if(onFailed != null) onFailed(code,stdout1,stderr1);
+		};
+		var processHelper = core.ProcessHelper.get();
+		processHelper.runProcess("gradle",params,projectaccess.ProjectAccess.path,completeHandler,failedHandler);
+	}
+	,setOutput: function(stdout,stderr,code) {
+		if(code == null) code = -1;
+		if(stderr == null) stderr = "";
+		if(stdout == null) stdout = "";
+		this.gradleTool.setOutput();
+		this.gradleTool.setOutput("Complete!");
+		this.gradleTool.setOutput(stdout,stderr,code);
+	}
+	,__class__: tools.gradle.GradleProcess
+});
+tools.gradle.RunningProcessesControl = function() {
+	this.separator = "-";
+	this.map = new haxe.ds.StringMap();
+};
+$hxClasses["tools.gradle.RunningProcessesControl"] = tools.gradle.RunningProcessesControl;
+tools.gradle.RunningProcessesControl.__name__ = ["tools","gradle","RunningProcessesControl"];
+tools.gradle.RunningProcessesControl.prototype = {
+	lastKey: null
+	,separator: null
+	,map: null
+	,check: function(file,params) {
+		this.lastKey = this.createKey(file,params);
+		if(this.map.exists(this.lastKey) == true) return this.map.get(this.lastKey);
+		this.startProcesses(this.lastKey);
+		return false;
+	}
+	,stopProcesses: function(key) {
+		this.map.set(key,false);
+		return key;
+	}
+	,startProcesses: function(key) {
+		this.map.set(key,true);
+		return key;
+	}
+	,createKey: function(file,params) {
+		var key = file;
+		var length = params.length;
+		var _g = 0;
+		while(_g < length) {
+			var i = _g++;
+			key += this.separator + params[i];
+		}
+		return key;
+	}
+	,__class__: tools.gradle.RunningProcessesControl
+};
+tools.gradle.GradleTasks = function() {
+	tools.gradle.Tool.call(this);
+	this.destroy();
+};
+$hxClasses["tools.gradle.GradleTasks"] = tools.gradle.GradleTasks;
+tools.gradle.GradleTasks.__name__ = ["tools","gradle","GradleTasks"];
+tools.gradle.GradleTasks.__super__ = tools.gradle.Tool;
+tools.gradle.GradleTasks.prototype = $extend(tools.gradle.Tool.prototype,{
+	setupTasks: null
+	,helpTasks: null
+	,otherTasks: null
+	,destroy: function() {
+		this.setupTasks = [];
+		this.helpTasks = [];
+		this.otherTasks = [];
+	}
+	,setup: function() {
+		this.searchTasks();
+	}
+	,searchTasks: function() {
+		this.gradleTool.executeTask(null,["tasks --all"],$bind(this,this.onSearchTasksHandler));
+	}
+	,onSearchTasksHandler: function(stdout,stderr) {
+		if(stdout == "") return;
+		this.populateLists(stdout);
+		this.gradleTool.setupHeaderMenu();
+	}
+	,populateLists: function(stdout) {
+		if(this.setupTasks.length > 0) return;
+		var lines = stdout.split("\n");
+		var l = lines.length;
+		var isSetupTasks = false;
+		var isHelpTasks = false;
+		var isOtherTasks = false;
+		var _g = 5;
+		while(_g < l) {
+			var i = _g++;
+			var value = lines[i];
+			if(value.length == 1) continue;
+			if(value.indexOf("----------") != -1) continue;
+			if(value.indexOf("BUILD SUCCESSFUL") != -1) break;
+			if(value.indexOf("Build Setup tasks") != -1) {
+				isSetupTasks = true;
+				continue;
+			}
+			if(value.indexOf("Help tasks") != -1) {
+				isHelpTasks = true;
+				continue;
+			}
+			var indexSeparator = value.indexOf(" - ");
+			if(indexSeparator != -1) value = value.substring(0,indexSeparator);
+			if(value.indexOf(" ") != -1) continue;
+			if(isOtherTasks == true) this.otherTasks[this.otherTasks.length] = value; else if(isHelpTasks == true) {
+				this.helpTasks[this.helpTasks.length] = value;
+				if(value == "tasks") isOtherTasks = true;
+			} else if(isSetupTasks == true) this.setupTasks[this.setupTasks.length] = value;
+		}
+	}
+	,__class__: tools.gradle.GradleTasks
+});
+tools.gradle.GradleTool = function(forceSingleton) {
+};
+$hxClasses["tools.gradle.GradleTool"] = tools.gradle.GradleTool;
+tools.gradle.GradleTool.__name__ = ["tools","gradle","GradleTool"];
+tools.gradle.GradleTool.get = function() {
+	if(tools.gradle.GradleTool.instance == null) {
+		tools.gradle.GradleTool.instance = new tools.gradle.GradleTool(new tools.gradle.ForceSingleton());
+		tools.gradle.GradleTool.instance.startTools();
+	}
+	return tools.gradle.GradleTool.instance;
+};
+tools.gradle.GradleTool.prototype = {
+	process: null
+	,headerMenu: null
+	,config: null
+	,tasks: null
+	,tab: null
+	,startTools: function() {
+		this.process = new tools.gradle.GradleProcess();
+		this.headerMenu = new tools.gradle.GradleHeaderMenu();
+		this.config = new tools.gradle.GradleConfig();
+		this.tasks = new tools.gradle.GradleTasks();
+		this.tab = new tools.gradle.GraldeTab();
+	}
+	,setup: function() {
+		this.tab.setup();
+		this.searchBuildFile();
+	}
+	,searchBuildFile: function() {
+		var _g = this;
+		var t = new haxe.Timer(500);
+		t.run = function() {
+			if(projectaccess.ProjectAccess.path == null) return;
+			var fileName = _g.getFileName();
+			var fileExist = js.Node.require("fs").existsSync(fileName);
+			if(fileExist == false) fileExist = _g.searchOnDefaultFolder();
+			if(fileExist) _g.ready();
+			t.stop();
+		};
+	}
+	,getFileName: function() {
+		if(this.config.buildFile != "") {
+			if(StringTools.endsWith(this.config.buildFile,".gradle") == false) this.config.buildFile += ".gradle";
+			this.config.buildFile = this.config.buildFile;
+		} else this.config.buildFile = "build" + ".gradle";
+		if(this.config.path != "") this.config.path = this.config.path; else this.config.path = "";
+		var buildFIle = js.Node.require("path").join(projectaccess.ProjectAccess.path,this.config.path,this.config.buildFile);
+		return buildFIle;
+	}
+	,searchOnDefaultFolder: function() {
+		this.config.path = "gradle";
+		this.config.buildFile = "build" + ".gradle";
+		var buildFile = js.Node.require("path").join(projectaccess.ProjectAccess.path,this.config.path,this.config.buildFile);
+		return js.Node.require("fs").existsSync(buildFile);
+	}
+	,ready: function() {
+		this.tab.show();
+		this.tasks.setup();
+	}
+	,setupHeaderMenu: function() {
+		this.headerMenu.create();
+		this.setOutput();
+		this.setOutput("Have a look at menu!");
+	}
+	,getTaskList: function() {
+		return this.tasks.otherTasks;
+	}
+	,getSetupTaskList: function() {
+		return this.tasks.setupTasks;
+	}
+	,getHelpTaskList: function() {
+		return this.tasks.helpTasks;
+	}
+	,executeTask: function(file,params,onComplete,onFailed) {
+		this.tab.set_text("");
+		this.tab.set_text("Running...");
+		this.process.run(file,params,onComplete,onFailed);
+	}
+	,setOutput: function(stdout,stderr,code) {
+		if(code == null) code = -1;
+		if(stderr == null) stderr = "";
+		if(stdout == null) stdout = "";
+		if(stderr != "" || code != -1) {
+			this.tab.set_text("Error:" + stderr);
+			this.tab.set_text("ErrorCode:" + code);
+		} else this.tab.set_text(stdout);
+	}
+	,destroy: function() {
+		this.tasks.destroy();
+		this.tab.destroy();
+		this.headerMenu.destroy();
+	}
+	,__class__: tools.gradle.GradleTool
+};
+tools.gradle.ForceSingleton = function() {
+};
+$hxClasses["tools.gradle.ForceSingleton"] = tools.gradle.ForceSingleton;
+tools.gradle.ForceSingleton.__name__ = ["tools","gradle","ForceSingleton"];
+tools.gradle.ForceSingleton.prototype = {
+	__class__: tools.gradle.ForceSingleton
+};
+tools.gradle.Tabs = function(name) {
+	this.name = name;
+	this.divTag = name + "Tab";
+	this.spanTag = name + "OutputTab";
+	this.listItemTag = this.spanTag + "LI";
+	this.textAreaTag = this.divTag + "TextArea";
+};
+$hxClasses["tools.gradle.Tabs"] = tools.gradle.Tabs;
+tools.gradle.Tabs.__name__ = ["tools","gradle","Tabs"];
+tools.gradle.Tabs.prototype = {
+	name: null
+	,divTag: null
+	,listItemTag: null
+	,spanTag: null
+	,textAreaTag: null
+	,textAreaElement: null
+	,divElement: null
+	,spanElement: null
+	,listItemElement: null
+	,setup: function() {
+		this.setupElements();
+		this.hide();
+	}
+	,setupElements: function() {
+		this.setupLine();
+		this.setupSpan();
+		this.setupDiv();
+		this.setupTextArea();
+	}
+	,setupLine: function() {
+		this.listItemElement = window.document.getElementById(this.listItemTag);
+	}
+	,setupSpan: function() {
+		this.spanElement = window.document.getElementById(this.spanTag);
+	}
+	,setupDiv: function() {
+		if(this.divElement != null) return;
+		this.divElement = window.document.getElementById(this.divTag);
+	}
+	,setupTextArea: function() {
+		if(this.textAreaElement != null) return;
+		var _this = window.document;
+		this.textAreaElement = _this.createElement("textarea");
+		this.textAreaElement.id = this.textAreaTag;
+		this.textAreaElement.style.color = "#838383";
+		this.textAreaElement.style.fontSize = "10pt";
+		this.textAreaElement.style.width = "100%";
+		this.textAreaElement.style.height = "100%";
+		this.textAreaElement.style.resize = "none";
+		this.textAreaElement.value = "";
+		this.textAreaElement.readOnly = true;
+		this.divElement.appendChild(this.textAreaElement);
+	}
+	,show: function() {
+		new $("#" + this.listItemTag).show();
+		new $("#" + this.divTag).show();
+	}
+	,hide: function() {
+		new $("#" + this.listItemTag).hide();
+		new $("#" + this.divTag).hide();
+	}
+	,active: function() {
+		this.spanElement.click();
+	}
+	,set_text: function(value) {
+		if(this.textAreaElement == null) return "";
+		if(value == "" || value == null) {
+			this.textAreaElement.value = "";
+			return "";
+		}
+		this.active();
+		this.textAreaElement.scrollTop = this.textAreaElement.scrollHeight;
+		return this.textAreaElement.value += value + "\n";
+	}
+	,destroy: function() {
+		this.hide();
+		this.set_text("");
+	}
+	,__class__: tools.gradle.Tabs
+};
+tools.gradle.GraldeTab = function() {
+	tools.gradle.Tabs.call(this,"Gradle");
+};
+$hxClasses["tools.gradle.GraldeTab"] = tools.gradle.GraldeTab;
+tools.gradle.GraldeTab.__name__ = ["tools","gradle","GraldeTab"];
+tools.gradle.GraldeTab.__super__ = tools.gradle.Tabs;
+tools.gradle.GraldeTab.prototype = $extend(tools.gradle.Tabs.prototype,{
+	__class__: tools.gradle.GraldeTab
+});
 var watchers = {};
 watchers.LocaleWatcher = function() { };
 $hxClasses["watchers.LocaleWatcher"] = watchers.LocaleWatcher;
@@ -19387,7 +20371,7 @@ Xml.ProcessingInstruction = "processingInstruction";
 Xml.Document = "document";
 nodejs.webkit.$ui = require('nw.gui');
 nodejs.webkit.Window = nodejs.webkit.$ui.Window;
-haxe.Resource.content = [{ name : "config", data : "ewoJIm1heGltdW1fbGluZV9sZW5ndGgiOjgwLAoJIm1vZGlmaWVyX29yZGVyIjpbIm92ZXJyaWRlIiwgInB1YmxpYyIsICJwcml2YXRlIiwgInN0YXRpYyIsICJleHRlcm4iLCAiZHluYW1pYyIsICJpbmxpbmUiLCAibWFjcm8iXSwKCSJpbmRlbnRfd2l0aF90YWJzIjpmYWxzZSwKCSJ0YWJfd2lkdGgiOjQsCgkicHJpbnRfcm9vdF9wYWNrYWdlIjpmYWxzZSwKCSJlbXB0eV9saW5lX2FmdGVyX3BhY2thZ2UiOnRydWUsCgkiZW1wdHlfbGluZV9hZnRlcl9pbXBvcnQiOmZhbHNlLAoJImVtcHR5X2xpbmVfYmVmb3JlX3R5cGUiOnRydWUsCgkiY3VkZGxlX3R5cGVfYnJhY2VzIjpmYWxzZSwKCSJjdWRkbGVfbWV0aG9kX2JyYWNlcyI6ZmFsc2UsCgkiZW1wdHlfbGluZV9iZXR3ZWVuX2ZpZWxkcyI6dHJ1ZSwKCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1zIjp0cnVlLAoJInNwYWNlX2JldHdlZW5fYW5vbl90eXBlX2ZpZWxkcyI6dHJ1ZSwKCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1fY29uc3RyYWludHMiOnRydWUsCgkiaW5saW5lX2VtcHR5X2JyYWNlcyI6dHJ1ZSwKCSJleHRlbmRzX29uX25ld2xpbmUiOmZhbHNlLAoJImltcGxlbWVudHNfb25fbmV3bGluZSI6ZmFsc2UsCgkiZnVuY3Rpb25fYXJnX29uX25ld2xpbmUiOmZhbHNlLAoJInNwYWNlX2JldHdlZW5fZnVuY3Rpb25fYXJncyI6dHJ1ZSwKCSJzcGFjZV9hcm91bmRfZnVuY3Rpb25fYXJnX2Fzc2lnbiI6dHJ1ZSwKCSJzcGFjZV9hcm91bmRfcHJvcGVydHlfYXNzaWduIjp0cnVlLAoJInNwYWNlX2JldHdlbl9wcm9wZXJ0eV9nZXRfc2V0Ijp0cnVlLAoJInJlbW92ZV9wcml2YXRlX2ZpZWxkX21vZGlmaWVyIjp0cnVlLAoJImVtcHR5X2xpbmVfYmV0d2Vlbl9lbnVtX2NvbnN0cnVjdG9ycyI6ZmFsc2UsCgkiZW1wdHlfbGluZV9iZXR3ZWVuX3R5cGVkZWZfZmllbGRzIjpmYWxzZSwKCSJzcGFjZV9iZXR3ZWVuX2VudW1fY29uc3RydWN0b3JfYXJncyI6dHJ1ZQp9"}];
+haxe.Resource.content = [{ name : "config", data : "ew0KCSJtYXhpbXVtX2xpbmVfbGVuZ3RoIjo4MCwNCgkibW9kaWZpZXJfb3JkZXIiOlsib3ZlcnJpZGUiLCAicHVibGljIiwgInByaXZhdGUiLCAic3RhdGljIiwgImV4dGVybiIsICJkeW5hbWljIiwgImlubGluZSIsICJtYWNybyJdLA0KCSJpbmRlbnRfd2l0aF90YWJzIjpmYWxzZSwNCgkidGFiX3dpZHRoIjo0LA0KCSJwcmludF9yb290X3BhY2thZ2UiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2FmdGVyX3BhY2thZ2UiOnRydWUsDQoJImVtcHR5X2xpbmVfYWZ0ZXJfaW1wb3J0IjpmYWxzZSwNCgkiZW1wdHlfbGluZV9iZWZvcmVfdHlwZSI6dHJ1ZSwNCgkiY3VkZGxlX3R5cGVfYnJhY2VzIjpmYWxzZSwNCgkiY3VkZGxlX21ldGhvZF9icmFjZXMiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2JldHdlZW5fZmllbGRzIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1zIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX2Fub25fdHlwZV9maWVsZHMiOnRydWUsDQoJInNwYWNlX2JldHdlZW5fdHlwZV9wYXJhbV9jb25zdHJhaW50cyI6dHJ1ZSwNCgkiaW5saW5lX2VtcHR5X2JyYWNlcyI6dHJ1ZSwNCgkiZXh0ZW5kc19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiaW1wbGVtZW50c19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiZnVuY3Rpb25fYXJnX29uX25ld2xpbmUiOmZhbHNlLA0KCSJzcGFjZV9iZXR3ZWVuX2Z1bmN0aW9uX2FyZ3MiOnRydWUsDQoJInNwYWNlX2Fyb3VuZF9mdW5jdGlvbl9hcmdfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9hcm91bmRfcHJvcGVydHlfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZW5fcHJvcGVydHlfZ2V0X3NldCI6dHJ1ZSwNCgkicmVtb3ZlX3ByaXZhdGVfZmllbGRfbW9kaWZpZXIiOnRydWUsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl9lbnVtX2NvbnN0cnVjdG9ycyI6ZmFsc2UsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl90eXBlZGVmX2ZpZWxkcyI6ZmFsc2UsDQoJInNwYWNlX2JldHdlZW5fZW51bV9jb25zdHJ1Y3Rvcl9hcmdzIjp0cnVlDQp9"}];
 var module, setImmediate, clearImmediate;
 js.Node.setTimeout = setTimeout;
 js.Node.clearTimeout = clearTimeout;

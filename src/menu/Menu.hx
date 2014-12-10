@@ -33,10 +33,11 @@ class MenuButtonItem implements MenuItem
 	var li:LIElement;
 	public var position:Int;
 	public var menuItem:String;
+	public var action:Dynamic;
 	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "", ?_submenu:Bool = false)
 	{		
 		var hotkeyText:String = _hotkey;
-		
+		action = _onClickFunction;
 		menuItem = _menu + "->" + _text;
 		
 		var span:SpanElement = Browser.document.createSpanElement();
@@ -111,12 +112,14 @@ class Submenu
 	var li:LIElement;
 	var name:String;
 	var parentMenu:String;
+	var items:Array<MenuButtonItem>;
 	
 	public function new(_parentMenu:String, _name:String)
 	{
 		name = _name;
 		parentMenu = _parentMenu;
 		
+		items = [];
 		//http://stackoverflow.com/questions/18023493/bootstrap-3-dropdown-sub-menu-missing
 		
 		var li2:LIElement = Browser.document.createLIElement();
@@ -176,19 +179,27 @@ class Submenu
 	{
 		var menuButtonItem:MenuButtonItem = new MenuButtonItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
 		ul.appendChild(menuButtonItem.getElement());
+		items.push(menuButtonItem);
 	}
 	
 	public function clear():Void 
 	{
+		items = [];
 		while (ul.firstChild != null) 
 		{
 			ul.removeChild(ul.firstChild);
 		}
+		
 	}
 	
 	public function getElement():Element
 	{
 		return li;
+	}
+	
+	public function getItems():Array<MenuButtonItem>
+	{
+		return items;
 	}
 }
  
