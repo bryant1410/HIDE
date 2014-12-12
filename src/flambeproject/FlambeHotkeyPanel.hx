@@ -24,7 +24,7 @@ class FlambeHotkeyPanel extends HeaderHotkeyPanel
 		listGroup.clear();
 		var items:Array<MenuButtonItem> =	menu.getItems();	
 		var item:MenuButtonItem;
-		var length = items.length - 3;//remove HotkeyPanel and wiki options -> and targets
+		var length = items.length - 2;//remove HotkeyPanel and wiki options
         for (i in 0...length)
 		{
 			item = items[i];			
