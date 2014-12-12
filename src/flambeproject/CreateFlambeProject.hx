@@ -31,18 +31,18 @@ class CreateFlambeProject
 	private static function onNewFlambeComplete(__stdout, __stderr):Void
 	 {
 		trace("onNewFlambeComplete");
-		parseYaml(function ()
+		parseYaml(function (success)
 		{
 			stdAlert(Alertify.success,__stdout, __stderr);
 		});
-		
-		
 	 }
-	 private static  function onNewFlambeFail(__code, __stdout, __stderr):Void 
+	 
+	private static  function onNewFlambeFail(__code, __stdout, __stderr):Void 
 	{
 		trace("onNewFlambeFail");
 		stdAlert(Alertify.error,__stdout, __stderr);
 	}
+	
 	private static  function stdAlert( __function:Dynamic, __stdout, __stderr):Void 
 	{
 		if (__stdout != "") 
@@ -55,46 +55,47 @@ class CreateFlambeProject
 			__function("stderr:\n" + __stderr);
 		}
 	}
-	
-	
+		
 	public static function parseYaml(__calback:Dynamic):Void
 	{
-		var file:String = ProjectAccess.path + "/flambe.yaml";
-		var openFileHandle = function (code:String)
-		{		
-			code = repalceText(code);			
-			Node.fs.writeFileSync(file, code, NodeC.UTF8);
-			__calback();
-		}
-		TabManager.get().openFile(file,openFileHandle);	
+		//var file:String = ProjectAccess.path + "/flambe.yaml";
+		//var openFileHandle = function (code:String)
+		//{		
+			//code = repalceText(code);			
+			//Node.fs.writeFileSync(file, code, NodeC.UTF8);
+			//__calback();
+		//}		
+		//TabManager.get().openFile(file, openFileHandle);	
+		
+		FlambeYamlParser.get().openFile(__calback);
 	}
 	
-	static private function repalceText(code:String):String 
-	{
-		var a = Browser.getLocalStorage();
-		var devNameValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_DEV_NAME);
-		var gameNameValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_GAME_NAME);
-		var gameIdValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_GAME_ID);
-		var platformValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_PLATFORM);
-		
-		if (devNameValue !=null && devNameValue != "")
-		{
-			code = StringTools.replace(code, "name: Your Company Name", "name: " + devNameValue);
-		}
-		if ( gameNameValue !=null &&  gameNameValue != "")
-		{
-			code = StringTools.replace(code, "name: Your Game", "name: " + gameNameValue);
-		}
-		if (gameIdValue !=null && gameIdValue != "")
-		{
-				code = StringTools.replace(code, "id: com.yourdomain.yourgame", "id: " + gameIdValue);
-		}
-		if (platformValue !=null && platformValue != "")
-		{
-			code = StringTools.replace(code, "default_platform: flash", "default_platform: " + platformValue);
-		}	
-		return code;
-
-	}
+	//static private function repalceText(code:String):String 
+	//{
+		//var a = Browser.getLocalStorage();
+		//var devNameValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_DEV_NAME);
+		//var gameNameValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_GAME_NAME);
+		//var gameIdValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_GAME_ID);
+		//var platformValue:String = Browser.getLocalStorage().getItem(FlambePage.FILD_PLATFORM);
+		//
+		//if (devNameValue !=null && devNameValue != "")
+		//{
+			//code = StringTools.replace(code, "name: Your Company Name", "name: " + devNameValue);
+		//}
+		//if ( gameNameValue !=null &&  gameNameValue != "")
+		//{
+			//code = StringTools.replace(code, "name: Your Game", "name: " + gameNameValue);
+		//}
+		//if (gameIdValue !=null && gameIdValue != "")
+		//{
+				//code = StringTools.replace(code, "id: com.yourdomain.yourgame", "id: " + gameIdValue);
+		//}
+		//if (platformValue !=null && platformValue != "")
+		//{
+			//code = StringTools.replace(code, "default_platform: flash", "default_platform: " + platformValue);
+		//}	
+		//return code;
+//
+	//}
 	
 }

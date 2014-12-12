@@ -313,12 +313,35 @@ class RunProject
 					
 					var cwd = ProjectAccess.path;
 					
-					processHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);			
+					processHelper.runProcessAndPrintOutputToConsole(process, params, cwd, onComplete);	
 				}
 			}
 			);
 		}
 	}
 	
+	static public function buildAnyProject(?onComplete:Dynamic):Void
+	{
+		killRunProcess();
+		var project:Project = ProjectAccess.currentProject;		
+		var tabManagerInstance = TabManager.get();
+		var projectOptions = ProjectOptions.get();
+		var processHelper = ProcessHelper.get();
+		var pathToProject = ProjectAccess.path;
+		
+		var command:String = project.buildActionCommand;
+		command = CommandPreprocessor.preprocess(command, pathToProject);		
+	
+		trace(command);
+		var params:Array<String> = CommandPreprocessor.preprocess(command, pathToProject).split(" ");
+		trace(params);
+		var process:String = params.shift();
+		
+		var cwd = ProjectAccess.path;
+		
+		
+		runProcess = processHelper.runProcessAndPrintOutputToConsole(process, params, cwd);	
+		
+	}
 	
 }
