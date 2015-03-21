@@ -21,6 +21,7 @@ import projectaccess.ProjectAccess;
 import projectaccess.ProjectOptions;
 import tabmanager.TabManager;
 import tjson.TJSON;
+import tools.gradle.GradleTool;
 
 /**
  * ...
@@ -66,6 +67,7 @@ class OpenProject
 	static function parseProject(path:String):Void
 	{	
 		FlambeHeaderMenu.get().destroy();
+		GradleTool.get().destroy();
 		trace("open: " + path);
         
 		var filename:String = Node.path.basename(path);
@@ -152,6 +154,7 @@ class OpenProject
                                                                             );
                                                                         }
                                                                    }
+																   onOpenPeojectComplete();
                                                                });
 								}
 							}
@@ -265,9 +268,15 @@ class OpenProject
 						
 				}
 				
-				tabManagerInstance.openFileInNewTab(path);
+				tabManagerInstance.openFileInNewTab(path,true, onOpenPeojectComplete);
 		}
 	}
+	
+	public static function onOpenPeojectComplete():Void
+	{
+		GradleTool.get().searchBuildFile();
+	}
+	
 	
 	public static function searchForLastProject():Void
 	{

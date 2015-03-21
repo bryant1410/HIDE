@@ -37,7 +37,11 @@ class MenuButtonItem implements MenuItem
 	var li:LIElement;
 	public var position:Int;
 	public var menuItem:String;
+<<<<<<< HEAD
 	public var action:Dynamic;	
+=======
+	public var action:Dynamic;
+>>>>>>> 5a53d4c4a433396433c2768ae383a9f0c0fff008
 	public function new(_menu:String, _text:String, _onClickFunction:Dynamic, ?_hotkey:String = "", ?_submenu:Bool = false)
 	{		
 		var hotkeyText:String = _hotkey;
@@ -183,6 +187,7 @@ class Submenu
 		var menuButtonItem:MenuButtonItem = new MenuButtonItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
 		ul.appendChild(menuButtonItem.getElement());
 		items.push(menuButtonItem);
+<<<<<<< HEAD
 	}
 	
 	public function addMenuCheckItem(_text:String, _position:Int, _onClickFunction:Dynamic, ?_hotkey:String):Void
@@ -190,6 +195,8 @@ class Submenu
 		var menuButtonItem:MenuButtonItem = new MenuCheckItem(parentMenu + "->" + name, _text, _onClickFunction, _hotkey, true);
 		ul.appendChild(menuButtonItem.getElement());
 		items.push(menuButtonItem);
+=======
+>>>>>>> 5a53d4c4a433396433c2768ae383a9f0c0fff008
 	}
 	
 	public function clear():Void 
