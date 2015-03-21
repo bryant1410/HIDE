@@ -1,5 +1,6 @@
 package ;
 import flambeproject.FlambeProject;
+import tools.gradle.GradleTool;
 import watchers.LocaleWatcher;
 import core.HaxeHelper;
 import kha.KhaProject;
@@ -203,6 +204,7 @@ class Main
             );
 
 			window.show();
+				setupTools();
 		}
 		);
 
@@ -211,6 +213,13 @@ class Main
 			App.closeAllWindows();
 		}
 		);
+		
+	
+	}
+	
+	static private function setupTools() 
+	{
+		GradleTool.get().setup();
 	}
 
 }

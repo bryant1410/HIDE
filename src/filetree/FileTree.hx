@@ -601,16 +601,16 @@ class FileTree
 			listener:
 				function (changeType, filePath, fileCurrentStat, filePreviousStat):Void 
 				{
-					trace(changeType);
-					trace(filePath);
-					trace(fileCurrentStat);
-					trace(filePreviousStat);
+					//trace(changeType);
+					//trace(filePath);
+					//trace(fileCurrentStat);
+					//trace(filePreviousStat);
 					
 					switch (changeType) 
 					{
 						case 'create':
-							trace(changeType);
-							trace(filePath);
+							//trace(changeType);
+							//trace(filePath);
 							//load();
 							
 							Node.fs.stat(filePath, function (error:NodeErr, stat:NodeStat):Void 
@@ -630,6 +630,7 @@ class FileTree
 									}
 									else if(stat.isDirectory()) 
 									{
+										trace("stat.isDirectory()",changeType,filePath);									
 										trace(changeType);
 										trace(filePath);
 										//ClasspathWalker.parseProjectArguments();
@@ -637,7 +638,7 @@ class FileTree
 								}
 								else 
 								{
-									trace(error);
+									trace("error->",error);
 								}
 							}
 							);
