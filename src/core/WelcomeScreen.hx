@@ -1,4 +1,5 @@
 package core;
+import js.html.HTMLCollection;
 import jQuery.JQuery;
 import js.Browser;
 import js.html.AnchorElement;
@@ -45,7 +46,7 @@ class WelcomeScreen
 		
 		new JQuery("#openProject").on("click", OpenProject.openProject.bind(null, true));
 		
-		var links:NodeList = Browser.document.getElementsByClassName("welcome-screen-link");
+		var links:HTMLCollection = Browser.document.getElementsByClassName("welcome-screen-link");
 		
 		for (i in 0...links.length) 
 		{

@@ -521,7 +521,7 @@ class FileTree
 	function isRightClick(event:Dynamic):Bool
 	{
 		var rightclick = null;
-		if (!event) var event = Browser.window.event;
+		if (!event) var event = untyped Browser.window.event;
 		if (event.which) rightclick = (event.which == 3);
 		else if (event.button) rightclick = (event.button == 2);
 		return rightclick;

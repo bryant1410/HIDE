@@ -1,4 +1,5 @@
 package pluginloader;
+import js.html.DOMElement;
 import haxe.Template;
 import haxe.ds.StringMap;
 import haxe.Serializer;
@@ -282,7 +283,7 @@ class PluginManager
 			}
 			else 
 			{
-				var element:Element = Browser.document.getElementById("plugin-compilation-console");
+				var element:DOMElement = Browser.document.getElementById("plugin-compilation-console");
 
 				var textarea:TextAreaElement;
 				

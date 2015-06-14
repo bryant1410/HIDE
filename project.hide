@@ -1,7 +1,8 @@
 {
-     "type" : 2
+     "_hxcls" : "projectaccess.Project"
+    ,"type" : 2
     ,"target" : null
-    ,"name" : "/HIDE"
+    ,"name" : "\\HIDE"
     ,"main" : "HIDE.hxml"
     ,"projectPackage" : null
     ,"company" : null
@@ -13,11 +14,11 @@
     ,"files" : [
 
     ]
-    ,"activeFile" : "src/HIDE.hx"
+    ,"activeFile" : "HIDE_dev.bat"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
-    ,"runActionType" : 2
-    ,"runActionText" : null
+    ,"runActionType" : 1
+    ,"runActionText" : "HIDE_dev.bat"
     ,"buildActionCommand" : null
     ,"hiddenItems" : [
 

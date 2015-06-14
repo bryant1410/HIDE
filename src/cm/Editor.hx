@@ -59,7 +59,7 @@ class Editor
 		{
 			options = TJSON.parse(Node.fs.readFileSync(Node.path.join(SettingsWatcher.pathToFolder, "editor.json"), readFileOptions));
 		}
-		catch (err:Error)
+		catch (err:Dynamic)
 		{
 			trace(err);
 		}
@@ -718,7 +718,7 @@ class Editor
 					{
 						Reflect.setField(object, field, Type.createInstance(regexp, [value.substring(6)]));
 					}
-					catch (err:Error)
+					catch (err:Dynamic)
 					{
 						trace(err);
 					}
@@ -729,7 +729,7 @@ class Editor
 					{
 						Reflect.setField(object, field, Lib.eval(value.substring(4)));
 					}
-					catch (err:Error)
+					catch (err:Dynamic)
 					{
 						trace(err);
 					}

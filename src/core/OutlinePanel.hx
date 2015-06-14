@@ -9,7 +9,7 @@ import bootstrap.ButtonManager;
 import js.html.ButtonElement;
 import js.html.Document;
 import js.Browser;
-import js.html.Element;
+import js.html.DOMElement;
 /**
  * ...
  * @author AS3Boyan
@@ -29,7 +29,7 @@ class OutlinePanel
 	
 	public var useSorting:Bool = false;
 	var sortButton:ButtonElement;
-	var outlineOptionsPanel:Element;
+	var outlineOptionsPanel:DOMElement;
 
 	public function new() 
 	{

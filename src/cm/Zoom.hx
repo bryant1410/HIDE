@@ -34,7 +34,7 @@ class Zoom
 		{
 			if (e.altKey || e.ctrlKey || e.metaKey)
 			{
-				if (e.wheelDeltaY < 0)
+				if (e.deltaY < 0)
 				{
 					var fontSize:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
 					fontSize--;
@@ -42,7 +42,7 @@ class Zoom
 					e.preventDefault(); 
 					e.stopPropagation(); 
 				}
-				else if (e.wheelDeltaY > 0)
+				else if (e.deltaY > 0)
 				{
 					var fontSize:Int = Std.parseInt(new JQuery(".CodeMirror").css("font-size"));
 					fontSize++;

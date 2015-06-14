@@ -1,4 +1,6 @@
 package haxeprinter;
+// import haxeparser.Data.ImportMode;
+// import haxe.macro.Expr.ImportMode;
 
 import haxeparser.Data;
 import haxe.macro.Expr;
@@ -112,7 +114,7 @@ class Printer
 		}
 	}
 
-	function printImport(path:Array<{pack:String, pos:Position}>, mode:ImportMode)
+	function printImport(path:Array<{pack:String, pos:Position}>, mode:haxeparser.Data.ImportMode)
 	{
 		print('import', SDirective);
 		for (i in 0...path.length)

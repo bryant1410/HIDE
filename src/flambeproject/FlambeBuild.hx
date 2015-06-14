@@ -1,4 +1,5 @@
 package flambeproject;
+import js.html.DOMElement;
 import core.HaxeHelper;
 import core.ProcessHelper;
 import core.RunProject;
@@ -28,7 +29,7 @@ class FlambeBuild
 	static var retriesMax:Int = FlambeConstants.RETRIES;
 	static var serverNodeChildProcess:NodeChildProcess;
 	
-	static var output:Element;
+	static var output:DOMElement;
 	
 	static public function buildDebug():Void
 	{		
