@@ -187,4 +187,10 @@
     ,"Go To Declaration" : "Go To Declaration"
     ,"Configure Haxe toolkit" : "Configure Haxe toolkit"
     ,"Sort" : "Sort"
+    ,"Gradle" : "Gradle"
+    ,"GameName" : "GameName"
+    ,"DevName" : "DevName"
+    ,"Platform" : "Platform"
+    ,"GameID" : "GameID"
+    ,"Flambe" : "Flambe"
 }

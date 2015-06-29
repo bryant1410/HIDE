@@ -100,7 +100,7 @@ HIDE.getPluginPath = function(name) {
 HIDE.openPageInNewWindow = function(name,url,params) {
 	var fullPath = url;
 	if(!StringTools.startsWith(url,"http") && name != null) fullPath = js_Node.require("path").join(HIDE.getPluginPath(name),url);
-	var $window = nodejs.webkit.Window.open(fullPath,params);
+	var $window = nodejs_webkit_Window.open(fullPath,params);
 	HIDE.windows.push($window);
 	$window.on("close",function(e) {
 		HxOverrides.remove(HIDE.windows,$window);
@@ -315,11 +315,12 @@ var Main = function() { };
 $hxClasses["Main"] = Main;
 Main.__name__ = ["Main"];
 Main.main = function() {
-	Main.window = nodejs.webkit.Window.get();
+	Main.window = nodejs_webkit_Window.get();
 	Main.window.showDevTools();
 	Main.window.title = "HIDE";
+	Main.window.show();
 	js_Node.process.on("uncaughtException",function(err) {
-		haxe_Log.trace(err,{ fileName : "Main.hx", lineNumber : 73, className : "Main", methodName : "main"});
+		haxe_Log.trace(err,{ fileName : "Main.hx", lineNumber : 75, className : "Main", methodName : "main"});
 		Main.window.show();
 	});
 	Main.sync = true;
@@ -376,29 +377,29 @@ Main.main = function() {
 				core_HaxeServer.check();
 				pluginManager.loadPlugins();
 			} else {
-				Alertify.error("Haxe compiler is not found");
+				alertify.error("Haxe compiler is not found");
 				pluginManager.loadPlugins(false);
 			}
 		});
 		processHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
-			haxe_Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 177, className : "Main", methodName : "main"});
+			haxe_Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 179, className : "Main", methodName : "main"});
 			if(installed1) processHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
-				haxe_Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 183, className : "Main", methodName : "main"});
+				haxe_Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 185, className : "Main", methodName : "main"});
 			},function(code,stdout1,stderr1) {
-				haxe_Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 187, className : "Main", methodName : "main"});
+				haxe_Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 189, className : "Main", methodName : "main"});
 			});
 		});
 		processHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
-			haxe_Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 196, className : "Main", methodName : "main"});
+			haxe_Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 198, className : "Main", methodName : "main"});
 		});
 		processHelper.checkProcessInstalled("git",["--version"],function(installed3) {
-			haxe_Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 202, className : "Main", methodName : "main"});
+			haxe_Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 204, className : "Main", methodName : "main"});
 		});
 		Main.window.show();
 		Main.setupTools();
 	});
 	Main.window.on("close",function(e1) {
-		nodejs.webkit.App.closeAllWindows();
+		nodejs_webkit_App.closeAllWindows();
 	});
 };
 Main.setupTools = function() {
@@ -1931,7 +1932,7 @@ completion_GoToDeclaration.prototype = {
 							var highlightRange = cm_HighlightRange.get();
 							highlightRange.highlight(cm1,from2,to2);
 						});
-					} else Alertify.error("Go To Declaration data parsing failed.");
+					} else alertify.error("Go To Declaration data parsing failed.");
 				}
 			}
 		},cm1.getCursor(),"position",false);
@@ -2045,7 +2046,7 @@ completion_SnippetsCompletion.prototype = {
 					++_g;
 					CodeMirror.templatesHint.addTemplates(template,true);
 				}
-			} else Alertify.error("Can't open core/config/snippets.json");
+			} else alertify.error("Can't open core/config/snippets.json");
 		});
 	}
 	,getCompletion: function() {
@@ -2994,7 +2995,7 @@ core_GoToLine.get = function() {
 core_GoToLine.prototype = {
 	show: function() {
 		var tabManagerInstance = tabmanager_TabManager.get();
-		if(tabManagerInstance.selectedPath != null) Alertify.prompt("Go to Line",function(e,str) {
+		if(tabManagerInstance.selectedPath != null) alertify.prompt("Go to Line",function(e,str) {
 			var cm2 = cm_Editor.editor;
 			var lineNumber = Std.parseInt(str) - 1;
 			cm2.centerOnLine(lineNumber);
@@ -3581,7 +3582,7 @@ core_HaxeServer.start = function() {
 		haxe_Log.trace(stdout,{ fileName : "HaxeServer.hx", lineNumber : 45, className : "core.HaxeServer", methodName : "start"});
 		haxe_Log.trace(stderr,{ fileName : "HaxeServer.hx", lineNumber : 46, className : "core.HaxeServer", methodName : "start"});
 	});
-	var $window = nodejs.webkit.Window.get();
+	var $window = nodejs_webkit_Window.get();
 	$window.on("close",function(e) {
 		core_HaxeServer.terminate();
 		$window.close();
@@ -3803,7 +3804,7 @@ core_ImportDefinition.searchImport = function(data,path) {
 			break;
 		default:
 		}
-	} else Alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
+	} else alertify.log("Place cursor on class name or select full class name to import it (for instance, you can select 'flash.display.Sprite' and it can be imported and selected text will be replaced to 'Sprite'");
 };
 core_ImportDefinition.searchImportByText = function(topLevelClassList,text,from,to,suggestImport) {
 	if(suggestImport == null) suggestImport = true;
@@ -3878,7 +3879,7 @@ core_ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 			}
 		}
 	}
-	if(foundAtTopLevel) Alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) {
+	if(foundAtTopLevel) alertify.log("'" + token.string + "' doesn't needs to be imported, since it's already found at top level"); else if(foundImports.length > 0) {
 		var completionInstance = core_Completion.get();
 		completionInstance.showImportDefinition(foundImports);
 	} else {
@@ -3931,7 +3932,7 @@ core_ImportDefinition.checkImport = function(cm,topLevelClassList,token) {
 		} else {
 			var info = "Unable to find additional imports for '" + token.string + "'.";
 			if(alreadyImported.length > 0) info += " Already imported:\n" + Std.string(alreadyImported);
-			Alertify.log(info);
+			alertify.log(info);
 		}
 	}
 };
@@ -3950,7 +3951,7 @@ core_ImportDefinition.importClass = function(cm,text,from,to) {
 		pos.line++;
 	} else pos = cm.posFromIndex(0);
 	cm.replaceRange("import " + text + ";\n",pos,pos);
-	Alertify.success(text + " definition successfully imported");
+	alertify.success(text + " definition successfully imported");
 };
 core_ImportDefinition.updateImport = function(cm,text,from,to) {
 	cm.replaceRange(text.split(".").pop(),from,to);
@@ -4032,7 +4033,7 @@ var core_MenuCommands = function() { };
 $hxClasses["core.MenuCommands"] = core_MenuCommands;
 core_MenuCommands.__name__ = ["core","MenuCommands"];
 core_MenuCommands.add = function() {
-	var $window = nodejs.webkit.Window.get();
+	var $window = nodejs_webkit_Window.get();
 	menu_BootstrapMenu.getMenu("View").addMenuItem("Zoom In",2,function() {
 		$window.zoomLevel += 1;
 	},"Ctrl-Shift-+");
@@ -4067,10 +4068,10 @@ core_MenuCommands.add = function() {
 		};
 	})($bind(tabManagerInstance,tabManagerInstance.openFileInNewTab),js_Node.require("path").join("core","bindings.txt")));
 	menu_BootstrapMenu.getMenu("Help").addMenuItem("View HIDE repository on GitHub",2,function() {
-		nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
+		nodejs_webkit_Shell.openExternal("https://github.com/as3boyan/HIDE");
 	});
 	menu_BootstrapMenu.getMenu("Help").addMenuItem("Report issue/request feature at GitHub issue tracker",3,function() {
-		nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE/issues/new");
+		nodejs_webkit_Shell.openExternal("https://github.com/as3boyan/HIDE/issues/new");
 	});
 	menu_BootstrapMenu.getMenu("Help").addMenuItem("Open Haxe nightly build download URL",4,function() {
 		var serverUrl = "http://hxbuilds.s3-website-us-east-1.amazonaws.com/builds/haxe/";
@@ -4089,7 +4090,7 @@ core_MenuCommands.add = function() {
 		default:
 			throw new js__$Boot_HaxeError("Utils class was not able to detect OS");
 		}
-		nodejs.webkit.Shell.openExternal(serverUrl + target + "/haxe_latest.tar.gz");
+		nodejs_webkit_Shell.openExternal(serverUrl + target + "/haxe_latest.tar.gz");
 	});
 	menu_BootstrapMenu.getMenu("Help").addMenuItem("About HIDE...",5,function() {
 		return HIDE.openPageInNewWindow(null,"about.html",{ toolbar : false});
@@ -4113,8 +4114,8 @@ core_MenuCommands.add = function() {
 	menu_BootstrapMenu.getMenu("File").addMenuItem("Save As...",7,$bind(tabManagerInstance,tabManagerInstance.saveActiveFileAs),"Ctrl-Shift-S");
 	menu_BootstrapMenu.getMenu("File").addMenuItem("Save All",8,$bind(tabManagerInstance,tabManagerInstance.saveAll));
 	menu_BootstrapMenu.getMenu("File").addSeparator();
-	menu_BootstrapMenu.getMenu("File").addMenuItem("Exit",9,nodejs.webkit.App.closeAllWindows);
-	nodejs.webkit.Window.get().on("close",$bind(tabManagerInstance,tabManagerInstance.saveAll));
+	menu_BootstrapMenu.getMenu("File").addMenuItem("Exit",9,nodejs_webkit_App.closeAllWindows);
+	nodejs_webkit_Window.get().on("close",$bind(tabManagerInstance,tabManagerInstance.saveAll));
 	menu_BootstrapMenu.getMenu("Options").addMenuItem("Open settings",1,(function(f2,a12) {
 		return function() {
 			f2(a12);
@@ -4158,14 +4159,14 @@ core_MenuCommands.add = function() {
 	});
 	menu_BootstrapMenu.getMenu("Edit").addSeparator();
 	menu_BootstrapMenu.getMenu("Edit").addMenuItem("Cut",1,function() {
-		nodejs.webkit.Clipboard.get().set(cm_Editor.editor.getSelection());
+		nodejs_webkit_Clipboard.get().set(cm_Editor.editor.getSelection());
 		cm_Editor.editor.replaceSelection("");
 	});
 	menu_BootstrapMenu.getMenu("Edit").addMenuItem("Copy",1,function() {
-		nodejs.webkit.Clipboard.get().set(cm_Editor.editor.getSelection());
+		nodejs_webkit_Clipboard.get().set(cm_Editor.editor.getSelection());
 	});
 	menu_BootstrapMenu.getMenu("Edit").addMenuItem("Paste",1,function() {
-		cm_Editor.editor.replaceSelection(nodejs.webkit.Clipboard.get().get());
+		cm_Editor.editor.replaceSelection(nodejs_webkit_Clipboard.get().get());
 	});
 	menu_BootstrapMenu.getMenu("Edit").addSeparator();
 	menu_BootstrapMenu.getMenu("Edit").addMenuItem("Find...",1,function() {
@@ -4200,7 +4201,7 @@ core_MenuCommands.add = function() {
 	menu_BootstrapMenu.getMenu("Project").addMenuItem("Build",2,core_RunProject.buildProject,"F8");
 	menu_BootstrapMenu.getMenu("Project").addMenuItem("Clean",3,core_RunProject.cleanProject,"Shift-F8");
 	menu_BootstrapMenu.getMenu("Project").addMenuItem("Project Options...",5,function() {
-		if(projectaccess_ProjectAccess.path != null) dialogs_DialogManager.showProjectOptions(); else Alertify.error("Open or create project first");
+		if(projectaccess_ProjectAccess.path != null) dialogs_DialogManager.showProjectOptions(); else alertify.error("Open or create project first");
 	});
 };
 var core_OutlinePanel = function() {
@@ -4261,9 +4262,7 @@ core_OutlinePanel.prototype = {
 	}
 	,__class__: core_OutlinePanel
 };
-var nodejs_webkit_$ui = function() { };
-$hxClasses["nodejs.webkit.$ui"] = nodejs_webkit_$ui;
-nodejs_webkit_$ui.__name__ = ["nodejs","webkit","$ui"];
+var nodejs_webkit_Window = require("nw.gui").Window;
 var core_PreserveWindowState = function() { };
 $hxClasses["core.PreserveWindowState"] = core_PreserveWindowState;
 core_PreserveWindowState.__name__ = ["core","PreserveWindowState"];
@@ -4382,8 +4381,8 @@ core_ProcessHelper.prototype = {
 				++_g;
 				line = StringTools.trim(line);
 				if(line.indexOf("Error:") == 0) {
-					Alertify.error(line);
-					if(line.indexOf("unknown option `-python'") != -1) Alertify.log("You may need to install latest version of Haxe to compile to Python target","",10000);
+					alertify.error(line);
+					if(line.indexOf("unknown option `-python'") != -1) alertify.log("You may need to install latest version of Haxe to compile to Python target","",10000);
 				} else if(line.indexOf(":") != 0) {
 					var args = line.split(":");
 					if(args.length > 3) {
@@ -4448,13 +4447,13 @@ core_ProcessHelper.prototype = {
 			haxe_Log.trace("stderr:\n" + stderr,{ fileName : "ProcessHelper.hx", lineNumber : 245, className : "core.ProcessHelper", methodName : "processOutput"});
 		}
 		if(code == 0) {
-			Alertify.success("Build complete!");
+			alertify.success("Build complete!");
 			textarea.value += "Build complete\n";
 			if(onComplete != null) onComplete();
 			$("#buildStatus").fadeIn(250);
 		} else {
 			if(switchToResultsTab) $("#resultsTab").click();
-			Alertify.error("Build failed");
+			alertify.error("Build failed");
 			textarea.value += "Build failed (exit code: " + (code == null?"null":"" + code) + ")\n";
 			$("#buildStatus").fadeOut(250);
 		}
@@ -4714,7 +4713,7 @@ var core_RecentProjectsList = function() {
 			haxe_Log.trace(unknown1,{ fileName : "RecentProjectsList.hx", lineNumber : 64, className : "core.RecentProjectsList", methodName : "new"});
 		}
 	}
-	nodejs.webkit.Window.get().on("close",function() {
+	nodejs_webkit_Window.get().on("close",function() {
 		localStorage2.setItem("recentProjects",tjson_TJSON.encode(_g.projectList));
 		localStorage2.setItem("recentFiles",tjson_TJSON.encode(_g.fileList));
 	});
@@ -4819,7 +4818,7 @@ core_RunProject.cleanProject = function() {
 			break;
 		default:
 		}
-	} else Alertify.error("Open or create project first");
+	} else alertify.error("Open or create project first");
 };
 core_RunProject.setHxmlAsProjectBuildFile = function(pathToHxml) {
 	var success = false;
@@ -4840,9 +4839,9 @@ core_RunProject.setHxmlAsProjectBuildFile = function(pathToHxml) {
 		projectaccess_ProjectAccess.save(function() {
 			if(noproject) openproject_OpenProject.openProject(js_Node.require("path").join(projectaccess_ProjectAccess.path,"project.hide"));
 		});
-		Alertify.success(watchers_LocaleWatcher.getStringSync("Done"));
+		alertify.success(watchers_LocaleWatcher.getStringSync("Done"));
 		success = true;
-	} else Alertify.error(watchers_LocaleWatcher.getStringSync("Currently selected document is not a hxml file"));
+	} else alertify.error(watchers_LocaleWatcher.getStringSync("Currently selected document is not a hxml file"));
 	return success;
 };
 core_RunProject.runProject = function() {
@@ -4864,13 +4863,13 @@ core_RunProject.runProject = function() {
 		if(runActionType != null) switch(runActionType) {
 		case 0:
 			var url = runActionText;
-			if(core_RunProject.isValidCommand(url)) nodejs.webkit.Shell.openExternal(url);
+			if(core_RunProject.isValidCommand(url)) nodejs_webkit_Shell.openExternal(url);
 			break;
 		case 1:
 			var path = runActionText;
 			if(core_RunProject.isValidCommand(path)) js_Node.require("fs").exists(path,function(exists) {
 				if(!exists) path = js_Node.require("path").join(projectaccess_ProjectAccess.path,path);
-				nodejs.webkit.Shell.openItem(path);
+				nodejs_webkit_Shell.openItem(path);
 			});
 			break;
 		case 2:
@@ -4880,7 +4879,7 @@ core_RunProject.runProject = function() {
 				var $process = params.shift();
 				var cwd = projectaccess_ProjectAccess.path;
 				core_RunProject.runProcess = core_RunProject.killRunningProcessAndRunNew($process,params,cwd);
-				var $window = nodejs.webkit.Window.get();
+				var $window = nodejs_webkit_Window.get();
 				$window.on("close",function(e) {
 					core_RunProject.killRunProcess();
 					$window.close();
@@ -4927,7 +4926,7 @@ core_RunProject.buildSpecifiedProject = function(project,pathToProject,onComplet
 	var tabManagerInstance = tabmanager_TabManager.get();
 	var projectOptions = projectaccess_ProjectOptions.get();
 	var processHelper = core_ProcessHelper.get();
-	if(pathToProject == null) Alertify.error(watchers_LocaleWatcher.getStringSync("Please open or create project first!")); else tabManagerInstance.saveAll(function() {
+	if(pathToProject == null) alertify.error(watchers_LocaleWatcher.getStringSync("Please open or create project first!")); else tabManagerInstance.saveAll(function() {
 		var path = tabManagerInstance.getCurrentDocumentPath();
 		var extname = js_Node.require("path").extname(path);
 		var buildHxml = extname == ".hxml";
@@ -5077,10 +5076,10 @@ core_WelcomeScreen.prototype = {
 			})(link);
 		}
 		$("#github").on("click",null,function() {
-			nodejs.webkit.Shell.openExternal("https://github.com/as3boyan/HIDE");
+			nodejs_webkit_Shell.openExternal("https://github.com/as3boyan/HIDE");
 		});
 		$("#as3boyan").on("click",null,function() {
-			nodejs.webkit.Shell.openExternal("http://twitter.com/As3Boyan");
+			nodejs_webkit_Shell.openExternal("http://twitter.com/As3Boyan");
 		});
 	}
 	,show: function() {
@@ -5208,7 +5207,7 @@ dialogs_BrowseDirectoryWithDownloadButtonDialog.prototype = $extend(dialogs_Brow
 	,setDownloadButtonOptions: function(text,url) {
 		this.downloadButton.textContent = text;
 		this.downloadButton.onclick = function(e) {
-			nodejs.webkit.Shell.openExternal(url);
+			nodejs_webkit_Shell.openExternal(url);
 		};
 	}
 	,__class__: dialogs_BrowseDirectoryWithDownloadButtonDialog
@@ -5246,7 +5245,7 @@ dialogs_DialogManager.showInstallHaxelibDialog = function(lib,pathToHxml) {
 };
 dialogs_DialogManager.showReloadFileDialog = function(path,onConfirm) {
 	if(HxOverrides.indexOf(dialogs_DialogManager.reloadFileDialogs,path,0) == -1) {
-		Alertify.confirm(watchers_LocaleWatcher.getStringSync("File ") + path + watchers_LocaleWatcher.getStringSync(" was changed. Reload?"),function(e) {
+		alertify.confirm(watchers_LocaleWatcher.getStringSync("File ") + path + watchers_LocaleWatcher.getStringSync(" was changed. Reload?"),function(e) {
 			if(e) onConfirm();
 			HxOverrides.remove(dialogs_DialogManager.reloadFileDialogs,path);
 		});
@@ -5351,15 +5350,15 @@ var dialogs_InstallHaxelibDialog = function() {
 	this.getFooter().appendChild(cancelButton);
 	var okButton = buttonManager.createButton("OK",false,false,true);
 	okButton.onclick = function(e1) {
-		Alertify.log("Running command: " + _g.input.value);
+		alertify.log("Running command: " + _g.input.value);
 		var params = StringTools.trim(_g.input.value).split(" ");
 		var cwd = projectaccess_ProjectAccess.path;
 		var processHelper = core_ProcessHelper.get();
 		processHelper.runPersistentProcess(params.shift(),params,cwd,function(code,stdout,stderr) {
-			if(code == 0) Alertify.success(_g.lib + " install complete(" + _g.input.value + ")."); else {
-				Alertify.error("Error on running command " + _g.input.value);
-				Alertify.error(stdout);
-				Alertify.error(stderr);
+			if(code == 0) alertify.success(_g.lib + " install complete(" + _g.input.value + ")."); else {
+				alertify.error("Error on running command " + _g.input.value);
+				alertify.error(stdout);
+				alertify.error(stderr);
 			}
 		},true);
 		_g.hide();
@@ -5516,7 +5515,7 @@ filetree_FileTree.prototype = {
 		this.appendToContextMenu("New File...",function(selectedItem) {
 			var path;
 			if(selectedItem.value.type == "folder") path = selectedItem.value.path; else path = js_Node.require("path").dirname(selectedItem.value.path);
-			Alertify.prompt(watchers_LocaleWatcher.getStringSync("Filename:"),function(e,str) {
+			alertify.prompt(watchers_LocaleWatcher.getStringSync("Filename:"),function(e,str) {
 				if(e) {
 					var pathToFile = js_Node.require("path").join(path,str);
 					var tabManager = tabmanager_TabManager.get();
@@ -5529,7 +5528,7 @@ filetree_FileTree.prototype = {
 		this.appendToContextMenu("New Folder...",function(selectedItem1) {
 			var path1;
 			if(selectedItem1.value.type == "folder") path1 = selectedItem1.value.path; else path1 = js_Node.require("path").dirname(selectedItem1.value.path);
-			Alertify.prompt("Folder name:",function(e1,str1) {
+			alertify.prompt("Folder name:",function(e1,str1) {
 				if(e1) {
 					var dirname = str1;
 					if(dirname != null) {
@@ -5538,7 +5537,7 @@ filetree_FileTree.prototype = {
 							if(error == null) {
 								$("#filetree").jqxTree("addTo",{ label : str1, value : { type : "folder", path : pathToFolder}},selectedItem1.element);
 								_g.attachContextMenu();
-							} else Alertify.error(error);
+							} else alertify.error(error);
 						});
 					}
 				}
@@ -5549,18 +5548,18 @@ filetree_FileTree.prototype = {
 			if(selectedItem2.value.type == "file") tabManager1.openFileInNewTab(selectedItem2.value.path); else $("#filetree").jqxTree("expandItem",selectedItem2.element);
 		});
 		this.appendToContextMenu("Execute",function(selectedItem3) {
-			nodejs.webkit.Shell.openItem(selectedItem3.value.path);
+			nodejs_webkit_Shell.openItem(selectedItem3.value.path);
 		});
 		this.appendToContextMenu("Show Item In Folder",function(selectedItem4) {
-			nodejs.webkit.Shell.showItemInFolder(selectedItem4.value.path);
+			nodejs_webkit_Shell.showItemInFolder(selectedItem4.value.path);
 		});
 		this.appendToContextMenu("Rename...",function(selectedItem5) {
 			var path2 = selectedItem5.value.path;
-			Alertify.prompt(watchers_LocaleWatcher.getStringSync("Please enter new name for ") + path2,function(e2,str2) {
+			alertify.prompt(watchers_LocaleWatcher.getStringSync("Please enter new name for ") + path2,function(e2,str2) {
 				if(e2) {
 					var currentDirectory = js_Node.require("path").dirname(path2);
 					js_node_Mv.move(path2,js_Node.require("path").join(currentDirectory,str2),function(error1) {
-						if(error1 == null) _g.load(); else Alertify.error(error1);
+						if(error1 == null) _g.load(); else alertify.error(error1);
 					});
 				}
 			},js_Node.require("path").basename(path2));
@@ -5570,22 +5569,22 @@ filetree_FileTree.prototype = {
 			var _g1 = selectedItem6.value.type;
 			switch(_g1) {
 			case "file":
-				Alertify.confirm(watchers_LocaleWatcher.getStringSync("Remove file ") + path3 + " ?",function(e3) {
+				alertify.confirm(watchers_LocaleWatcher.getStringSync("Remove file ") + path3 + " ?",function(e3) {
 					if(e3) js_Node.require("fs").unlink(path3,function(error2) {
 						if(error2 == null) {
 							$("#filetree").jqxTree("removeItem",selectedItem6.element);
 							_g.attachContextMenu();
-						} else Alertify.error(error2);
+						} else alertify.error(error2);
 					});
 				});
 				break;
 			case "folder":
-				Alertify.confirm(watchers_LocaleWatcher.getStringSync("Remove folder ") + path3 + " ?",function(e4) {
+				alertify.confirm(watchers_LocaleWatcher.getStringSync("Remove folder ") + path3 + " ?",function(e4) {
 					if(e4) js_node_Remove.removeAsync(path3,{ },function(error3) {
 						if(error3 == null) {
 							$("#filetree").jqxTree("removeItem",selectedItem6.element);
 							_g.attachContextMenu();
-						} else Alertify.error(error3);
+						} else alertify.error(error3);
 					});
 				});
 				break;
@@ -5595,8 +5594,8 @@ filetree_FileTree.prototype = {
 		this.appendToContextMenu("Hide/Unhide All",function(selectedItem7) {
 			if(projectaccess_ProjectAccess.path != null) {
 				projectaccess_ProjectAccess.currentProject.showHiddenItems = !projectaccess_ProjectAccess.currentProject.showHiddenItems;
-				Alertify.success(watchers_LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess_ProjectAccess.currentProject.showHiddenItems));
-				if(!projectaccess_ProjectAccess.currentProject.showHiddenItems) Alertify.log("Hidden Items: \n" + Std.string(projectaccess_ProjectAccess.currentProject.hiddenItems));
+				alertify.success(watchers_LocaleWatcher.getStringSync("Hidden Items Visible: ") + Std.string(projectaccess_ProjectAccess.currentProject.showHiddenItems));
+				if(!projectaccess_ProjectAccess.currentProject.showHiddenItems) alertify.log("Hidden Items: \n" + Std.string(projectaccess_ProjectAccess.currentProject.hiddenItems));
 			}
 			_g.load();
 		});
@@ -5663,11 +5662,11 @@ filetree_FileTree.prototype = {
 				var newPath = js_Node.require("path").join(topDirectory,path6,selectedItem10.label);
 				js_node_Mv.move(previousPath,newPath,function(error4) {
 					if(error4 == null) {
-						Alertify.success("File were successfully moved to " + newPath);
+						alertify.success("File were successfully moved to " + newPath);
 						selectedItem10.value.path = newPath;
 						_g.attachContextMenu();
 					} else {
-						Alertify.error("Can't move file from " + previousPath + " to " + newPath);
+						alertify.error("Can't move file from " + previousPath + " to " + newPath);
 						_g.load();
 					}
 				});
@@ -5793,7 +5792,7 @@ flambeproject_CreateFlambeProject.__name__ = ["flambeproject","CreateFlambeProje
 flambeproject_CreateFlambeProject.createProject = function(__data,__callback) {
 	var pathToProject = js_Node.require("path").join(__data.projectLocation,__data.projectName);
 	flambeproject_FlambeAlert.action();
-	Alertify.log("Running command: flambe new ");
+	alertify.log("Running command: flambe new ");
 	var processHelper = core_ProcessHelper.get();
 	var localComplete = function(__stdout,__stderr) {
 		flambeproject_CreateFlambeProject.onNewFlambeComplete(__stdout,__stderr);
@@ -5804,12 +5803,12 @@ flambeproject_CreateFlambeProject.createProject = function(__data,__callback) {
 flambeproject_CreateFlambeProject.onNewFlambeComplete = function(__stdout,__stderr) {
 	haxe_Log.trace("onNewFlambeComplete",{ fileName : "CreateFlambeProject.hx", lineNumber : 33, className : "flambeproject.CreateFlambeProject", methodName : "onNewFlambeComplete"});
 	flambeproject_CreateFlambeProject.parseYaml(function(success) {
-		flambeproject_CreateFlambeProject.stdAlert(Alertify.success,__stdout,__stderr);
+		flambeproject_CreateFlambeProject.stdAlert(alertify.success,__stdout,__stderr);
 	});
 };
 flambeproject_CreateFlambeProject.onNewFlambeFail = function(__code,__stdout,__stderr) {
 	haxe_Log.trace("onNewFlambeFail",{ fileName : "CreateFlambeProject.hx", lineNumber : 42, className : "flambeproject.CreateFlambeProject", methodName : "onNewFlambeFail"});
-	flambeproject_CreateFlambeProject.stdAlert(Alertify.error,__stdout,__stderr);
+	flambeproject_CreateFlambeProject.stdAlert(alertify.error,__stdout,__stderr);
 };
 flambeproject_CreateFlambeProject.stdAlert = function(__function,__stdout,__stderr) {
 	if(__stdout != "") __function("stdout:\n" + __stdout);
@@ -5827,7 +5826,7 @@ flambeproject_FlambeAlert.creteCSS = function() {
 	window.document.head.appendChild(cssStyleSheet);
 };
 flambeproject_FlambeAlert.action = function() {
-	Alertify.log("Doing...","doing");
+	alertify.log("Doing...","doing");
 };
 var flambeproject_FlambeBuild = function() { };
 $hxClasses["flambeproject.FlambeBuild"] = flambeproject_FlambeBuild;
@@ -5857,13 +5856,13 @@ flambeproject_FlambeBuild.runServer = function() {
 	flambeproject_FlambeBuild.serverNodeChildProcess.stdout.setEncoding("utf8");
 	flambeproject_FlambeBuild.serverNodeChildProcess.stderr.setEncoding("utf8");
 	flambeproject_FlambeBuild.serverNodeChildProcess.stdout.on("data",function(data) {
-		if(data.indexOf("Serving on") != -1) flambeproject_FlambeBuild.stdAlert(Alertify.success,data == null?"null":"" + data,""); else haxe_Log.trace("Server ->",{ fileName : "FlambeBuild.hx", lineNumber : 85, className : "flambeproject.FlambeBuild", methodName : "runServer", customParams : [data == null?"null":"" + data]});
+		if(data.indexOf("Serving on") != -1) flambeproject_FlambeBuild.stdAlert(alertify.success,data == null?"null":"" + data,""); else haxe_Log.trace("Server ->",{ fileName : "FlambeBuild.hx", lineNumber : 85, className : "flambeproject.FlambeBuild", methodName : "runServer", customParams : [data == null?"null":"" + data]});
 	});
 	flambeproject_FlambeBuild.serverNodeChildProcess.stderr.on("data",function(data1) {
-		flambeproject_FlambeBuild.stdAlert(Alertify.error,"",data1);
+		flambeproject_FlambeBuild.stdAlert(alertify.error,"",data1);
 	});
 	flambeproject_FlambeBuild.serverNodeChildProcess.on("close",function(data2) {
-		Alertify.error("Server close:" + data2);
+		alertify.error("Server close:" + data2);
 		flambeproject_FlambeBuild.output.innerText += "Server close:" + data2;
 	});
 	flambeproject_FlambeBuild.lastAction = flambeproject_FlambeBuild.runServer;
@@ -5902,10 +5901,10 @@ flambeproject_FlambeBuild.activeAndroid = function(menuItem) {
 	flambeproject_FlambeBuild.enabledAndroidTarget = menuItem.checked;
 };
 flambeproject_FlambeBuild.onProcessComplete = function(__stdout,__stderr) {
-	flambeproject_FlambeBuild.stdAlert(Alertify.success,__stdout,__stderr);
+	flambeproject_FlambeBuild.stdAlert(alertify.success,__stdout,__stderr);
 };
 flambeproject_FlambeBuild.onProcessFail = function(__code,__stdout,__stderr) {
-	flambeproject_FlambeBuild.stdAlert(Alertify.error,__stdout,__stderr);
+	flambeproject_FlambeBuild.stdAlert(alertify.error,__stdout,__stderr);
 };
 flambeproject_FlambeBuild.stdAlert = function(__function,__stdout,__stderr) {
 	flambeproject_FlambeBuild.output.innerText = "";
@@ -6169,7 +6168,7 @@ flambeproject_FlambeProject.prototype = {
 		projectaccess_ProjectAccess.save(onOpenProjectHadler);
 	}
 	,onCompleteOpenProject: function(__code) {
-		Alertify.success("OpenProjectCompleted");
+		alertify.success("OpenProjectCompleted");
 		this.setup();
 	}
 	,setup: function() {
@@ -8726,7 +8725,7 @@ haxe_xml_Parser.doParse = function(str,strict,p,parent) {
 				buf.b += "&";
 				buf.addSub(str,start,p - start);
 				p--;
-				start = p;
+				start = p + 1;
 				state = escapeNext;
 			}
 			break;
@@ -9685,19 +9684,6 @@ hxparse__$LexEngine_Pattern.Plus = function(p) { var $x = ["Plus",3,p]; $x.__enu
 hxparse__$LexEngine_Pattern.Next = function(p1,p2) { var $x = ["Next",4,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
 hxparse__$LexEngine_Pattern.Choice = function(p1,p2) { var $x = ["Choice",5,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
 hxparse__$LexEngine_Pattern.Group = function(p) { var $x = ["Group",6,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-var js__$Boot_HaxeError = function(val) {
-	Error.call(this);
-	this.val = val;
-	this.message = String(val);
-	if(Error.captureStackTrace) Error.captureStackTrace(this,js__$Boot_HaxeError);
-};
-$hxClasses["js._Boot.HaxeError"] = js__$Boot_HaxeError;
-js__$Boot_HaxeError.__name__ = ["js","_Boot","HaxeError"];
-js__$Boot_HaxeError.__super__ = Error;
-js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
-	val: null
-	,__class__: js__$Boot_HaxeError
-});
 var js_Boot = function() { };
 $hxClasses["js.Boot"] = js_Boot;
 js_Boot.__name__ = ["js","Boot"];
@@ -9853,7 +9839,7 @@ js_Boot.__isNativeObj = function(o) {
 	return js_Boot.__nativeClassName(o) != null;
 };
 js_Boot.__resolveNativeClass = function(name) {
-	if(typeof window != "undefined") return window[name]; else return global[name];
+	return (Function("return typeof " + name + " != \"undefined\" ? " + name + " : null"))();
 };
 var hxparse__$LexEngine_Node = function(id,pid) {
 	this.id = id;
@@ -10192,7 +10178,11 @@ haxeparser_HaxeCondParser.prototype = $extend(hxparse_Parser_$hxparse_$LexerToke
 						if(allowOp) return this.parseMacroOp(e); else return { tk : haxe_ds_Option.None, expr : e};
 						break;
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -11108,7 +11098,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							this.token = this.token.next;
 							return { pack : p, decls : l};
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
@@ -11122,7 +11116,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							this.token = this.token.next;
 							return { pack : [], decls : l1};
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 				}
@@ -11137,7 +11135,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						this.token = this.token.next;
 						return { pack : [], decls : l2};
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 			}
@@ -11199,12 +11201,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											return i.e;
 										}).concat(flags.flags), data : l}), pos : haxeparser_HaxeParser.punion(flags.pos,p21)};
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									}
 								}
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								return (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 						}
 					} catch( _ ) {
@@ -11227,7 +11237,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											return i1.c;
 										}).concat(flags1.flags).concat(hl), data : fl.fields}), pos : haxeparser_HaxeParser.punion(flags1.pos,fl.pos)};
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									}
 								}
 							} catch( _1 ) {
@@ -11271,11 +11285,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																return i2.e;
 															}), data : t1}), pos : haxeparser_HaxeParser.punion(p12,p22)};
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -11307,7 +11329,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 														if(st != null) flags2.push(haxeparser_AbstractFlag.AIsType(st));
 														return { decl : haxeparser_TypeDef.EAbstract({ name : name3, doc : this.doc, meta : meta, params : tl3, flags : flags2.concat(sl), data : fl1.fields}), pos : haxeparser_HaxeParser.punion(p13,fl1.pos)};
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -11351,12 +11377,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										return i.e;
 									}).concat(flags3.flags), data : l1}), pos : haxeparser_HaxeParser.punion(flags3.pos,p23)};
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 				} catch( _2 ) {
@@ -11379,7 +11413,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										return i1.c;
 									}).concat(flags4.flags).concat(hl1), data : fl2.fields}), pos : haxeparser_HaxeParser.punion(flags4.pos,fl2.pos)};
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 						} catch( _3 ) {
@@ -11423,11 +11461,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 															return i2.e;
 														}), data : t2}), pos : haxeparser_HaxeParser.punion(p14,p24)};
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -11459,7 +11505,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 													if(st1 != null) flags5.push(haxeparser_AbstractFlag.AIsType(st1));
 													return { decl : haxeparser_TypeDef.EAbstract({ name : name7, doc : this.doc, meta : meta1, params : tl7, flags : flags5.concat(sl1), data : fl3.fields}), pos : haxeparser_HaxeParser.punion(p15,fl3.pos)};
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -11501,7 +11551,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 					return i.fst;
 				}).concat(flags.flags).concat(hl), data : fl.fields}), pos : haxeparser_HaxeParser.punion(flags.pos,fl.pos)};
 			default:
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				return (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			}
 		}
 	}
@@ -11520,11 +11574,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 					acc = [{ pack : name, pos : p}];
 					break;
 				default:
-					throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+					acc = (function($this) {
+						var $r;
+						throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+						return $r;
+					}(this));
 				}
 				break;
 			default:
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				acc = (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			}
 		}
 		while(true) {
@@ -11546,7 +11608,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							acc.push({ pack : k, pos : p2});
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 						}
 						break;
 					case 0:
@@ -11558,7 +11620,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							acc.push({ pack : "macro", pos : p3});
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 						}
 						break;
 					case 5:
@@ -11575,16 +11637,16 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									this.token = this.token.next;
 									return { decl : haxeparser_TypeDef.EImport(acc,haxeparser_ImportMode.IAll), pos : p21};
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 								}
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 						}
 						break;
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 					}
 				}
 				break;
@@ -11616,25 +11678,25 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										this.token = this.token.next;
 										return { decl : haxeparser_TypeDef.EImport(acc,haxeparser_ImportMode.IAsName(name1)), pos : p23};
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 									}
 								}
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 						}
 					}
 					break;
 				default:
-					throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 				}
 				break;
 			default:
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 			}
 		}
 	}
@@ -11685,7 +11747,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						this.token = this.token.next;
 						return t;
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -11710,7 +11776,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 				p2 = p21;
 				break;
 			default:
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				p2 = (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			}
 		}
 		return { fields : l, pos : p2};
@@ -11764,7 +11834,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							this.token = this.token.next;
 							return params;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 				} else return def();
@@ -11935,7 +12009,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						this.token = this.token.next;
 						return haxe_macro_ComplexType.TParent(t);
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -11976,14 +12054,22 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 													} catch( _2 ) {
 														if (_2 instanceof js__$Boot_HaxeError) _2 = _2.val;
 														if( js_Boot.__instanceof(_2,hxparse_NoMatch) ) {
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														} else throw(_2);
 													}
 												} else throw(_1);
 											}
 											break;
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 									break;
@@ -11994,7 +12080,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									} catch( _3 ) {
 										if (_3 instanceof js__$Boot_HaxeError) _3 = _3.val;
 										if( js_Boot.__instanceof(_3,hxparse_NoMatch) ) {
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										} else throw(_3);
 									}
 								}
@@ -12006,7 +12096,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								} catch( _4 ) {
 									if (_4 instanceof js__$Boot_HaxeError) _4 = _4.val;
 									if( js_Boot.__instanceof(_4,hxparse_NoMatch) ) {
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									} else throw(_4);
 								}
 							}
@@ -12044,7 +12138,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 				throw new js__$Boot_HaxeError(new haxeparser_ParserError(haxeparser_ParserErrorMsg.Custom("Type name should start with an uppercase letter"),ident.pos));
 				break;
 			default:
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				return (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			}
 		} else {
 			var sub;
@@ -12055,7 +12153,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 					this.last = this.token.elt;
 					this.token = this.token.next;
 					var def = function() {
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g1.peek(0),_g1.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g1.peek(0),_g1.stream.curPos()));
+							return $r;
+						}(this));
 					};
 					{
 						var _g11 = this.peek(0);
@@ -12104,11 +12206,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									params = l;
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									params = (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								params = (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 						}
 						break;
@@ -12163,7 +12273,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						this.token = this.token.next;
 						return haxe_macro_TypeParam.TPExpr({ expr : haxe_macro_ExprDef.EArrayDecl(l), pos : haxeparser_HaxeParser.punion(p1,p2)});
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -12190,7 +12304,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								} catch( _1 ) {
 									if (_1 instanceof js__$Boot_HaxeError) _1 = _1.val;
 									if( js_Boot.__instanceof(_1,hxparse_NoMatch) ) {
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									} else throw(_1);
 								}
 							}
@@ -12282,19 +12400,31 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									} catch( _ ) {
 										if (_ instanceof js__$Boot_HaxeError) _ = _.val;
 										if( js_Boot.__instanceof(_,hxparse_NoMatch) ) {
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										} else throw(_);
 									}
 								}
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
 				default:
-					throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+					return (function($this) {
+						var $r;
+						throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+						return $r;
+					}(this));
 				}
 			}
 		} catch( _1 ) {
@@ -12343,7 +12473,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						args = l;
 						break;
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						args = (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -12372,7 +12506,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 		} catch( _ ) {
 			if (_ instanceof js__$Boot_HaxeError) _ = _.val;
 			if( js_Boot.__instanceof(_,hxparse_NoMatch) ) {
-				throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				p2 = (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			} else throw(_);
 		}
 		return { name : name.name, doc : doc, meta : meta, args : args, params : params, type : t, pos : haxeparser_HaxeParser.punion(name.pos,p2)};
@@ -12394,7 +12532,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						var t = this.parseComplexType();
 						return { name : name.name, opt : true, type : t};
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -12409,7 +12551,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						var t1 = this.parseComplexType();
 						return { name : name1.name, opt : false, type : t1};
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 			}
@@ -12479,7 +12625,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 														e = { expr : e1, pos : p2};
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														e = (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 													break;
 												case 9:
@@ -12489,18 +12639,30 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 													e = { expr : null, pos : p21};
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													e = (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											data = { name : name.name, pos : haxeparser_HaxeParser.punion(p1,e.pos), kind : haxe_macro_FieldType.FProp(i1,i2,t,e.expr)};
 											break;
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											data = (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									data = (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							break;
@@ -12520,7 +12682,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										e2 = { expr : e3, pos : p22};
 										break;
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										e2 = (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									}
 									break;
 								case 9:
@@ -12530,7 +12696,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									e2 = { expr : null, pos : p23};
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									e2 = (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							data = { name : name.name, pos : haxeparser_HaxeParser.punion(p1,e2.pos), kind : haxe_macro_FieldType.FVar(t2,e2.expr)};
@@ -12575,7 +12745,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 													e4 = { expr : null, pos : p};
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													e4 = (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 										} else throw(_);
@@ -12584,21 +12758,37 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									data = { name : name1, pos : haxeparser_HaxeParser.punion(p11,e4.pos), kind : haxe_macro_FieldType.FFun(f)};
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									data = (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							data = (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
 				default:
-					if(al.length == 0) throw new js__$Boot_HaxeError(new hxparse_NoMatch(this.stream.curPos(),this.peek(0))); else throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+					if(al.length == 0) throw new js__$Boot_HaxeError(new hxparse_NoMatch(this.stream.curPos(),this.peek(0))); else data = (function($this) {
+						var $r;
+						throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+						return $r;
+					}(this));
 				}
 				break;
 			default:
-				if(al.length == 0) throw new js__$Boot_HaxeError(new hxparse_NoMatch(this.stream.curPos(),this.peek(0))); else throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+				if(al.length == 0) throw new js__$Boot_HaxeError(new hxparse_NoMatch(this.stream.curPos(),this.peek(0))); else data = (function($this) {
+					var $r;
+					throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+					return $r;
+				}(this));
 			}
 		}
 		return { name : data.name, doc : doc, meta : meta, access : al, pos : data.pos, kind : data.kind};
@@ -12851,11 +13041,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								this.token = this.token.next;
 								return l;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								return (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
@@ -12894,7 +13092,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								ctl = l;
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								ctl = (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 						}
 						break;
@@ -12905,7 +13107,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						} catch( _ ) {
 							if (_ instanceof js__$Boot_HaxeError) _ = _.val;
 							if( js_Boot.__instanceof(_,hxparse_NoMatch) ) {
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								ctl = (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							} else throw(_);
 						}
 					}
@@ -13048,7 +13254,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								acc.push({ field : id.name, expr : e});
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 							}
 						}
 					} catch( _ ) {
@@ -13073,7 +13279,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 												acc.push({ field : haxeparser_HaxeParser.quoteIdent(name), expr : e1});
 												break;
 											default:
-												throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 											}
 										}
 										break;
@@ -13166,11 +13372,19 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								this.token = this.token.next;
 								return { isInline : true, pos : p1};
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								return (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
@@ -13278,7 +13492,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								}
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								return (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 						}
 						break;
@@ -13342,7 +13560,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 													this.token = this.token.next;
 													return this.exprNext({ expr : haxe_macro_ExprDef.ECast(e1,t), pos : haxeparser_HaxeParser.punion(p12,p21)});
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -13352,7 +13574,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											this.token = this.token.next;
 											return this.exprNext({ expr : haxe_macro_ExprDef.ECast(e1,null), pos : haxeparser_HaxeParser.punion(p12,p22)});
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 									break;
@@ -13390,18 +13616,30 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 												this.token = this.token.next;
 												return this.exprNext({ expr : haxe_macro_ExprDef.ENew(t1,al), pos : haxeparser_HaxeParser.punion(p13,p23)});
 											default:
-												throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+												return (function($this) {
+													var $r;
+													throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+													return $r;
+												}(this));
 											}
 										}
 									} catch( _1 ) {
 										if (_1 instanceof js__$Boot_HaxeError) _1 = _1.val;
 										if( js_Boot.__instanceof(_1,hxparse_NoMatch) ) {
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										} else throw(_1);
 									}
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							break;
@@ -13430,12 +13668,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 												};
 												return this.exprNext(make(this.secureExpr()));
 											default:
-												throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+												return (function($this) {
+													var $r;
+													throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+													return $r;
+												}(this));
 											}
 										}
 										break;
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									}
 								}
 							} catch( _2 ) {
@@ -13528,12 +13774,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																var e8 = this.secureExpr();
 																return { expr : haxe_macro_ExprDef.EFor(it,e8), pos : haxeparser_HaxeParser.punion(p10,e8.pos)};
 															default:
-																throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																return (function($this) {
+																	var $r;
+																	throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																	return $r;
+																}(this));
 															}
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -13629,12 +13883,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																}
 																return { expr : haxe_macro_ExprDef.EIf(cond,e11,e21), pos : haxeparser_HaxeParser.punion(p16,e21 == null?e11.pos:e21.pos)};
 															default:
-																throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																return (function($this) {
+																	var $r;
+																	throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																	return $r;
+																}(this));
 															}
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -13674,12 +13936,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																var e10 = this.secureExpr();
 																return { expr : haxe_macro_ExprDef.EWhile(cond1,e10,true), pos : haxeparser_HaxeParser.punion(p110,e10.pos)};
 															default:
-																throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																return (function($this) {
+																	var $r;
+																	throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																	return $r;
+																}(this));
 															}
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -13711,21 +13981,37 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																			this.token = this.token.next;
 																			return { expr : haxe_macro_ExprDef.EWhile(cond2,e12,false), pos : haxeparser_HaxeParser.punion(p111,e12.pos)};
 																		default:
-																			throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																			return (function($this) {
+																				var $r;
+																				throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																				return $r;
+																			}(this));
 																		}
 																	}
 																	break;
 																default:
-																	throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																	return (function($this) {
+																		var $r;
+																		throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																		return $r;
+																	}(this));
 																}
 															}
 															break;
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -13750,12 +14036,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																this.token = this.token.next;
 																return { expr : haxe_macro_ExprDef.ESwitch(e13,cases.cases,cases.def), pos : haxeparser_HaxeParser.punion(p112,p24)};
 															default:
-																throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																return (function($this) {
+																	var $r;
+																	throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																	return $r;
+																}(this));
 															}
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 												}
 												break;
@@ -13829,7 +14123,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										this.token = this.token.next;
 										return this.exprNext({ expr : haxe_macro_ExprDef.ECheckType(e16,t3), pos : haxeparser_HaxeParser.punion(p116,p27)});
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+											return $r;
+										}(this));
 									}
 								}
 								break;
@@ -13852,7 +14150,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								this.token = this.token.next;
 								return this.exprNext({ expr : haxe_macro_ExprDef.EArrayDecl(l), pos : haxeparser_HaxeParser.punion(p117,p28)});
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								return (function($this) {
+									var $r;
+									throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+									return $r;
+								}(this));
 							}
 						}
 						break;
@@ -13881,12 +14183,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											};
 											return this.exprNext(make1(this.secureExpr()));
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 						} catch( _3 ) {
@@ -13979,12 +14289,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 															var e20 = this.secureExpr();
 															return { expr : haxe_macro_ExprDef.EFor(it1,e20), pos : haxeparser_HaxeParser.punion(p31,e20.pos)};
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -14080,12 +14398,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 															}
 															return { expr : haxe_macro_ExprDef.EIf(cond3,e110,e24), pos : haxeparser_HaxeParser.punion(p32,e24 == null?e110.pos:e24.pos)};
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -14125,12 +14451,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 															var e27 = this.secureExpr();
 															return { expr : haxe_macro_ExprDef.EWhile(cond4,e27,true), pos : haxeparser_HaxeParser.punion(p120,e27.pos)};
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -14162,21 +14496,37 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 																		this.token = this.token.next;
 																		return { expr : haxe_macro_ExprDef.EWhile(cond5,e28,false), pos : haxeparser_HaxeParser.punion(p121,e28.pos)};
 																	default:
-																		throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																		return (function($this) {
+																			var $r;
+																			throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																			return $r;
+																		}(this));
 																	}
 																}
 																break;
 															default:
-																throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+																return (function($this) {
+																	var $r;
+																	throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																	return $r;
+																}(this));
 															}
 														}
 														break;
 													default:
-														throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+														return (function($this) {
+															var $r;
+															throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+															return $r;
+														}(this));
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -14201,12 +14551,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 															this.token = this.token.next;
 															return { expr : haxe_macro_ExprDef.ESwitch(e29,cases1.cases,cases1.def), pos : haxeparser_HaxeParser.punion(p122,p210)};
 														default:
-															throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+															return (function($this) {
+																var $r;
+																throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+																return $r;
+															}(this));
 														}
 													}
 													break;
 												default:
-													throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+													return (function($this) {
+														var $r;
+														throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+														return $r;
+													}(this));
 												}
 											}
 											break;
@@ -14281,14 +14639,26 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									case 0:
 										var p21 = e1.pos;
 										var v1 = e1.expr[2][2];
-										if(p21.max == p.min) return _g2.exprNext({ expr : haxe_macro_ExprDef.EConst(haxe_macro_Constant.CFloat(v1 + ".")), pos : haxeparser_HaxeParser.punion(p,p21)}); else throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos())));
+										if(p21.max == p.min) return _g2.exprNext({ expr : haxe_macro_ExprDef.EConst(haxe_macro_Constant.CFloat(v1 + ".")), pos : haxeparser_HaxeParser.punion(p,p21)}); else return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos()));
+											return $r;
+										}(this));
 										break;
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos()));
+											return $r;
+										}(this));
 									}
 									break;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							};
 							{
@@ -14352,13 +14722,21 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							this.token = this.token.next;
 							return this.exprNext({ expr : haxe_macro_ExprDef.ECall(e1,params), pos : haxeparser_HaxeParser.punion(e1.pos,p24)});
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 				} catch( _ ) {
 					if (_ instanceof js__$Boot_HaxeError) _ = _.val;
 					if( js_Boot.__instanceof(_,hxparse_NoMatch) ) {
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					} else throw(_);
 				}
 				break;
@@ -14375,7 +14753,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						this.token = this.token.next;
 						return this.exprNext({ expr : haxe_macro_ExprDef.EArray(e1,e2), pos : haxeparser_HaxeParser.punion(e1.pos,p25)});
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -14473,7 +14855,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 						var e3 = this.expr();
 						return { expr : haxe_macro_ExprDef.ETernary(e1,e210,e3), pos : haxeparser_HaxeParser.punion(e1.pos,e3.pos)};
 					default:
-						throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+						return (function($this) {
+							var $r;
+							throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+							return $r;
+						}(this));
 					}
 				}
 				break;
@@ -14523,7 +14909,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											}
 											break;
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 								} else return def2();
@@ -14590,7 +14980,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 										}
 										break;
 									default:
-										throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos())));
+										return (function($this) {
+											var $r;
+											throw new js__$Boot_HaxeError(new hxparse_Unexpected(_g2.peek(0),_g2.stream.curPos()));
+											return $r;
+										}(this));
 									}
 								}
 							} else return def4();
@@ -14643,12 +15037,20 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 									this.token = this.token.next;
 									return e;
 								default:
-									throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+									return (function($this) {
+										var $r;
+										throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+										return $r;
+									}(this));
 								}
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
@@ -14703,7 +15105,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								def = e1;
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 							}
 						}
 						break;
@@ -14724,7 +15126,7 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 								cases.push({ values : el1, guard : eg, expr : e2});
 								break;
 							default:
-								throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos()));
 							}
 						}
 						break;
@@ -14771,7 +15173,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 											this.token = this.token.next;
 											return { name : id.name, type : t, expr : this.secureExpr()};
 										default:
-											throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+											return (function($this) {
+												var $r;
+												throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+												return $r;
+											}(this));
 										}
 									}
 									break;
@@ -14781,7 +15187,11 @@ haxeparser_HaxeParser.prototype = $extend(hxparse_Parser_$haxeparser_$HaxeTokenS
 							}
 							break;
 						default:
-							throw new js__$Boot_HaxeError(new js__$Boot_HaxeError(new hxparse_Unexpected(this.peek(0),this.stream.curPos())));
+							return (function($this) {
+								var $r;
+								throw new js__$Boot_HaxeError(new hxparse_Unexpected($this.peek(0),$this.stream.curPos()));
+								return $r;
+							}(this));
 						}
 					}
 					break;
@@ -16078,14 +16488,14 @@ var haxeproject_HaxeProject = function() {
 	js_Node.require("fs").readFile(path,options,function(error,data) {
 		if(error == null) _g.code = data; else {
 			haxe_Log.trace(error,{ fileName : "HaxeProject.hx", lineNumber : 64, className : "haxeproject.HaxeProject", methodName : "new"});
-			Alertify.error("Can't load template " + path);
+			alertify.error("Can't load template " + path);
 		}
 	});
 	path = js_Node.require("path").join("core","templates","index.tpl");
 	js_Node.require("fs").readFile(path,options,function(error1,data1) {
 		if(error1 == null) _g.indexPageCode = data1; else {
 			haxe_Log.trace(error1,{ fileName : "HaxeProject.hx", lineNumber : 80, className : "haxeproject.HaxeProject", methodName : "new"});
-			Alertify.error("Can't load template " + path);
+			alertify.error("Can't load template " + path);
 		}
 	});
 };
@@ -16151,7 +16561,7 @@ haxeproject_HaxeProject.prototype = {
 			fileTemplate = tabManagerInstance.generateTemplate(fileTemplate,data.projectPackage);
 			var templateCode = new haxe_Template(_g.code).execute(fileTemplate);
 			js_Node.require("fs").writeFile(pathToMain,templateCode,null,function(error) {
-				if(error != null) Alertify.error("Write file error" + error);
+				if(error != null) alertify.error("Write file error" + error);
 				js_Node.require("fs").exists(pathToMain,function(exists) {
 					if(exists) {
 						var tabManagerInstance1 = tabmanager_TabManager.get();
@@ -16221,10 +16631,10 @@ haxeproject_HaxeProject.prototype = {
 					js_Node.require("fs").writeFile(pathToWebPage,updatedPageCode,"utf8",function(error2) {
 						if(error2 != null) {
 							haxe_Log.trace(error2,{ fileName : "HaxeProject.hx", lineNumber : 275, className : "haxeproject.HaxeProject", methodName : "createHaxeProject"});
-							Alertify.error("Generate web page error: " + error2);
+							alertify.error("Generate web page error: " + error2);
 						}
 					});
-				} else Alertify.error("Folder creation error: " + error1);
+				} else alertify.error("Folder creation error: " + error1);
 			});
 			var path = js_Node.require("path").join(pathToProject,"project.hide");
 			projectaccess_ProjectAccess.save((function(f,a1) {
@@ -16308,6 +16718,19 @@ hxparse_UnexpectedChar.prototype = {
 	}
 	,__class__: hxparse_UnexpectedChar
 };
+var js__$Boot_HaxeError = function(val) {
+	Error.call(this);
+	this.val = val;
+	this.message = String(val);
+	if(Error.captureStackTrace) Error.captureStackTrace(this,js__$Boot_HaxeError);
+};
+$hxClasses["js._Boot.HaxeError"] = js__$Boot_HaxeError;
+js__$Boot_HaxeError.__name__ = ["js","_Boot","HaxeError"];
+js__$Boot_HaxeError.__super__ = Error;
+js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
+	val: null
+	,__class__: js__$Boot_HaxeError
+});
 var js_Browser = function() { };
 $hxClasses["js.Browser"] = js_Browser;
 js_Browser.__name__ = ["js","Browser"];
@@ -16845,7 +17268,7 @@ newprojectdialog_NewProjectDialog.load = function() {
 		if(newprojectdialog_NewProjectDialog.projectLocation.value == "") {
 			newprojectdialog_NewProjectDialog.showPage2();
 			newprojectdialog_NewProjectDialog.projectLocation.focus();
-			Alertify.log("Please specify location for your projects");
+			alertify.log("Please specify location for your projects");
 		} else if(newprojectdialog_NewProjectDialog.page1.style.display != "none" || newprojectdialog_NewProjectDialog.projectName.value == "") newprojectdialog_NewProjectDialog.generateProjectName(newprojectdialog_NewProjectDialog.createProject); else newprojectdialog_NewProjectDialog.createProject();
 	};
 	newprojectdialog_NewProjectDialog.modalDialog.getFooter().appendChild(finishButton);
@@ -17317,6 +17740,9 @@ newprojectdialog_NewProjectDialog.createListItem = function(text) {
 	option.value = text;
 	return option;
 };
+var nodejs_webkit_App = require("nw.gui").App;
+var nodejs_webkit_Clipboard = require("nw.gui").Clipboard;
+var nodejs_webkit_Shell = require("nw.gui").Shell;
 var openflproject_CreateOpenFLProject = function() { };
 $hxClasses["openflproject.CreateOpenFLProject"] = openflproject_CreateOpenFLProject;
 openflproject_CreateOpenFLProject.__name__ = ["openflproject","CreateOpenFLProject"];
@@ -17325,13 +17751,13 @@ openflproject_CreateOpenFLProject.createOpenFLProject = function(params,path,onC
 	var processHelper = core_ProcessHelper.get();
 	var pathToHaxelib = core_HaxeHelper.getPathToHaxelib();
 	processHelper.runProcess(pathToHaxelib,processParams,path,function(stdout,stderr) {
-		if(stdout != "") Alertify.log("stdout:\n" + stdout);
-		if(stderr != "") Alertify.log("stderr:\n" + stderr);
+		if(stdout != "") alertify.log("stdout:\n" + stdout);
+		if(stderr != "") alertify.log("stderr:\n" + stderr);
 		onComplete();
 	},function(code,stdout1,stderr1) {
-		Alertify.error([pathToHaxelib].concat(processParams).join(" ") + " " + (code == null?"null":"" + code));
-		if(stdout1 != "") Alertify.error("stdout:\n" + stdout1);
-		if(stderr1 != "") Alertify.error("stderr:\n" + stderr1);
+		alertify.error([pathToHaxelib].concat(processParams).join(" ") + " " + (code == null?"null":"" + code));
+		if(stdout1 != "") alertify.error("stdout:\n" + stdout1);
+		if(stderr1 != "") alertify.error("stderr:\n" + stderr1);
 	});
 };
 var openflproject_OpenFLProject = function() {
@@ -17404,14 +17830,14 @@ openflproject_OpenFLTools.getParams = function(path,target,onLoaded) {
 		if(onLoaded != null) onLoaded(stdout);
 		openflproject_OpenFLTools.printStderr(stderr);
 	},function(code,stdout1,stderr1) {
-		Alertify.error("OpenFL tools error. OpenFL may be not installed. Please update OpenFL.(haxelib upgrade)");
-		Alertify.error("OpenFL tools process exit code " + code);
+		alertify.error("OpenFL tools error. OpenFL may be not installed. Please update OpenFL.(haxelib upgrade)");
+		alertify.error("OpenFL tools process exit code " + code);
 		openflproject_OpenFLTools.printStderr(stdout1);
 		openflproject_OpenFLTools.printStderr(stderr1);
 	});
 };
 openflproject_OpenFLTools.printStderr = function(stderr) {
-	if(stderr != "") Alertify.error("OpenFL tools stderr: " + stderr,15000);
+	if(stderr != "") alertify.error("OpenFL tools stderr: " + stderr,15000);
 };
 var openproject_OpenFL = function() { };
 $hxClasses["openproject.OpenFL"] = openproject_OpenFL;
@@ -17587,10 +18013,10 @@ openproject_OpenProject.parseProject = function(path) {
 				if(error1 == null) {
 					var xml = Xml.parse(data1);
 					var fast = new haxe_xml_Fast(xml);
-					if(fast.hasNode.resolve("project")) openproject_OpenFL.open(path); else Alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
+					if(fast.hasNode.resolve("project")) openproject_OpenFL.open(path); else alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
 				} else {
 					haxe_Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 262, className : "openproject.OpenProject", methodName : "parseProject"});
-					Alertify.error("Can't open file: " + path + "\n" + error1);
+					alertify.error("Can't open file: " + path + "\n" + error1);
 				}
 			});
 			break;
@@ -18104,7 +18530,7 @@ parser_ClasspathWalker.prototype = {
 				localStorage2.setItem("pathToHaxe",_g.pathToHaxe);
 				core_HaxeHelper.updatePathToHaxe();
 				dialogs_DialogManager.hide();
-			} else Alertify.error(watchers_LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
+			} else alertify.error(watchers_LocaleWatcher.getStringSync("Can't find 'std' folder in specified path"));
 		},currentLocation,"Download Haxe","http://haxe.org/download");
 	}
 	,getHaxeStdFolder: function(path) {
@@ -18765,7 +19191,7 @@ var projectaccess_ProjectAccess = function() { };
 $hxClasses["projectaccess.ProjectAccess"] = projectaccess_ProjectAccess;
 projectaccess_ProjectAccess.__name__ = ["projectaccess","ProjectAccess"];
 projectaccess_ProjectAccess.registerSaveOnCloseListener = function() {
-	var $window = nodejs.webkit.Window.get();
+	var $window = nodejs_webkit_Window.get();
 	var tabManagerInstance = tabmanager_TabManager.get();
 	$window.on("close",function() {
 		if(projectaccess_ProjectAccess.currentProject != null && tabManagerInstance.getCurrentDocumentPath() != null) cm_Editor.saveFoldedRegions();
@@ -19063,7 +19489,7 @@ projectaccess_ProjectOptions.prototype = {
 				var project = projectaccess_ProjectAccess.currentProject;
 				project.targetData[project.target].pathToHxml = _g.pathToHxmlInput.value;
 				projectaccess_ProjectAccess.save();
-			} else Alertify.error(_g.pathToHxmlInput.value + " is not found");
+			} else alertify.error(_g.pathToHxmlInput.value + " is not found");
 		};
 		var browseButton = this.inputGroupButton.getButton();
 		browseButton.onclick = function(e1) {
@@ -19258,7 +19684,7 @@ tabmanager_ContextMenu.createContextMenu = function() {
 	ul.appendChild(tabmanager_ContextMenu.createDivider());
 	ul.appendChild(tabmanager_ContextMenu.createContextMenuItem("Show Item In Folder",function() {
 		var path1 = tabmanager_ContextMenu.contextMenu.getAttribute("path");
-		nodejs.webkit.Shell.showItemInFolder(path1);
+		nodejs_webkit_Shell.showItemInFolder(path1);
 	}));
 	tabmanager_ContextMenu.contextMenu.appendChild(ul);
 	window.document.body.appendChild(tabmanager_ContextMenu.contextMenu);
@@ -19399,7 +19825,7 @@ tabmanager_TabManager.prototype = {
 		options.labels = { };
 		options.labels.ok = watchers_LocaleWatcher.getStringSync("Yes");
 		options.labels.cancel = watchers_LocaleWatcher.getStringSync("No");
-		Alertify.set(options);
+		alertify.set(options);
 		var indentWidthLabel;
 		indentWidthLabel = js_Boot.__cast(window.document.getElementById("indent-width-label") , HTMLDivElement);
 		var indentWidthInput;
@@ -19619,7 +20045,7 @@ tabmanager_TabManager.prototype = {
 		if(switchToTab == null) switchToTab = true;
 		var _g = this;
 		cm_Editor.saveFoldedRegions();
-		if(this.isChanged(path)) Alertify.confirm(watchers_LocaleWatcher.getStringSync("File ") + path + watchers_LocaleWatcher.getStringSync(" was changed. Save it?"),function(e) {
+		if(this.isChanged(path)) alertify.confirm(watchers_LocaleWatcher.getStringSync("File ") + path + watchers_LocaleWatcher.getStringSync(" was changed. Save it?"),function(e) {
 			if(e) _g.saveDoc(path);
 			_g.removeTab(path,switchToTab);
 		}); else this.removeTab(path,switchToTab);
@@ -20785,7 +21211,7 @@ watchers_LocaleWatcher.load = function() {
 	},1000);
 	watchers_LocaleWatcher.processHtmlElements();
 	if(!watchers_LocaleWatcher.listenerAdded) {
-		nodejs.webkit.Window.get().on("close",function(e) {
+		nodejs_webkit_Window.get().on("close",function(e) {
 			if(watchers_LocaleWatcher.watcher != null) watchers_LocaleWatcher.watcher.close();
 		});
 		watchers_LocaleWatcher.listenerAdded = true;
@@ -20825,7 +21251,7 @@ $hxClasses["watchers.SettingsWatcher"] = watchers_SettingsWatcher;
 watchers_SettingsWatcher.__name__ = ["watchers","SettingsWatcher"];
 watchers_SettingsWatcher.load = function() {
 	var pathToConfigFolder = js_Node.require("path").join("core","config");
-	watchers_SettingsWatcher.pathToFolder = nodejs.webkit.App.dataPath;
+	watchers_SettingsWatcher.pathToFolder = nodejs_webkit_App.dataPath;
 	if(watchers_SettingsWatcher.pathToFolder != null) {
 		watchers_SettingsWatcher.pathToFolder = js_Node.require("path").join(watchers_SettingsWatcher.pathToFolder,".HIDE");
 		if(!js_Node.require("fs").existsSync(watchers_SettingsWatcher.pathToFolder)) js_Node.require("fs").mkdirSync(watchers_SettingsWatcher.pathToFolder);
@@ -20850,7 +21276,7 @@ watchers_SettingsWatcher.load = function() {
 	watchers_SettingsWatcher.pathToSettings = js_Node.require("path").join(watchers_SettingsWatcher.pathToFolder,"settings.json");
 	watchers_SettingsWatcher.watcher = watchers_Watcher.watchFileForUpdates(watchers_SettingsWatcher.pathToSettings,watchers_SettingsWatcher.parse,3000);
 	watchers_SettingsWatcher.parse();
-	nodejs.webkit.Window.get().on("close",function(e) {
+	nodejs_webkit_Window.get().on("close",function(e) {
 		if(watchers_SettingsWatcher.watcher != null) watchers_SettingsWatcher.watcher.close();
 	});
 };
@@ -20908,7 +21334,7 @@ watchers_ThemeWatcher.prototype = {
 		var _g = this;
 		this.pathToTheme = js_Node.require("path").join("core",watchers_SettingsWatcher.settings.theme);
 		js_Node.require("fs").exists(this.pathToTheme,function(exists) {
-			if(exists) _g.continueLoading(); else Alertify.log("File " + _g.pathToTheme + " for theme " + watchers_SettingsWatcher.settings.theme + " was not found. CSS files in core folder: [" + _g.getListOfCSSFiles().join(",") + "]","",10000);
+			if(exists) _g.continueLoading(); else alertify.log("File " + _g.pathToTheme + " for theme " + watchers_SettingsWatcher.settings.theme + " was not found. CSS files in core folder: [" + _g.getListOfCSSFiles().join(",") + "]","",10000);
 		});
 	}
 	,continueLoading: function() {
@@ -20919,7 +21345,7 @@ watchers_ThemeWatcher.prototype = {
 			_g.updateTheme();
 		},1000);
 		if(!this.listenerAdded) {
-			nodejs.webkit.Window.get().on("close",function(e) {
+			nodejs_webkit_Window.get().on("close",function(e) {
 				if(_g.watcher != null) _g.watcher.close();
 			});
 			this.listenerAdded = true;
@@ -20967,7 +21393,6 @@ watchers_Watcher.watchFileForUpdates = function(_path,onUpdate,_interval) {
 function $iterator(o) { if( o instanceof Array ) return function() { return HxOverrides.iter(o); }; return typeof(o.iterator) == 'function' ? $bind(o,o.iterator) : o.iterator; }
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = function(){ return f.method.apply(f.scope, arguments); }; f.scope = o; f.method = m; o.hx__closures__[m.__id__] = f; } return f; }
-var Alertify1 = alertify;
 if(Array.prototype.indexOf) HxOverrides.indexOf = function(a,o,i) {
 	return Array.prototype.indexOf.call(a,o,i);
 };
@@ -20997,8 +21422,6 @@ if(Array.prototype.map == null) Array.prototype.map = function(f) {
 	return a;
 };
 var __map_reserved = {}
-nodejs.webkit.$ui = require('nw.gui');
-nodejs.webkit.Window = nodejs_webkit_$ui.Window;
 haxe_Resource.content = [{ name : "config", data : "ew0KCSJtYXhpbXVtX2xpbmVfbGVuZ3RoIjo4MCwNCgkibW9kaWZpZXJfb3JkZXIiOlsib3ZlcnJpZGUiLCAicHVibGljIiwgInByaXZhdGUiLCAic3RhdGljIiwgImV4dGVybiIsICJkeW5hbWljIiwgImlubGluZSIsICJtYWNybyJdLA0KCSJpbmRlbnRfd2l0aF90YWJzIjpmYWxzZSwNCgkidGFiX3dpZHRoIjo0LA0KCSJwcmludF9yb290X3BhY2thZ2UiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2FmdGVyX3BhY2thZ2UiOnRydWUsDQoJImVtcHR5X2xpbmVfYWZ0ZXJfaW1wb3J0IjpmYWxzZSwNCgkiZW1wdHlfbGluZV9iZWZvcmVfdHlwZSI6dHJ1ZSwNCgkiY3VkZGxlX3R5cGVfYnJhY2VzIjpmYWxzZSwNCgkiY3VkZGxlX21ldGhvZF9icmFjZXMiOmZhbHNlLA0KCSJlbXB0eV9saW5lX2JldHdlZW5fZmllbGRzIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX3R5cGVfcGFyYW1zIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZWVuX2Fub25fdHlwZV9maWVsZHMiOnRydWUsDQoJInNwYWNlX2JldHdlZW5fdHlwZV9wYXJhbV9jb25zdHJhaW50cyI6dHJ1ZSwNCgkiaW5saW5lX2VtcHR5X2JyYWNlcyI6dHJ1ZSwNCgkiZXh0ZW5kc19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiaW1wbGVtZW50c19vbl9uZXdsaW5lIjpmYWxzZSwNCgkiZnVuY3Rpb25fYXJnX29uX25ld2xpbmUiOmZhbHNlLA0KCSJzcGFjZV9iZXR3ZWVuX2Z1bmN0aW9uX2FyZ3MiOnRydWUsDQoJInNwYWNlX2Fyb3VuZF9mdW5jdGlvbl9hcmdfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9hcm91bmRfcHJvcGVydHlfYXNzaWduIjp0cnVlLA0KCSJzcGFjZV9iZXR3ZW5fcHJvcGVydHlfZ2V0X3NldCI6dHJ1ZSwNCgkicmVtb3ZlX3ByaXZhdGVfZmllbGRfbW9kaWZpZXIiOnRydWUsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl9lbnVtX2NvbnN0cnVjdG9ycyI6ZmFsc2UsDQoJImVtcHR5X2xpbmVfYmV0d2Vlbl90eXBlZGVmX2ZpZWxkcyI6ZmFsc2UsDQoJInNwYWNlX2JldHdlZW5fZW51bV9jb25zdHJ1Y3Rvcl9hcmdzIjp0cnVlDQp9"}];
 var module, setImmediate, clearImmediate;
 js_Node.setTimeout = setTimeout;
@@ -21022,11 +21445,6 @@ js_node_Mv.mv = js_Node.require("mv");
 js_node_Remove.remove = js_Node.require("remove");
 Walkdir.walkdir = js_Node.require("walkdir");
 var Watchr = js_Node.require("watchr");
-nodejs.webkit.App = nodejs_webkit_$ui.App;
-nodejs.webkit.Clipboard = nodejs_webkit_$ui.Clipboard;
-nodejs.webkit.Menu = nodejs_webkit_$ui.Menu;
-nodejs.webkit.MenuItem = nodejs_webkit_$ui.MenuItem;
-nodejs.webkit.Shell = nodejs_webkit_$ui.Shell;
 HIDE.windows = [];
 Xml.Element = 0;
 Xml.PCData = 1;
@@ -21045,7 +21463,7 @@ core_Hotkeys.hotkeys = [];
 core_Hotkeys.commandMap = new haxe_ds_StringMap();
 core_Hotkeys.spanMap = new haxe_ds_StringMap();
 core_PreserveWindowState.isMaximizationEvent = false;
-core_PreserveWindowState.window = nodejs.webkit.Window.get();
+core_PreserveWindowState.window = nodejs_webkit_Window.get();
 flambeproject_FlambeBuild.enableFlashTarget = false;
 flambeproject_FlambeBuild.enabledHtmlTarget = false;
 flambeproject_FlambeBuild.enabledFirefoxTarget = false;

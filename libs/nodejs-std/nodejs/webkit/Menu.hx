@@ -1,5 +1,6 @@
 package nodejs.webkit;
 
+@:jsRequire("nw.gui", "Menu")
 extern class Menu {
 
 	var items(default, null) : Array<MenuItem>;
@@ -14,9 +15,4 @@ extern class Menu {
 	static inline function createWindowMenu() : Menu {
 		return new Menu( { type : "menubar" } );
 	}
-	
-	static function __init__() : Void untyped {
-		Menu = UI.Menu;
-	}
-	
 }

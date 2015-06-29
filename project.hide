@@ -12,9 +12,17 @@
 
     ]
     ,"files" : [
+         {
+             "path" : "src\\Main.hx"
+            ,"useTabs" : true
+            ,"indentSize" : 4
+            ,"foldedRegions" : [
 
+            ]
+            ,"activeLine" : 66
+        }
     ]
-    ,"activeFile" : "HIDE_dev.bat"
+    ,"activeFile" : "src\\Main.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 1

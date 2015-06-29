@@ -1,5 +1,6 @@
 package nodejs.webkit;
 
+@:jsRequire("nw.gui", "MenuItem")
 extern class MenuItem {
 	
 	var type(default, null) : MenuItemType;
@@ -14,9 +15,4 @@ extern class MenuItem {
 	
 	dynamic function click() : Void;
 	function on( event : String, callb : Void -> Void ) : Void;
-	
-	static function __init__() : Void untyped {
-		MenuItem = UI.MenuItem;
-	}
-	
 }

@@ -4,6 +4,7 @@ package nodejs.webkit;
  * ...
  * @author AS3Boyan
  */
+@:jsRequire("nw.gui", "App")
 extern class App
 {
 	static var argv:Dynamic;
@@ -17,8 +18,4 @@ extern class App
 	static function crashRenderer():Void;
 	static function getProxyForURL(url:String):Dynamic;
 	static function setCrashDumpDir(path:String):Void;
-	
-	static function __init__() : Void untyped {
-		App = UI.App;
-	}
 }

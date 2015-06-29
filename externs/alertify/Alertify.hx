@@ -15,13 +15,9 @@ typedef Options =
 	@:optional var labels: Labels;
 }
  
+@:native("alertify")
 extern class Alertify
 {
-	public static function __init__():Void
-	{
-		var Alertify = untyped __js__("alertify");
-	}
-	
 	// alert dialog
 	static function alert(message:String):Void;	
 	
