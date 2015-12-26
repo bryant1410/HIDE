@@ -12,7 +12,7 @@ It's pretty huge project, and there is not much IDEs made purely on web technolo
 
 @NickHolder did amazing job on outline panel(types, scope of functions and variables, sorting).
 
-###Architechture controversy
+###Architecture controversy
 At start @as3boyan and @misterpah worked on one branch(master).
 @as3boyan and @misterpah argued a lot on plugin system implementation(which was requirement from Haxe Foundation).
 @as3boyan and @misterpah implemented their own plugin systems.
