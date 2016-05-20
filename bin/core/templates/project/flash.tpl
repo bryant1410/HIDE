@@ -2,7 +2,7 @@
 -cp src
 
 #this class wil be used as entry point for your app.
--main ::if (pack != null)::::pack::.::end::Main
+-main ::if (pack != "")::::pack::.::end::Main
 
 #Flash target
 -swf ::file::
