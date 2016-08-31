@@ -16,7 +16,11 @@ class Run
 		var output = process.stdout.readAll().toString();		
 		var path:String = output.split("\n")[0];
 
-		Sys.command("haxelib", ["run", "node-webkit", StringTools.trim(path)]);
+		var argv = ["run", "node-webkit", StringTools.trim(path)].concat(Sys.args());
+		
+		trace(argv);
+		
+		Sys.command("haxelib", argv);
 	}
 	
 	public static function combine(firstPath:String, secondPath:String):String

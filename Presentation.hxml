@@ -1,9 +1,15 @@
 -cp src
+-cp externs/codemirror
+-cp libs/hxparse/src
+-cp libs/haxeparser/src
+-cp libs/haxeprinter/src
 -cp libs/nodejs-std
+-cp externs/alertify
 -lib tjson
 -lib jQueryExtern
 -main about.Presentation
 -js bin/core/Presentation.js
+-debug
 -dce full
 -D source-map-content
 -D nodejs

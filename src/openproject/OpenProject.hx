@@ -29,8 +29,10 @@ import tools.gradle.GradleTool;
  */
 class OpenProject
 {	
-	public static function openProject(?pathToProject:String, ?project:Bool = false):Void
+	public static function openProject(?pathToProject:String, ?project:Bool = false):Bool
 	{
+		var success:Bool = true;
+		
 		if (pathToProject == null)
 		{
 			if (project) 
@@ -44,8 +46,29 @@ class OpenProject
 		}
 		else 
 		{
-			checkIfFileExists(pathToProject);
+			var isDir = Node.fs.lstatSync(pathToProject).isDirectory();
+			
+			if (isDir)
+			{
+				var directoryContents = Node.fs.readdirSync(pathToProject);
+				
+				var hasProjectFile = directoryContents.indexOf("project.hide") != -1;
+				
+				success = hasProjectFile;
+				
+				if (hasProjectFile)
+				{
+					var pathToProjectFile = Node.path.join(pathToProject, "project.hide");
+					openProject(pathToProject);
+				}
+			}
+			else
+			{
+				checkIfFileExists(pathToProject);
+			}
 		}
+			
+		return success;
 	}
 	
 	static function checkIfFileExists(path:String):Void

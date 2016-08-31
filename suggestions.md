@@ -1,3 +1,4 @@
+* Open with
 * Autocompletion for hxml (including path for "-cp");
 get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |" command.
 * Check how much plugins loaded, if only few, propose to recompile all plugins

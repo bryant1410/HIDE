@@ -139,7 +139,23 @@ class Main
 			CompilationOutput.load();
 
 			var recentProjectsList = RecentProjectsList.get();
-			OpenProject.searchForLastProject();
+			
+			var args = App.argv;
+			
+			trace(args);
+			
+			var success:Bool = false;
+			
+			if (args.length > 0)
+			{
+				success = OpenProject.openProject(args[0]);
+			}
+			
+			if (args.length == 0 || !success)
+			{
+				OpenProject.searchForLastProject();
+			}
+			
 			DragAndDrop.prepare();
 			var classWalker = ClasspathWalker.get();
 			var welcomeScreen = WelcomeScreen.get();

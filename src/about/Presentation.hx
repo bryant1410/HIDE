@@ -24,6 +24,8 @@ class Presentation
 
 	public static function main()
 	{		
+		Window.get().showDevTools();
+		
 		Browser.window.onload = function (e):Void
 		{
 			SettingsWatcher.load();

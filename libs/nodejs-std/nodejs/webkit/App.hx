@@ -7,7 +7,7 @@ package nodejs.webkit;
 @:jsRequire("nw.gui", "App")
 extern class App
 {
-	static var argv:Dynamic;
+	static var argv:Array<String>;
 	static var fullArgv:Dynamic;
 	static var dataPath:String;
 	static var manifest:Dynamic;

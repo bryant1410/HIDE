@@ -1,5 +1,5 @@
-(function (console) { "use strict";
-var $hxClasses = {},$estr = function() { return js_Boot.__string_rec(this,''); };
+(function (console, $global) { "use strict";
+var $hxClasses = {};
 function $extend(from, fields) {
 	function Inherit() {} Inherit.prototype = from; var proto = new Inherit();
 	for (var name in fields) proto[name] = fields[name];
@@ -318,9 +318,8 @@ Main.main = function() {
 	Main.window = nodejs_webkit_Window.get();
 	Main.window.showDevTools();
 	Main.window.title = "HIDE";
-	Main.window.show();
 	js_Node.process.on("uncaughtException",function(err) {
-		haxe_Log.trace(err,{ fileName : "Main.hx", lineNumber : 75, className : "Main", methodName : "main"});
+		haxe_Log.trace(err,{ fileName : "Main.hx", lineNumber : 73, className : "Main", methodName : "main"});
 		Main.window.show();
 	});
 	Main.sync = true;
@@ -361,7 +360,11 @@ Main.main = function() {
 		khaProject.load();
 		core_CompilationOutput.load();
 		var recentProjectsList = core_RecentProjectsList.get();
-		openproject_OpenProject.searchForLastProject();
+		var args = nodejs_webkit_App.argv;
+		haxe_Log.trace(args,{ fileName : "Main.hx", lineNumber : 145, className : "Main", methodName : "main"});
+		var success = false;
+		if(args.length > 0) success = openproject_OpenProject.openProject(args[0]);
+		if(args.length == 0 || !success) openproject_OpenProject.searchForLastProject();
 		core_DragAndDrop.prepare();
 		var classWalker = parser_ClasspathWalker.get();
 		var welcomeScreen = core_WelcomeScreen.get();
@@ -382,18 +385,18 @@ Main.main = function() {
 			}
 		});
 		processHelper.checkProcessInstalled("npm",["-v"],function(installed1) {
-			haxe_Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 179, className : "Main", methodName : "main"});
+			haxe_Log.trace("npm installed " + (installed1 == null?"null":"" + installed1),{ fileName : "Main.hx", lineNumber : 193, className : "Main", methodName : "main"});
 			if(installed1) processHelper.runProcess("npm",["list","-g","flambe"],null,function(stdout,stderr) {
-				haxe_Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 185, className : "Main", methodName : "main"});
+				haxe_Log.trace("flambe installed " + Std.string(stdout.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 199, className : "Main", methodName : "main"});
 			},function(code,stdout1,stderr1) {
-				haxe_Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 189, className : "Main", methodName : "main"});
+				haxe_Log.trace("flambe installed " + Std.string(stdout1.indexOf("(empty)") == -1),{ fileName : "Main.hx", lineNumber : 203, className : "Main", methodName : "main"});
 			});
 		});
 		processHelper.checkProcessInstalled("haxelib run lime",[],function(installed2) {
-			haxe_Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 198, className : "Main", methodName : "main"});
+			haxe_Log.trace("lime installed " + (installed2 == null?"null":"" + installed2),{ fileName : "Main.hx", lineNumber : 212, className : "Main", methodName : "main"});
 		});
 		processHelper.checkProcessInstalled("git",["--version"],function(installed3) {
-			haxe_Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 204, className : "Main", methodName : "main"});
+			haxe_Log.trace("git installed " + (installed3 == null?"null":"" + installed3),{ fileName : "Main.hx", lineNumber : 218, className : "Main", methodName : "main"});
 		});
 		Main.window.show();
 		Main.setupTools();
@@ -529,27 +532,20 @@ StringTools.fastCodeAt = function(s,index) {
 };
 var ValueType = $hxClasses["ValueType"] = { __ename__ : ["ValueType"], __constructs__ : ["TNull","TInt","TFloat","TBool","TObject","TFunction","TClass","TEnum","TUnknown"] };
 ValueType.TNull = ["TNull",0];
-ValueType.TNull.toString = $estr;
 ValueType.TNull.__enum__ = ValueType;
 ValueType.TInt = ["TInt",1];
-ValueType.TInt.toString = $estr;
 ValueType.TInt.__enum__ = ValueType;
 ValueType.TFloat = ["TFloat",2];
-ValueType.TFloat.toString = $estr;
 ValueType.TFloat.__enum__ = ValueType;
 ValueType.TBool = ["TBool",3];
-ValueType.TBool.toString = $estr;
 ValueType.TBool.__enum__ = ValueType;
 ValueType.TObject = ["TObject",4];
-ValueType.TObject.toString = $estr;
 ValueType.TObject.__enum__ = ValueType;
 ValueType.TFunction = ["TFunction",5];
-ValueType.TFunction.toString = $estr;
 ValueType.TFunction.__enum__ = ValueType;
-ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
-ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; $x.toString = $estr; return $x; };
+ValueType.TClass = function(c) { var $x = ["TClass",6,c]; $x.__enum__ = ValueType; return $x; };
+ValueType.TEnum = function(e) { var $x = ["TEnum",7,e]; $x.__enum__ = ValueType; return $x; };
 ValueType.TUnknown = ["TUnknown",8];
-ValueType.TUnknown.toString = $estr;
 ValueType.TUnknown.__enum__ = ValueType;
 var Type = function() { };
 $hxClasses["Type"] = Type;
@@ -2113,25 +2109,18 @@ core_CompilationOutput.load = function() {
 };
 var core_CompletionType = $hxClasses["core.CompletionType"] = { __ename__ : ["core","CompletionType"], __constructs__ : ["REGULAR","FILELIST","PASTEFOLDER","OPENFILE","CLASSLIST","HXML","METATAGS"] };
 core_CompletionType.REGULAR = ["REGULAR",0];
-core_CompletionType.REGULAR.toString = $estr;
 core_CompletionType.REGULAR.__enum__ = core_CompletionType;
 core_CompletionType.FILELIST = ["FILELIST",1];
-core_CompletionType.FILELIST.toString = $estr;
 core_CompletionType.FILELIST.__enum__ = core_CompletionType;
 core_CompletionType.PASTEFOLDER = ["PASTEFOLDER",2];
-core_CompletionType.PASTEFOLDER.toString = $estr;
 core_CompletionType.PASTEFOLDER.__enum__ = core_CompletionType;
 core_CompletionType.OPENFILE = ["OPENFILE",3];
-core_CompletionType.OPENFILE.toString = $estr;
 core_CompletionType.OPENFILE.__enum__ = core_CompletionType;
 core_CompletionType.CLASSLIST = ["CLASSLIST",4];
-core_CompletionType.CLASSLIST.toString = $estr;
 core_CompletionType.CLASSLIST.__enum__ = core_CompletionType;
 core_CompletionType.HXML = ["HXML",5];
-core_CompletionType.HXML.toString = $estr;
 core_CompletionType.HXML.__enum__ = core_CompletionType;
 core_CompletionType.METATAGS = ["METATAGS",6];
-core_CompletionType.METATAGS.toString = $estr;
 core_CompletionType.METATAGS.__enum__ = core_CompletionType;
 var core_Completion = function() {
 	this.completionType = core_CompletionType.REGULAR;
@@ -2788,10 +2777,11 @@ core_DragAndDrop.prepare = function() {
 			var path = [e1.dataTransfer.files[i].path];
 			js_Node.require("fs").stat(path[0],(function(path) {
 				return function(err,stats) {
-					if(stats.isDirectory()) {
+					var success = openproject_OpenProject.openProject(path[0]);
+					if(!success) {
 						var filetreeInstance = filetree_FileTree.get();
 						filetreeInstance.load(js_Node.require("path").basename(path[0]),path[0]);
-					} else openproject_OpenProject.openProject(path[0]);
+					}
 				};
 			})(path));
 		}
@@ -3225,13 +3215,10 @@ core_HaxeLint.updateLinting = function() {
 };
 var core_FunctionScopeType = $hxClasses["core.FunctionScopeType"] = { __ename__ : ["core","FunctionScopeType"], __constructs__ : ["SClass","SStatic","SRegular"] };
 core_FunctionScopeType.SClass = ["SClass",0];
-core_FunctionScopeType.SClass.toString = $estr;
 core_FunctionScopeType.SClass.__enum__ = core_FunctionScopeType;
 core_FunctionScopeType.SStatic = ["SStatic",1];
-core_FunctionScopeType.SStatic.toString = $estr;
 core_FunctionScopeType.SStatic.__enum__ = core_FunctionScopeType;
 core_FunctionScopeType.SRegular = ["SRegular",2];
-core_FunctionScopeType.SRegular.toString = $estr;
 core_FunctionScopeType.SRegular.__enum__ = core_FunctionScopeType;
 var core_HaxeParserProvider = function() { };
 $hxClasses["core.HaxeParserProvider"] = core_HaxeParserProvider;
@@ -4103,7 +4090,7 @@ core_MenuCommands.add = function() {
 	menu_BootstrapMenu.getMenu("File").addMenuItem("New File...",2,$bind(tabManagerInstance,tabManagerInstance.createFileInNewTab),"Ctrl-N");
 	menu_BootstrapMenu.getMenu("File").addSeparator();
 	menu_BootstrapMenu.getMenu("File").addMenuItem("Open Project...",3,function() {
-		openproject_OpenProject.openProject(null,true);
+		return openproject_OpenProject.openProject(null,true);
 	});
 	menu_BootstrapMenu.getMenu("File").addSubmenu("Open Recent Project");
 	menu_BootstrapMenu.getMenu("File").addMenuItem("Close Project",4,openproject_OpenProject.closeProject);
@@ -4318,8 +4305,10 @@ core_PreserveWindowState.dumpWindowState = function() {
 	}
 };
 core_PreserveWindowState.restoreWindowState = function() {
+	var x = core_PreserveWindowState.winState.x;
+	var y = core_PreserveWindowState.winState.y;
 	core_PreserveWindowState.window.resizeTo(core_PreserveWindowState.winState.width,core_PreserveWindowState.winState.height);
-	core_PreserveWindowState.window.moveTo(core_PreserveWindowState.winState.x,core_PreserveWindowState.winState.y);
+	core_PreserveWindowState.window.moveTo(x,y);
 };
 core_PreserveWindowState.saveWindowState = function() {
 	core_PreserveWindowState.dumpWindowState();
@@ -4628,7 +4617,7 @@ core_QuickOpen.prototype = {
 			break;
 		case 13:
 			e.preventDefault();
-			this.listGroup.getItems()[this.activeItemIndex].click();
+			if(this.activeItemIndex < this.currentList.length) this.listGroup.getItems()[this.activeItemIndex].click();
 			break;
 		}
 	}
@@ -4754,7 +4743,7 @@ core_RecentProjectsList.prototype = {
 			var i = _g1++;
 			submenu.addMenuItem(this.projectList[i],i + 1,(function(f,a1) {
 				return function() {
-					f(a1);
+					return f(a1);
 				};
 			})(openproject_OpenProject.openProject,this.projectList[i]));
 		}
@@ -5048,7 +5037,7 @@ core_WelcomeScreen.prototype = {
 		this.div = js_Boot.__cast(window.document.getElementById("welcomeScreen") , HTMLDivElement);
 		$("#createNewProject").on("click",null,newprojectdialog_NewProjectDialog.show);
 		$("#openProject").on("click",null,function() {
-			openproject_OpenProject.openProject(null,true);
+			return openproject_OpenProject.openProject(null,true);
 		});
 		var links = window.document.getElementsByClassName("welcome-screen-link");
 		var _g1 = 0;
@@ -6763,13 +6752,13 @@ haxe_Serializer.prototype = {
 	,__class__: haxe_Serializer
 };
 var haxe__$Template_TemplateExpr = $hxClasses["haxe._Template.TemplateExpr"] = { __ename__ : ["haxe","_Template","TemplateExpr"], __constructs__ : ["OpVar","OpExpr","OpIf","OpStr","OpBlock","OpForeach","OpMacro"] };
-haxe__$Template_TemplateExpr.OpVar = function(v) { var $x = ["OpVar",0,v]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpExpr = function(expr) { var $x = ["OpExpr",1,expr]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpIf = function(expr,eif,eelse) { var $x = ["OpIf",2,expr,eif,eelse]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpStr = function(str) { var $x = ["OpStr",3,str]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpBlock = function(l) { var $x = ["OpBlock",4,l]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpForeach = function(expr,loop) { var $x = ["OpForeach",5,expr,loop]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
-haxe__$Template_TemplateExpr.OpMacro = function(name,params) { var $x = ["OpMacro",6,name,params]; $x.__enum__ = haxe__$Template_TemplateExpr; $x.toString = $estr; return $x; };
+haxe__$Template_TemplateExpr.OpVar = function(v) { var $x = ["OpVar",0,v]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpExpr = function(expr) { var $x = ["OpExpr",1,expr]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpIf = function(expr,eif,eelse) { var $x = ["OpIf",2,expr,eif,eelse]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpStr = function(str) { var $x = ["OpStr",3,str]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpBlock = function(l) { var $x = ["OpBlock",4,l]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpForeach = function(expr,loop) { var $x = ["OpForeach",5,expr,loop]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
+haxe__$Template_TemplateExpr.OpMacro = function(name,params) { var $x = ["OpMacro",6,name,params]; $x.__enum__ = haxe__$Template_TemplateExpr; return $x; };
 var haxe_Template = function(str) {
 	var tokens = this.parseTokens(str);
 	this.expr = this.parseBlock(tokens);
@@ -7671,9 +7660,8 @@ haxe_ds_ObjectMap.prototype = {
 	,__class__: haxe_ds_ObjectMap
 };
 var haxe_ds_Option = $hxClasses["haxe.ds.Option"] = { __ename__ : ["haxe","ds","Option"], __constructs__ : ["Some","None"] };
-haxe_ds_Option.Some = function(v) { var $x = ["Some",0,v]; $x.__enum__ = haxe_ds_Option; $x.toString = $estr; return $x; };
+haxe_ds_Option.Some = function(v) { var $x = ["Some",0,v]; $x.__enum__ = haxe_ds_Option; return $x; };
 haxe_ds_Option.None = ["None",1];
-haxe_ds_Option.None.toString = $estr;
 haxe_ds_Option.None.__enum__ = haxe_ds_Option;
 var haxe_ds__$StringMap_StringMapIterator = function(map,keys) {
 	this.map = map;
@@ -7708,176 +7696,137 @@ haxe_io_Eof.prototype = {
 };
 var haxe_io_Error = $hxClasses["haxe.io.Error"] = { __ename__ : ["haxe","io","Error"], __constructs__ : ["Blocked","Overflow","OutsideBounds","Custom"] };
 haxe_io_Error.Blocked = ["Blocked",0];
-haxe_io_Error.Blocked.toString = $estr;
 haxe_io_Error.Blocked.__enum__ = haxe_io_Error;
 haxe_io_Error.Overflow = ["Overflow",1];
-haxe_io_Error.Overflow.toString = $estr;
 haxe_io_Error.Overflow.__enum__ = haxe_io_Error;
 haxe_io_Error.OutsideBounds = ["OutsideBounds",2];
-haxe_io_Error.OutsideBounds.toString = $estr;
 haxe_io_Error.OutsideBounds.__enum__ = haxe_io_Error;
-haxe_io_Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe_io_Error; $x.toString = $estr; return $x; };
+haxe_io_Error.Custom = function(e) { var $x = ["Custom",3,e]; $x.__enum__ = haxe_io_Error; return $x; };
 var haxe_macro_Constant = $hxClasses["haxe.macro.Constant"] = { __ename__ : ["haxe","macro","Constant"], __constructs__ : ["CInt","CFloat","CString","CIdent","CRegexp"] };
-haxe_macro_Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
-haxe_macro_Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
-haxe_macro_Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
-haxe_macro_Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
-haxe_macro_Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe_macro_Constant; $x.toString = $estr; return $x; };
+haxe_macro_Constant.CInt = function(v) { var $x = ["CInt",0,v]; $x.__enum__ = haxe_macro_Constant; return $x; };
+haxe_macro_Constant.CFloat = function(f) { var $x = ["CFloat",1,f]; $x.__enum__ = haxe_macro_Constant; return $x; };
+haxe_macro_Constant.CString = function(s) { var $x = ["CString",2,s]; $x.__enum__ = haxe_macro_Constant; return $x; };
+haxe_macro_Constant.CIdent = function(s) { var $x = ["CIdent",3,s]; $x.__enum__ = haxe_macro_Constant; return $x; };
+haxe_macro_Constant.CRegexp = function(r,opt) { var $x = ["CRegexp",4,r,opt]; $x.__enum__ = haxe_macro_Constant; return $x; };
 var haxe_macro_Binop = $hxClasses["haxe.macro.Binop"] = { __ename__ : ["haxe","macro","Binop"], __constructs__ : ["OpAdd","OpMult","OpDiv","OpSub","OpAssign","OpEq","OpNotEq","OpGt","OpGte","OpLt","OpLte","OpAnd","OpOr","OpXor","OpBoolAnd","OpBoolOr","OpShl","OpShr","OpUShr","OpMod","OpAssignOp","OpInterval","OpArrow"] };
 haxe_macro_Binop.OpAdd = ["OpAdd",0];
-haxe_macro_Binop.OpAdd.toString = $estr;
 haxe_macro_Binop.OpAdd.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpMult = ["OpMult",1];
-haxe_macro_Binop.OpMult.toString = $estr;
 haxe_macro_Binop.OpMult.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpDiv = ["OpDiv",2];
-haxe_macro_Binop.OpDiv.toString = $estr;
 haxe_macro_Binop.OpDiv.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpSub = ["OpSub",3];
-haxe_macro_Binop.OpSub.toString = $estr;
 haxe_macro_Binop.OpSub.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpAssign = ["OpAssign",4];
-haxe_macro_Binop.OpAssign.toString = $estr;
 haxe_macro_Binop.OpAssign.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpEq = ["OpEq",5];
-haxe_macro_Binop.OpEq.toString = $estr;
 haxe_macro_Binop.OpEq.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpNotEq = ["OpNotEq",6];
-haxe_macro_Binop.OpNotEq.toString = $estr;
 haxe_macro_Binop.OpNotEq.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpGt = ["OpGt",7];
-haxe_macro_Binop.OpGt.toString = $estr;
 haxe_macro_Binop.OpGt.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpGte = ["OpGte",8];
-haxe_macro_Binop.OpGte.toString = $estr;
 haxe_macro_Binop.OpGte.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpLt = ["OpLt",9];
-haxe_macro_Binop.OpLt.toString = $estr;
 haxe_macro_Binop.OpLt.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpLte = ["OpLte",10];
-haxe_macro_Binop.OpLte.toString = $estr;
 haxe_macro_Binop.OpLte.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpAnd = ["OpAnd",11];
-haxe_macro_Binop.OpAnd.toString = $estr;
 haxe_macro_Binop.OpAnd.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpOr = ["OpOr",12];
-haxe_macro_Binop.OpOr.toString = $estr;
 haxe_macro_Binop.OpOr.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpXor = ["OpXor",13];
-haxe_macro_Binop.OpXor.toString = $estr;
 haxe_macro_Binop.OpXor.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpBoolAnd = ["OpBoolAnd",14];
-haxe_macro_Binop.OpBoolAnd.toString = $estr;
 haxe_macro_Binop.OpBoolAnd.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpBoolOr = ["OpBoolOr",15];
-haxe_macro_Binop.OpBoolOr.toString = $estr;
 haxe_macro_Binop.OpBoolOr.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpShl = ["OpShl",16];
-haxe_macro_Binop.OpShl.toString = $estr;
 haxe_macro_Binop.OpShl.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpShr = ["OpShr",17];
-haxe_macro_Binop.OpShr.toString = $estr;
 haxe_macro_Binop.OpShr.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpUShr = ["OpUShr",18];
-haxe_macro_Binop.OpUShr.toString = $estr;
 haxe_macro_Binop.OpUShr.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpMod = ["OpMod",19];
-haxe_macro_Binop.OpMod.toString = $estr;
 haxe_macro_Binop.OpMod.__enum__ = haxe_macro_Binop;
-haxe_macro_Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe_macro_Binop; $x.toString = $estr; return $x; };
+haxe_macro_Binop.OpAssignOp = function(op) { var $x = ["OpAssignOp",20,op]; $x.__enum__ = haxe_macro_Binop; return $x; };
 haxe_macro_Binop.OpInterval = ["OpInterval",21];
-haxe_macro_Binop.OpInterval.toString = $estr;
 haxe_macro_Binop.OpInterval.__enum__ = haxe_macro_Binop;
 haxe_macro_Binop.OpArrow = ["OpArrow",22];
-haxe_macro_Binop.OpArrow.toString = $estr;
 haxe_macro_Binop.OpArrow.__enum__ = haxe_macro_Binop;
 var haxe_macro_Unop = $hxClasses["haxe.macro.Unop"] = { __ename__ : ["haxe","macro","Unop"], __constructs__ : ["OpIncrement","OpDecrement","OpNot","OpNeg","OpNegBits"] };
 haxe_macro_Unop.OpIncrement = ["OpIncrement",0];
-haxe_macro_Unop.OpIncrement.toString = $estr;
 haxe_macro_Unop.OpIncrement.__enum__ = haxe_macro_Unop;
 haxe_macro_Unop.OpDecrement = ["OpDecrement",1];
-haxe_macro_Unop.OpDecrement.toString = $estr;
 haxe_macro_Unop.OpDecrement.__enum__ = haxe_macro_Unop;
 haxe_macro_Unop.OpNot = ["OpNot",2];
-haxe_macro_Unop.OpNot.toString = $estr;
 haxe_macro_Unop.OpNot.__enum__ = haxe_macro_Unop;
 haxe_macro_Unop.OpNeg = ["OpNeg",3];
-haxe_macro_Unop.OpNeg.toString = $estr;
 haxe_macro_Unop.OpNeg.__enum__ = haxe_macro_Unop;
 haxe_macro_Unop.OpNegBits = ["OpNegBits",4];
-haxe_macro_Unop.OpNegBits.toString = $estr;
 haxe_macro_Unop.OpNegBits.__enum__ = haxe_macro_Unop;
 var haxe_macro_ExprDef = $hxClasses["haxe.macro.ExprDef"] = { __ename__ : ["haxe","macro","ExprDef"], __constructs__ : ["EConst","EArray","EBinop","EField","EParenthesis","EObjectDecl","EArrayDecl","ECall","ENew","EUnop","EVars","EFunction","EBlock","EFor","EIn","EIf","EWhile","ESwitch","ETry","EReturn","EBreak","EContinue","EUntyped","EThrow","ECast","EDisplay","EDisplayNew","ETernary","ECheckType","EMeta"] };
-haxe_macro_ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EConst = function(c) { var $x = ["EConst",0,c]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EArray = function(e1,e2) { var $x = ["EArray",1,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EBinop = function(op,e1,e2) { var $x = ["EBinop",2,op,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EField = function(e,field) { var $x = ["EField",3,e,field]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EParenthesis = function(e) { var $x = ["EParenthesis",4,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EObjectDecl = function(fields) { var $x = ["EObjectDecl",5,fields]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EArrayDecl = function(values) { var $x = ["EArrayDecl",6,values]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ECall = function(e,params) { var $x = ["ECall",7,e,params]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ENew = function(t,params) { var $x = ["ENew",8,t,params]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EUnop = function(op,postFix,e) { var $x = ["EUnop",9,op,postFix,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EVars = function(vars) { var $x = ["EVars",10,vars]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EFunction = function(name,f) { var $x = ["EFunction",11,name,f]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EBlock = function(exprs) { var $x = ["EBlock",12,exprs]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EFor = function(it,expr) { var $x = ["EFor",13,it,expr]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EIn = function(e1,e2) { var $x = ["EIn",14,e1,e2]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EIf = function(econd,eif,eelse) { var $x = ["EIf",15,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EWhile = function(econd,e,normalWhile) { var $x = ["EWhile",16,econd,e,normalWhile]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ESwitch = function(e,cases,edef) { var $x = ["ESwitch",17,e,cases,edef]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ETry = function(e,catches) { var $x = ["ETry",18,e,catches]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EReturn = function(e) { var $x = ["EReturn",19,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
 haxe_macro_ExprDef.EBreak = ["EBreak",20];
-haxe_macro_ExprDef.EBreak.toString = $estr;
 haxe_macro_ExprDef.EBreak.__enum__ = haxe_macro_ExprDef;
 haxe_macro_ExprDef.EContinue = ["EContinue",21];
-haxe_macro_ExprDef.EContinue.toString = $estr;
 haxe_macro_ExprDef.EContinue.__enum__ = haxe_macro_ExprDef;
-haxe_macro_ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
-haxe_macro_ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe_macro_ExprDef; $x.toString = $estr; return $x; };
+haxe_macro_ExprDef.EUntyped = function(e) { var $x = ["EUntyped",22,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EThrow = function(e) { var $x = ["EThrow",23,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ECast = function(e,t) { var $x = ["ECast",24,e,t]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EDisplay = function(e,isCall) { var $x = ["EDisplay",25,e,isCall]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EDisplayNew = function(t) { var $x = ["EDisplayNew",26,t]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ETernary = function(econd,eif,eelse) { var $x = ["ETernary",27,econd,eif,eelse]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.ECheckType = function(e,t) { var $x = ["ECheckType",28,e,t]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
+haxe_macro_ExprDef.EMeta = function(s,e) { var $x = ["EMeta",29,s,e]; $x.__enum__ = haxe_macro_ExprDef; return $x; };
 var haxe_macro_ComplexType = $hxClasses["haxe.macro.ComplexType"] = { __ename__ : ["haxe","macro","ComplexType"], __constructs__ : ["TPath","TFunction","TAnonymous","TParent","TExtend","TOptional"] };
-haxe_macro_ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
-haxe_macro_ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
-haxe_macro_ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
-haxe_macro_ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
-haxe_macro_ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
-haxe_macro_ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe_macro_ComplexType; $x.toString = $estr; return $x; };
+haxe_macro_ComplexType.TPath = function(p) { var $x = ["TPath",0,p]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
+haxe_macro_ComplexType.TFunction = function(args,ret) { var $x = ["TFunction",1,args,ret]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
+haxe_macro_ComplexType.TAnonymous = function(fields) { var $x = ["TAnonymous",2,fields]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
+haxe_macro_ComplexType.TParent = function(t) { var $x = ["TParent",3,t]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
+haxe_macro_ComplexType.TExtend = function(p,fields) { var $x = ["TExtend",4,p,fields]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
+haxe_macro_ComplexType.TOptional = function(t) { var $x = ["TOptional",5,t]; $x.__enum__ = haxe_macro_ComplexType; return $x; };
 var haxe_macro_TypeParam = $hxClasses["haxe.macro.TypeParam"] = { __ename__ : ["haxe","macro","TypeParam"], __constructs__ : ["TPType","TPExpr"] };
-haxe_macro_TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe_macro_TypeParam; $x.toString = $estr; return $x; };
-haxe_macro_TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe_macro_TypeParam; $x.toString = $estr; return $x; };
+haxe_macro_TypeParam.TPType = function(t) { var $x = ["TPType",0,t]; $x.__enum__ = haxe_macro_TypeParam; return $x; };
+haxe_macro_TypeParam.TPExpr = function(e) { var $x = ["TPExpr",1,e]; $x.__enum__ = haxe_macro_TypeParam; return $x; };
 var haxe_macro_Access = $hxClasses["haxe.macro.Access"] = { __ename__ : ["haxe","macro","Access"], __constructs__ : ["APublic","APrivate","AStatic","AOverride","ADynamic","AInline","AMacro"] };
 haxe_macro_Access.APublic = ["APublic",0];
-haxe_macro_Access.APublic.toString = $estr;
 haxe_macro_Access.APublic.__enum__ = haxe_macro_Access;
 haxe_macro_Access.APrivate = ["APrivate",1];
-haxe_macro_Access.APrivate.toString = $estr;
 haxe_macro_Access.APrivate.__enum__ = haxe_macro_Access;
 haxe_macro_Access.AStatic = ["AStatic",2];
-haxe_macro_Access.AStatic.toString = $estr;
 haxe_macro_Access.AStatic.__enum__ = haxe_macro_Access;
 haxe_macro_Access.AOverride = ["AOverride",3];
-haxe_macro_Access.AOverride.toString = $estr;
 haxe_macro_Access.AOverride.__enum__ = haxe_macro_Access;
 haxe_macro_Access.ADynamic = ["ADynamic",4];
-haxe_macro_Access.ADynamic.toString = $estr;
 haxe_macro_Access.ADynamic.__enum__ = haxe_macro_Access;
 haxe_macro_Access.AInline = ["AInline",5];
-haxe_macro_Access.AInline.toString = $estr;
 haxe_macro_Access.AInline.__enum__ = haxe_macro_Access;
 haxe_macro_Access.AMacro = ["AMacro",6];
-haxe_macro_Access.AMacro.toString = $estr;
 haxe_macro_Access.AMacro.__enum__ = haxe_macro_Access;
 var haxe_macro_FieldType = $hxClasses["haxe.macro.FieldType"] = { __ename__ : ["haxe","macro","FieldType"], __constructs__ : ["FVar","FFun","FProp"] };
-haxe_macro_FieldType.FVar = function(t,e) { var $x = ["FVar",0,t,e]; $x.__enum__ = haxe_macro_FieldType; $x.toString = $estr; return $x; };
-haxe_macro_FieldType.FFun = function(f) { var $x = ["FFun",1,f]; $x.__enum__ = haxe_macro_FieldType; $x.toString = $estr; return $x; };
-haxe_macro_FieldType.FProp = function(get,set,t,e) { var $x = ["FProp",2,get,set,t,e]; $x.__enum__ = haxe_macro_FieldType; $x.toString = $estr; return $x; };
+haxe_macro_FieldType.FVar = function(t,e) { var $x = ["FVar",0,t,e]; $x.__enum__ = haxe_macro_FieldType; return $x; };
+haxe_macro_FieldType.FFun = function(f) { var $x = ["FFun",1,f]; $x.__enum__ = haxe_macro_FieldType; return $x; };
+haxe_macro_FieldType.FProp = function(get,set,t,e) { var $x = ["FProp",2,get,set,t,e]; $x.__enum__ = haxe_macro_FieldType; return $x; };
 var haxe_macro_ExprTools = function() { };
 $hxClasses["haxe.macro.ExprTools"] = haxe_macro_ExprTools;
 haxe_macro_ExprTools.__name__ = ["haxe","macro","ExprTools"];
@@ -8908,182 +8857,126 @@ haxe_xml_Printer.prototype = {
 };
 var haxeparser_Keyword = $hxClasses["haxeparser.Keyword"] = { __ename__ : ["haxeparser","Keyword"], __constructs__ : ["KwdFunction","KwdClass","KwdVar","KwdIf","KwdElse","KwdWhile","KwdDo","KwdFor","KwdBreak","KwdContinue","KwdReturn","KwdExtends","KwdImplements","KwdImport","KwdSwitch","KwdCase","KwdDefault","KwdStatic","KwdPublic","KwdPrivate","KwdTry","KwdCatch","KwdNew","KwdThis","KwdThrow","KwdExtern","KwdEnum","KwdIn","KwdInterface","KwdUntyped","KwdCast","KwdOverride","KwdTypedef","KwdDynamic","KwdPackage","KwdInline","KwdUsing","KwdNull","KwdTrue","KwdFalse","KwdAbstract","KwdMacro"] };
 haxeparser_Keyword.KwdFunction = ["KwdFunction",0];
-haxeparser_Keyword.KwdFunction.toString = $estr;
 haxeparser_Keyword.KwdFunction.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdClass = ["KwdClass",1];
-haxeparser_Keyword.KwdClass.toString = $estr;
 haxeparser_Keyword.KwdClass.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdVar = ["KwdVar",2];
-haxeparser_Keyword.KwdVar.toString = $estr;
 haxeparser_Keyword.KwdVar.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdIf = ["KwdIf",3];
-haxeparser_Keyword.KwdIf.toString = $estr;
 haxeparser_Keyword.KwdIf.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdElse = ["KwdElse",4];
-haxeparser_Keyword.KwdElse.toString = $estr;
 haxeparser_Keyword.KwdElse.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdWhile = ["KwdWhile",5];
-haxeparser_Keyword.KwdWhile.toString = $estr;
 haxeparser_Keyword.KwdWhile.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdDo = ["KwdDo",6];
-haxeparser_Keyword.KwdDo.toString = $estr;
 haxeparser_Keyword.KwdDo.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdFor = ["KwdFor",7];
-haxeparser_Keyword.KwdFor.toString = $estr;
 haxeparser_Keyword.KwdFor.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdBreak = ["KwdBreak",8];
-haxeparser_Keyword.KwdBreak.toString = $estr;
 haxeparser_Keyword.KwdBreak.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdContinue = ["KwdContinue",9];
-haxeparser_Keyword.KwdContinue.toString = $estr;
 haxeparser_Keyword.KwdContinue.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdReturn = ["KwdReturn",10];
-haxeparser_Keyword.KwdReturn.toString = $estr;
 haxeparser_Keyword.KwdReturn.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdExtends = ["KwdExtends",11];
-haxeparser_Keyword.KwdExtends.toString = $estr;
 haxeparser_Keyword.KwdExtends.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdImplements = ["KwdImplements",12];
-haxeparser_Keyword.KwdImplements.toString = $estr;
 haxeparser_Keyword.KwdImplements.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdImport = ["KwdImport",13];
-haxeparser_Keyword.KwdImport.toString = $estr;
 haxeparser_Keyword.KwdImport.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdSwitch = ["KwdSwitch",14];
-haxeparser_Keyword.KwdSwitch.toString = $estr;
 haxeparser_Keyword.KwdSwitch.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdCase = ["KwdCase",15];
-haxeparser_Keyword.KwdCase.toString = $estr;
 haxeparser_Keyword.KwdCase.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdDefault = ["KwdDefault",16];
-haxeparser_Keyword.KwdDefault.toString = $estr;
 haxeparser_Keyword.KwdDefault.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdStatic = ["KwdStatic",17];
-haxeparser_Keyword.KwdStatic.toString = $estr;
 haxeparser_Keyword.KwdStatic.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdPublic = ["KwdPublic",18];
-haxeparser_Keyword.KwdPublic.toString = $estr;
 haxeparser_Keyword.KwdPublic.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdPrivate = ["KwdPrivate",19];
-haxeparser_Keyword.KwdPrivate.toString = $estr;
 haxeparser_Keyword.KwdPrivate.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdTry = ["KwdTry",20];
-haxeparser_Keyword.KwdTry.toString = $estr;
 haxeparser_Keyword.KwdTry.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdCatch = ["KwdCatch",21];
-haxeparser_Keyword.KwdCatch.toString = $estr;
 haxeparser_Keyword.KwdCatch.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdNew = ["KwdNew",22];
-haxeparser_Keyword.KwdNew.toString = $estr;
 haxeparser_Keyword.KwdNew.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdThis = ["KwdThis",23];
-haxeparser_Keyword.KwdThis.toString = $estr;
 haxeparser_Keyword.KwdThis.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdThrow = ["KwdThrow",24];
-haxeparser_Keyword.KwdThrow.toString = $estr;
 haxeparser_Keyword.KwdThrow.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdExtern = ["KwdExtern",25];
-haxeparser_Keyword.KwdExtern.toString = $estr;
 haxeparser_Keyword.KwdExtern.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdEnum = ["KwdEnum",26];
-haxeparser_Keyword.KwdEnum.toString = $estr;
 haxeparser_Keyword.KwdEnum.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdIn = ["KwdIn",27];
-haxeparser_Keyword.KwdIn.toString = $estr;
 haxeparser_Keyword.KwdIn.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdInterface = ["KwdInterface",28];
-haxeparser_Keyword.KwdInterface.toString = $estr;
 haxeparser_Keyword.KwdInterface.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdUntyped = ["KwdUntyped",29];
-haxeparser_Keyword.KwdUntyped.toString = $estr;
 haxeparser_Keyword.KwdUntyped.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdCast = ["KwdCast",30];
-haxeparser_Keyword.KwdCast.toString = $estr;
 haxeparser_Keyword.KwdCast.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdOverride = ["KwdOverride",31];
-haxeparser_Keyword.KwdOverride.toString = $estr;
 haxeparser_Keyword.KwdOverride.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdTypedef = ["KwdTypedef",32];
-haxeparser_Keyword.KwdTypedef.toString = $estr;
 haxeparser_Keyword.KwdTypedef.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdDynamic = ["KwdDynamic",33];
-haxeparser_Keyword.KwdDynamic.toString = $estr;
 haxeparser_Keyword.KwdDynamic.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdPackage = ["KwdPackage",34];
-haxeparser_Keyword.KwdPackage.toString = $estr;
 haxeparser_Keyword.KwdPackage.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdInline = ["KwdInline",35];
-haxeparser_Keyword.KwdInline.toString = $estr;
 haxeparser_Keyword.KwdInline.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdUsing = ["KwdUsing",36];
-haxeparser_Keyword.KwdUsing.toString = $estr;
 haxeparser_Keyword.KwdUsing.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdNull = ["KwdNull",37];
-haxeparser_Keyword.KwdNull.toString = $estr;
 haxeparser_Keyword.KwdNull.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdTrue = ["KwdTrue",38];
-haxeparser_Keyword.KwdTrue.toString = $estr;
 haxeparser_Keyword.KwdTrue.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdFalse = ["KwdFalse",39];
-haxeparser_Keyword.KwdFalse.toString = $estr;
 haxeparser_Keyword.KwdFalse.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdAbstract = ["KwdAbstract",40];
-haxeparser_Keyword.KwdAbstract.toString = $estr;
 haxeparser_Keyword.KwdAbstract.__enum__ = haxeparser_Keyword;
 haxeparser_Keyword.KwdMacro = ["KwdMacro",41];
-haxeparser_Keyword.KwdMacro.toString = $estr;
 haxeparser_Keyword.KwdMacro.__enum__ = haxeparser_Keyword;
 var haxeparser_TokenDef = $hxClasses["haxeparser.TokenDef"] = { __ename__ : ["haxeparser","TokenDef"], __constructs__ : ["Kwd","Const","Sharp","Dollar","Unop","Binop","Comment","CommentLine","IntInterval","Semicolon","Dot","DblDot","Arrow","Comma","BkOpen","BkClose","BrOpen","BrClose","POpen","PClose","Question","At","Eof"] };
-haxeparser_TokenDef.Kwd = function(k) { var $x = ["Kwd",0,k]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Const = function(c) { var $x = ["Const",1,c]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Sharp = function(s) { var $x = ["Sharp",2,s]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Dollar = function(s) { var $x = ["Dollar",3,s]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Unop = function(op) { var $x = ["Unop",4,op]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Binop = function(op) { var $x = ["Binop",5,op]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.Comment = function(s) { var $x = ["Comment",6,s]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.CommentLine = function(s) { var $x = ["CommentLine",7,s]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
-haxeparser_TokenDef.IntInterval = function(s) { var $x = ["IntInterval",8,s]; $x.__enum__ = haxeparser_TokenDef; $x.toString = $estr; return $x; };
+haxeparser_TokenDef.Kwd = function(k) { var $x = ["Kwd",0,k]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Const = function(c) { var $x = ["Const",1,c]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Sharp = function(s) { var $x = ["Sharp",2,s]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Dollar = function(s) { var $x = ["Dollar",3,s]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Unop = function(op) { var $x = ["Unop",4,op]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Binop = function(op) { var $x = ["Binop",5,op]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.Comment = function(s) { var $x = ["Comment",6,s]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.CommentLine = function(s) { var $x = ["CommentLine",7,s]; $x.__enum__ = haxeparser_TokenDef; return $x; };
+haxeparser_TokenDef.IntInterval = function(s) { var $x = ["IntInterval",8,s]; $x.__enum__ = haxeparser_TokenDef; return $x; };
 haxeparser_TokenDef.Semicolon = ["Semicolon",9];
-haxeparser_TokenDef.Semicolon.toString = $estr;
 haxeparser_TokenDef.Semicolon.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.Dot = ["Dot",10];
-haxeparser_TokenDef.Dot.toString = $estr;
 haxeparser_TokenDef.Dot.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.DblDot = ["DblDot",11];
-haxeparser_TokenDef.DblDot.toString = $estr;
 haxeparser_TokenDef.DblDot.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.Arrow = ["Arrow",12];
-haxeparser_TokenDef.Arrow.toString = $estr;
 haxeparser_TokenDef.Arrow.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.Comma = ["Comma",13];
-haxeparser_TokenDef.Comma.toString = $estr;
 haxeparser_TokenDef.Comma.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.BkOpen = ["BkOpen",14];
-haxeparser_TokenDef.BkOpen.toString = $estr;
 haxeparser_TokenDef.BkOpen.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.BkClose = ["BkClose",15];
-haxeparser_TokenDef.BkClose.toString = $estr;
 haxeparser_TokenDef.BkClose.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.BrOpen = ["BrOpen",16];
-haxeparser_TokenDef.BrOpen.toString = $estr;
 haxeparser_TokenDef.BrOpen.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.BrClose = ["BrClose",17];
-haxeparser_TokenDef.BrClose.toString = $estr;
 haxeparser_TokenDef.BrClose.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.POpen = ["POpen",18];
-haxeparser_TokenDef.POpen.toString = $estr;
 haxeparser_TokenDef.POpen.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.PClose = ["PClose",19];
-haxeparser_TokenDef.PClose.toString = $estr;
 haxeparser_TokenDef.PClose.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.Question = ["Question",20];
-haxeparser_TokenDef.Question.toString = $estr;
 haxeparser_TokenDef.Question.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.At = ["At",21];
-haxeparser_TokenDef.At.toString = $estr;
 haxeparser_TokenDef.At.__enum__ = haxeparser_TokenDef;
 haxeparser_TokenDef.Eof = ["Eof",22];
-haxeparser_TokenDef.Eof.toString = $estr;
 haxeparser_TokenDef.Eof.__enum__ = haxeparser_TokenDef;
 var haxeparser_Token = function(tok,pos) {
 	this.tok = tok;
@@ -9097,61 +8990,49 @@ haxeparser_Token.prototype = {
 	,__class__: haxeparser_Token
 };
 var haxeparser_TypeDef = $hxClasses["haxeparser.TypeDef"] = { __ename__ : ["haxeparser","TypeDef"], __constructs__ : ["EClass","EEnum","EAbstract","EImport","ETypedef","EUsing"] };
-haxeparser_TypeDef.EClass = function(d) { var $x = ["EClass",0,d]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
-haxeparser_TypeDef.EEnum = function(d) { var $x = ["EEnum",1,d]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
-haxeparser_TypeDef.EAbstract = function(a) { var $x = ["EAbstract",2,a]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
-haxeparser_TypeDef.EImport = function(sl,mode) { var $x = ["EImport",3,sl,mode]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
-haxeparser_TypeDef.ETypedef = function(d) { var $x = ["ETypedef",4,d]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
-haxeparser_TypeDef.EUsing = function(path) { var $x = ["EUsing",5,path]; $x.__enum__ = haxeparser_TypeDef; $x.toString = $estr; return $x; };
+haxeparser_TypeDef.EClass = function(d) { var $x = ["EClass",0,d]; $x.__enum__ = haxeparser_TypeDef; return $x; };
+haxeparser_TypeDef.EEnum = function(d) { var $x = ["EEnum",1,d]; $x.__enum__ = haxeparser_TypeDef; return $x; };
+haxeparser_TypeDef.EAbstract = function(a) { var $x = ["EAbstract",2,a]; $x.__enum__ = haxeparser_TypeDef; return $x; };
+haxeparser_TypeDef.EImport = function(sl,mode) { var $x = ["EImport",3,sl,mode]; $x.__enum__ = haxeparser_TypeDef; return $x; };
+haxeparser_TypeDef.ETypedef = function(d) { var $x = ["ETypedef",4,d]; $x.__enum__ = haxeparser_TypeDef; return $x; };
+haxeparser_TypeDef.EUsing = function(path) { var $x = ["EUsing",5,path]; $x.__enum__ = haxeparser_TypeDef; return $x; };
 var haxeparser_ClassFlag = $hxClasses["haxeparser.ClassFlag"] = { __ename__ : ["haxeparser","ClassFlag"], __constructs__ : ["HInterface","HExtern","HPrivate","HExtends","HImplements"] };
 haxeparser_ClassFlag.HInterface = ["HInterface",0];
-haxeparser_ClassFlag.HInterface.toString = $estr;
 haxeparser_ClassFlag.HInterface.__enum__ = haxeparser_ClassFlag;
 haxeparser_ClassFlag.HExtern = ["HExtern",1];
-haxeparser_ClassFlag.HExtern.toString = $estr;
 haxeparser_ClassFlag.HExtern.__enum__ = haxeparser_ClassFlag;
 haxeparser_ClassFlag.HPrivate = ["HPrivate",2];
-haxeparser_ClassFlag.HPrivate.toString = $estr;
 haxeparser_ClassFlag.HPrivate.__enum__ = haxeparser_ClassFlag;
-haxeparser_ClassFlag.HExtends = function(t) { var $x = ["HExtends",3,t]; $x.__enum__ = haxeparser_ClassFlag; $x.toString = $estr; return $x; };
-haxeparser_ClassFlag.HImplements = function(t) { var $x = ["HImplements",4,t]; $x.__enum__ = haxeparser_ClassFlag; $x.toString = $estr; return $x; };
+haxeparser_ClassFlag.HExtends = function(t) { var $x = ["HExtends",3,t]; $x.__enum__ = haxeparser_ClassFlag; return $x; };
+haxeparser_ClassFlag.HImplements = function(t) { var $x = ["HImplements",4,t]; $x.__enum__ = haxeparser_ClassFlag; return $x; };
 var haxeparser_AbstractFlag = $hxClasses["haxeparser.AbstractFlag"] = { __ename__ : ["haxeparser","AbstractFlag"], __constructs__ : ["APrivAbstract","AFromType","AToType","AIsType"] };
 haxeparser_AbstractFlag.APrivAbstract = ["APrivAbstract",0];
-haxeparser_AbstractFlag.APrivAbstract.toString = $estr;
 haxeparser_AbstractFlag.APrivAbstract.__enum__ = haxeparser_AbstractFlag;
-haxeparser_AbstractFlag.AFromType = function(ct) { var $x = ["AFromType",1,ct]; $x.__enum__ = haxeparser_AbstractFlag; $x.toString = $estr; return $x; };
-haxeparser_AbstractFlag.AToType = function(ct) { var $x = ["AToType",2,ct]; $x.__enum__ = haxeparser_AbstractFlag; $x.toString = $estr; return $x; };
-haxeparser_AbstractFlag.AIsType = function(ct) { var $x = ["AIsType",3,ct]; $x.__enum__ = haxeparser_AbstractFlag; $x.toString = $estr; return $x; };
+haxeparser_AbstractFlag.AFromType = function(ct) { var $x = ["AFromType",1,ct]; $x.__enum__ = haxeparser_AbstractFlag; return $x; };
+haxeparser_AbstractFlag.AToType = function(ct) { var $x = ["AToType",2,ct]; $x.__enum__ = haxeparser_AbstractFlag; return $x; };
+haxeparser_AbstractFlag.AIsType = function(ct) { var $x = ["AIsType",3,ct]; $x.__enum__ = haxeparser_AbstractFlag; return $x; };
 var haxeparser_EnumFlag = $hxClasses["haxeparser.EnumFlag"] = { __ename__ : ["haxeparser","EnumFlag"], __constructs__ : ["EPrivate","EExtern"] };
 haxeparser_EnumFlag.EPrivate = ["EPrivate",0];
-haxeparser_EnumFlag.EPrivate.toString = $estr;
 haxeparser_EnumFlag.EPrivate.__enum__ = haxeparser_EnumFlag;
 haxeparser_EnumFlag.EExtern = ["EExtern",1];
-haxeparser_EnumFlag.EExtern.toString = $estr;
 haxeparser_EnumFlag.EExtern.__enum__ = haxeparser_EnumFlag;
 var haxeparser_ImportMode = $hxClasses["haxeparser.ImportMode"] = { __ename__ : ["haxeparser","ImportMode"], __constructs__ : ["INormal","IAsName","IAll"] };
 haxeparser_ImportMode.INormal = ["INormal",0];
-haxeparser_ImportMode.INormal.toString = $estr;
 haxeparser_ImportMode.INormal.__enum__ = haxeparser_ImportMode;
-haxeparser_ImportMode.IAsName = function(s) { var $x = ["IAsName",1,s]; $x.__enum__ = haxeparser_ImportMode; $x.toString = $estr; return $x; };
+haxeparser_ImportMode.IAsName = function(s) { var $x = ["IAsName",1,s]; $x.__enum__ = haxeparser_ImportMode; return $x; };
 haxeparser_ImportMode.IAll = ["IAll",2];
-haxeparser_ImportMode.IAll.toString = $estr;
 haxeparser_ImportMode.IAll.__enum__ = haxeparser_ImportMode;
 var haxeparser_LexerErrorMsg = $hxClasses["haxeparser.LexerErrorMsg"] = { __ename__ : ["haxeparser","LexerErrorMsg"], __constructs__ : ["UnterminatedString","UnterminatedRegExp","UnclosedComment","UnterminatedEscapeSequence","InvalidEscapeSequence","UnknownEscapeSequence"] };
 haxeparser_LexerErrorMsg.UnterminatedString = ["UnterminatedString",0];
-haxeparser_LexerErrorMsg.UnterminatedString.toString = $estr;
 haxeparser_LexerErrorMsg.UnterminatedString.__enum__ = haxeparser_LexerErrorMsg;
 haxeparser_LexerErrorMsg.UnterminatedRegExp = ["UnterminatedRegExp",1];
-haxeparser_LexerErrorMsg.UnterminatedRegExp.toString = $estr;
 haxeparser_LexerErrorMsg.UnterminatedRegExp.__enum__ = haxeparser_LexerErrorMsg;
 haxeparser_LexerErrorMsg.UnclosedComment = ["UnclosedComment",2];
-haxeparser_LexerErrorMsg.UnclosedComment.toString = $estr;
 haxeparser_LexerErrorMsg.UnclosedComment.__enum__ = haxeparser_LexerErrorMsg;
 haxeparser_LexerErrorMsg.UnterminatedEscapeSequence = ["UnterminatedEscapeSequence",3];
-haxeparser_LexerErrorMsg.UnterminatedEscapeSequence.toString = $estr;
 haxeparser_LexerErrorMsg.UnterminatedEscapeSequence.__enum__ = haxeparser_LexerErrorMsg;
-haxeparser_LexerErrorMsg.InvalidEscapeSequence = function(c) { var $x = ["InvalidEscapeSequence",4,c]; $x.__enum__ = haxeparser_LexerErrorMsg; $x.toString = $estr; return $x; };
-haxeparser_LexerErrorMsg.UnknownEscapeSequence = function(c) { var $x = ["UnknownEscapeSequence",5,c]; $x.__enum__ = haxeparser_LexerErrorMsg; $x.toString = $estr; return $x; };
+haxeparser_LexerErrorMsg.InvalidEscapeSequence = function(c) { var $x = ["InvalidEscapeSequence",4,c]; $x.__enum__ = haxeparser_LexerErrorMsg; return $x; };
+haxeparser_LexerErrorMsg.UnknownEscapeSequence = function(c) { var $x = ["UnknownEscapeSequence",5,c]; $x.__enum__ = haxeparser_LexerErrorMsg; return $x; };
 var haxeparser_LexerError = function(msg,pos) {
 	this.msg = msg;
 	this.pos = pos;
@@ -9676,14 +9557,26 @@ hxparse_LexEngine.prototype = {
 };
 var hxparse__$LexEngine_Pattern = $hxClasses["hxparse._LexEngine.Pattern"] = { __ename__ : ["hxparse","_LexEngine","Pattern"], __constructs__ : ["Empty","Match","Star","Plus","Next","Choice","Group"] };
 hxparse__$LexEngine_Pattern.Empty = ["Empty",0];
-hxparse__$LexEngine_Pattern.Empty.toString = $estr;
 hxparse__$LexEngine_Pattern.Empty.__enum__ = hxparse__$LexEngine_Pattern;
-hxparse__$LexEngine_Pattern.Match = function(c) { var $x = ["Match",1,c]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-hxparse__$LexEngine_Pattern.Star = function(p) { var $x = ["Star",2,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-hxparse__$LexEngine_Pattern.Plus = function(p) { var $x = ["Plus",3,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-hxparse__$LexEngine_Pattern.Next = function(p1,p2) { var $x = ["Next",4,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-hxparse__$LexEngine_Pattern.Choice = function(p1,p2) { var $x = ["Choice",5,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
-hxparse__$LexEngine_Pattern.Group = function(p) { var $x = ["Group",6,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; $x.toString = $estr; return $x; };
+hxparse__$LexEngine_Pattern.Match = function(c) { var $x = ["Match",1,c]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+hxparse__$LexEngine_Pattern.Star = function(p) { var $x = ["Star",2,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+hxparse__$LexEngine_Pattern.Plus = function(p) { var $x = ["Plus",3,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+hxparse__$LexEngine_Pattern.Next = function(p1,p2) { var $x = ["Next",4,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+hxparse__$LexEngine_Pattern.Choice = function(p1,p2) { var $x = ["Choice",5,p1,p2]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+hxparse__$LexEngine_Pattern.Group = function(p) { var $x = ["Group",6,p]; $x.__enum__ = hxparse__$LexEngine_Pattern; return $x; };
+var js__$Boot_HaxeError = function(val) {
+	Error.call(this);
+	this.val = val;
+	this.message = String(val);
+	if(Error.captureStackTrace) Error.captureStackTrace(this,js__$Boot_HaxeError);
+};
+$hxClasses["js._Boot.HaxeError"] = js__$Boot_HaxeError;
+js__$Boot_HaxeError.__name__ = ["js","_Boot","HaxeError"];
+js__$Boot_HaxeError.__super__ = Error;
+js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
+	val: null
+	,__class__: js__$Boot_HaxeError
+});
 var js_Boot = function() { };
 $hxClasses["js.Boot"] = js_Boot;
 js_Boot.__name__ = ["js","Boot"];
@@ -9839,7 +9732,7 @@ js_Boot.__isNativeObj = function(o) {
 	return js_Boot.__nativeClassName(o) != null;
 };
 js_Boot.__resolveNativeClass = function(name) {
-	return (Function("return typeof " + name + " != \"undefined\" ? " + name + " : null"))();
+	return $global[name];
 };
 var hxparse__$LexEngine_Node = function(id,pid) {
 	this.id = id;
@@ -10057,18 +9950,14 @@ haxeparser_HaxeLexer.prototype = $extend(hxparse_Lexer.prototype,{
 });
 var haxeparser_ParserErrorMsg = $hxClasses["haxeparser.ParserErrorMsg"] = { __ename__ : ["haxeparser","ParserErrorMsg"], __constructs__ : ["MissingSemicolon","MissingType","DuplicateDefault","UnclosedMacro","Custom"] };
 haxeparser_ParserErrorMsg.MissingSemicolon = ["MissingSemicolon",0];
-haxeparser_ParserErrorMsg.MissingSemicolon.toString = $estr;
 haxeparser_ParserErrorMsg.MissingSemicolon.__enum__ = haxeparser_ParserErrorMsg;
 haxeparser_ParserErrorMsg.MissingType = ["MissingType",1];
-haxeparser_ParserErrorMsg.MissingType.toString = $estr;
 haxeparser_ParserErrorMsg.MissingType.__enum__ = haxeparser_ParserErrorMsg;
 haxeparser_ParserErrorMsg.DuplicateDefault = ["DuplicateDefault",2];
-haxeparser_ParserErrorMsg.DuplicateDefault.toString = $estr;
 haxeparser_ParserErrorMsg.DuplicateDefault.__enum__ = haxeparser_ParserErrorMsg;
 haxeparser_ParserErrorMsg.UnclosedMacro = ["UnclosedMacro",3];
-haxeparser_ParserErrorMsg.UnclosedMacro.toString = $estr;
 haxeparser_ParserErrorMsg.UnclosedMacro.__enum__ = haxeparser_ParserErrorMsg;
-haxeparser_ParserErrorMsg.Custom = function(s) { var $x = ["Custom",4,s]; $x.__enum__ = haxeparser_ParserErrorMsg; $x.toString = $estr; return $x; };
+haxeparser_ParserErrorMsg.Custom = function(s) { var $x = ["Custom",4,s]; $x.__enum__ = haxeparser_ParserErrorMsg; return $x; };
 var haxeparser_ParserError = function(message,pos) {
 	this.msg = message;
 	this.pos = pos;
@@ -10082,11 +9971,10 @@ haxeparser_ParserError.prototype = {
 };
 var haxeparser_SmallType = $hxClasses["haxeparser.SmallType"] = { __ename__ : ["haxeparser","SmallType"], __constructs__ : ["SNull","SBool","SFloat","SString"] };
 haxeparser_SmallType.SNull = ["SNull",0];
-haxeparser_SmallType.SNull.toString = $estr;
 haxeparser_SmallType.SNull.__enum__ = haxeparser_SmallType;
-haxeparser_SmallType.SBool = function(b) { var $x = ["SBool",1,b]; $x.__enum__ = haxeparser_SmallType; $x.toString = $estr; return $x; };
-haxeparser_SmallType.SFloat = function(f) { var $x = ["SFloat",2,f]; $x.__enum__ = haxeparser_SmallType; $x.toString = $estr; return $x; };
-haxeparser_SmallType.SString = function(s) { var $x = ["SString",3,s]; $x.__enum__ = haxeparser_SmallType; $x.toString = $estr; return $x; };
+haxeparser_SmallType.SBool = function(b) { var $x = ["SBool",1,b]; $x.__enum__ = haxeparser_SmallType; return $x; };
+haxeparser_SmallType.SFloat = function(f) { var $x = ["SFloat",2,f]; $x.__enum__ = haxeparser_SmallType; return $x; };
+haxeparser_SmallType.SString = function(s) { var $x = ["SString",3,s]; $x.__enum__ = haxeparser_SmallType; return $x; };
 var hxparse_Parser_$hxparse_$LexerTokenSource_$haxeparser_$Token_$haxeparser_$Token = function(stream) {
 	this.stream = stream;
 };
@@ -16446,31 +16334,22 @@ haxeprinter_Printer.prototype = {
 };
 var haxeprinter_Style = $hxClasses["haxeprinter.Style"] = { __ename__ : ["haxeprinter","Style"], __constructs__ : ["SNormal","SDirective","SOperator","SKeyword","SIdent","SString","SNumber","SType","SModifier"] };
 haxeprinter_Style.SNormal = ["SNormal",0];
-haxeprinter_Style.SNormal.toString = $estr;
 haxeprinter_Style.SNormal.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SDirective = ["SDirective",1];
-haxeprinter_Style.SDirective.toString = $estr;
 haxeprinter_Style.SDirective.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SOperator = ["SOperator",2];
-haxeprinter_Style.SOperator.toString = $estr;
 haxeprinter_Style.SOperator.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SKeyword = ["SKeyword",3];
-haxeprinter_Style.SKeyword.toString = $estr;
 haxeprinter_Style.SKeyword.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SIdent = ["SIdent",4];
-haxeprinter_Style.SIdent.toString = $estr;
 haxeprinter_Style.SIdent.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SString = ["SString",5];
-haxeprinter_Style.SString.toString = $estr;
 haxeprinter_Style.SString.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SNumber = ["SNumber",6];
-haxeprinter_Style.SNumber.toString = $estr;
 haxeprinter_Style.SNumber.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SType = ["SType",7];
-haxeprinter_Style.SType.toString = $estr;
 haxeprinter_Style.SType.__enum__ = haxeprinter_Style;
 haxeprinter_Style.SModifier = ["SModifier",8];
-haxeprinter_Style.SModifier.toString = $estr;
 haxeprinter_Style.SModifier.__enum__ = haxeprinter_Style;
 var haxeproject_HaxeProject = function() {
 	var _g = this;
@@ -16639,7 +16518,7 @@ haxeproject_HaxeProject.prototype = {
 			var path = js_Node.require("path").join(pathToProject,"project.hide");
 			projectaccess_ProjectAccess.save((function(f,a1) {
 				return function() {
-					f(a1);
+					return f(a1);
 				};
 			})(openproject_OpenProject.openProject,path));
 		});
@@ -16718,19 +16597,6 @@ hxparse_UnexpectedChar.prototype = {
 	}
 	,__class__: hxparse_UnexpectedChar
 };
-var js__$Boot_HaxeError = function(val) {
-	Error.call(this);
-	this.val = val;
-	this.message = String(val);
-	if(Error.captureStackTrace) Error.captureStackTrace(this,js__$Boot_HaxeError);
-};
-$hxClasses["js._Boot.HaxeError"] = js__$Boot_HaxeError;
-js__$Boot_HaxeError.__name__ = ["js","_Boot","HaxeError"];
-js__$Boot_HaxeError.__super__ = Error;
-js__$Boot_HaxeError.prototype = $extend(Error.prototype,{
-	val: null
-	,__class__: js__$Boot_HaxeError
-});
 var js_Browser = function() { };
 $hxClasses["js.Browser"] = js_Browser;
 js_Browser.__name__ = ["js","Browser"];
@@ -17890,19 +17756,32 @@ $hxClasses["openproject.OpenProject"] = openproject_OpenProject;
 openproject_OpenProject.__name__ = ["openproject","OpenProject"];
 openproject_OpenProject.openProject = function(pathToProject,project) {
 	if(project == null) project = false;
+	var success = true;
 	if(pathToProject == null) {
 		if(project) core_FileDialog.openFile(openproject_OpenProject.parseProject,".hide,.lime,.xml,.hxml"); else core_FileDialog.openFile(openproject_OpenProject.parseProject);
-	} else openproject_OpenProject.checkIfFileExists(pathToProject);
+	} else {
+		var isDir = js_Node.require("fs").lstatSync(pathToProject).isDirectory();
+		if(isDir) {
+			var directoryContents = js_Node.require("fs").readdirSync(pathToProject);
+			var hasProjectFile = HxOverrides.indexOf(directoryContents,"project.hide",0) != -1;
+			success = hasProjectFile;
+			if(hasProjectFile) {
+				var pathToProjectFile = js_Node.require("path").join(pathToProject,"project.hide");
+				openproject_OpenProject.openProject(pathToProject);
+			}
+		} else openproject_OpenProject.checkIfFileExists(pathToProject);
+	}
+	return success;
 };
 openproject_OpenProject.checkIfFileExists = function(path) {
 	js_Node.require("fs").exists(path,function(exists) {
-		if(exists) openproject_OpenProject.parseProject(path); else haxe_Log.trace("previously opened project: " + path + " was not found",{ fileName : "OpenProject.hx", lineNumber : 61, className : "openproject.OpenProject", methodName : "checkIfFileExists"});
+		if(exists) openproject_OpenProject.parseProject(path); else haxe_Log.trace("previously opened project: " + path + " was not found",{ fileName : "OpenProject.hx", lineNumber : 84, className : "openproject.OpenProject", methodName : "checkIfFileExists"});
 	});
 };
 openproject_OpenProject.parseProject = function(path) {
 	flambeproject_FlambeHeaderMenu.get().destroy();
 	tools_gradle_GradleTool.get().destroy();
-	haxe_Log.trace("open: " + path,{ fileName : "OpenProject.hx", lineNumber : 71, className : "openproject.OpenProject", methodName : "parseProject"});
+	haxe_Log.trace("open: " + path,{ fileName : "OpenProject.hx", lineNumber : 94, className : "openproject.OpenProject", methodName : "parseProject"});
 	var filename = js_Node.require("path").basename(path);
 	var outlinePanel = core_OutlinePanel.get();
 	var tabManagerInstance = tabmanager_TabManager.get();
@@ -17951,7 +17830,7 @@ openproject_OpenProject.parseProject = function(path) {
 											js_Node.require("fs").exists(fullPathToActiveFile,(function() {
 												return function(exists1) {
 													if(exists1) {
-														haxe_Log.trace(fullPathToActiveFile,{ fileName : "OpenProject.hx", lineNumber : 149, className : "openproject.OpenProject", methodName : "parseProject"});
+														haxe_Log.trace(fullPathToActiveFile,{ fileName : "OpenProject.hx", lineNumber : 172, className : "openproject.OpenProject", methodName : "parseProject"});
 														tabManagerInstance.selectDoc(fullPathToActiveFile);
 														cm_Editor.editor.focus();
 													}
@@ -18015,7 +17894,7 @@ openproject_OpenProject.parseProject = function(path) {
 					var fast = new haxe_xml_Fast(xml);
 					if(fast.hasNode.resolve("project")) openproject_OpenFL.open(path); else alertify.error("This is not an OpenFL project. OpenFL project xml should have 'project' node");
 				} else {
-					haxe_Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 262, className : "openproject.OpenProject", methodName : "parseProject"});
+					haxe_Log.trace(error1,{ fileName : "OpenProject.hx", lineNumber : 285, className : "openproject.OpenProject", methodName : "parseProject"});
 					alertify.error("Can't open file: " + path + "\n" + error1);
 				}
 			});
@@ -18055,8 +17934,8 @@ openproject_OpenProject.parseProjectData = function(data) {
 		project = tjson_TJSON.parse(data);
 	} catch( unknown ) {
 		if (unknown instanceof js__$Boot_HaxeError) unknown = unknown.val;
-		haxe_Log.trace(unknown,{ fileName : "OpenProject.hx", lineNumber : 328, className : "openproject.OpenProject", methodName : "parseProjectData"});
-		haxe_Log.trace(data,{ fileName : "OpenProject.hx", lineNumber : 329, className : "openproject.OpenProject", methodName : "parseProjectData"});
+		haxe_Log.trace(unknown,{ fileName : "OpenProject.hx", lineNumber : 351, className : "openproject.OpenProject", methodName : "parseProjectData"});
+		haxe_Log.trace(data,{ fileName : "OpenProject.hx", lineNumber : 352, className : "openproject.OpenProject", methodName : "parseProjectData"});
 		project = js_Node.parse(data);
 	}
 	return project;
@@ -21807,6 +21686,6 @@ projectaccess_ProjectAccess.currentProject = new projectaccess_Project();
 tjson_TJSON.OBJECT_REFERENCE_PREFIX = "@~obRef#";
 watchers_LocaleWatcher.listenerAdded = false;
 Main.main();
-})(typeof console != "undefined" ? console : {log:function(){}});
+})(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);
 
 //# sourceMappingURL=HIDE.js.map

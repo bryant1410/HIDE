@@ -30,14 +30,12 @@ class DragAndDrop
 				var path:String = e.dataTransfer.files[i].path;
 				js.Node.fs.stat(path, function (err, stats:js.Node.NodeStat)
 				{
-					if (stats.isDirectory())
+					var success = OpenProject.openProject(path);
+					
+					if (!success)
 					{
 						var filetreeInstance = FileTree.get();
 						filetreeInstance.load(js.Node.path.basename(path), path);
-					}
-					else 
-					{
-						OpenProject.openProject(path);
 					}
 				}
 				);

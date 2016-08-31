@@ -1,4 +1,5 @@
 package core;
+import js.html.KeyboardEvent;
 import parser.ClassParser.FileData;
 
 import js.html.DivElement;
@@ -87,7 +88,7 @@ class QuickOpen
     	registerListeners();
     }
 
-	function onKeyUp(e:js.html.KeyboardEvent)
+	function onKeyUp(e:KeyboardEvent)
 	{
         switch (e.keyCode)
         {
@@ -102,7 +103,7 @@ class QuickOpen
 	{
         activeItemIndex = 0;
         
-        core.Helper.debounce("openfilecompletion", function ()
+        Helper.debounce("openfilecompletion", function ()
                           	{
 								var value = StringTools.trim(input.value);
 								
@@ -119,7 +120,7 @@ class QuickOpen
                             }, 100);
     }
     
-    function onKeyDown(e:js.html.KeyboardEvent)
+    function onKeyDown(e:KeyboardEvent)
     {
         switch (e.keyCode)
         {
@@ -194,7 +195,11 @@ class QuickOpen
             //Enter
             case 13:
                 e.preventDefault();
-                listGroup.getItems()[activeItemIndex].click();
+				
+				if (activeItemIndex < currentList.length)
+				{
+					listGroup.getItems()[activeItemIndex].click();
+				}
         }
     }
     

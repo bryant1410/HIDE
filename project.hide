@@ -12,17 +12,9 @@
 
     ]
     ,"files" : [
-         {
-             "path" : "src\\Main.hx"
-            ,"useTabs" : true
-            ,"indentSize" : 4
-            ,"foldedRegions" : [
 
-            ]
-            ,"activeLine" : 66
-        }
     ]
-    ,"activeFile" : "src\\Main.hx"
+    ,"activeFile" : "src\\about\\Presentation.hx"
     ,"openFLTarget" : null
     ,"openFLBuildMode" : "Debug"
     ,"runActionType" : 1
