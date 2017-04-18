@@ -5,14 +5,14 @@ HIDE - cross platform IDE for Haxe programming language
 
 Thanks to a group of [crowd funders at IndieGoGo](http://www.indiegogo.com/projects/cactus-ide/), HIDE is open source, licensed under the terms of the MIT License.
 
-###History
+### History
 Project was actively developed for almost a year by @as3boyan. (Summer 2013 - Summer 2014).
 It's pretty huge project, and there is not much IDEs made purely on web technologies.
 @misterpah gave this project great starting boost with making starting menu and choosing Bootstrap framework as main framework for GUI. After that it was maintained mostly by @as3boyan. @misterpah decided to develop it's own IDE for Haxe, named Haxe Studio.
 
 @NickHolder did amazing job on outline panel(types, scope of functions and variables, sorting).
 
-###Architecture controversy
+### Architecture controversy
 At start @as3boyan and @misterpah worked on one branch(master).
 @as3boyan and @misterpah argued a lot on plugin system implementation(which was requirement from Haxe Foundation).
 @as3boyan and @misterpah implemented their own plugin systems.
@@ -22,7 +22,7 @@ Anyway, they both worked on different branches.
 >Most IDEs integrate basic functionality to the core, for performance and stability reasons. And having lots of plugins, makes it harder to manage dependencies.
 
 
-###Project funding
+### Project funding
 $2,740USD(including 7% fees) were equally split between two developers: @as3boyan and @misterpah.
 
 Google Plus:
@@ -33,7 +33,7 @@ Google Group:
 
 There, you can discuss anything related to HIDE; including features requests, bugs, or just give feedback about HIDE.
 
-###How to run:
+### How to run:
 
 ``` haxe
 haxelib install HIDE
@@ -92,7 +92,7 @@ npm install
 ##### Contributing
 I am always thrilled to receive pull requests, and I do my best to process them as fast as possible. Not sure if that typo is worth a pull request? Do it! I will appreciate it.
 
-###License:
+### License:
 HIDE is licensed under the terms of the MIT License.
 CodeMirror is licensed under the terms of the MIT License.
 JQuery is licensed under the terms of the MIT License.

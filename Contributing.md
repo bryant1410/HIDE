@@ -1,4 +1,4 @@
-###How to contribute:
+### How to contribute:
 
 1. Make sure you have a [GitHub Account](https://github.com/signup/free)
 2. Fork [HIDE](https://github.com/misterpah/hide)
@@ -9,7 +9,7 @@
 
 Contributions are welcome.
 
-###Getting help
+### Getting help
 
 Community discussion, questions, and informal bug reporting is done on the
 [HIDE Google group](https://groups.google.com/group/haxeide).
@@ -19,9 +19,9 @@ Community discussion, questions, and informal bug reporting is done on the
 The preferred way to report bugs is to use the
 [GitHub issue tracker](https://github.com/misterpah/hide/issues).
 
-###Developer's Guide
+### Developer's Guide
 
-####How HIDE works
+#### How HIDE works
 
 A few words on inner structure of HIDE.
 
@@ -37,13 +37,13 @@ to html page. Which will cause script loading and execution.
 
 NOTE: HIDE tracks changes in plugins and recompiles plugin if it's source was changed.
 
-####Plugin Structure:
+#### Plugin Structure:
 
 Required files:
 1. plugin.hxml
 2. bin/Main.js
 
-####How to develop a plugin
+#### How to develop a plugin
 
 Create a copy of "plugins/boyan/samples/helloworld" folder.
 And rename it to plugin name, for example "plugins/john/samples/test".

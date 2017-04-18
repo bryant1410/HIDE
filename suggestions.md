@@ -136,7 +136,7 @@ get list of haxelibs(using haxelib list) and provide autocompletion for "-lib |"
 * Capture page button
 * Check if new version of HIDE is available
 
-###Important
+### Important
 * When user create/remove folder - update file tree
 * OpenFL projects should be created with -debug flag
 * Changing run command for OpenFL projects doesn't affect build command
